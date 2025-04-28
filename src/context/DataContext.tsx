@@ -49,6 +49,7 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const registrationsContext = useRegistrationsContext();
   const paymentsContext = usePaymentsContext();
 
+  // Utility function to get all registrations with their details
   const getAllRegistrationsWithDetails = () => {
     return registrationsContext.registrations.map(registration => {
       const product = productsContext.products.find(p => p.id === registration.productId);
@@ -68,10 +69,12 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }).filter(r => r.product && r.participant && r.season);
   };
 
+  // Calculate the progress of meetings for a product
   const calculateMeetingProgress = (product: Product) => {
     return calculateCurrentMeeting(product);
   };
 
+  // Get daily activities for a specific date
   const getDailyActivities = (date: string): DailyActivity[] => {
     // Filter products that are active on the selected date
     const activeProducts = productsContext.products.filter(product => {

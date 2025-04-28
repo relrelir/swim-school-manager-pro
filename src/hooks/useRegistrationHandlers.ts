@@ -29,7 +29,7 @@ export const useRegistrationHandlers = (
     e.preventDefault();
     
     // If we don't have a product, return
-    if (!productId) return;
+    if (!productId) return [];
     
     // Check if receipt number is provided
     if (!registrationData.receiptNumber) {
@@ -38,7 +38,7 @@ export const useRegistrationHandlers = (
         description: "מספר קבלה הוא שדה חובה",
         variant: "destructive",
       });
-      return;
+      return [];
     }
     
     // Adding new participant
@@ -88,16 +88,18 @@ export const useRegistrationHandlers = (
     if (productId) {
       return getRegistrationsByProduct(productId);
     }
+    
+    return [];
   };
 
   // Handle deleting a registration
-  const handleDeleteRegistration = (
+  const handleDeleteRegistration = async (
     registrationId: string,
     registrations: Registration[],
     productId?: string
   ) => {
     const registration = registrations.find(r => r.id === registrationId);
-    if (!registration) return;
+    if (!registration) return [];
     
     const registrationPayments = getPaymentsByRegistration(registration.id);
     
@@ -108,17 +110,19 @@ export const useRegistrationHandlers = (
         description: "לא ניתן למחוק רישום שבוצע עבורו תשלום",
         variant: "destructive",
       });
-      return;
+      return [];
     }
     
     if (window.confirm('האם אתה בטוח שברצונך למחוק רישום זה?')) {
-      deleteRegistration(registrationId);
+      await deleteRegistration(registrationId);
       
       // Refresh registrations list
       if (productId) {
         return getRegistrationsByProduct(productId);
       }
     }
+    
+    return [];
   };
 
   // Handle updating health approval

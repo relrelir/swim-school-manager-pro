@@ -90,19 +90,19 @@ export const useParticipants = () => {
   }, [productId, products, getRegistrationsByProduct]);
 
   // Wrap handlers with local state
-  const handleAddParticipant = (e: React.FormEvent) => {
-    return baseHandleAddParticipant(
+  const handleAddParticipant = async (e: React.FormEvent) => {
+    const result = await baseHandleAddParticipant(
       e, 
       productId,
       newParticipant,
       registrationData,
       resetForm,
       setIsAddParticipantOpen
-    ).then(result => {
-      if (result) {
-        setRegistrations(result);
-      }
-    });
+    );
+    
+    if (result) {
+      setRegistrations(result);
+    }
   };
 
   const handleAddPayment = (e: React.FormEvent) => {
@@ -131,16 +131,16 @@ export const useParticipants = () => {
     }
   };
 
-  const handleDeleteRegistration = (registrationId: string) => {
-    baseHandleDeleteRegistration(
+  const handleDeleteRegistration = async (registrationId: string) => {
+    const result = await baseHandleDeleteRegistration(
       registrationId,
       registrations,
       productId
-    ).then(result => {
-      if (result) {
-        setRegistrations(result);
-      }
-    });
+    );
+    
+    if (result) {
+      setRegistrations(result);
+    }
   };
 
   // Calculate totals
