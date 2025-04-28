@@ -68,7 +68,7 @@ const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({ filters, setFilt
             <SelectContent>
               <SelectItem value="all">כל העונות</SelectItem>
               {seasons.map(season => (
-                <SelectItem key={season.id} value={season.id}>
+                <SelectItem key={season.id} value={season.id || 'no-id'}>
                   {season.name}
                 </SelectItem>
               ))}
@@ -87,7 +87,7 @@ const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({ filters, setFilt
             <SelectContent>
               <SelectItem value="all">כל המוצרים</SelectItem>
               {products.map(product => (
-                <SelectItem key={product.id} value={product.id}>
+                <SelectItem key={product.id} value={product.id || 'no-id'}>
                   {product.name}
                 </SelectItem>
               ))}

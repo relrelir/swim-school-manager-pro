@@ -83,6 +83,7 @@ export type Database = {
           id: string
           instructor: string | null
           maxparticipants: number
+          meetingscount: number | null
           name: string
           price: number
           seasonid: string
@@ -97,6 +98,7 @@ export type Database = {
           id?: string
           instructor?: string | null
           maxparticipants?: number
+          meetingscount?: number | null
           name: string
           price: number
           seasonid: string
@@ -111,6 +113,7 @@ export type Database = {
           id?: string
           instructor?: string | null
           maxparticipants?: number
+          meetingscount?: number | null
           name?: string
           price?: number
           seasonid?: string
