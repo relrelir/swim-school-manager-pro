@@ -14,9 +14,9 @@ const ReportPage: React.FC = () => {
   const [filters, setFilters] = useState({
     search: '',
     receiptNumber: '',
-    seasonId: '',
-    productId: '',
-    paymentStatus: '',
+    seasonId: 'all',  // Changed from empty string to 'all'
+    productId: 'all',  // Changed from empty string to 'all'
+    paymentStatus: 'all',  // Changed from empty string to 'all'
   });
   
   const allRegistrations = getAllRegistrationsWithDetails();
@@ -37,17 +37,17 @@ const ReportPage: React.FC = () => {
     }
     
     // Season filter
-    if (filters.seasonId && registration.season.id !== filters.seasonId) {
+    if (filters.seasonId && filters.seasonId !== 'all' && registration.season.id !== filters.seasonId) {
       return false;
     }
     
     // Product filter
-    if (filters.productId && registration.product.id !== filters.productId) {
+    if (filters.productId && filters.productId !== 'all' && registration.product.id !== filters.productId) {
       return false;
     }
     
     // Payment status filter
-    if (filters.paymentStatus && registration.paymentStatus !== filters.paymentStatus) {
+    if (filters.paymentStatus && filters.paymentStatus !== 'all' && registration.paymentStatus !== filters.paymentStatus) {
       return false;
     }
     
@@ -133,7 +133,7 @@ const ReportPage: React.FC = () => {
           <div>
             <Select
               value={filters.seasonId}
-              onValueChange={(value) => setFilters({ ...filters, seasonId: value, productId: '' })}
+              onValueChange={(value) => setFilters({ ...filters, seasonId: value, productId: 'all' })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="כל העונות" />
