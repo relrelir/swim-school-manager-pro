@@ -13,12 +13,35 @@ import { CalendarIcon } from 'lucide-react';
 import { exportDailyActivitiesToCSV } from '@/utils/exportUtils';
 
 const DailyActivityPage: React.FC = () => {
-  const { getDailyActivities } = useData();
+  const { getDailyActivities, calculateMeetingProgress } = useData();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // Convert the date to a string format for the getDailyActivities function
   const dateString = format(selectedDate, 'yyyy-MM-dd');
   const activities = getDailyActivities(dateString);
+
+  // Calculate the current meeting number based on the selected date
+  const calculateMeetingNumberForDate = (product: any, selectedDate: Date) => {
+    const startDate = new Date(product.startDate);
+    const today = new Date(selectedDate);
+    
+    if (today < startDate) return { current: 0, total: product.meetingsCount || 10 };
+    
+    const daysInWeekForProduct = product.daysOfWeek?.length || 1;
+    const daysDiff = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Calculate how many meeting days based on days difference and meeting frequency
+    const weeksPassed = Math.floor(daysDiff / 7);
+    const meetingsPassed = (weeksPassed * daysInWeekForProduct) + 1; // +1 for the first meeting
+    
+    // Make sure we don't exceed total meetings
+    const currentMeeting = Math.min(meetingsPassed, product.meetingsCount || 10);
+    
+    return {
+      current: currentMeeting,
+      total: product.meetingsCount || 10
+    };
+  };
 
   const handleExport = () => {
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
@@ -93,19 +116,22 @@ const DailyActivityPage: React.FC = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {activities.map((activity, idx) => (
-              <TableRow key={idx}>
-                <TableCell className="font-medium">{activity.product.name}</TableCell>
-                <TableCell>{activity.startTime || 'לא מוגדר'}</TableCell>
-                <TableCell>
-                  {activity.currentMeetingNumber && activity.totalMeetings 
-                    ? `${activity.currentMeetingNumber}/${activity.totalMeetings}`
-                    : 'לא מוגדר'}
-                </TableCell>
-                <TableCell>{activity.numParticipants}</TableCell>
-                <TableCell>{activity.product.type}</TableCell>
-              </TableRow>
-            ))}
+            {activities.map((activity, idx) => {
+              // Calculate meeting number based on the selected date
+              const meetingInfo = calculateMeetingNumberForDate(activity.product, selectedDate);
+              
+              return (
+                <TableRow key={idx}>
+                  <TableCell className="font-medium">{activity.product.name}</TableCell>
+                  <TableCell>{activity.startTime || 'לא מוגדר'}</TableCell>
+                  <TableCell>
+                    {`${meetingInfo.current}/${meetingInfo.total}`}
+                  </TableCell>
+                  <TableCell>{activity.numParticipants}</TableCell>
+                  <TableCell>{activity.product.type}</TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       ) : (

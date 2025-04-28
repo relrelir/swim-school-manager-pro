@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,15 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
   const [startTime, setStartTime] = useState(product?.startTime || '');
   const [daysOfWeek, setDaysOfWeek] = useState<string[]>(product?.daysOfWeek || []);
   const [meetingsCount, setMeetingsCount] = useState<number>(product?.meetingsCount || 10);
+
+  // Update form when product changes
+  useEffect(() => {
+    if (product) {
+      setStartTime(product.startTime || '');
+      setDaysOfWeek(product.daysOfWeek || []);
+      setMeetingsCount(product.meetingsCount || 10);
+    }
+  }, [product]);
 
   const handleDayToggle = (day: string) => {
     setDaysOfWeek(current => 

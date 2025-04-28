@@ -78,6 +78,12 @@ export const useRegistrationHandlers = (
         
         await addPayment(initialPayment);
       }
+      
+      // Add success toast notification
+      toast({
+        title: "משתתף נרשם בהצלחה",
+        description: `${participant.firstName} ${participant.lastName} נרשם בהצלחה`,
+      });
     }
     
     // Reset form and close dialog
