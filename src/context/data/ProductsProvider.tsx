@@ -38,10 +38,12 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       // Map database fields to our model (camelCase)
       const mappedProducts: Product[] = data.map(item => {
-        return mapProductFromDB({
+        // Add meetingsCount with default value if not present in the database
+        const dataWithMeetings = {
           ...item,
           meetingscount: item.meetingscount || 10
-        });
+        };
+        return mapProductFromDB(dataWithMeetings);
       });
 
       setProducts(mappedProducts);
@@ -72,10 +74,12 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
       // Map the returned data to our model
-      const newProduct: Product = mapProductFromDB({
+      // Add meetingsCount with default value if not present in the database
+      const dataWithMeetings = {
         ...data,
         meetingscount: data.meetingscount || 10
-      });
+      };
+      const newProduct: Product = mapProductFromDB(dataWithMeetings);
 
       // Update state
       setProducts(prevProducts => [...prevProducts, newProduct]);

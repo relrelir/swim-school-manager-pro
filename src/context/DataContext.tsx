@@ -11,7 +11,7 @@ import { Product, DailyActivity } from '@/types';
 import { format, isWithinInterval } from 'date-fns';
 
 // Create the context
-const DataContext = createContext<CombinedDataContextType | null>(null);
+export const DataContext = createContext<CombinedDataContextType | null>(null);
 
 // Custom hook to use the data context
 export const useData = () => {

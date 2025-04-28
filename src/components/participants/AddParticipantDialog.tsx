@@ -16,6 +16,7 @@ interface AddParticipantDialogProps {
     requiredAmount: number;
     paidAmount: number;
     receiptNumber: string;
+    discountApproved: boolean;
   };
   setRegistrationData: React.Dispatch<React.SetStateAction<{
     requiredAmount: number;
@@ -121,7 +122,8 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                     value={registrationData.paidAmount}
                     onChange={(e) => setRegistrationData({ 
                       ...registrationData, 
-                      paidAmount: Number(e.target.value) 
+                      paidAmount: Number(e.target.value),
+                      discountApproved: registrationData.discountApproved
                     })}
                     required
                     min={0}
@@ -135,7 +137,11 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                 <Input
                   id="receipt-number"
                   value={registrationData.receiptNumber}
-                  onChange={(e) => setRegistrationData({ ...registrationData, receiptNumber: e.target.value })}
+                  onChange={(e) => setRegistrationData({ 
+                    ...registrationData, 
+                    receiptNumber: e.target.value,
+                    discountApproved: registrationData.discountApproved
+                  })}
                   required
                 />
               </div>
