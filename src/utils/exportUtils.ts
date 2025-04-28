@@ -1,10 +1,13 @@
 
-import { RegistrationWithDetails } from '@/types';
+import { RegistrationWithDetails, PaymentDetails } from '@/types';
 
-// Function to convert data to CSV
+// Function to convert data to CSV with UTF-8 BOM support for Hebrew
 export const convertToCSV = (data: any[], columns: { key: string, header: string }[]) => {
+  // Add UTF-8 BOM for proper Hebrew support
+  const bom = '\uFEFF';
+  
   // Create header row
-  const headerRow = columns.map(col => col.header).join(',');
+  const headerRow = columns.map(col => `"${col.header}"`).join(',');
   
   // Create data rows
   const dataRows = data.map(item => {
@@ -18,15 +21,16 @@ export const convertToCSV = (data: any[], columns: { key: string, header: string
       }
       
       // Format value (handle strings with commas)
-      if (typeof value === 'string' && value.includes(',')) {
-        return `"${value}"`;
+      if (typeof value === 'string') {
+        // Always wrap in quotes for consistent Hebrew display
+        return `"${value.replace(/"/g, '""')}"`;
       }
-      return value !== undefined && value !== null ? value : '';
+      return value !== undefined && value !== null ? `"${value}"` : '""';
     }).join(',');
   }).join('\n');
   
-  // Combine header and data
-  return `${headerRow}\n${dataRows}`;
+  // Combine BOM, header and data
+  return `${bom}${headerRow}\n${dataRows}`;
 };
 
 // Function to create and download a CSV file
@@ -49,6 +53,20 @@ export const downloadCSV = (data: any[], columns: { key: string, header: string 
 
 // Function to export all registrations to CSV
 export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[], filename: string = 'registrations.csv') => {
+  // Process registration data to combine payment information
+  const processedRegistrations = registrations.map(reg => {
+    // If reg.payments exists, process them
+    const payments = reg.payments || [];
+    const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    const receiptNumbers = payments.map(payment => payment.receiptNumber).join(', ');
+    
+    return {
+      ...reg,
+      paidAmount: totalPaid,
+      receiptNumbers: receiptNumbers
+    };
+  });
+  
   const columns = [
     { key: 'participant.firstName', header: 'שם פרטי' },
     { key: 'participant.lastName', header: 'שם משפחה' },
@@ -59,10 +77,24 @@ export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[
     { key: 'product.type', header: 'סוג מוצר' },
     { key: 'requiredAmount', header: 'סכום לתשלום' },
     { key: 'paidAmount', header: 'סכום ששולם' },
-    { key: 'receiptNumber', header: 'מספר קבלה' },
+    { key: 'receiptNumbers', header: 'מספרי קבלות' },
     { key: 'paymentStatus', header: 'סטטוס תשלום' },
     { key: 'discountApproved', header: 'הנחה אושרה' },
   ];
   
-  downloadCSV(registrations, columns, filename);
+  downloadCSV(processedRegistrations, columns, filename);
+};
+
+// Function to export daily activities to CSV
+export const exportDailyActivitiesToCSV = (activities: any[], filename: string = 'daily-activities.csv') => {
+  const columns = [
+    { key: 'product.name', header: 'שם פעילות' },
+    { key: 'product.type', header: 'סוג פעילות' },
+    { key: 'startTime', header: 'שעת התחלה' },
+    { key: 'dayOfWeek', header: 'יום בשבוע' },
+    { key: 'numParticipants', header: 'מספר משתתפים' },
+    { key: 'location', header: 'מיקום' },
+  ];
+  
+  downloadCSV(activities, columns, filename);
 };

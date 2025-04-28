@@ -9,6 +9,7 @@ import SeasonPage from "./pages/SeasonPage";
 import ProductsPage from "./pages/ProductsPage";
 import ParticipantsPage from "./pages/ParticipantsPage";
 import ReportPage from "./pages/ReportPage";
+import DailyActivityPage from "./pages/DailyActivityPage";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./context/AuthContext";
 import { DataProvider } from "./context/DataContext";
@@ -29,6 +30,7 @@ const App = () => (
                 <Route path="/season/:seasonId/products" element={<ProductsPage />} />
                 <Route path="/product/:productId/participants" element={<ParticipantsPage />} />
                 <Route path="/report" element={<ReportPage />} />
+                <Route path="/daily-activity" element={<DailyActivityPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Layout>

@@ -4,12 +4,14 @@ import { SeasonsProvider } from './SeasonsProvider';
 import { ProductsProvider } from './ProductsProvider';
 import { ParticipantsProvider } from './ParticipantsProvider';
 import { RegistrationsProvider } from './RegistrationsProvider';
+import { PaymentsProvider } from './PaymentsProvider';
 import { CombinedDataProvider } from './CombinedDataProvider';
 import { DataContext } from '../DataContext';
 import { useRegistrationsContext } from './RegistrationsProvider';
 import { useSeasonsContext } from './SeasonsProvider';
 import { useProductsContext } from './ProductsProvider';
 import { useParticipantsContext } from './ParticipantsProvider';
+import { usePaymentsContext } from './PaymentsProvider';
 import { useCombinedDataContext } from './CombinedDataProvider';
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -19,11 +21,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         {(registrationsContext) => (
           <ProductsProvider registrations={registrationsContext.registrations}>
             <ParticipantsProvider registrations={registrationsContext.registrations}>
-              <CombinedDataProvider>
-                <DataProviderCombiner>
-                  {children}
-                </DataProviderCombiner>
-              </CombinedDataProvider>
+              <PaymentsProvider>
+                <CombinedDataProvider>
+                  <DataProviderCombiner>
+                    {children}
+                  </DataProviderCombiner>
+                </CombinedDataProvider>
+              </PaymentsProvider>
             </ParticipantsProvider>
           </ProductsProvider>
         )}
@@ -38,6 +42,7 @@ const DataProviderCombiner: React.FC<{ children: React.ReactNode }> = ({ childre
   const productsContext = useProductsContext();
   const participantsContext = useParticipantsContext();
   const registrationsContext = useRegistrationsContext();
+  const paymentsContext = usePaymentsContext();
   const combinedDataContext = useCombinedDataContext();
 
   const combinedContext = {
@@ -45,6 +50,7 @@ const DataProviderCombiner: React.FC<{ children: React.ReactNode }> = ({ childre
     ...productsContext,
     ...participantsContext,
     ...registrationsContext,
+    ...paymentsContext,
     ...combinedDataContext,
   };
 

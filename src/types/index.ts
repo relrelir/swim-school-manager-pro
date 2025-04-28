@@ -1,4 +1,3 @@
-
 export interface Season {
   id: string;
   name: string;
@@ -18,6 +17,9 @@ export interface Product {
   maxParticipants: number;
   notes: string;
   seasonId: string;
+  meetingsCount?: number;
+  daysOfWeek?: string[];
+  startTime?: string;
 }
 
 export interface Participant {
@@ -42,15 +44,24 @@ export interface Registration {
 
 export type PaymentStatus = 'מלא' | 'חלקי' | 'יתר';
 
-export interface RegistrationWithDetails {
+export interface Payment {
   id: string;
+  registrationId: string;
+  amount: number;
+  receiptNumber: string;
+  paymentDate: string;
+}
+
+export interface RegistrationWithDetails extends Registration {
   participant: Participant;
   product: Product;
   season: Season;
-  requiredAmount: number;
-  paidAmount: number;
-  receiptNumber: string;
-  discountApproved: boolean;
   paymentStatus: PaymentStatus;
-  registrationDate: string;
+  payments?: Payment[];
+}
+
+export interface PaymentDetails {
+  amount: number;
+  receiptNumber: string;
+  paymentDate: string;
 }

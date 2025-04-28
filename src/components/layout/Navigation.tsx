@@ -1,35 +1,49 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { NavLink } from 'react-router-dom';
+import { Calendar, FileText } from 'lucide-react';
 
 const Navigation: React.FC = () => {
-  const location = useLocation();
+  const linkClass = "flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted transition-colors";
+  const activeLinkClass = "bg-muted";
   
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
   return (
-    <nav className="w-64 bg-white border-l p-4 shadow-sm">
-      <div className="space-y-2">
-        <Link to="/">
-          <Button
-            variant={isActive('/') ? 'default' : 'ghost'}
-            className="w-full justify-start"
+    <nav className="flex justify-center p-4 border-b">
+      <ul className="flex space-x-4 space-x-reverse">
+        <li>
+          <NavLink 
+            to="/" 
+            className={({ isActive }) => 
+              `${linkClass} ${isActive ? activeLinkClass : ''}`
+            }
+            end
           >
             עונות
-          </Button>
-        </Link>
-        <Link to="/report">
-          <Button
-            variant={isActive('/report') ? 'default' : 'ghost'}
-            className="w-full justify-start"
+          </NavLink>
+        </li>
+        <li>
+          <NavLink 
+            to="/report" 
+            className={({ isActive }) => 
+              `${linkClass} ${isActive ? activeLinkClass : ''}`
+            }
           >
-            דו"ח מאוחד
-          </Button>
-        </Link>
-      </div>
+            <FileText size={18} />
+            <span>דו"ח רישומים</span>
+          </NavLink>
+        </li>
+        <li>
+          <NavLink 
+            to="/daily-activity" 
+            className={({ isActive }) => 
+              `${linkClass} ${isActive ? activeLinkClass : ''}`
+            }
+          >
+            <Calendar size={18} />
+            <span>דו"ח פעילות יומי</span>
+          </NavLink>
+        </li>
+      </ul>
     </nav>
   );
 };

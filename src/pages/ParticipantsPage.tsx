@@ -9,7 +9,8 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useData } from '@/context/DataContext';
-import { Participant, Product, Registration, PaymentStatus } from '@/types';
+import { Participant, Product, Registration, PaymentStatus, Payment } from '@/types';
+import { toast } from "@/components/ui/use-toast";
 
 const ParticipantsPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -22,13 +23,16 @@ const ParticipantsPage: React.FC = () => {
     addRegistration, 
     updateRegistration,
     deleteRegistration,
-    calculatePaymentStatus
+    calculatePaymentStatus,
+    addPayment,
+    getPaymentsByRegistration,
+    payments
   } = useData();
   
   const [product, setProduct] = useState<Product | undefined>();
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [isAddParticipantOpen, setIsAddParticipantOpen] = useState(false);
-  const [isEditRegistrationOpen, setIsEditRegistrationOpen] = useState(false);
+  const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
   const [newParticipant, setNewParticipant] = useState<Omit<Participant, 'id'>>({
     firstName: '',
     lastName: '',
@@ -44,6 +48,12 @@ const ParticipantsPage: React.FC = () => {
     paidAmount: 0,
     receiptNumber: '',
     discountApproved: false,
+  });
+  
+  const [newPayment, setNewPayment] = useState({
+    amount: 0,
+    receiptNumber: '',
+    paymentDate: new Date().toISOString().substring(0, 10),
   });
 
   // Load product and registrations data
@@ -72,6 +82,16 @@ const ParticipantsPage: React.FC = () => {
     // If we don't have a product, return
     if (!product) return;
     
+    // Check if receipt number is provided
+    if (!registrationData.receiptNumber) {
+      toast({
+        title: "שגיאה",
+        description: "מספר קבלה הוא שדה חובה",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (selectedParticipant) {
       // Using existing participant
       const newRegistration: Omit<Registration, 'id'> = {
@@ -85,6 +105,24 @@ const ParticipantsPage: React.FC = () => {
       };
       
       addRegistration(newRegistration);
+      
+      // Add initial payment if amount is greater than 0
+      if (registrationData.paidAmount > 0) {
+        // Get the newly added registration (last one)
+        const addedRegistrations = getRegistrationsByProduct(productId || '');
+        const latestRegistration = addedRegistrations[addedRegistrations.length - 1];
+        
+        if (latestRegistration) {
+          const initialPayment: Omit<Payment, 'id'> = {
+            registrationId: latestRegistration.id,
+            amount: registrationData.paidAmount,
+            receiptNumber: registrationData.receiptNumber,
+            paymentDate: new Date().toISOString(),
+          };
+          
+          addPayment(initialPayment);
+        }
+      }
     } else {
       // Adding new participant
       const participant: Omit<Participant, 'id'> = {
@@ -114,6 +152,24 @@ const ParticipantsPage: React.FC = () => {
         };
         
         addRegistration(newRegistration);
+        
+        // Add initial payment if amount is greater than 0
+        if (registrationData.paidAmount > 0) {
+          // Get the newly added registration (last one)
+          const addedRegistrations = getRegistrationsByProduct(productId || '');
+          const latestRegistration = addedRegistrations[addedRegistrations.length - 1];
+          
+          if (latestRegistration) {
+            const initialPayment: Omit<Payment, 'id'> = {
+              registrationId: latestRegistration.id,
+              amount: registrationData.paidAmount,
+              receiptNumber: registrationData.receiptNumber,
+              paymentDate: new Date().toISOString(),
+            };
+            
+            addPayment(initialPayment);
+          }
+        }
       }
     }
     
@@ -125,24 +181,49 @@ const ParticipantsPage: React.FC = () => {
     setRegistrations(getRegistrationsByProduct(productId || ''));
   };
 
-  // Handle updating an existing registration
-  const handleUpdateRegistration = (e: React.FormEvent) => {
+  // Handle adding a new payment
+  const handleAddPayment = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (currentRegistration) {
+      // Check if receipt number is provided
+      if (!newPayment.receiptNumber) {
+        toast({
+          title: "שגיאה",
+          description: "מספר קבלה הוא שדה חובה",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Add the new payment
+      const payment: Omit<Payment, 'id'> = {
+        registrationId: currentRegistration.id,
+        amount: newPayment.amount,
+        receiptNumber: newPayment.receiptNumber,
+        paymentDate: newPayment.paymentDate,
+      };
+      
+      addPayment(payment);
+      
+      // Update the registration's paidAmount
+      const updatedPaidAmount = currentRegistration.paidAmount + newPayment.amount;
+      
       const updatedRegistration: Registration = {
         ...currentRegistration,
-        requiredAmount: registrationData.requiredAmount,
-        paidAmount: registrationData.paidAmount,
-        receiptNumber: registrationData.receiptNumber,
-        discountApproved: registrationData.discountApproved,
+        paidAmount: updatedPaidAmount,
       };
       
       updateRegistration(updatedRegistration);
       
       // Reset form and close dialog
       setCurrentRegistration(null);
-      setIsEditRegistrationOpen(false);
+      setNewPayment({
+        amount: 0,
+        receiptNumber: '',
+        paymentDate: new Date().toISOString().substring(0, 10),
+      });
+      setIsAddPaymentOpen(false);
       
       // Refresh registrations list
       setRegistrations(getRegistrationsByProduct(productId || ''));
@@ -183,6 +264,11 @@ const ParticipantsPage: React.FC = () => {
   const getParticipantForRegistration = (registration: Registration): Participant | undefined => {
     return participants.find(p => p.id === registration.participantId);
   };
+  
+  // Get payments for a registration
+  const getPaymentsForRegistration = (registration: Registration): Payment[] => {
+    return payments.filter(p => p.registrationId === registration.id);
+  };
 
   // Get class name for payment status
   const getStatusClassName = (status: PaymentStatus): string => {
@@ -203,6 +289,15 @@ const ParticipantsPage: React.FC = () => {
   const registrationsFilled = product ? (totalParticipants / product.maxParticipants) * 100 : 0;
   const totalExpected = registrations.reduce((sum, reg) => sum + reg.requiredAmount, 0);
   const totalPaid = registrations.reduce((sum, reg) => sum + reg.paidAmount, 0);
+  
+  // Format date
+  const formatDate = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString('he-IL');
+    } catch (e) {
+      return dateString;
+    }
+  };
 
   return (
     <div className="container mx-auto">
@@ -275,8 +370,7 @@ const ParticipantsPage: React.FC = () => {
                 <TableHead>ת.ז</TableHead>
                 <TableHead>טלפון</TableHead>
                 <TableHead>סכום לתשלום</TableHead>
-                <TableHead>סכום ששולם</TableHead>
-                <TableHead>מספר קבלה</TableHead>
+                <TableHead>תשלומים</TableHead>
                 <TableHead>הנחה</TableHead>
                 <TableHead>סטטוס</TableHead>
                 <TableHead>פעולות</TableHead>
@@ -285,6 +379,7 @@ const ParticipantsPage: React.FC = () => {
             <TableBody>
               {registrations.map((registration) => {
                 const participant = getParticipantForRegistration(registration);
+                const registrationPayments = getPaymentsForRegistration(registration);
                 const status = calculatePaymentStatus(registration);
                 
                 if (!participant) return null;
@@ -295,8 +390,20 @@ const ParticipantsPage: React.FC = () => {
                     <TableCell>{participant.idNumber}</TableCell>
                     <TableCell>{participant.phone}</TableCell>
                     <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.requiredAmount)}</TableCell>
-                    <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.paidAmount)}</TableCell>
-                    <TableCell>{registration.receiptNumber}</TableCell>
+                    <TableCell>
+                      {registrationPayments.length > 0 ? (
+                        <div className="space-y-1">
+                          {registrationPayments.map((payment, idx) => (
+                            <div key={idx} className="text-sm">
+                              <div>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(payment.amount)}</div>
+                              <div className="text-gray-500 text-xs">{payment.receiptNumber}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-500">-</span>
+                      )}
+                    </TableCell>
                     <TableCell>{registration.discountApproved ? 'כן' : 'לא'}</TableCell>
                     <TableCell className={`font-semibold ${getStatusClassName(status)}`}>
                       {status}
@@ -308,17 +415,16 @@ const ParticipantsPage: React.FC = () => {
                           size="sm"
                           onClick={() => {
                             setCurrentRegistration(registration);
-                            setRegistrationData({
-                              requiredAmount: registration.requiredAmount,
-                              paidAmount: registration.paidAmount,
-                              receiptNumber: registration.receiptNumber,
-                              discountApproved: registration.discountApproved,
+                            setNewPayment({
+                              amount: 0,
+                              receiptNumber: '',
+                              paymentDate: new Date().toISOString().substring(0, 10),
                             });
-                            setIsEditRegistrationOpen(true);
+                            setIsAddPaymentOpen(true);
                           }}
                           className="ml-2"
                         >
-                          ערוך
+                          הוסף תשלום
                         </Button>
                         <Button
                           variant="destructive"
@@ -467,6 +573,7 @@ const ParticipantsPage: React.FC = () => {
                     id="receipt-number"
                     value={registrationData.receiptNumber}
                     onChange={(e) => setRegistrationData({ ...registrationData, receiptNumber: e.target.value })}
+                    required
                   />
                 </div>
                 
@@ -491,76 +598,70 @@ const ParticipantsPage: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Registration Dialog */}
-      <Dialog open={isEditRegistrationOpen} onOpenChange={setIsEditRegistrationOpen}>
+      {/* Add Payment Dialog */}
+      <Dialog open={isAddPaymentOpen} onOpenChange={setIsAddPaymentOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>ערוך פרטי רישום</DialogTitle>
+            <DialogTitle>הוסף תשלום</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleUpdateRegistration}>
+          <form onSubmit={handleAddPayment}>
             <div className="space-y-4 py-2">
               {currentRegistration && (
                 <>
                   <div className="bg-blue-50 p-4 rounded">
-                    <p className="font-semibold">עריכת רישום למשתתף:</p>
+                    <p className="font-semibold">הוספת תשלום עבור משתתף:</p>
                     {participants.find(p => p.id === currentRegistration.participantId) && (
                       <p>
                         {`${participants.find(p => p.id === currentRegistration.participantId)?.firstName} ${participants.find(p => p.id === currentRegistration.participantId)?.lastName}`}
                       </p>
                     )}
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-required-amount">סכום לתשלום</Label>
-                      <Input
-                        id="edit-required-amount"
-                        type="number"
-                        value={registrationData.requiredAmount}
-                        onChange={(e) => setRegistrationData({ ...registrationData, requiredAmount: Number(e.target.value) })}
-                        required
-                        min={0}
-                        className="ltr"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="edit-paid-amount">סכום ששולם</Label>
-                      <Input
-                        id="edit-paid-amount"
-                        type="number"
-                        value={registrationData.paidAmount}
-                        onChange={(e) => setRegistrationData({ ...registrationData, paidAmount: Number(e.target.value) })}
-                        required
-                        min={0}
-                        className="ltr"
-                      />
-                    </div>
+                    <p>
+                      <span className="font-medium">סכום לתשלום:</span> {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(currentRegistration.requiredAmount)}
+                    </p>
+                    <p>
+                      <span className="font-medium">סכום ששולם עד כה:</span> {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(currentRegistration.paidAmount)}
+                    </p>
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="edit-receipt-number">מספר קבלה</Label>
+                    <Label htmlFor="payment-amount">סכום לתשלום</Label>
                     <Input
-                      id="edit-receipt-number"
-                      value={registrationData.receiptNumber}
-                      onChange={(e) => setRegistrationData({ ...registrationData, receiptNumber: e.target.value })}
+                      id="payment-amount"
+                      type="number"
+                      value={newPayment.amount}
+                      onChange={(e) => setNewPayment({ ...newPayment, amount: Number(e.target.value) })}
+                      required
+                      min={1}
+                      className="ltr"
                     />
                   </div>
                   
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="edit-discount-approved"
-                      checked={registrationData.discountApproved}
-                      onCheckedChange={(checked) => 
-                        setRegistrationData({ ...registrationData, discountApproved: checked as boolean })
-                      }
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-receipt">מספר קבלה</Label>
+                    <Input
+                      id="payment-receipt"
+                      value={newPayment.receiptNumber}
+                      onChange={(e) => setNewPayment({ ...newPayment, receiptNumber: e.target.value })}
+                      required
                     />
-                    <Label htmlFor="edit-discount-approved" className="mr-2">אישור הנחה</Label>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="payment-date">תאריך תשלום</Label>
+                    <Input
+                      id="payment-date"
+                      type="date"
+                      value={newPayment.paymentDate}
+                      onChange={(e) => setNewPayment({ ...newPayment, paymentDate: e.target.value })}
+                      required
+                      className="ltr"
+                    />
                   </div>
                 </>
               )}
             </div>
             <DialogFooter className="mt-4">
-              <Button type="submit">עדכן רישום</Button>
+              <Button type="submit">הוסף תשלום</Button>
             </DialogFooter>
           </form>
         </DialogContent>

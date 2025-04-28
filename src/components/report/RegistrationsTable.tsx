@@ -41,27 +41,34 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
                 <TableHead>סוג מוצר</TableHead>
                 <TableHead>סכום לתשלום</TableHead>
                 <TableHead>סכום ששולם</TableHead>
-                <TableHead>מספר קבלה</TableHead>
+                <TableHead>מספרי קבלות</TableHead>
                 <TableHead>סטטוס תשלום</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {registrations.map((registration) => (
-                <TableRow key={registration.id}>
-                  <TableCell>{`${registration.participant.firstName} ${registration.participant.lastName}`}</TableCell>
-                  <TableCell>{registration.participant.idNumber}</TableCell>
-                  <TableCell>{registration.participant.phone}</TableCell>
-                  <TableCell>{registration.season.name}</TableCell>
-                  <TableCell>{registration.product.name}</TableCell>
-                  <TableCell>{registration.product.type}</TableCell>
-                  <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.requiredAmount)}</TableCell>
-                  <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.paidAmount)}</TableCell>
-                  <TableCell>{registration.receiptNumber}</TableCell>
-                  <TableCell className={`font-semibold ${getStatusClassName(registration.paymentStatus)}`}>
-                    {registration.paymentStatus}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {registrations.map((registration) => {
+                // Get receipt numbers from payments
+                const receiptNumbers = registration.payments 
+                  ? registration.payments.map(p => p.receiptNumber).join(', ')
+                  : registration.receiptNumber;
+                
+                return (
+                  <TableRow key={registration.id}>
+                    <TableCell>{`${registration.participant.firstName} ${registration.participant.lastName}`}</TableCell>
+                    <TableCell>{registration.participant.idNumber}</TableCell>
+                    <TableCell>{registration.participant.phone}</TableCell>
+                    <TableCell>{registration.season.name}</TableCell>
+                    <TableCell>{registration.product.name}</TableCell>
+                    <TableCell>{registration.product.type}</TableCell>
+                    <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.requiredAmount)}</TableCell>
+                    <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.paidAmount)}</TableCell>
+                    <TableCell>{receiptNumbers}</TableCell>
+                    <TableCell className={`font-semibold ${getStatusClassName(registration.paymentStatus)}`}>
+                      {registration.paymentStatus}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

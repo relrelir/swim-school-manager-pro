@@ -1,11 +1,16 @@
 
 import React, { createContext, useContext } from 'react';
-import { CombinedDataContextType } from './types';
+import { useRegistrationsContext } from './RegistrationsProvider';
 import { useSeasonsContext } from './SeasonsProvider';
 import { useProductsContext } from './ProductsProvider';
 import { useParticipantsContext } from './ParticipantsProvider';
-import { useRegistrationsContext } from './RegistrationsProvider';
-import { Participant, RegistrationWithDetails } from '@/types';
+import { usePaymentsContext } from './PaymentsProvider';
+import { RegistrationWithDetails } from '@/types';
+
+interface CombinedDataContextType {
+  getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
+  getDailyActivities: (date: string) => any[];
+}
 
 const CombinedDataContext = createContext<CombinedDataContextType | null>(null);
 
@@ -18,70 +23,70 @@ export const useCombinedDataContext = () => {
 };
 
 export const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { registrations, calculatePaymentStatus } = useRegistrationsContext();
   const { seasons } = useSeasonsContext();
   const { products } = useProductsContext();
   const { participants } = useParticipantsContext();
-  const { registrations, getRegistrationsByProduct, calculatePaymentStatus } = useRegistrationsContext();
+  const { payments, getPaymentsByRegistration } = usePaymentsContext();
 
-  // Combined data functions
-  const getRegistrationDetails = (productId: string): RegistrationWithDetails[] => {
-    return getRegistrationsByProduct(productId).map(registration => {
-      const participant = participants.find(p => p.id === registration.participantId) as Participant;
-      const product = products.find(p => p.id === registration.productId);
-      const season = product ? seasons.find(s => s.id === product.seasonId) : undefined;
-
-      if (!participant || !product || !season) {
-        console.error('Missing related data for registration', registration);
-        return null;
-      }
-
-      return {
-        ...registration,
-        participant,
-        product,
-        season,
-        paymentStatus: calculatePaymentStatus(registration)
-      };
-    }).filter(Boolean) as RegistrationWithDetails[];
-  };
-
+  // Get all registrations with additional details
   const getAllRegistrationsWithDetails = (): RegistrationWithDetails[] => {
     return registrations.map(registration => {
       const participant = participants.find(p => p.id === registration.participantId);
       const product = products.find(p => p.id === registration.productId);
       const season = product ? seasons.find(s => s.id === product.seasonId) : undefined;
-
-      if (!participant || !product || !season) {
-        console.error('Missing related data for registration', registration);
-        return null;
-      }
+      const paymentStatus = calculatePaymentStatus(registration);
+      const registrationPayments = getPaymentsByRegistration(registration.id);
 
       return {
         ...registration,
-        participant,
-        product,
-        season,
-        paymentStatus: calculatePaymentStatus(registration)
+        participant: participant!,
+        product: product!,
+        season: season!,
+        paymentStatus,
+        payments: registrationPayments,
       };
-    }).filter(Boolean) as RegistrationWithDetails[];
+    }).filter(reg => reg.participant && reg.product && reg.season);
   };
 
-  const getParticipantsByProduct = (productId: string): Participant[] => {
-    const productRegistrations = getRegistrationsByProduct(productId);
-    return productRegistrations.map(registration => {
-      const participant = participants.find(p => p.id === registration.participantId);
-      if (!participant) {
-        console.error('Participant not found for registration', registration);
-        return null;
-      }
-      return participant;
-    }).filter(Boolean) as Participant[];
+  // Get daily activities
+  const getDailyActivities = (date: string): any[] => {
+    const dayOfWeek = new Date(date).getDay();
+    const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+    const currentDayName = dayNames[dayOfWeek];
+    
+    // Filter products that are active on the given date and have the current day in daysOfWeek
+    const activeProducts = products.filter(product => {
+      const isDateInRange = new Date(date) >= new Date(product.startDate) && 
+                           new Date(date) <= new Date(product.endDate);
+      
+      // Check if product has the current day in its daysOfWeek array
+      const isOnCurrentDay = !product.daysOfWeek || 
+                           product.daysOfWeek.includes(currentDayName);
+      
+      return isDateInRange && isOnCurrentDay;
+    });
+    
+    // Transform products to activities
+    return activeProducts.map(product => {
+      const numRegistrations = registrations.filter(r => r.productId === product.id).length;
+      
+      return {
+        product,
+        startTime: product.startTime || '00:00',
+        dayOfWeek: currentDayName,
+        numParticipants: numRegistrations,
+        location: '-', // Default location if not specified
+      };
+    }).sort((a, b) => {
+      // Sort by start time
+      return a.startTime.localeCompare(b.startTime);
+    });
   };
 
   const contextValue: CombinedDataContextType = {
-    getRegistrationDetails,
     getAllRegistrationsWithDetails,
-    getParticipantsByProduct,
+    getDailyActivities,
   };
 
   return (
