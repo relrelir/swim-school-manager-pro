@@ -74,7 +74,7 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       
       // Calculate actual paid amount (excluding discounts)
       const actualPaidAmount = calculateActualPaidAmount(registration.id);
-      const paymentStatus = registrationsContext.calculatePaymentStatus(registration, actualPaidAmount);
+      const paymentStatus = registrationsContext.calculatePaymentStatus(registration);
 
       return {
         ...registration,

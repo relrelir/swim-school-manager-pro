@@ -60,7 +60,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             const actualPayments = calculateActualPayments(registrationPayments);
             const discountAmount = calculateDiscountAmount(registration);
             const actualPaidAmount = actualPayments.reduce((sum, payment) => sum + payment.amount, 0);
-            const status = calculatePaymentStatus(registration, actualPaidAmount);
+            const status = calculatePaymentStatus(registration);
             const hasPayments = registrationPayments.length > 0;
             
             if (!participant) return null;
