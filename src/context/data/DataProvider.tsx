@@ -18,19 +18,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return (
     <SeasonsProvider>
       <RegistrationsProvider>
-        {(registrationsContext) => (
-          <ProductsProvider registrations={registrationsContext.registrations}>
-            <ParticipantsProvider registrations={registrationsContext.registrations}>
-              <PaymentsProvider>
-                <CombinedDataProvider>
-                  <DataProviderCombiner>
-                    {children}
-                  </DataProviderCombiner>
-                </CombinedDataProvider>
-              </PaymentsProvider>
-            </ParticipantsProvider>
-          </ProductsProvider>
-        )}
+        <ProductsProvider>
+          <ParticipantsProvider>
+            <PaymentsProvider>
+              <CombinedDataProvider>
+                <DataProviderCombiner>
+                  {children}
+                </DataProviderCombiner>
+              </CombinedDataProvider>
+            </PaymentsProvider>
+          </ParticipantsProvider>
+        </ProductsProvider>
       </RegistrationsProvider>
     </SeasonsProvider>
   );

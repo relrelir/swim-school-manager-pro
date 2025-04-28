@@ -1,10 +1,7 @@
 
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { toast } from "@/components/ui/use-toast";
-import { Product } from '@/types';
+import React, { createContext, useContext, useEffect } from 'react';
 import { ProductsContextType } from './types';
-import { handleSupabaseError, mapProductFromDB, mapProductToDB } from './utils';
-import { supabase } from '@/integrations/supabase/client';
+import { useProducts } from '@/hooks/useProducts';
 
 const ProductsContext = createContext<ProductsContextType | null>(null);
 
@@ -16,139 +13,23 @@ export const useProductsContext = () => {
   return context;
 };
 
-export const ProductsProvider: React.FC<{ children: React.ReactNode; }> = ({ 
-  children
+export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ 
+  children 
 }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    products,
+    fetchProducts,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    getProductsBySeason,
+    loading
+  } = useProducts();
 
-  // Load products from Supabase
+  // Load products when component mounts
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*');
-
-        if (error) {
-          handleSupabaseError(error, 'fetching products');
-        }
-
-        // Transform data to match our Product type
-        const transformedProducts: Product[] = data?.map(product => mapProductFromDB(product)) || [];
-
-        setProducts(transformedProducts);
-      } catch (error) {
-        console.error('Error loading products:', error);
-        toast({
-          title: "שגיאה",
-          description: "אירעה שגיאה בטעינת מוצרים",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProducts();
   }, []);
-
-  // Products functions
-  const addProduct = async (product: Omit<Product, 'id'>) => {
-    try {
-      // Transform product to match our database schema
-      const dbProduct = mapProductToDB(product);
-
-      const { data, error } = await supabase
-        .from('products')
-        .insert([dbProduct])
-        .select()
-        .single();
-
-      if (error) {
-        handleSupabaseError(error, 'adding product');
-      }
-
-      if (data) {
-        const newProduct = mapProductFromDB(data);
-        setProducts([...products, newProduct]);
-      }
-    } catch (error) {
-      console.error('Error adding product:', error);
-      toast({
-        title: "שגיאה",
-        description: "אירעה שגיאה בהוספת מוצר חדש",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const updateProduct = async (product: Product) => {
-    try {
-      // Transform product to match our database schema
-      const { id, ...productData } = product;
-      const dbProduct = mapProductToDB(productData);
-
-      const { error } = await supabase
-        .from('products')
-        .update(dbProduct)
-        .eq('id', id);
-
-      if (error) {
-        handleSupabaseError(error, 'updating product');
-      }
-
-      setProducts(products.map(p => p.id === product.id ? product : p));
-    } catch (error) {
-      console.error('Error updating product:', error);
-      toast({
-        title: "שגיאה",
-        description: "אירעה שגיאה בעדכון מוצר",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const deleteProduct = async (id: string) => {
-    try {
-      // Check if product has registrations
-      const { data: registrationsData } = await supabase
-        .from('registrations')
-        .select('id')
-        .eq('productid', id);
-
-      if (registrationsData && registrationsData.length > 0) {
-        toast({
-          title: "שגיאה",
-          description: "לא ניתן למחוק מוצר שיש לו רישומי משתתפים",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        handleSupabaseError(error, 'deleting product');
-      }
-
-      setProducts(products.filter(p => p.id !== id));
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      toast({
-        title: "שגיאה",
-        description: "אירעה שגיאה במחיקת מוצר",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const getProductsBySeason = (seasonId: string) => {
-    return products.filter(product => product.seasonId === seasonId);
-  };
 
   const contextValue: ProductsContextType = {
     products,
