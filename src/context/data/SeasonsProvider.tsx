@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Season } from '@/types';
 import { SeasonsContextType } from './types';
-import { generateId, handleSupabaseError } from './utils';
+import { handleSupabaseError, mapSeasonFromDB, mapSeasonToDB } from './utils';
 import { supabase } from '@/integrations/supabase/client';
 
 const SeasonsContext = createContext<SeasonsContextType | null>(null);
@@ -33,12 +33,7 @@ export const SeasonsProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
 
         // Transform data to match our Season type
-        const transformedSeasons: Season[] = data?.map(season => ({
-          id: season.id,
-          name: season.name,
-          startDate: season.startDate,
-          endDate: season.endDate
-        })) || [];
+        const transformedSeasons: Season[] = data?.map(season => mapSeasonFromDB(season)) || [];
 
         setSeasons(transformedSeasons);
       } catch (error) {
@@ -59,9 +54,11 @@ export const SeasonsProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Seasons functions
   const addSeason = async (season: Omit<Season, 'id'>) => {
     try {
+      const dbSeason = mapSeasonToDB(season);
+      
       const { data, error } = await supabase
         .from('seasons')
-        .insert([season])
+        .insert([dbSeason])
         .select()
         .single();
 
@@ -70,12 +67,7 @@ export const SeasonsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
 
       if (data) {
-        const newSeason: Season = {
-          id: data.id,
-          name: data.name,
-          startDate: data.startDate,
-          endDate: data.endDate
-        };
+        const newSeason = mapSeasonFromDB(data);
         setSeasons([...seasons, newSeason]);
       }
     } catch (error) {
@@ -90,14 +82,13 @@ export const SeasonsProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const updateSeason = async (season: Season) => {
     try {
+      const { id, ...seasonData } = season;
+      const dbSeason = mapSeasonToDB(seasonData);
+      
       const { error } = await supabase
         .from('seasons')
-        .update({
-          name: season.name,
-          startDate: season.startDate,
-          endDate: season.endDate
-        })
-        .eq('id', season.id);
+        .update(dbSeason)
+        .eq('id', id);
 
       if (error) {
         handleSupabaseError(error, 'updating season');

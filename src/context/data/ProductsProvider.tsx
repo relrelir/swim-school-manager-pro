@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Product } from '@/types';
 import { ProductsContextType } from './types';
-import { generateId, handleSupabaseError } from './utils';
+import { handleSupabaseError, mapProductFromDB, mapProductToDB } from './utils';
 import { supabase } from '@/integrations/supabase/client';
 
 const ProductsContext = createContext<ProductsContextType | null>(null);
@@ -16,9 +16,8 @@ export const useProductsContext = () => {
   return context;
 };
 
-export const ProductsProvider: React.FC<{ children: React.ReactNode; registrations?: any[] }> = ({ 
-  children, 
-  registrations = [] 
+export const ProductsProvider: React.FC<{ children: React.ReactNode; }> = ({ 
+  children
 }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,19 +35,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode; registratio
         }
 
         // Transform data to match our Product type
-        const transformedProducts: Product[] = data?.map(product => ({
-          id: product.id,
-          name: product.name,
-          type: product.description || 'קורס',
-          price: Number(product.price),
-          seasonId: product.seasonId,
-          startDate: product.startDate,
-          endDate: product.endDate,
-          maxParticipants: product.maxParticipants || 20,
-          notes: product.instructor || '',
-          startTime: product.startTime,
-          daysOfWeek: product.daysOfWeek || []
-        })) || [];
+        const transformedProducts: Product[] = data?.map(product => mapProductFromDB(product)) || [];
 
         setProducts(transformedProducts);
       } catch (error) {
@@ -70,18 +57,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode; registratio
   const addProduct = async (product: Omit<Product, 'id'>) => {
     try {
       // Transform product to match our database schema
-      const dbProduct = {
-        name: product.name,
-        description: product.type,
-        price: product.price,
-        seasonId: product.seasonId,
-        startDate: product.startDate,
-        endDate: product.endDate,
-        startTime: product.startTime,
-        daysOfWeek: product.daysOfWeek,
-        maxParticipants: product.maxParticipants,
-        instructor: product.notes
-      };
+      const dbProduct = mapProductToDB(product);
 
       const { data, error } = await supabase
         .from('products')
@@ -94,19 +70,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode; registratio
       }
 
       if (data) {
-        const newProduct: Product = {
-          id: data.id,
-          name: data.name,
-          type: data.description || 'קורס',
-          price: Number(data.price),
-          seasonId: data.seasonId,
-          startDate: data.startDate,
-          endDate: data.endDate,
-          maxParticipants: data.maxParticipants || 20,
-          notes: data.instructor || '',
-          startTime: data.startTime,
-          daysOfWeek: data.daysOfWeek || []
-        };
+        const newProduct = mapProductFromDB(data);
         setProducts([...products, newProduct]);
       }
     } catch (error) {
@@ -122,23 +86,13 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode; registratio
   const updateProduct = async (product: Product) => {
     try {
       // Transform product to match our database schema
-      const dbProduct = {
-        name: product.name,
-        description: product.type,
-        price: product.price,
-        seasonId: product.seasonId,
-        startDate: product.startDate,
-        endDate: product.endDate,
-        startTime: product.startTime,
-        daysOfWeek: product.daysOfWeek,
-        maxParticipants: product.maxParticipants,
-        instructor: product.notes
-      };
+      const { id, ...productData } = product;
+      const dbProduct = mapProductToDB(productData);
 
       const { error } = await supabase
         .from('products')
         .update(dbProduct)
-        .eq('id', product.id);
+        .eq('id', id);
 
       if (error) {
         handleSupabaseError(error, 'updating product');
@@ -158,8 +112,12 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode; registratio
   const deleteProduct = async (id: string) => {
     try {
       // Check if product has registrations
-      const hasRegistrations = registrations.some(registration => registration.productId === id);
-      if (hasRegistrations) {
+      const { data: registrationsData } = await supabase
+        .from('registrations')
+        .select('id')
+        .eq('productid', id);
+
+      if (registrationsData && registrationsData.length > 0) {
         toast({
           title: "שגיאה",
           description: "לא ניתן למחוק מוצר שיש לו רישומי משתתפים",

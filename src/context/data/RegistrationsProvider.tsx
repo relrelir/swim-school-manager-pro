@@ -2,7 +2,7 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { PaymentStatus, Registration } from '@/types';
 import { RegistrationsContextType } from './types';
-import { generateId, handleSupabaseError } from './utils';
+import { handleSupabaseError, mapRegistrationFromDB, mapRegistrationToDB } from './utils';
 import { supabase } from '@/integrations/supabase/client';
 
 const RegistrationsContext = createContext<RegistrationsContextType | null>(null);
@@ -36,16 +36,7 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
         }
 
         // Transform data to match our Registration type
-        const transformedRegistrations: Registration[] = data?.map(registration => ({
-          id: registration.id,
-          productId: registration.productId,
-          participantId: registration.participantId,
-          requiredAmount: Number(registration.requiredAmount),
-          paidAmount: Number(registration.paidAmount),
-          receiptNumber: registration.receiptNumber,
-          discountApproved: registration.discountApproved,
-          registrationDate: registration.registrationDate,
-        })) || [];
+        const transformedRegistrations: Registration[] = data?.map(registration => mapRegistrationFromDB(registration)) || [];
 
         setRegistrations(transformedRegistrations);
       } catch (error) {
@@ -61,9 +52,11 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
   // Registrations functions
   const addRegistration = async (registration: Omit<Registration, 'id'>) => {
     try {
+      const dbRegistration = mapRegistrationToDB(registration);
+
       const { data, error } = await supabase
         .from('registrations')
-        .insert([registration])
+        .insert([dbRegistration])
         .select()
         .single();
 
@@ -72,16 +65,7 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
       }
 
       if (data) {
-        const newRegistration: Registration = {
-          id: data.id,
-          productId: data.productId,
-          participantId: data.participantId,
-          requiredAmount: Number(data.requiredAmount),
-          paidAmount: Number(data.paidAmount),
-          receiptNumber: data.receiptNumber,
-          discountApproved: data.discountApproved,
-          registrationDate: data.registrationDate,
-        };
+        const newRegistration = mapRegistrationFromDB(data);
         setRegistrations([...registrations, newRegistration]);
         return newRegistration;
       }
@@ -92,17 +76,13 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
 
   const updateRegistration = async (registration: Registration) => {
     try {
+      const { id, ...registrationData } = registration;
+      const dbRegistration = mapRegistrationToDB(registrationData);
+
       const { error } = await supabase
         .from('registrations')
-        .update({
-          productId: registration.productId,
-          participantId: registration.participantId,
-          requiredAmount: registration.requiredAmount,
-          paidAmount: registration.paidAmount,
-          receiptNumber: registration.receiptNumber,
-          discountApproved: registration.discountApproved,
-        })
-        .eq('id', registration.id);
+        .update(dbRegistration)
+        .eq('id', id);
 
       if (error) {
         handleSupabaseError(error, 'updating registration');
