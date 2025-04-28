@@ -14,7 +14,11 @@ export const useRegistrationsContext = () => {
   return context;
 };
 
-export const RegistrationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface RegistrationsProviderProps {
+  children: React.ReactNode | ((context: RegistrationsContextType) => React.ReactNode);
+}
+
+export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ children }) => {
   const [registrations, setRegistrations] = useState<Registration[]>(() => loadData('swimSchoolRegistrations', []));
 
   // Save data to localStorage whenever it changes
@@ -64,7 +68,7 @@ export const RegistrationsProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <RegistrationsContext.Provider value={contextValue}>
-      {children}
+      {typeof children === 'function' ? children(contextValue) : children}
     </RegistrationsContext.Provider>
   );
 };
