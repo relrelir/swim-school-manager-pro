@@ -139,7 +139,7 @@ const ReportPage: React.FC = () => {
                 <SelectValue placeholder="כל העונות" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">כל העונות</SelectItem>
+                <SelectItem value="all">כל העונות</SelectItem>
                 {seasons.map((season) => (
                   <SelectItem key={season.id} value={season.id}>
                     {season.name}
@@ -157,9 +157,9 @@ const ReportPage: React.FC = () => {
                 <SelectValue placeholder="כל המוצרים" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">כל המוצרים</SelectItem>
+                <SelectItem value="all">כל המוצרים</SelectItem>
                 {products
-                  .filter(product => !filters.seasonId || product.seasonId === filters.seasonId)
+                  .filter(product => !filters.seasonId || filters.seasonId === 'all' || product.seasonId === filters.seasonId)
                   .map((product) => (
                     <SelectItem key={product.id} value={product.id}>
                       {product.name}
@@ -177,7 +177,7 @@ const ReportPage: React.FC = () => {
                 <SelectValue placeholder="כל סטטוסי התשלום" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">כל סטטוסי התשלום</SelectItem>
+                <SelectItem value="all">כל סטטוסי התשלום</SelectItem>
                 <SelectItem value="מלא">תשלום מלא</SelectItem>
                 <SelectItem value="חלקי">תשלום חלקי</SelectItem>
                 <SelectItem value="יתר">תשלום יתר</SelectItem>
