@@ -97,6 +97,7 @@ const DailyActivityPage: React.FC = () => {
                 <TableHead>שם פעילות</TableHead>
                 <TableHead>סוג פעילות</TableHead>
                 <TableHead>מספר משתתפים</TableHead>
+                <TableHead>מפגש</TableHead>
                 <TableHead>ימי פעילות</TableHead>
               </TableRow>
             </TableHeader>
@@ -107,6 +108,11 @@ const DailyActivityPage: React.FC = () => {
                   <TableCell>{activity.product.name}</TableCell>
                   <TableCell>{activity.product.type}</TableCell>
                   <TableCell>{activity.numParticipants}</TableCell>
+                  <TableCell>
+                    {activity.currentMeetingNumber && activity.totalMeetings 
+                      ? `${activity.currentMeetingNumber}/${activity.totalMeetings}` 
+                      : '-'}
+                  </TableCell>
                   <TableCell>{activity.product.daysOfWeek?.join(', ') || '-'}</TableCell>
                 </TableRow>
               ))}

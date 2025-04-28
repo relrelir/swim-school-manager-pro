@@ -104,7 +104,7 @@ export const useParticipants = () => {
         requiredAmount: registrationData.requiredAmount,
         paidAmount: registrationData.paidAmount,
         receiptNumber: registrationData.receiptNumber,
-        discountApproved: false,
+        discountApproved: registrationData.discountApproved,
         registrationDate: new Date().toISOString(),
       };
       
@@ -128,7 +128,9 @@ export const useParticipants = () => {
     setIsAddParticipantOpen(false);
     
     // Refresh registrations list
-    setRegistrations(getRegistrationsByProduct(productId || ''));
+    if (productId) {
+      setRegistrations(getRegistrationsByProduct(productId));
+    }
   };
 
   // Handle adding a new payment
@@ -176,7 +178,9 @@ export const useParticipants = () => {
       setIsAddPaymentOpen(false);
       
       // Refresh registrations list
-      setRegistrations(getRegistrationsByProduct(productId || ''));
+      if (productId) {
+        setRegistrations(getRegistrationsByProduct(productId));
+      }
     }
   };
 
@@ -202,14 +206,18 @@ export const useParticipants = () => {
       setIsAddPaymentOpen(false);
       
       // Refresh registrations list
-      setRegistrations(getRegistrationsByProduct(productId || ''));
+      if (productId) {
+        setRegistrations(getRegistrationsByProduct(productId));
+      }
     }
   };
 
   // Handle deleting a registration
   const handleDeleteRegistration = (registrationId: string) => {
     const registration = registrations.find(r => r.id === registrationId);
-    const registrationPayments = registration ? getPaymentsByRegistration(registration) : [];
+    if (!registration) return;
+    
+    const registrationPayments = getPaymentsByRegistration(registration.id);
     
     // Only allow deletion if there are no payments
     if (registrationPayments.length > 0) {
@@ -225,7 +233,9 @@ export const useParticipants = () => {
       deleteRegistration(registrationId);
       
       // Refresh registrations list
-      setRegistrations(getRegistrationsByProduct(productId || ''));
+      if (productId) {
+        setRegistrations(getRegistrationsByProduct(productId));
+      }
     }
   };
 

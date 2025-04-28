@@ -7,7 +7,8 @@ import { RegistrationsProvider, useRegistrationsContext } from './data/Registrat
 import { PaymentsProvider, usePaymentsContext } from './data/PaymentsProvider';
 import { CombinedDataContextType } from './data/types';
 import { calculateCurrentMeeting } from './data/utils';
-import { Product } from '@/types';
+import { Product, DailyActivity } from '@/types';
+import { format, isWithinInterval } from 'date-fns';
 
 // Create the context
 const DataContext = createContext<CombinedDataContextType | null>(null);
@@ -71,6 +72,71 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return calculateCurrentMeeting(product);
   };
 
+  const getDailyActivities = (date: string): DailyActivity[] => {
+    // Filter products that are active on the selected date
+    const activeProducts = productsContext.products.filter(product => {
+      const productStartDate = new Date(product.startDate);
+      const productEndDate = new Date(product.endDate);
+      const selectedDate = new Date(date);
+      
+      // Check if the selected date is within the product's date range
+      const isInDateRange = isWithinInterval(selectedDate, {
+        start: productStartDate,
+        end: productEndDate
+      });
+      
+      if (!isInDateRange) {
+        return false;
+      }
+      
+      // If the product has specific days of the week
+      if (product.daysOfWeek && product.daysOfWeek.length > 0) {
+        const dayOfWeek = selectedDate.getDay();
+        const daysMap: Record<string, number> = {
+          'ראשון': 0,
+          'שני': 1,
+          'שלישי': 2,
+          'רביעי': 3,
+          'חמישי': 4,
+          'שישי': 5,
+          'שבת': 6
+        };
+        
+        // Check if the selected day is in the product's days of week
+        const isActiveDay = product.daysOfWeek.some(day => daysMap[day] === dayOfWeek);
+        return isActiveDay;
+      }
+      
+      // For products without specific days, just check if the date is within range
+      return true;
+    });
+    
+    // Map to the required structure with participant count and meeting info
+    return activeProducts.map(product => {
+      const productRegistrations = registrationsContext.getRegistrationsByProduct(product.id);
+      const meetingInfo = calculateCurrentMeeting(product);
+      
+      return {
+        startTime: product.startTime,
+        product,
+        numParticipants: productRegistrations.length,
+        currentMeetingNumber: meetingInfo.current,
+        totalMeetings: meetingInfo.total
+      };
+    }).sort((a, b) => {
+      // Sort by start time if available
+      if (a.startTime && b.startTime) {
+        return a.startTime.localeCompare(b.startTime);
+      } else if (a.startTime) {
+        return -1;
+      } else if (b.startTime) {
+        return 1;
+      }
+      // Fallback to product name
+      return a.product.name.localeCompare(b.product.name);
+    });
+  };
+
   // Combine all context values
   const combinedContextValue = useMemo(
     () => ({
@@ -80,7 +146,8 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...registrationsContext,
       ...paymentsContext,
       getAllRegistrationsWithDetails,
-      calculateMeetingProgress
+      calculateMeetingProgress,
+      getDailyActivities
     }),
     [
       seasonsContext,
