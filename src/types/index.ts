@@ -1,3 +1,4 @@
+
 export interface Season {
   id: string;
   name: string;
@@ -64,4 +65,10 @@ export interface PaymentDetails {
   amount: number;
   receiptNumber: string;
   paymentDate: string;
+}
+
+export interface DailyActivity {
+  startTime?: string;
+  product: Product;
+  numParticipants: number;
 }

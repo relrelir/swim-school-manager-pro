@@ -1,5 +1,5 @@
 
-import { PaymentStatus, Participant, Product, Registration, RegistrationWithDetails, Season } from '@/types';
+import { PaymentStatus, Participant, Payment, Product, Registration, RegistrationWithDetails, Season } from '@/types';
 
 // Context Types for Season
 export interface SeasonsContextType {
@@ -36,13 +36,27 @@ export interface RegistrationsContextType {
   calculatePaymentStatus: (registration: Registration) => PaymentStatus;
 }
 
+// Context Types for Payments
+export interface PaymentsContextType {
+  payments: Payment[];
+  addPayment: (payment: Omit<Payment, 'id'>) => void;
+  updatePayment: (payment: Payment) => void;
+  deletePayment: (id: string) => void;
+  getPaymentsByRegistration: (registrationId: string) => Payment[];
+}
+
 // Context Types for Combined Data
 export interface CombinedDataContextType {
   getRegistrationDetails: (productId: string) => RegistrationWithDetails[];
   getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
   getParticipantsByProduct: (productId: string) => Participant[];
+  getDailyActivities: (date: string) => any[];
 }
 
 // Combined context type
-export type DataContextType = SeasonsContextType & ProductsContextType & 
-  ParticipantsContextType & RegistrationsContextType & CombinedDataContextType;
+export type DataContextType = SeasonsContextType & 
+  ProductsContextType & 
+  ParticipantsContextType & 
+  RegistrationsContextType & 
+  PaymentsContextType &
+  CombinedDataContextType;
