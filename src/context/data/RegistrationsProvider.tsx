@@ -117,7 +117,9 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
 
   // Calculate payment status
   const calculatePaymentStatus = (registration: Registration): PaymentStatus => {
-    if (registration.discountApproved || registration.paidAmount >= registration.requiredAmount) {
+    if (registration.discountApproved) {
+      return 'הנחה';
+    } else if (registration.paidAmount >= registration.requiredAmount) {
       if (registration.paidAmount > registration.requiredAmount) {
         return 'יתר';
       }

@@ -20,8 +20,6 @@ const ParticipantsPage: React.FC = () => {
     setIsAddPaymentOpen,
     newParticipant,
     setNewParticipant,
-    selectedParticipant,
-    setSelectedParticipant,
     currentRegistration,
     setCurrentRegistration,
     registrationData,
@@ -35,7 +33,9 @@ const ParticipantsPage: React.FC = () => {
     participants,
     handleAddParticipant,
     handleAddPayment,
+    handleApplyDiscount,
     handleDeleteRegistration,
+    handleUpdateHealthApproval,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
@@ -87,6 +87,7 @@ const ParticipantsPage: React.FC = () => {
             setIsAddPaymentOpen(true);
           }}
           onDeleteRegistration={handleDeleteRegistration}
+          onUpdateHealthApproval={handleUpdateHealthApproval}
         />
       )}
 
@@ -94,9 +95,6 @@ const ParticipantsPage: React.FC = () => {
       <AddParticipantDialog
         isOpen={isAddParticipantOpen}
         onOpenChange={setIsAddParticipantOpen}
-        participants={participants}
-        selectedParticipant={selectedParticipant}
-        setSelectedParticipant={setSelectedParticipant}
         newParticipant={newParticipant}
         setNewParticipant={setNewParticipant}
         registrationData={registrationData}
@@ -113,6 +111,7 @@ const ParticipantsPage: React.FC = () => {
         newPayment={newPayment}
         setNewPayment={setNewPayment}
         onSubmit={handleAddPayment}
+        onApplyDiscount={handleApplyDiscount}
       />
     </div>
   );

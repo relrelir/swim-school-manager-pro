@@ -1,6 +1,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
+import { PaymentStatus } from '@/types';
 
 // Helper function to generate unique IDs
 export const generateId = (): string => {
@@ -97,7 +98,8 @@ export const mapProductFromDB = (dbProduct: any) => {
     maxParticipants: dbProduct.maxparticipants || 20,
     notes: dbProduct.instructor || '',
     startTime: dbProduct.starttime,
-    daysOfWeek: dbProduct.daysofweek || []
+    daysOfWeek: dbProduct.daysofweek || [],
+    meetingsCount: dbProduct.meetingscount || 10
   };
 };
 
@@ -113,7 +115,8 @@ export const mapProductToDB = (product: any) => {
     starttime: product.startTime,
     daysofweek: product.daysOfWeek,
     maxparticipants: product.maxParticipants,
-    instructor: product.notes
+    instructor: product.notes,
+    meetingscount: product.meetingsCount
   };
 };
 
@@ -133,5 +136,59 @@ export const mapSeasonToDB = (season: any) => {
     name: season.name,
     startdate: season.startDate,
     enddate: season.endDate
+  };
+};
+
+// Helper to calculate current meeting number
+export const calculateCurrentMeeting = (product: any): { current: number, total: number } => {
+  if (!product.startDate || !product.meetingsCount || !product.daysOfWeek || product.daysOfWeek.length === 0) {
+    return { current: 0, total: product.meetingsCount || 10 };
+  }
+
+  const startDate = new Date(product.startDate);
+  const today = new Date();
+  
+  // If today is before the start date, return 0
+  if (today < startDate) {
+    return { current: 0, total: product.meetingsCount };
+  }
+
+  // Map Hebrew days to JS day numbers (0 = Sunday, 6 = Saturday)
+  const dayMap: { [key: string]: number } = {
+    'ראשון': 0,
+    'שני': 1,
+    'שלישי': 2,
+    'רביעי': 3,
+    'חמישי': 4,
+    'שישי': 5,
+    'שבת': 6
+  };
+  
+  // Convert Hebrew days to JS day numbers
+  const activityDays = product.daysOfWeek.map((day: string) => dayMap[day]).sort();
+  
+  let meetingCount = 0;
+  let currentDate = new Date(startDate);
+  
+  // Count meetings until today
+  while (currentDate <= today) {
+    const dayOfWeek = currentDate.getDay();
+    
+    if (activityDays.includes(dayOfWeek)) {
+      meetingCount++;
+      
+      // If we've counted all meetings, stop
+      if (meetingCount >= product.meetingsCount) {
+        break;
+      }
+    }
+    
+    // Move to next day
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return { 
+    current: Math.min(meetingCount, product.meetingsCount), 
+    total: product.meetingsCount 
   };
 };

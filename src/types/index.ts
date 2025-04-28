@@ -43,7 +43,7 @@ export interface Registration {
   registrationDate: string;
 }
 
-export type PaymentStatus = 'מלא' | 'חלקי' | 'יתר';
+export type PaymentStatus = 'מלא' | 'חלקי' | 'הנחה' | 'יתר';
 
 export interface Payment {
   id: string;
@@ -71,4 +71,6 @@ export interface DailyActivity {
   startTime?: string;
   product: Product;
   numParticipants: number;
+  currentMeetingNumber?: number;
+  totalMeetings?: number;
 }

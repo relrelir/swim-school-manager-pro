@@ -2,6 +2,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Participant, PaymentStatus, Registration, Payment } from '@/types';
 
 interface ParticipantsTableProps {
@@ -12,6 +13,7 @@ interface ParticipantsTableProps {
   getStatusClassName: (status: PaymentStatus) => string;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
+  onUpdateHealthApproval: (participant: Participant, isApproved: boolean) => void;
 }
 
 const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
@@ -22,6 +24,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   getStatusClassName,
   onAddPayment,
   onDeleteRegistration,
+  onUpdateHealthApproval,
 }) => {
   return (
     <div className="overflow-x-auto">
@@ -33,7 +36,9 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             <TableHead>טלפון</TableHead>
             <TableHead>סכום לתשלום</TableHead>
             <TableHead>תשלומים</TableHead>
+            <TableHead>מספרי קבלות</TableHead>
             <TableHead>הנחה</TableHead>
+            <TableHead>אישור בריאות</TableHead>
             <TableHead>סטטוס</TableHead>
             <TableHead>פעולות</TableHead>
           </TableRow>
@@ -43,6 +48,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             const participant = getParticipantForRegistration(registration);
             const registrationPayments = getPaymentsForRegistration(registration);
             const status = calculatePaymentStatus(registration);
+            const hasPayments = registrationPayments.length > 0;
             
             if (!participant) return null;
             
@@ -58,7 +64,6 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                       {registrationPayments.map((payment, idx) => (
                         <div key={idx} className="text-sm">
                           <div>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(payment.amount)}</div>
-                          <div className="text-gray-500 text-xs">{payment.receiptNumber}</div>
                         </div>
                       ))}
                     </div>
@@ -66,7 +71,29 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     <span className="text-gray-500">-</span>
                   )}
                 </TableCell>
+                <TableCell>
+                  {registrationPayments.length > 0 ? (
+                    <div className="space-y-1">
+                      {registrationPayments.map((payment, idx) => (
+                        <div key={idx} className="text-xs text-gray-500">{payment.receiptNumber || '-'}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-gray-500">-</span>
+                  )}
+                </TableCell>
                 <TableCell>{registration.discountApproved ? 'כן' : 'לא'}</TableCell>
+                <TableCell>
+                  <Checkbox 
+                    checked={participant.healthApproval} 
+                    onCheckedChange={(checked) => {
+                      if (participant) {
+                        onUpdateHealthApproval(participant, checked === true);
+                      }
+                    }}
+                    className="mx-auto block"
+                  />
+                </TableCell>
                 <TableCell className={`font-semibold ${getStatusClassName(status)}`}>
                   {status}
                 </TableCell>
@@ -84,6 +111,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                       variant="destructive"
                       size="sm"
                       onClick={() => onDeleteRegistration(registration.id)}
+                      disabled={hasPayments}
                     >
                       הסר
                     </Button>

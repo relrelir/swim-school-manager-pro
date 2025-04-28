@@ -10,7 +10,7 @@ export const useParticipants = () => {
   const { 
     products, 
     participants, 
-    addParticipant, 
+    updateParticipant,
     getRegistrationsByProduct, 
     addRegistration, 
     updateRegistration,
@@ -18,7 +18,8 @@ export const useParticipants = () => {
     calculatePaymentStatus,
     addPayment,
     getPaymentsByRegistration,
-    payments
+    payments,
+    addParticipant
   } = useData();
   
   const [product, setProduct] = useState<Product | undefined>();
@@ -33,7 +34,6 @@ export const useParticipants = () => {
     healthApproval: false,
   });
   
-  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
   const [registrationData, setRegistrationData] = useState({
     requiredAmount: 0,
@@ -68,7 +68,7 @@ export const useParticipants = () => {
   }, [productId, products, getRegistrationsByProduct]);
 
   // Handle adding a new participant and registration
-  const handleAddParticipant = (e: React.FormEvent) => {
+  const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // If we don't have a product, return
@@ -84,84 +84,42 @@ export const useParticipants = () => {
       return;
     }
     
-    if (selectedParticipant) {
-      // Using existing participant
+    // Adding new participant
+    const participant: Omit<Participant, 'id'> = {
+      firstName: newParticipant.firstName,
+      lastName: newParticipant.lastName,
+      idNumber: newParticipant.idNumber,
+      phone: newParticipant.phone,
+      healthApproval: newParticipant.healthApproval,
+    };
+    
+    // Add participant first
+    const addedParticipant = await addParticipant(participant);
+    
+    if (addedParticipant) {
+      // Then add registration
       const newRegistration: Omit<Registration, 'id'> = {
         productId: productId || '',
-        participantId: selectedParticipant.id,
+        participantId: addedParticipant.id,
         requiredAmount: registrationData.requiredAmount,
         paidAmount: registrationData.paidAmount,
         receiptNumber: registrationData.receiptNumber,
-        discountApproved: registrationData.discountApproved,
+        discountApproved: false,
         registrationDate: new Date().toISOString(),
       };
       
-      addRegistration(newRegistration);
+      const addedRegistration = await addRegistration(newRegistration);
       
       // Add initial payment if amount is greater than 0
-      if (registrationData.paidAmount > 0) {
-        // Get the newly added registration (last one)
-        const addedRegistrations = getRegistrationsByProduct(productId || '');
-        const latestRegistration = addedRegistrations[addedRegistrations.length - 1];
-        
-        if (latestRegistration) {
-          const initialPayment: Omit<Payment, 'id'> = {
-            registrationId: latestRegistration.id,
-            amount: registrationData.paidAmount,
-            receiptNumber: registrationData.receiptNumber,
-            paymentDate: new Date().toISOString(),
-          };
-          
-          addPayment(initialPayment);
-        }
-      }
-    } else {
-      // Adding new participant
-      const participant: Omit<Participant, 'id'> = {
-        firstName: newParticipant.firstName,
-        lastName: newParticipant.lastName,
-        idNumber: newParticipant.idNumber,
-        phone: newParticipant.phone,
-        healthApproval: newParticipant.healthApproval,
-      };
-      
-      // Add participant first
-      addParticipant(participant);
-      
-      // Find the newly added participant (should be the last one in the array)
-      const addedParticipant = participants[participants.length - 1];
-      
-      if (addedParticipant) {
-        // Then add registration
-        const newRegistration: Omit<Registration, 'id'> = {
-          productId: productId || '',
-          participantId: addedParticipant.id,
-          requiredAmount: registrationData.requiredAmount,
-          paidAmount: registrationData.paidAmount,
+      if (registrationData.paidAmount > 0 && addedRegistration) {
+        const initialPayment: Omit<Payment, 'id'> = {
+          registrationId: addedRegistration.id,
+          amount: registrationData.paidAmount,
           receiptNumber: registrationData.receiptNumber,
-          discountApproved: registrationData.discountApproved,
-          registrationDate: new Date().toISOString(),
+          paymentDate: new Date().toISOString(),
         };
         
-        addRegistration(newRegistration);
-        
-        // Add initial payment if amount is greater than 0
-        if (registrationData.paidAmount > 0) {
-          // Get the newly added registration (last one)
-          const addedRegistrations = getRegistrationsByProduct(productId || '');
-          const latestRegistration = addedRegistrations[addedRegistrations.length - 1];
-          
-          if (latestRegistration) {
-            const initialPayment: Omit<Payment, 'id'> = {
-              registrationId: latestRegistration.id,
-              amount: registrationData.paidAmount,
-              receiptNumber: registrationData.receiptNumber,
-              paymentDate: new Date().toISOString(),
-            };
-            
-            addPayment(initialPayment);
-          }
-        }
+        await addPayment(initialPayment);
       }
     }
     
@@ -222,14 +180,68 @@ export const useParticipants = () => {
     }
   };
 
+  // Handle applying a discount
+  const handleApplyDiscount = (discountAmount: number) => {
+    if (currentRegistration) {
+      // Update the registration with discount
+      const updatedRegistration: Registration = {
+        ...currentRegistration,
+        paidAmount: currentRegistration.paidAmount + discountAmount,
+        discountApproved: true,
+      };
+      
+      updateRegistration(updatedRegistration);
+      
+      toast({
+        title: "הנחה אושרה",
+        description: `הנחה בסך ${Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount)} אושרה למשתתף`,
+      });
+      
+      // Reset form and close dialog
+      setCurrentRegistration(null);
+      setIsAddPaymentOpen(false);
+      
+      // Refresh registrations list
+      setRegistrations(getRegistrationsByProduct(productId || ''));
+    }
+  };
+
   // Handle deleting a registration
   const handleDeleteRegistration = (registrationId: string) => {
+    const registration = registrations.find(r => r.id === registrationId);
+    const registrationPayments = registration ? getPaymentsByRegistration(registration) : [];
+    
+    // Only allow deletion if there are no payments
+    if (registrationPayments.length > 0) {
+      toast({
+        title: "לא ניתן למחוק",
+        description: "לא ניתן למחוק רישום שבוצע עבורו תשלום",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     if (window.confirm('האם אתה בטוח שברצונך למחוק רישום זה?')) {
       deleteRegistration(registrationId);
       
       // Refresh registrations list
       setRegistrations(getRegistrationsByProduct(productId || ''));
     }
+  };
+
+  // Handle updating health approval
+  const handleUpdateHealthApproval = (participant: Participant, isApproved: boolean) => {
+    const updatedParticipant: Participant = {
+      ...participant,
+      healthApproval: isApproved
+    };
+    
+    updateParticipant(updatedParticipant);
+    
+    toast({
+      title: "אישור בריאות עודכן",
+      description: `אישור בריאות ${isApproved ? 'התקבל' : 'בוטל'} עבור ${participant.firstName} ${participant.lastName}`,
+    });
   };
 
   // Reset form data
@@ -241,8 +253,6 @@ export const useParticipants = () => {
       phone: '',
       healthApproval: false,
     });
-    
-    setSelectedParticipant(null);
     
     setRegistrationData({
       requiredAmount: product?.price || 0,
@@ -269,6 +279,8 @@ export const useParticipants = () => {
         return 'bg-status-paid bg-opacity-20 text-green-800';
       case 'חלקי':
         return 'bg-status-partial bg-opacity-20 text-yellow-800';
+      case 'הנחה':
+        return 'bg-blue-100 bg-opacity-20 text-blue-800';
       case 'יתר':
         return 'bg-status-overdue bg-opacity-20 text-red-800';
       default:
@@ -291,8 +303,6 @@ export const useParticipants = () => {
     setIsAddPaymentOpen,
     newParticipant,
     setNewParticipant,
-    selectedParticipant,
-    setSelectedParticipant,
     currentRegistration,
     setCurrentRegistration,
     registrationData,
@@ -306,7 +316,9 @@ export const useParticipants = () => {
     participants,
     handleAddParticipant,
     handleAddPayment,
+    handleApplyDiscount,
     handleDeleteRegistration,
+    handleUpdateHealthApproval,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
