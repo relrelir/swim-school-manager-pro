@@ -4,6 +4,7 @@ import { ProductsContextType } from './types';
 import { Product } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
+import { mapProductFromDB, mapProductToDB } from './utils';
 
 const ProductsContext = createContext<ProductsContextType | null>(null);
 
@@ -36,20 +37,12 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
       // Map database fields to our model (camelCase)
-      const mappedProducts: Product[] = data.map(item => ({
-        id: item.id,
-        name: item.name,
-        type: item.type || 'חוג',
-        seasonId: item.seasonid,
-        startDate: item.startdate,
-        endDate: item.enddate,
-        price: item.price,
-        maxParticipants: item.maxparticipants,
-        notes: item.description || '',
-        daysOfWeek: item.daysofweek,
-        startTime: item.starttime,
-        meetingsCount: item.meetingscount
-      }));
+      const mappedProducts: Product[] = data.map(item => {
+        return mapProductFromDB({
+          ...item,
+          meetingscount: item.meetingscount || 10
+        });
+      });
 
       setProducts(mappedProducts);
     } catch (error) {
@@ -70,19 +63,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Map our model to database fields (snake_case)
       const { data, error } = await supabase
         .from('products')
-        .insert({
-          name: product.name,
-          type: product.type,
-          seasonid: product.seasonId,
-          startdate: product.startDate,
-          enddate: product.endDate,
-          price: product.price,
-          maxparticipants: product.maxParticipants,
-          description: product.notes,
-          daysofweek: product.daysOfWeek,
-          starttime: product.startTime,
-          meetingscount: product.meetingsCount
-        })
+        .insert(mapProductToDB(product))
         .select()
         .single();
 
@@ -91,20 +72,10 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
 
       // Map the returned data to our model
-      const newProduct: Product = {
-        id: data.id,
-        name: data.name,
-        type: data.type || 'חוג',
-        seasonId: data.seasonid,
-        startDate: data.startdate,
-        endDate: data.enddate,
-        price: data.price,
-        maxParticipants: data.maxparticipants,
-        notes: data.description || '',
-        daysOfWeek: data.daysofweek,
-        startTime: data.starttime,
-        meetingsCount: data.meetingscount
-      };
+      const newProduct: Product = mapProductFromDB({
+        ...data,
+        meetingscount: data.meetingscount || 10
+      });
 
       // Update state
       setProducts(prevProducts => [...prevProducts, newProduct]);
@@ -131,19 +102,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const { error } = await supabase
         .from('products')
-        .update({
-          name: product.name,
-          type: product.type,
-          seasonid: product.seasonId,
-          startdate: product.startDate,
-          enddate: product.endDate,
-          price: product.price,
-          maxparticipants: product.maxParticipants,
-          description: product.notes,
-          daysofweek: product.daysOfWeek,
-          starttime: product.startTime,
-          meetingscount: product.meetingsCount
-        })
+        .update(mapProductToDB(product))
         .eq('id', product.id);
 
       if (error) {
@@ -198,7 +157,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // Get products by season ID
+  // Filter products by season
   const getProductsBySeason = (seasonId: string): Product[] => {
     return products.filter(product => product.seasonId === seasonId);
   };

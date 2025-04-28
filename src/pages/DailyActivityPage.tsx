@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
+import { he } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { exportDailyActivitiesToCSV } from '@/utils/exportUtils';
 
@@ -77,7 +78,7 @@ const DailyActivityPage: React.FC = () => {
         <Card>
           <CardContent className="p-4 flex flex-col items-center">
             <div className="text-2xl font-bold">
-              {format(selectedDate, 'EEEE', { locale: require('date-fns/locale/he') })}
+              {format(selectedDate, 'EEEE', { locale: he })}
             </div>
             <div className="text-sm text-gray-500">יום בשבוע</div>
           </CardContent>
