@@ -16,7 +16,7 @@ export interface ParticipantExportData {
   receiptNumbers: string;
   discountApplied: string;
   healthApproval: string;
-  paymentStatus: string;
+  paymentStatus: PaymentStatus;  // Updated to use PaymentStatus type
   registrationDate: string;
 }
 
