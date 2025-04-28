@@ -80,7 +80,7 @@ const DailyActivityPage: React.FC = () => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "justify-start text-left font-normal",
+                    "justify-start text-right font-normal",
                   )}
                 >
                   <CalendarIcon className="ml-2 h-4 w-4" />
@@ -133,35 +133,37 @@ const DailyActivityPage: React.FC = () => {
       </div>
 
       {activities.length > 0 ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>שם הפעילות</TableHead>
-              <TableHead>שעת התחלה</TableHead>
-              <TableHead>מפגש מספר</TableHead>
-              <TableHead>מספר משתתפים</TableHead>
-              <TableHead>סוג</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {activities.map((activity, idx) => {
-              // Calculate meeting number based on the selected date
-              const meetingInfo = calculateMeetingNumberForDate(activity.product, selectedDate);
-              
-              return (
-                <TableRow key={idx}>
-                  <TableCell className="font-medium">{activity.product.name}</TableCell>
-                  <TableCell>{activity.startTime || 'לא מוגדר'}</TableCell>
-                  <TableCell>
-                    {`${meetingInfo.current}/${meetingInfo.total}`}
-                  </TableCell>
-                  <TableCell>{activity.numParticipants}</TableCell>
-                  <TableCell>{activity.product.type}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-right">שם הפעילות</TableHead>
+                <TableHead className="text-right">שעת התחלה</TableHead>
+                <TableHead className="text-right">מפגש מספר</TableHead>
+                <TableHead className="text-right">מספר משתתפים</TableHead>
+                <TableHead className="text-right">סוג</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {activities.map((activity, idx) => {
+                // Calculate meeting number based on the selected date
+                const meetingInfo = calculateMeetingNumberForDate(activity.product, selectedDate);
+                
+                return (
+                  <TableRow key={idx}>
+                    <TableCell className="font-medium text-right">{activity.product.name}</TableCell>
+                    <TableCell className="text-right">{activity.startTime || 'לא מוגדר'}</TableCell>
+                    <TableCell className="text-right">
+                      {`${meetingInfo.current}/${meetingInfo.total}`}
+                    </TableCell>
+                    <TableCell className="text-right">{activity.numParticipants}</TableCell>
+                    <TableCell className="text-right">{activity.product.type}</TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
         <div className="text-center p-8 bg-gray-50 rounded-lg">
           <p className="text-lg text-gray-500">אין פעילויות ביום זה</p>
