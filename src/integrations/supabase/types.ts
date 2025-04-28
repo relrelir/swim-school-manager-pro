@@ -9,7 +9,199 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      participants: {
+        Row: {
+          created_at: string
+          firstname: string
+          healthapproval: boolean
+          id: string
+          idnumber: string
+          lastname: string
+          phone: string
+        }
+        Insert: {
+          created_at?: string
+          firstname: string
+          healthapproval?: boolean
+          id?: string
+          idnumber: string
+          lastname: string
+          phone: string
+        }
+        Update: {
+          created_at?: string
+          firstname?: string
+          healthapproval?: boolean
+          id?: string
+          idnumber?: string
+          lastname?: string
+          phone?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          paymentdate: string
+          receiptnumber: string
+          registrationid: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          paymentdate: string
+          receiptnumber: string
+          registrationid: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          paymentdate?: string
+          receiptnumber?: string
+          registrationid?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_registrationid_fkey"
+            columns: ["registrationid"]
+            isOneToOne: false
+            referencedRelation: "registrations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          created_at: string
+          daysofweek: string[] | null
+          description: string | null
+          enddate: string
+          id: string
+          instructor: string | null
+          maxparticipants: number
+          name: string
+          price: number
+          seasonid: string
+          startdate: string
+          starttime: string | null
+        }
+        Insert: {
+          created_at?: string
+          daysofweek?: string[] | null
+          description?: string | null
+          enddate: string
+          id?: string
+          instructor?: string | null
+          maxparticipants?: number
+          name: string
+          price: number
+          seasonid: string
+          startdate: string
+          starttime?: string | null
+        }
+        Update: {
+          created_at?: string
+          daysofweek?: string[] | null
+          description?: string | null
+          enddate?: string
+          id?: string
+          instructor?: string | null
+          maxparticipants?: number
+          name?: string
+          price?: number
+          seasonid?: string
+          startdate?: string
+          starttime?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_seasonid_fkey"
+            columns: ["seasonid"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registrations: {
+        Row: {
+          created_at: string
+          discountapproved: boolean
+          id: string
+          paidamount: number
+          participantid: string
+          productid: string
+          receiptnumber: string
+          registrationdate: string
+          requiredamount: number
+        }
+        Insert: {
+          created_at?: string
+          discountapproved?: boolean
+          id?: string
+          paidamount?: number
+          participantid: string
+          productid: string
+          receiptnumber: string
+          registrationdate?: string
+          requiredamount: number
+        }
+        Update: {
+          created_at?: string
+          discountapproved?: boolean
+          id?: string
+          paidamount?: number
+          participantid?: string
+          productid?: string
+          receiptnumber?: string
+          registrationdate?: string
+          requiredamount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registrations_participantid_fkey"
+            columns: ["participantid"]
+            isOneToOne: false
+            referencedRelation: "participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "registrations_productid_fkey"
+            columns: ["productid"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seasons: {
+        Row: {
+          created_at: string
+          enddate: string
+          id: string
+          name: string
+          startdate: string
+        }
+        Insert: {
+          created_at?: string
+          enddate: string
+          id?: string
+          name: string
+          startdate: string
+        }
+        Update: {
+          created_at?: string
+          enddate?: string
+          id?: string
+          name?: string
+          startdate?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

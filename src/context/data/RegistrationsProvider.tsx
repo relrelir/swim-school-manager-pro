@@ -2,7 +2,8 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { PaymentStatus, Registration } from '@/types';
 import { RegistrationsContextType } from './types';
-import { generateId, loadData, saveData } from './utils';
+import { generateId, handleSupabaseError } from './utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const RegistrationsContext = createContext<RegistrationsContextType | null>(null);
 
@@ -19,25 +20,115 @@ interface RegistrationsProviderProps {
 }
 
 export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ children }) => {
-  const [registrations, setRegistrations] = useState<Registration[]>(() => loadData('swimSchoolRegistrations', []));
+  const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Save data to localStorage whenever it changes
+  // Load registrations from Supabase
   useEffect(() => {
-    saveData('swimSchoolRegistrations', registrations);
-  }, [registrations]);
+    const fetchRegistrations = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('registrations')
+          .select('*');
+
+        if (error) {
+          handleSupabaseError(error, 'fetching registrations');
+        }
+
+        // Transform data to match our Registration type
+        const transformedRegistrations: Registration[] = data?.map(registration => ({
+          id: registration.id,
+          productId: registration.productId,
+          participantId: registration.participantId,
+          requiredAmount: Number(registration.requiredAmount),
+          paidAmount: Number(registration.paidAmount),
+          receiptNumber: registration.receiptNumber,
+          discountApproved: registration.discountApproved,
+          registrationDate: registration.registrationDate,
+        })) || [];
+
+        setRegistrations(transformedRegistrations);
+      } catch (error) {
+        console.error('Error loading registrations:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRegistrations();
+  }, []);
 
   // Registrations functions
-  const addRegistration = (registration: Omit<Registration, 'id'>) => {
-    const newRegistration = { ...registration, id: generateId() };
-    setRegistrations([...registrations, newRegistration]);
+  const addRegistration = async (registration: Omit<Registration, 'id'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('registrations')
+        .insert([registration])
+        .select()
+        .single();
+
+      if (error) {
+        handleSupabaseError(error, 'adding registration');
+      }
+
+      if (data) {
+        const newRegistration: Registration = {
+          id: data.id,
+          productId: data.productId,
+          participantId: data.participantId,
+          requiredAmount: Number(data.requiredAmount),
+          paidAmount: Number(data.paidAmount),
+          receiptNumber: data.receiptNumber,
+          discountApproved: data.discountApproved,
+          registrationDate: data.registrationDate,
+        };
+        setRegistrations([...registrations, newRegistration]);
+        return newRegistration;
+      }
+    } catch (error) {
+      console.error('Error adding registration:', error);
+    }
   };
 
-  const updateRegistration = (registration: Registration) => {
-    setRegistrations(registrations.map(r => r.id === registration.id ? registration : r));
+  const updateRegistration = async (registration: Registration) => {
+    try {
+      const { error } = await supabase
+        .from('registrations')
+        .update({
+          productId: registration.productId,
+          participantId: registration.participantId,
+          requiredAmount: registration.requiredAmount,
+          paidAmount: registration.paidAmount,
+          receiptNumber: registration.receiptNumber,
+          discountApproved: registration.discountApproved,
+        })
+        .eq('id', registration.id);
+
+      if (error) {
+        handleSupabaseError(error, 'updating registration');
+      }
+
+      setRegistrations(registrations.map(r => r.id === registration.id ? registration : r));
+    } catch (error) {
+      console.error('Error updating registration:', error);
+    }
   };
 
-  const deleteRegistration = (id: string) => {
-    setRegistrations(registrations.filter(r => r.id !== id));
+  const deleteRegistration = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('registrations')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        handleSupabaseError(error, 'deleting registration');
+      }
+
+      setRegistrations(registrations.filter(r => r.id !== id));
+    } catch (error) {
+      console.error('Error deleting registration:', error);
+    }
   };
 
   const getRegistrationsByProduct = (productId: string) => {
@@ -64,6 +155,7 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     deleteRegistration,
     getRegistrationsByProduct,
     calculatePaymentStatus,
+    loading
   };
 
   return (

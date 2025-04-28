@@ -3,7 +3,8 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Season } from '@/types';
 import { SeasonsContextType } from './types';
-import { generateId, loadData, saveData } from './utils';
+import { generateId, handleSupabaseError } from './utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const SeasonsContext = createContext<SeasonsContextType | null>(null);
 
@@ -16,48 +17,123 @@ export const useSeasonsContext = () => {
 };
 
 export const SeasonsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [seasons, setSeasons] = useState<Season[]>(() => loadData('swimSchoolSeasons', []));
+  const [seasons, setSeasons] = useState<Season[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Save data to localStorage whenever it changes
+  // Load seasons from Supabase
   useEffect(() => {
-    saveData('swimSchoolSeasons', seasons);
-  }, [seasons]);
+    const fetchSeasons = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('seasons')
+          .select('*');
+
+        if (error) {
+          handleSupabaseError(error, 'fetching seasons');
+        }
+
+        // Transform data to match our Season type
+        const transformedSeasons: Season[] = data?.map(season => ({
+          id: season.id,
+          name: season.name,
+          startDate: season.startDate,
+          endDate: season.endDate
+        })) || [];
+
+        setSeasons(transformedSeasons);
+      } catch (error) {
+        console.error('Error loading seasons:', error);
+        toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בטעינת עונות",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSeasons();
+  }, []);
 
   // Seasons functions
-  const addSeason = (season: Omit<Season, 'id'>) => {
-    // Check for date overlaps
-    const overlapping = seasons.some(existingSeason => {
-      const newStart = new Date(season.startDate);
-      const newEnd = new Date(season.endDate);
-      const existingStart = new Date(existingSeason.startDate);
-      const existingEnd = new Date(existingSeason.endDate);
-      
-      return (
-        (newStart >= existingStart && newStart <= existingEnd) ||
-        (newEnd >= existingStart && newEnd <= existingEnd) ||
-        (newStart <= existingStart && newEnd >= existingEnd)
-      );
-    });
+  const addSeason = async (season: Omit<Season, 'id'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('seasons')
+        .insert([season])
+        .select()
+        .single();
 
-    if (overlapping) {
+      if (error) {
+        handleSupabaseError(error, 'adding season');
+      }
+
+      if (data) {
+        const newSeason: Season = {
+          id: data.id,
+          name: data.name,
+          startDate: data.startDate,
+          endDate: data.endDate
+        };
+        setSeasons([...seasons, newSeason]);
+      }
+    } catch (error) {
+      console.error('Error adding season:', error);
       toast({
         title: "שגיאה",
-        description: "תאריכי העונה חופפים עם עונה קיימת",
+        description: "אירעה שגיאה בהוספת עונה חדשה",
         variant: "destructive",
       });
-      return;
     }
-
-    const newSeason = { ...season, id: generateId() };
-    setSeasons([...seasons, newSeason]);
   };
 
-  const updateSeason = (season: Season) => {
-    setSeasons(seasons.map(s => s.id === season.id ? season : s));
+  const updateSeason = async (season: Season) => {
+    try {
+      const { error } = await supabase
+        .from('seasons')
+        .update({
+          name: season.name,
+          startDate: season.startDate,
+          endDate: season.endDate
+        })
+        .eq('id', season.id);
+
+      if (error) {
+        handleSupabaseError(error, 'updating season');
+      }
+
+      setSeasons(seasons.map(s => s.id === season.id ? season : s));
+    } catch (error) {
+      console.error('Error updating season:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בעדכון עונה",
+        variant: "destructive",
+      });
+    }
   };
 
-  const deleteSeason = (id: string) => {
-    setSeasons(seasons.filter(s => s.id !== id));
+  const deleteSeason = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('seasons')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        handleSupabaseError(error, 'deleting season');
+      }
+
+      setSeasons(seasons.filter(s => s.id !== id));
+    } catch (error) {
+      console.error('Error deleting season:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה במחיקת עונה",
+        variant: "destructive",
+      });
+    }
   };
 
   const contextValue: SeasonsContextType = {
@@ -65,6 +141,7 @@ export const SeasonsProvider: React.FC<{ children: React.ReactNode }> = ({ child
     addSeason,
     updateSeason,
     deleteSeason,
+    loading
   };
 
   return (
