@@ -2,8 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
-import { toast } from "@/components/ui/use-toast";
-import { Participant, Product, Registration, Payment, PaymentStatus } from '@/types';
+import { Registration } from '@/types';
+import { useParticipantForm } from './useParticipantForm';
+import { usePaymentHandlers } from './usePaymentHandlers';
+import { useRegistrationHandlers } from './useRegistrationHandlers';
+import { useParticipantUtils } from './useParticipantUtils';
 
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -22,31 +25,50 @@ export const useParticipants = () => {
     addParticipant
   } = useData();
   
-  const [product, setProduct] = useState<Product | undefined>();
+  const [product, setProduct] = useState(undefined);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [isAddParticipantOpen, setIsAddParticipantOpen] = useState(false);
-  const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
-  const [newParticipant, setNewParticipant] = useState<Omit<Participant, 'id'>>({
-    firstName: '',
-    lastName: '',
-    idNumber: '',
-    phone: '',
-    healthApproval: false,
-  });
   
-  const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
-  const [registrationData, setRegistrationData] = useState({
-    requiredAmount: 0,
-    paidAmount: 0,
-    receiptNumber: '',
-    discountApproved: false,
-  });
+  // Import sub-hooks
+  const {
+    isAddParticipantOpen,
+    setIsAddParticipantOpen,
+    isAddPaymentOpen,
+    setIsAddPaymentOpen,
+    newParticipant,
+    setNewParticipant,
+    registrationData,
+    setRegistrationData,
+    newPayment,
+    setNewPayment,
+    resetForm
+  } = useParticipantForm(product);
   
-  const [newPayment, setNewPayment] = useState({
-    amount: 0,
-    receiptNumber: '',
-    paymentDate: new Date().toISOString().substring(0, 10),
-  });
+  const {
+    currentRegistration,
+    setCurrentRegistration,
+    handleAddPayment: baseHandleAddPayment,
+    handleApplyDiscount: baseHandleApplyDiscount
+  } = usePaymentHandlers(addPayment, updateRegistration, getRegistrationsByProduct);
+  
+  const {
+    handleAddParticipant: baseHandleAddParticipant,
+    handleDeleteRegistration: baseHandleDeleteRegistration,
+    handleUpdateHealthApproval
+  } = useRegistrationHandlers(
+    addParticipant,
+    addRegistration,
+    updateParticipant,
+    deleteRegistration,
+    addPayment,
+    getPaymentsByRegistration,
+    getRegistrationsByProduct
+  );
+  
+  const {
+    getParticipantForRegistration,
+    getPaymentsForRegistration,
+    getStatusClassName
+  } = useParticipantUtils(participants, payments);
 
   // Load product and registrations data
   useEffect(() => {
@@ -67,235 +89,58 @@ export const useParticipants = () => {
     }
   }, [productId, products, getRegistrationsByProduct]);
 
-  // Handle adding a new participant and registration
-  const handleAddParticipant = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // If we don't have a product, return
-    if (!product) return;
-    
-    // Check if receipt number is provided
-    if (!registrationData.receiptNumber) {
-      toast({
-        title: "שגיאה",
-        description: "מספר קבלה הוא שדה חובה",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Adding new participant
-    const participant: Omit<Participant, 'id'> = {
-      firstName: newParticipant.firstName,
-      lastName: newParticipant.lastName,
-      idNumber: newParticipant.idNumber,
-      phone: newParticipant.phone,
-      healthApproval: newParticipant.healthApproval,
-    };
-    
-    // Add participant first
-    const addedParticipant = await addParticipant(participant);
-    
-    if (addedParticipant) {
-      // Then add registration
-      const newRegistration: Omit<Registration, 'id'> = {
-        productId: productId || '',
-        participantId: addedParticipant.id,
-        requiredAmount: registrationData.requiredAmount,
-        paidAmount: registrationData.paidAmount,
-        receiptNumber: registrationData.receiptNumber,
-        discountApproved: registrationData.discountApproved,
-        registrationDate: new Date().toISOString(),
-      };
-      
-      const addedRegistration = await addRegistration(newRegistration);
-      
-      // Add initial payment if amount is greater than 0
-      if (registrationData.paidAmount > 0 && addedRegistration) {
-        const initialPayment: Omit<Payment, 'id'> = {
-          registrationId: addedRegistration.id,
-          amount: registrationData.paidAmount,
-          receiptNumber: registrationData.receiptNumber,
-          paymentDate: new Date().toISOString(),
-        };
-        
-        await addPayment(initialPayment);
+  // Wrap handlers with local state
+  const handleAddParticipant = (e: React.FormEvent) => {
+    return baseHandleAddParticipant(
+      e, 
+      productId,
+      newParticipant,
+      registrationData,
+      resetForm,
+      setIsAddParticipantOpen
+    ).then(result => {
+      if (result) {
+        setRegistrations(result);
       }
-    }
-    
-    // Reset form and close dialog
-    resetForm();
-    setIsAddParticipantOpen(false);
-    
-    // Refresh registrations list
-    if (productId) {
-      setRegistrations(getRegistrationsByProduct(productId));
-    }
+    });
   };
 
-  // Handle adding a new payment
   const handleAddPayment = (e: React.FormEvent) => {
-    e.preventDefault();
+    const updatedRegistrations = baseHandleAddPayment(
+      e,
+      newPayment,
+      setIsAddPaymentOpen,
+      setNewPayment,
+      productId
+    );
     
-    if (currentRegistration) {
-      // Check if receipt number is provided
-      if (!newPayment.receiptNumber) {
-        toast({
-          title: "שגיאה",
-          description: "מספר קבלה הוא שדה חובה",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Add the new payment
-      const payment: Omit<Payment, 'id'> = {
-        registrationId: currentRegistration.id,
-        amount: newPayment.amount,
-        receiptNumber: newPayment.receiptNumber,
-        paymentDate: newPayment.paymentDate,
-      };
-      
-      addPayment(payment);
-      
-      // Update the registration's paidAmount
-      const updatedPaidAmount = currentRegistration.paidAmount + newPayment.amount;
-      
-      const updatedRegistration: Registration = {
-        ...currentRegistration,
-        paidAmount: updatedPaidAmount,
-      };
-      
-      updateRegistration(updatedRegistration);
-      
-      // Reset form and close dialog
-      setCurrentRegistration(null);
-      setNewPayment({
-        amount: 0,
-        receiptNumber: '',
-        paymentDate: new Date().toISOString().substring(0, 10),
-      });
-      setIsAddPaymentOpen(false);
-      
-      // Refresh registrations list
-      if (productId) {
-        setRegistrations(getRegistrationsByProduct(productId));
-      }
+    if (updatedRegistrations.length > 0) {
+      setRegistrations(updatedRegistrations);
     }
   };
 
-  // Handle applying a discount
   const handleApplyDiscount = (discountAmount: number) => {
-    if (currentRegistration) {
-      // Update the registration with discount
-      const updatedRegistration: Registration = {
-        ...currentRegistration,
-        paidAmount: currentRegistration.paidAmount + discountAmount,
-        discountApproved: true,
-      };
-      
-      updateRegistration(updatedRegistration);
-      
-      toast({
-        title: "הנחה אושרה",
-        description: `הנחה בסך ${Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount)} אושרה למשתתף`,
-      });
-      
-      // Reset form and close dialog
-      setCurrentRegistration(null);
-      setIsAddPaymentOpen(false);
-      
-      // Refresh registrations list
-      if (productId) {
-        setRegistrations(getRegistrationsByProduct(productId));
-      }
+    const updatedRegistrations = baseHandleApplyDiscount(
+      discountAmount,
+      setIsAddPaymentOpen,
+      productId
+    );
+    
+    if (updatedRegistrations.length > 0) {
+      setRegistrations(updatedRegistrations);
     }
   };
 
-  // Handle deleting a registration
   const handleDeleteRegistration = (registrationId: string) => {
-    const registration = registrations.find(r => r.id === registrationId);
-    if (!registration) return;
-    
-    const registrationPayments = getPaymentsByRegistration(registration.id);
-    
-    // Only allow deletion if there are no payments
-    if (registrationPayments.length > 0) {
-      toast({
-        title: "לא ניתן למחוק",
-        description: "לא ניתן למחוק רישום שבוצע עבורו תשלום",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (window.confirm('האם אתה בטוח שברצונך למחוק רישום זה?')) {
-      deleteRegistration(registrationId);
-      
-      // Refresh registrations list
-      if (productId) {
-        setRegistrations(getRegistrationsByProduct(productId));
+    baseHandleDeleteRegistration(
+      registrationId,
+      registrations,
+      productId
+    ).then(result => {
+      if (result) {
+        setRegistrations(result);
       }
-    }
-  };
-
-  // Handle updating health approval
-  const handleUpdateHealthApproval = (participant: Participant, isApproved: boolean) => {
-    const updatedParticipant: Participant = {
-      ...participant,
-      healthApproval: isApproved
-    };
-    
-    updateParticipant(updatedParticipant);
-    
-    toast({
-      title: "אישור בריאות עודכן",
-      description: `אישור בריאות ${isApproved ? 'התקבל' : 'בוטל'} עבור ${participant.firstName} ${participant.lastName}`,
     });
-  };
-
-  // Reset form data
-  const resetForm = () => {
-    setNewParticipant({
-      firstName: '',
-      lastName: '',
-      idNumber: '',
-      phone: '',
-      healthApproval: false,
-    });
-    
-    setRegistrationData({
-      requiredAmount: product?.price || 0,
-      paidAmount: 0,
-      receiptNumber: '',
-      discountApproved: false,
-    });
-  };
-
-  // Get participant details for a registration
-  const getParticipantForRegistration = (registration: Registration): Participant | undefined => {
-    return participants.find(p => p.id === registration.participantId);
-  };
-  
-  // Get payments for a registration
-  const getPaymentsForRegistration = (registration: Registration): Payment[] => {
-    return payments.filter(p => p.registrationId === registration.id);
-  };
-
-  // Get class name for payment status
-  const getStatusClassName = (status: PaymentStatus): string => {
-    switch (status) {
-      case 'מלא':
-        return 'bg-status-paid bg-opacity-20 text-green-800';
-      case 'חלקי':
-        return 'bg-status-partial bg-opacity-20 text-yellow-800';
-      case 'הנחה':
-        return 'bg-blue-100 bg-opacity-20 text-blue-800';
-      case 'יתר':
-        return 'bg-status-overdue bg-opacity-20 text-red-800';
-      default:
-        return '';
-    }
   };
 
   // Calculate totals

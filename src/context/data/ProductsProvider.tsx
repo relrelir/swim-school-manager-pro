@@ -1,11 +1,12 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { ProductsContextType } from './types';
+import React, { createContext, useState, useContext, useEffect } from 'react';
+import { toast } from "@/components/ui/use-toast";
 import { Product } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from "@/components/ui/use-toast";
-import { mapProductFromDB, mapProductToDB } from './utils';
+import { handleSupabaseError, mapProductFromDB, mapProductToDB } from './utils';
+import { ProductsContextType } from './types';
 
+// Create a context for products data
 const ProductsContext = createContext<ProductsContextType | null>(null);
 
 export const useProductsContext = () => {
@@ -20,114 +21,98 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch products on component mount
+  // Load products from Supabase
   useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*');
+
+        if (error) {
+          handleSupabaseError(error, 'fetching products');
+        }
+
+        if (data) {
+          // Transform data to match our Product type with proper casing
+          const transformedProducts = data.map(product => {
+            // Map DB fields to our model properties (handle casing differences)
+            const mappedProduct = mapProductFromDB(product);
+            return mappedProduct;
+          });
+          
+          setProducts(transformedProducts);
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בטעינת מוצרים",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchProducts();
   }, []);
 
-  const fetchProducts = async () => {
+  // Add a product
+  const addProduct = async (product: Omit<Product, 'id'>) => {
     try {
-      setLoading(true);
+      // Convert to DB field names format (lowercase)
+      const dbProduct = mapProductToDB(product);
+      
       const { data, error } = await supabase
         .from('products')
-        .select('*');
-
-      if (error) {
-        throw error;
-      }
-
-      // Map database fields to our model (camelCase)
-      const mappedProducts: Product[] = data.map(item => {
-        // Add meetingsCount with default value if not present in the database
-        const dataWithMeetings = {
-          ...item,
-          meetingscount: item.meetingscount || 10
-        };
-        return mapProductFromDB(dataWithMeetings);
-      });
-
-      setProducts(mappedProducts);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      toast({
-        title: 'שגיאה',
-        description: 'אירעה שגיאה בטעינת המוצרים',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Add a new product
-  const addProduct = async (product: Omit<Product, 'id'>): Promise<Product | undefined> => {
-    try {
-      // Map our model to database fields (snake_case)
-      const { data, error } = await supabase
-        .from('products')
-        .insert(mapProductToDB(product))
+        .insert([dbProduct])
         .select()
         .single();
 
       if (error) {
-        throw error;
+        handleSupabaseError(error, 'adding product');
       }
 
-      // Map the returned data to our model
-      // Add meetingsCount with default value if not present in the database
-      const dataWithMeetings = {
-        ...data,
-        meetingscount: data.meetingscount || 10
-      };
-      const newProduct: Product = mapProductFromDB(dataWithMeetings);
-
-      // Update state
-      setProducts(prevProducts => [...prevProducts, newProduct]);
-      
-      toast({
-        title: 'מוצר נוסף',
-        description: `המוצר ${product.name} נוסף בהצלחה`,
-      });
-      
-      return newProduct;
+      if (data) {
+        // Convert back to our TypeScript model format (camelCase)
+        const newProduct = mapProductFromDB(data);
+        setProducts([...products, newProduct]);
+        return newProduct;
+      }
     } catch (error) {
       console.error('Error adding product:', error);
       toast({
-        title: 'שגיאה',
-        description: 'אירעה שגיאה בהוספת המוצר',
-        variant: 'destructive',
+        title: "שגיאה",
+        description: "אירעה שגיאה בהוספת מוצר חדש",
+        variant: "destructive",
       });
-      return undefined;
     }
   };
 
   // Update a product
-  const updateProduct = async (product: Product): Promise<void> => {
+  const updateProduct = async (product: Product) => {
     try {
+      // Convert to DB field names format (lowercase)
+      const { id, ...productData } = product;
+      const dbProduct = mapProductToDB(productData);
+      
       const { error } = await supabase
         .from('products')
-        .update(mapProductToDB(product))
-        .eq('id', product.id);
+        .update(dbProduct)
+        .eq('id', id);
 
       if (error) {
-        throw error;
+        handleSupabaseError(error, 'updating product');
       }
 
-      // Update state
-      setProducts(prevProducts =>
-        prevProducts.map(p => (p.id === product.id ? product : p))
-      );
-      
-      toast({
-        title: 'מוצר עודכן',
-        description: `המוצר ${product.name} עודכן בהצלחה`,
-      });
+      setProducts(products.map(p => p.id === id ? product : p));
     } catch (error) {
       console.error('Error updating product:', error);
       toast({
-        title: 'שגיאה',
-        description: 'אירעה שגיאה בעדכון המוצר',
-        variant: 'destructive',
+        title: "שגיאה",
+        description: "אירעה שגיאה בעדכון מוצר",
+        variant: "destructive",
       });
     }
   };
@@ -141,42 +126,36 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         .eq('id', id);
 
       if (error) {
-        throw error;
+        handleSupabaseError(error, 'deleting product');
       }
 
-      // Update state
-      setProducts(prevProducts => prevProducts.filter(p => p.id !== id));
-      
-      toast({
-        title: 'מוצר נמחק',
-        description: 'המוצר נמחק בהצלחה',
-      });
+      setProducts(products.filter(p => p.id !== id));
     } catch (error) {
       console.error('Error deleting product:', error);
       toast({
-        title: 'שגיאה',
-        description: 'אירעה שגיאה במחיקת המוצר',
-        variant: 'destructive',
+        title: "שגיאה",
+        description: "אירעה שגיאה במחיקת מוצר",
+        variant: "destructive",
       });
     }
   };
 
-  // Filter products by season
-  const getProductsBySeason = (seasonId: string): Product[] => {
+  // Get products by season
+  const getProductsBySeason = (seasonId: string) => {
     return products.filter(product => product.seasonId === seasonId);
   };
 
+  const contextValue: ProductsContextType = {
+    products,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    getProductsBySeason,
+    loading
+  };
+
   return (
-    <ProductsContext.Provider
-      value={{
-        products,
-        addProduct,
-        updateProduct,
-        deleteProduct,
-        getProductsBySeason,
-        loading,
-      }}
-    >
+    <ProductsContext.Provider value={contextValue}>
       {children}
     </ProductsContext.Provider>
   );
