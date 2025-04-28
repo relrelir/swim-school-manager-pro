@@ -133,6 +133,7 @@ export type Database = {
       registrations: {
         Row: {
           created_at: string
+          discountamount: number | null
           discountapproved: boolean
           id: string
           paidamount: number
@@ -144,6 +145,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          discountamount?: number | null
           discountapproved?: boolean
           id?: string
           paidamount?: number
@@ -155,6 +157,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          discountamount?: number | null
           discountapproved?: boolean
           id?: string
           paidamount?: number

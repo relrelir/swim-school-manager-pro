@@ -9,6 +9,7 @@ import EmptyParticipantsState from '@/components/participants/EmptyParticipantsS
 import AddParticipantDialog from '@/components/participants/AddParticipantDialog';
 import AddPaymentDialog from '@/components/participants/AddPaymentDialog';
 import { prepareParticipantsData, exportToCSV } from '@/utils/exportParticipants';
+import { toast } from "@/components/ui/use-toast";
 
 const ParticipantsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -45,17 +46,38 @@ const ParticipantsPage: React.FC = () => {
   } = useParticipants();
 
   const handleExportToCSV = () => {
-    if (registrations.length === 0) return;
+    if (registrations.length === 0) {
+      toast({
+        title: "אין נתונים לייצוא",
+        description: "אין משתתפים רשומים למוצר זה",
+        variant: "destructive",
+      });
+      return;
+    }
     
-    const data = prepareParticipantsData(
-      registrations, 
-      getParticipantForRegistration,
-      getPaymentsForRegistration,
-      calculatePaymentStatus
-    );
-    
-    const filename = `משתתפים_${product?.name || 'מוצר'}_${new Date().toISOString().split('T')[0]}.csv`;
-    exportToCSV(data, filename);
+    try {
+      const data = prepareParticipantsData(
+        registrations, 
+        getParticipantForRegistration,
+        getPaymentsForRegistration,
+        calculatePaymentStatus
+      );
+      
+      const filename = `משתתפים_${product?.name || 'מוצר'}_${new Date().toISOString().split('T')[0]}.csv`;
+      exportToCSV(data, filename);
+      
+      toast({
+        title: "הייצוא הושלם בהצלחה",
+        description: "הנתונים יוצאו בהצלחה לקובץ CSV",
+      });
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      toast({
+        title: "שגיאה בייצוא",
+        description: "אירעה שגיאה בייצוא הנתונים",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
