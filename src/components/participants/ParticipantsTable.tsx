@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Participant, PaymentStatus, Registration, Payment } from '@/types';
+import { Download } from 'lucide-react';
 
 interface ParticipantsTableProps {
   registrations: Registration[];
@@ -14,6 +15,7 @@ interface ParticipantsTableProps {
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
   onUpdateHealthApproval: (participant: Participant, isApproved: boolean) => void;
+  onExport?: () => void;
 }
 
 const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
@@ -25,6 +27,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onAddPayment,
   onDeleteRegistration,
   onUpdateHealthApproval,
+  onExport,
 }) => {
   // Helper to separate actual payments from discounts
   const calculateActualPayments = (payments: Payment[]) => {
@@ -38,6 +41,14 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
 
   return (
     <div className="overflow-x-auto">
+      {onExport && (
+        <div className="flex justify-end mb-4">
+          <Button onClick={onExport} variant="outline" size="sm" className="flex items-center gap-1">
+            <Download className="h-4 w-4" />
+            ייצא לקובץ CSV
+          </Button>
+        </div>
+      )}
       <Table>
         <TableHeader>
           <TableRow>

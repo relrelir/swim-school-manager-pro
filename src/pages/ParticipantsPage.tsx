@@ -8,6 +8,7 @@ import ParticipantsTable from '@/components/participants/ParticipantsTable';
 import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
 import AddParticipantDialog from '@/components/participants/AddParticipantDialog';
 import AddPaymentDialog from '@/components/participants/AddPaymentDialog';
+import { prepareParticipantsData, exportToCSV } from '@/utils/exportParticipants';
 
 const ParticipantsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -42,6 +43,20 @@ const ParticipantsPage: React.FC = () => {
     getStatusClassName,
     calculatePaymentStatus,
   } = useParticipants();
+
+  const handleExportToCSV = () => {
+    if (registrations.length === 0) return;
+    
+    const data = prepareParticipantsData(
+      registrations, 
+      getParticipantForRegistration,
+      getPaymentsForRegistration,
+      calculatePaymentStatus
+    );
+    
+    const filename = `משתתפים_${product?.name || 'מוצר'}_${new Date().toISOString().split('T')[0]}.csv`;
+    exportToCSV(data, filename);
+  };
 
   return (
     <div className="container mx-auto">
@@ -88,6 +103,7 @@ const ParticipantsPage: React.FC = () => {
           }}
           onDeleteRegistration={handleDeleteRegistration}
           onUpdateHealthApproval={handleUpdateHealthApproval}
+          onExport={handleExportToCSV}
         />
       )}
 
