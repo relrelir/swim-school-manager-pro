@@ -26,6 +26,16 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onDeleteRegistration,
   onUpdateHealthApproval,
 }) => {
+  // Helper to separate actual payments from discounts
+  const calculateActualPayments = (payments: Payment[]) => {
+    return payments.filter(p => p.receiptNumber !== '');
+  };
+  
+  // Helper to calculate discount amount
+  const calculateDiscountAmount = (registration: Registration) => {
+    return registration.discountAmount || 0;
+  };
+
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -47,7 +57,10 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
           {registrations.map((registration) => {
             const participant = getParticipantForRegistration(registration);
             const registrationPayments = getPaymentsForRegistration(registration);
-            const status = calculatePaymentStatus(registration);
+            const actualPayments = calculateActualPayments(registrationPayments);
+            const discountAmount = calculateDiscountAmount(registration);
+            const actualPaidAmount = actualPayments.reduce((sum, payment) => sum + payment.amount, 0);
+            const status = calculatePaymentStatus(registration, actualPaidAmount);
             const hasPayments = registrationPayments.length > 0;
             
             if (!participant) return null;
@@ -62,10 +75,15 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                   {registrationPayments.length > 0 ? (
                     <div className="space-y-1">
                       {registrationPayments.map((payment, idx) => (
-                        <div key={idx} className="text-sm">
-                          <div>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(payment.amount)}</div>
+                        <div key={idx} className={`text-sm ${!payment.receiptNumber ? 'text-gray-500 font-medium' : ''}`}>
+                          {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(payment.amount)}
                         </div>
                       ))}
+                      {registration.discountApproved && discountAmount > 0 && (
+                        <div className="text-sm text-gray-500 font-medium">
+                          {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount)} (הנחה)
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <span className="text-gray-500">-</span>
@@ -75,7 +93,9 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                   {registrationPayments.length > 0 ? (
                     <div className="space-y-1">
                       {registrationPayments.map((payment, idx) => (
-                        <div key={idx} className="text-xs text-gray-500">{payment.receiptNumber || '-'}</div>
+                        <div key={idx} className="text-xs text-gray-500">
+                          {payment.receiptNumber ? payment.receiptNumber : '--'}
+                        </div>
                       ))}
                     </div>
                   ) : (

@@ -82,6 +82,7 @@ export const usePaymentHandlers = (
         ...currentRegistration,
         paidAmount: currentRegistration.paidAmount + discountAmount,
         discountApproved: true,
+        discountAmount: (currentRegistration.discountAmount || 0) + discountAmount,
       };
       
       updateRegistration(updatedRegistration);

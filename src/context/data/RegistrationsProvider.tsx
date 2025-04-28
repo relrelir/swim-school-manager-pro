@@ -116,9 +116,18 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
   };
 
   // Calculate payment status
-  const calculatePaymentStatus = (registration: Registration): PaymentStatus => {
+  const calculatePaymentStatus = (registration: Registration, actualPaidAmount?: number): PaymentStatus => {
+    // The discountAmount is the difference between paidAmount and actualPaidAmount
+    const discountAmount = registration.discountAmount || 0;
+    const paidWithoutDiscount = actualPaidAmount !== undefined ? actualPaidAmount : (registration.paidAmount - discountAmount);
+    
     if (registration.discountApproved) {
-      return 'הנחה';
+      const remainingAmount = registration.requiredAmount - discountAmount;
+      
+      if (paidWithoutDiscount >= remainingAmount) {
+        return 'מלא / הנחה';
+      }
+      return 'חלקי / הנחה';
     } else if (registration.paidAmount >= registration.requiredAmount) {
       if (registration.paidAmount > registration.requiredAmount) {
         return 'יתר';
@@ -127,6 +136,7 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     } else if (registration.paidAmount < registration.requiredAmount) {
       return 'חלקי';
     }
+    
     return 'מלא';
   };
 

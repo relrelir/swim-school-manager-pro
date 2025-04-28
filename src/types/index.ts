@@ -41,9 +41,10 @@ export interface Registration {
   receiptNumber: string;
   discountApproved: boolean;
   registrationDate: string;
+  discountAmount?: number;
 }
 
-export type PaymentStatus = 'מלא' | 'חלקי' | 'הנחה' | 'יתר';
+export type PaymentStatus = 'מלא' | 'חלקי' | 'הנחה' | 'יתר' | 'מלא / הנחה' | 'חלקי / הנחה';
 
 export interface Payment {
   id: string;

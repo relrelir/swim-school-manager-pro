@@ -1,7 +1,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
-import { PaymentStatus } from '@/types';
 
 // Helper function to generate unique IDs
 export const generateId = (): string => {
@@ -68,7 +67,8 @@ export const mapRegistrationFromDB = (dbRegistration: any) => {
     paidAmount: Number(dbRegistration.paidamount),
     receiptNumber: dbRegistration.receiptnumber,
     discountApproved: dbRegistration.discountapproved,
-    registrationDate: dbRegistration.registrationdate
+    registrationDate: dbRegistration.registrationdate,
+    discountAmount: dbRegistration.discountamount ? Number(dbRegistration.discountamount) : 0
   };
 };
 
@@ -81,7 +81,8 @@ export const mapRegistrationToDB = (registration: any) => {
     paidamount: registration.paidAmount,
     receiptnumber: registration.receiptNumber,
     discountapproved: registration.discountApproved,
-    registrationdate: registration.registrationDate
+    registrationdate: registration.registrationDate,
+    discountamount: registration.discountAmount
   };
 };
 

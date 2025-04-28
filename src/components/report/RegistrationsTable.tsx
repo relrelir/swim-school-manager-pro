@@ -15,16 +15,33 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
   const getStatusClassName = (status: PaymentStatus): string => {
     switch (status) {
       case 'מלא':
-        return 'bg-status-paid bg-opacity-20 text-green-800';
+        return 'text-green-800 bg-green-100 bg-opacity-50 px-2 py-1 rounded';
       case 'חלקי':
-        return 'bg-status-partial bg-opacity-20 text-yellow-800';
+        return 'text-yellow-800 bg-yellow-100 bg-opacity-50 px-2 py-1 rounded';
       case 'יתר':
-        return 'bg-status-overdue bg-opacity-20 text-red-800';
+        return 'text-red-800 bg-red-100 bg-opacity-50 px-2 py-1 rounded';
+      case 'מלא / הנחה':
+        return 'text-green-800 bg-green-100 bg-opacity-50 px-2 py-1 rounded';
+      case 'חלקי / הנחה':
+        return 'text-yellow-800 bg-yellow-100 bg-opacity-50 px-2 py-1 rounded';
       case 'הנחה':
-        return 'bg-blue-100 bg-opacity-20 text-blue-800';
+        return 'text-blue-800 bg-blue-100 bg-opacity-50 px-2 py-1 rounded';
       default:
         return '';
     }
+  };
+
+  // Helper to calculate actual payments (excluding discounts)
+  const calculateActualPaidAmount = (registration: RegistrationWithDetails) => {
+    if (!registration.payments) return registration.paidAmount;
+    
+    const actualPayments = registration.payments.filter(p => p.receiptNumber !== '');
+    return actualPayments.reduce((sum, payment) => sum + payment.amount, 0);
+  };
+  
+  // Helper to get discount amount
+  const getDiscountAmount = (registration: RegistrationWithDetails) => {
+    return registration.discountAmount || 0;
   };
 
   return (
@@ -46,6 +63,7 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
                 <TableHead>סוג מוצר</TableHead>
                 <TableHead>סכום לתשלום</TableHead>
                 <TableHead>סכום ששולם</TableHead>
+                <TableHead>הנחה</TableHead>
                 <TableHead>מספרי קבלות</TableHead>
                 <TableHead>מפגש נוכחי</TableHead>
                 <TableHead>סטטוס תשלום</TableHead>
@@ -54,9 +72,10 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
             <TableBody>
               {registrations.map((registration) => {
                 // Get receipt numbers from payments
-                const receiptNumbers = registration.payments 
-                  ? registration.payments.map(p => p.receiptNumber).join(', ')
-                  : registration.receiptNumber;
+                const actualPayments = registration.payments ? registration.payments.filter(p => p.receiptNumber !== '') : [];
+                const receiptNumbers = actualPayments.map(p => p.receiptNumber).join(', ');
+                const actualPaidAmount = calculateActualPaidAmount(registration);
+                const discountAmount = getDiscountAmount(registration);
                 
                 // Calculate meeting progress
                 const meetingProgress = calculateMeetingProgress(registration.product);
@@ -70,13 +89,20 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
                     <TableCell>{registration.product.name}</TableCell>
                     <TableCell>{registration.product.type}</TableCell>
                     <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.requiredAmount)}</TableCell>
-                    <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.paidAmount)}</TableCell>
-                    <TableCell>{receiptNumbers}</TableCell>
+                    <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(actualPaidAmount)}</TableCell>
+                    <TableCell>
+                      {discountAmount > 0 ? (
+                        <span className="text-gray-500 font-medium">
+                          {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount)}
+                        </span>
+                      ) : '-'}
+                    </TableCell>
+                    <TableCell>{receiptNumbers || '-'}</TableCell>
                     <TableCell>
                       {meetingProgress.current}/{meetingProgress.total}
                     </TableCell>
                     <TableCell className={`font-semibold ${getStatusClassName(registration.paymentStatus)}`}>
-                      {registration.discountApproved ? 'הנחה' : registration.paymentStatus}
+                      {registration.paymentStatus}
                     </TableCell>
                   </TableRow>
                 );

@@ -7,7 +7,7 @@ import { RegistrationsProvider, useRegistrationsContext } from './data/Registrat
 import { PaymentsProvider, usePaymentsContext } from './data/PaymentsProvider';
 import { CombinedDataContextType } from './data/types';
 import { calculateCurrentMeeting } from './data/utils';
-import { Product, DailyActivity } from '@/types';
+import { Product, DailyActivity, Payment } from '@/types';
 import { format, isWithinInterval } from 'date-fns';
 
 // Create the context
@@ -49,6 +49,21 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const registrationsContext = useRegistrationsContext();
   const paymentsContext = usePaymentsContext();
 
+  // Calculate total paid amount without discounts
+  const calculateActualPaidAmount = (registrationId: string): number => {
+    const registrationPayments = paymentsContext.payments.filter(p => p.registrationId === registrationId);
+    const actualPayments = registrationPayments.filter(p => p.receiptNumber !== '');
+    return actualPayments.reduce((total, payment) => total + payment.amount, 0);
+  };
+
+  // Calculate discount amount
+  const calculateDiscountAmount = (registrationId: string): number => {
+    const registration = registrationsContext.registrations.find(r => r.id === registrationId);
+    if (!registration || !registration.discountApproved) return 0;
+    
+    return registration.discountAmount || 0;
+  };
+
   // Utility function to get all registrations with their details
   const getAllRegistrationsWithDetails = () => {
     return registrationsContext.registrations.map(registration => {
@@ -56,7 +71,10 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const participant = participantsContext.participants.find(p => p.id === registration.participantId);
       const payments = paymentsContext.payments.filter(p => p.registrationId === registration.id);
       const season = product ? seasonsContext.seasons.find(s => s.id === product.seasonId) : undefined;
-      const paymentStatus = registrationsContext.calculatePaymentStatus(registration);
+      
+      // Calculate actual paid amount (excluding discounts)
+      const actualPaidAmount = calculateActualPaidAmount(registration.id);
+      const paymentStatus = registrationsContext.calculatePaymentStatus(registration, actualPaidAmount);
 
       return {
         ...registration,
@@ -64,7 +82,8 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         participant,
         season,
         payments,
-        paymentStatus
+        paymentStatus,
+        actualPaidAmount
       };
     }).filter(r => r.product && r.participant && r.season);
   };
@@ -150,7 +169,9 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       ...paymentsContext,
       getAllRegistrationsWithDetails,
       calculateMeetingProgress,
-      getDailyActivities
+      getDailyActivities,
+      calculateActualPaidAmount,
+      calculateDiscountAmount
     }),
     [
       seasonsContext,

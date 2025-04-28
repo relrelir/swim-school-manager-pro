@@ -1,3 +1,6 @@
+
+import { RegistrationWithDetails, PaymentStatus } from '@/types';
+
 export interface ReportFilters {
   search: string;
   receiptNumber: string;
@@ -6,44 +9,37 @@ export interface ReportFilters {
   paymentStatus: string;
 }
 
-export const filterRegistrations = (registrations: any[], filters: ReportFilters) => {
-  return registrations.filter(registration => {
-    const { search, receiptNumber, seasonId, productId, paymentStatus } = filters;
-    
-    // Search filter (name or ID)
-    const nameMatch = 
-      `${registration.participant.firstName} ${registration.participant.lastName}`
-        .toLowerCase()
-        .includes(search.toLowerCase());
-    
-    const idMatch = registration.participant.idNumber.toLowerCase().includes(search.toLowerCase());
-    
+export const filterRegistrations = (registrations: RegistrationWithDetails[], filters: ReportFilters): RegistrationWithDetails[] => {
+  return registrations.filter(reg => {
+    // Search filter - checks name, ID number, and phone
+    if (filters.search && !`${reg.participant.firstName} ${reg.participant.lastName} ${reg.participant.idNumber} ${reg.participant.phone}`.includes(filters.search)) {
+      return false;
+    }
+
     // Receipt number filter
-    const receiptNumberMatch = receiptNumber 
-      ? (registration.receiptNumber?.toLowerCase().includes(receiptNumber.toLowerCase()) || 
-         registration.payments?.some(p => p.receiptNumber?.toLowerCase().includes(receiptNumber.toLowerCase())))
-      : true;
-    
+    if (filters.receiptNumber && !reg.payments?.some(p => p.receiptNumber?.includes(filters.receiptNumber))) {
+      return false;
+    }
+
     // Season filter
-    const seasonMatch = seasonId === 'all' ? true : registration.season.id === seasonId;
-    
+    if (filters.seasonId !== 'all' && reg.season.id !== filters.seasonId) {
+      return false;
+    }
+
     // Product filter
-    const productMatch = productId === 'all' ? true : registration.product.id === productId;
-    
+    if (filters.productId !== 'all' && reg.product.id !== filters.productId) {
+      return false;
+    }
+
     // Payment status filter
-    let paymentStatusMatch = true;
-    if (paymentStatus !== 'all') {
-      if (paymentStatus === 'הנחה') {
-        paymentStatusMatch = registration.discountApproved === true;
-      } else {
-        paymentStatusMatch = registration.paymentStatus === paymentStatus;
+    if (filters.paymentStatus !== 'all') {
+      if (filters.paymentStatus === 'הנחה' && !reg.discountApproved) {
+        return false;
+      } else if (filters.paymentStatus !== 'הנחה' && reg.paymentStatus !== filters.paymentStatus) {
+        return false;
       }
     }
-    
-    return (nameMatch || idMatch) && 
-           receiptNumberMatch && 
-           seasonMatch && 
-           productMatch && 
-           paymentStatusMatch;
+
+    return true;
   });
 };
