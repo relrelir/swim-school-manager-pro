@@ -73,7 +73,7 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
                           size="sm"
                           onClick={() => onEditProduct(product)}
                         >
-                          <Edit className="h-4 w-4 mr-1" />
+                          <Edit className="h-4 w-4 ml-1" />
                           ערוך
                         </Button>
                       </div>

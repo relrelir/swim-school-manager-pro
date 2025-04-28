@@ -20,7 +20,6 @@ export const usePaymentHandlers = (
                              paymentDate: string;
                            }>>,
                            productId?: string) => {
-    e.preventDefault();
     
     if (currentRegistration) {
       // Check if receipt number is provided
@@ -30,7 +29,7 @@ export const usePaymentHandlers = (
           description: "מספר קבלה הוא שדה חובה",
           variant: "destructive",
         });
-        return;
+        return [];
       }
       
       // Add the new payment

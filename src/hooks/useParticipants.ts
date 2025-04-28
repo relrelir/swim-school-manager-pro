@@ -27,6 +27,7 @@ export const useParticipants = () => {
   
   const [product, setProduct] = useState(undefined);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   // Import sub-hooks
   const {
@@ -87,10 +88,12 @@ export const useParticipants = () => {
         }));
       }
     }
-  }, [productId, products, getRegistrationsByProduct]);
+  }, [productId, products, getRegistrationsByProduct, refreshTrigger]);
 
   // Wrap handlers with local state
   const handleAddParticipant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
     const result = await baseHandleAddParticipant(
       e, 
       productId,
@@ -102,10 +105,14 @@ export const useParticipants = () => {
     
     if (result) {
       setRegistrations(result);
+      // Trigger refresh to update the list immediately
+      setRefreshTrigger(prev => prev + 1);
     }
   };
 
   const handleAddPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    
     const updatedRegistrations = baseHandleAddPayment(
       e,
       newPayment,

@@ -20,6 +20,8 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
         return 'bg-status-partial bg-opacity-20 text-yellow-800';
       case 'יתר':
         return 'bg-status-overdue bg-opacity-20 text-red-800';
+      case 'הנחה':
+        return 'bg-blue-100 bg-opacity-20 text-blue-800';
       default:
         return '';
     }
@@ -74,7 +76,7 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
                       {meetingProgress.current}/{meetingProgress.total}
                     </TableCell>
                     <TableCell className={`font-semibold ${getStatusClassName(registration.paymentStatus)}`}>
-                      {registration.paymentStatus}
+                      {registration.discountApproved ? 'הנחה' : registration.paymentStatus}
                     </TableCell>
                   </TableRow>
                 );

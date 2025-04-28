@@ -26,8 +26,6 @@ export const useRegistrationHandlers = (
     resetForm: () => void,
     setIsAddParticipantOpen: (open: boolean) => void
   ) => {
-    e.preventDefault();
-    
     // If we don't have a product, return
     if (!productId) return [];
     

@@ -1,6 +1,3 @@
-
-import { RegistrationWithDetails } from '@/types';
-
 export interface ReportFilters {
   search: string;
   receiptNumber: string;
@@ -9,37 +6,44 @@ export interface ReportFilters {
   paymentStatus: string;
 }
 
-// Apply filters to registrations
-export const filterRegistrations = (registrations: RegistrationWithDetails[], filters: ReportFilters): RegistrationWithDetails[] => {
+export const filterRegistrations = (registrations: any[], filters: ReportFilters) => {
   return registrations.filter(registration => {
-    // Search filter (name or ID)
-    const nameMatch = `${registration.participant.firstName} ${registration.participant.lastName}`.toLowerCase().includes(filters.search.toLowerCase());
-    const idMatch = registration.participant.idNumber.includes(filters.search);
+    const { search, receiptNumber, seasonId, productId, paymentStatus } = filters;
     
-    if (filters.search && !nameMatch && !idMatch) {
-      return false;
-    }
+    // Search filter (name or ID)
+    const nameMatch = 
+      `${registration.participant.firstName} ${registration.participant.lastName}`
+        .toLowerCase()
+        .includes(search.toLowerCase());
+    
+    const idMatch = registration.participant.idNumber.toLowerCase().includes(search.toLowerCase());
     
     // Receipt number filter
-    if (filters.receiptNumber && !registration.receiptNumber.includes(filters.receiptNumber)) {
-      return false;
-    }
+    const receiptNumberMatch = receiptNumber 
+      ? (registration.receiptNumber?.toLowerCase().includes(receiptNumber.toLowerCase()) || 
+         registration.payments?.some(p => p.receiptNumber?.toLowerCase().includes(receiptNumber.toLowerCase())))
+      : true;
     
     // Season filter
-    if (filters.seasonId && filters.seasonId !== 'all' && registration.season.id !== filters.seasonId) {
-      return false;
-    }
+    const seasonMatch = seasonId === 'all' ? true : registration.season.id === seasonId;
     
     // Product filter
-    if (filters.productId && filters.productId !== 'all' && registration.product.id !== filters.productId) {
-      return false;
-    }
+    const productMatch = productId === 'all' ? true : registration.product.id === productId;
     
     // Payment status filter
-    if (filters.paymentStatus && filters.paymentStatus !== 'all' && registration.paymentStatus !== filters.paymentStatus) {
-      return false;
+    let paymentStatusMatch = true;
+    if (paymentStatus !== 'all') {
+      if (paymentStatus === 'הנחה') {
+        paymentStatusMatch = registration.discountApproved === true;
+      } else {
+        paymentStatusMatch = registration.paymentStatus === paymentStatus;
+      }
     }
     
-    return true;
+    return (nameMatch || idMatch) && 
+           receiptNumberMatch && 
+           seasonMatch && 
+           productMatch && 
+           paymentStatusMatch;
   });
 };
