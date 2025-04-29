@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Product, Season } from '@/types';
 import { Edit, ChevronUp, ChevronDown, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { useProductsTable } from '@/hooks/useProductsTable';
 
 interface SeasonProductsTableProps {
   season: Season | null;
@@ -23,41 +24,15 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
 }) => {
   const navigate = useNavigate();
   
-  // Sorting and filtering state
-  const [sortField, setSortField] = useState<keyof Product>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [filter, setFilter] = useState('');
-
-  // Handle sorting
-  const handleSort = (field: keyof Product) => {
-    if (field === sortField) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-  
-  // Filter and sort products
-  const filteredAndSortedProducts = products
-    .filter(product => 
-      filter === '' || 
-      product.name.toLowerCase().includes(filter.toLowerCase()) ||
-      product.type.toLowerCase().includes(filter.toLowerCase())
-    )
-    .sort((a, b) => {
-      let valA: any = a[sortField];
-      let valB: any = b[sortField];
-      
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        valA = valA.toLowerCase();
-        valB = valB.toLowerCase();
-      }
-      
-      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
+  // Use our custom hook for filtering and sorting
+  const { 
+    filter, 
+    setFilter, 
+    sortField, 
+    sortDirection, 
+    handleSort, 
+    filteredAndSortedProducts 
+  } = useProductsTable({ products });
 
   // Format date for display
   const formatDate = (dateString: string) => {
