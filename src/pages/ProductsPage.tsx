@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useData } from '@/context/DataContext';
 import { Product, ProductType } from '@/types';
 import { format } from 'date-fns';
+import { useProductsTable } from '@/hooks/useProductsTable';
 
 const ProductsPage: React.FC = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
@@ -34,14 +34,17 @@ const ProductsPage: React.FC = () => {
     daysOfWeek: [],
     startTime: '',
   });
-  
-  // Sort options
-  const [sortField, setSortField] = useState<keyof Product>('name');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  
-  // Filter
-  const [filter, setFilter] = useState('');
 
+  // Use our custom hook for filtering and sorting
+  const { 
+    filter, 
+    setFilter, 
+    sortField, 
+    sortDirection, 
+    handleSort, 
+    filteredAndSortedProducts 
+  } = useProductsTable({ products: seasonProducts });
+  
   useEffect(() => {
     if (seasonId) {
       const season = seasons.find(s => s.id === seasonId);
@@ -100,37 +103,6 @@ const ProductsPage: React.FC = () => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(price);
   };
-  
-  // Handle sorting
-  const handleSort = (field: keyof Product) => {
-    if (field === sortField) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-  
-  // Filter and sort products
-  const filteredAndSortedProducts = seasonProducts
-    .filter(product => 
-      filter === '' || 
-      product.name.toLowerCase().includes(filter.toLowerCase()) ||
-      product.type.toLowerCase().includes(filter.toLowerCase())
-    )
-    .sort((a, b) => {
-      let valA: any = a[sortField];
-      let valB: any = b[sortField];
-      
-      if (typeof valA === 'string' && typeof valB === 'string') {
-        valA = valA.toLowerCase();
-        valB = valB.toLowerCase();
-      }
-      
-      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
   
   // Day of week options
   const daysOfWeek = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
