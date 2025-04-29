@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Product } from '@/types';
 import { format } from 'date-fns';
-import { Edit } from 'lucide-react';
+import { Edit, Users } from 'lucide-react';
 
 interface ProductsTableProps {
   products: Product[];
@@ -83,6 +83,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
             <TableCell>
               <div className="flex space-x-2">
                 <Button variant="outline" size="sm" onClick={() => goToParticipants(product.id)}>
+                  <Users className="h-4 w-4 ml-1" />
                   צפה במשתתפים
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => onEditProduct(product)}>
