@@ -22,10 +22,10 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
   // Calculate the difference between paid and expected (considering discounts)
   const difference = totalPaid - totalExpected;
   
-  // Create a more verbal description of the occupancy
+  // Create a simplified occupancy text - just "X מתוך Y"
   const occupancyText = product 
-    ? `${totalParticipants} מתוך ${product.maxParticipants} מקומות תפוסים`
-    : `${totalParticipants} מקומות תפוסים`;
+    ? `${totalParticipants} מתוך ${product.maxParticipants}`
+    : `${totalParticipants}`;
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

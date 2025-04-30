@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { RegistrationWithDetails } from '@/types';
+import { formatPrice } from '@/utils/formatters';
 
 interface ReportSummaryCardsProps {
   registrations: RegistrationWithDetails[];
@@ -31,7 +32,7 @@ const ReportSummaryCards: React.FC<ReportSummaryCardsProps> = ({ registrations }
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
           <div className="text-2xl font-bold">
-            {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(totalRequiredAmount)}
+            {formatPrice(totalRequiredAmount)}
           </div>
           <div className="text-sm text-gray-500">סכום מקורי</div>
         </CardContent>
@@ -39,7 +40,7 @@ const ReportSummaryCards: React.FC<ReportSummaryCardsProps> = ({ registrations }
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
           <div className="text-2xl font-bold">
-            {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(totalEffectiveAmount)}
+            {formatPrice(totalEffectiveAmount)}
           </div>
           <div className="text-sm text-gray-500">סה"כ לתשלום</div>
         </CardContent>
@@ -47,7 +48,7 @@ const ReportSummaryCards: React.FC<ReportSummaryCardsProps> = ({ registrations }
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
           <div className="text-2xl font-bold">
-            {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(totalPaidAmount)}
+            {formatPrice(totalPaidAmount)}
           </div>
           <div className="text-sm text-gray-500">סה"כ שולם</div>
         </CardContent>
