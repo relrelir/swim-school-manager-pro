@@ -13,13 +13,10 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     const token = uuidv4();
     
     // Check if a declaration already exists for this registration
-    const existingResponse: PostgrestResponse<any> = await supabase
+    const { data: existingData, error: existingError }: PostgrestResponse<any> = await supabase
       .from('health_declarations')
-      .select('id, form_status')
-      .eq('participant_id', registrationId)
-      .maybeSingle();
-    
-    const { data: existingData, error: existingError } = existingResponse;
+      .select('id, form_status', { single: true })
+      .eq('participant_id', registrationId);
     
     if (existingError && existingError.code !== 'PGRST116') { // PGRST116 is "No rows found"
       console.error('Error checking existing declaration:', existingError);
@@ -30,7 +27,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     
     if (existingData) {
       // Update existing declaration with new token
-      const updateResponse: PostgrestResponse<{ id: string }> = await supabase
+      const { data: updateData, error: updateError }: PostgrestResponse<{ id: string }> = await supabase
         .from('health_declarations')
         .update({
           token,
@@ -39,10 +36,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
           notes: null
         })
         .eq('id', existingData.id)
-        .select('id')
-        .single();
-        
-      const { data: updateData, error: updateError } = updateResponse;
+        .select('id', { single: true });
         
       if (updateError) {
         console.error('Error updating health declaration with new token:', updateError);
@@ -66,14 +60,11 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       
       console.log('Creating new health declaration:', newDeclaration);
       
-      const insertResponse: PostgrestResponse<{ id: string }> = await supabase
+      const { data: newData, error: insertError }: PostgrestResponse<{ id: string }> = await supabase
         .from('health_declarations')
         .insert(newDeclaration)
-        .select('id')
-        .single();
+        .select('id', { single: true });
       
-      const { data: newData, error: insertError } = insertResponse;
-        
       if (insertError) {
         console.error('Error creating health declaration:', insertError);
         throw insertError;
