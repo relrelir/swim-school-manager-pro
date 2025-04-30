@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { HealthDeclaration, Participant } from '@/types';
 import { toast } from "@/components/ui/use-toast";
-import { supabase } from '@/integrations/supabase/client';
 
 export const useHealthDeclarationDialog = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
@@ -36,9 +35,10 @@ export const useHealthDeclarationDialog = (
     if (!healthDeclaration) {
       console.log('Creating new health declaration for registration:', registrationId);
       try {
-        // Create new health declaration with both snake_case DB fields and convenience fields
+        // Create new health declaration with properly mapped fields
         const newDeclaration = await addHealthDeclaration({
-          participant_id: registrationId,
+          // Map database fields correctly
+          participant_id: registrationId, // This MUST be the registration ID for the database
           phone_sent_to: participant.phone,
           form_status: 'pending',
           created_at: new Date().toISOString(),

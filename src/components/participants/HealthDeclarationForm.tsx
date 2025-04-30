@@ -67,6 +67,7 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
       } else {
         // Create a new health declaration with all required fields in the correct format
         const newDeclaration = await addHealthDeclaration({
+          // DB required fields
           participant_id: registrationId,
           phone_sent_to: phone,
           form_status: 'pending',
