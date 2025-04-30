@@ -41,7 +41,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             // Ensure the active field is set
             return {
               ...mappedProduct,
-              active: mappedProduct.active !== undefined ? mappedProduct.active : true
+              active: true // Set default value directly instead of using non-existent p.active
             };
           });
           
@@ -68,7 +68,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Ensure product has active field
       const fullProduct = {
         ...product,
-        active: product.active !== undefined ? product.active : true
+        active: true // Set default value directly
       };
 
       // Convert to DB field names format (lowercase)
@@ -88,7 +88,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Convert back to our TypeScript model format (camelCase)
         const newProduct = {
           ...mapProductFromDB(data),
-          active: true // Ensure active is set
+          active: true // Set default value directly
         };
         setProducts([...products, newProduct]);
         return newProduct;

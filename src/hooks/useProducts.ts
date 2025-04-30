@@ -25,7 +25,7 @@ export function useProducts() {
         const mappedProduct = mapProductFromDB(product);
         return {
           ...mappedProduct,
-          active: mappedProduct.active !== undefined ? mappedProduct.active : true
+          active: true // Set default value directly instead of accessing non-existent property
         };
       }) || [];
 
@@ -62,7 +62,7 @@ export function useProducts() {
         const mappedProduct = mapProductFromDB(data);
         const newProduct: Product = {
           ...mappedProduct,
-          active: mappedProduct.active !== undefined ? mappedProduct.active : true
+          active: true // Set default value directly instead of accessing non-existent property
         };
         setProducts([...products, newProduct]);
       }
