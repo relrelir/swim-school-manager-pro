@@ -3,6 +3,7 @@ import React from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
 import { prepareParticipantsData, exportToCSV } from '@/utils/exportParticipants';
+import { Registration, Participant } from '@/types';
 
 import ParticipantsHeader from '@/components/participants/ParticipantsHeader';
 import ParticipantsContent from '@/components/participants/ParticipantsContent';
@@ -59,10 +60,15 @@ const ParticipantsPage: React.FC = () => {
     }
     
     try {
+      // Create an adapter function to match the expected signature
+      const registrationToPayments = (registration: Registration) => {
+        return getPaymentsForRegistration(registration.id);
+      };
+      
       const data = prepareParticipantsData(
         registrations, 
         getParticipantForRegistration,
-        (registration) => getPaymentsForRegistration(registration.id), // Adapter function
+        registrationToPayments, // Use the adapter function
         calculatePaymentStatus
       );
       
@@ -100,6 +106,15 @@ const ParticipantsPage: React.FC = () => {
     setIsAddPaymentOpen(true);
   };
 
+  // Create adapter functions to match ParticipantsContent expected function signatures
+  const getPaymentsForRegistrationById = (registrationId: string) => {
+    return getPaymentsForRegistration(registrationId);
+  };
+  
+  const updateHealthApprovalById = (registrationId: string, isApproved: boolean) => {
+    handleUpdateHealthApproval(registrationId, isApproved);
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -118,13 +133,13 @@ const ParticipantsPage: React.FC = () => {
         totalPaid={totalPaid}
         registrationsFilled={registrationsFilled}
         getParticipantForRegistration={getParticipantForRegistration}
-        getPaymentsForRegistration={getPaymentsForRegistration}
+        getPaymentsForRegistration={getPaymentsForRegistrationById}
         getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
         calculatePaymentStatus={calculatePaymentStatus}
         getStatusClassName={getStatusClassName}
         onAddPayment={handleOpenAddPayment}
         onDeleteRegistration={handleDeleteRegistration}
-        onUpdateHealthApproval={handleUpdateHealthApproval}
+        onUpdateHealthApproval={updateHealthApprovalById}
         onOpenHealthForm={handleOpenHealthForm}
         onExport={handleExportToCSV}
       />
