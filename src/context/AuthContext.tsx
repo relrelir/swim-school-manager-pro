@@ -2,12 +2,19 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 
+// Simple User interface for the application
+interface User {
+  id: string;
+  displayName: string;
+}
+
 interface AuthContextType {
   isAuthenticated: boolean;
   login: (password: string) => boolean;
   logout: () => void;
   changePassword: (newPassword: string) => void;
   defaultPasswordChanged: boolean;
+  user: User | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   changePassword: () => {},
   defaultPasswordChanged: false,
+  user: null,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -24,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('1234');
   const [defaultPasswordChanged, setDefaultPasswordChanged] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   
   // Check if there's a saved password in localStorage
@@ -38,6 +47,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const savedAuth = localStorage.getItem('swimSchoolAuth');
     if (savedAuth === 'true') {
       setIsAuthenticated(true);
+      // Create a default user when authenticated
+      setUser({
+        id: '1',
+        displayName: 'מנהל'
+      });
     }
   }, []);
 
@@ -45,6 +59,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (enteredPassword === password) {
       setIsAuthenticated(true);
       localStorage.setItem('swimSchoolAuth', 'true');
+      // Set user data when logging in
+      setUser({
+        id: '1',
+        displayName: 'מנהל'
+      });
       return true;
     } else {
       toast({
@@ -58,6 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setIsAuthenticated(false);
+    setUser(null);
     localStorage.removeItem('swimSchoolAuth');
   };
 
@@ -72,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, changePassword, defaultPasswordChanged }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, changePassword, defaultPasswordChanged, user }}>
       {children}
     </AuthContext.Provider>
   );
