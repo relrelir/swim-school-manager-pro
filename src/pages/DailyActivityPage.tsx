@@ -70,7 +70,6 @@ const DailyActivityPage: React.FC = () => {
       <ActivitiesTable 
         activities={activities}
         selectedDate={selectedDate}
-        calculateMeetingNumberForDate={calculateMeetingNumberForDate}
       />
     </div>
   );
