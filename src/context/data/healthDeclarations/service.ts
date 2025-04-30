@@ -40,10 +40,12 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
     
     // Log the data we're about to send to the database
     console.log('Pre-insert health declaration data:', dbHealthDeclaration);
-    console.log('Original health declaration input:', healthDeclaration);
     
-    // Triple-check the participant_id is set correctly - this MUST be the registration ID
+    // CRITICAL: Triple-check the participant_id is set correctly - this MUST be the registration ID
     if (!dbHealthDeclaration.participant_id) {
+      console.error('Missing required participant_id field. Available data:', healthDeclaration);
+      
+      // Last resort fallback: try to extract from either source if we have it
       if (healthDeclaration.registrationId) {
         console.log('Setting participant_id from registrationId:', healthDeclaration.registrationId);
         dbHealthDeclaration.participant_id = healthDeclaration.registrationId;
@@ -51,14 +53,13 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
         console.log('Using provided participant_id:', healthDeclaration.participant_id);
         dbHealthDeclaration.participant_id = healthDeclaration.participant_id;
       } else {
-        console.error('Missing required participant_id and no registrationId available');
-        throw new Error('Missing required participant_id field');
+        throw new Error('Missing required participant_id field (registrationId)');
       }
     }
     
-    // Final validation check for required fields
+    // Validate required fields
     if (!dbHealthDeclaration.participant_id) {
-      throw new Error('Missing required participant_id field even after fallback');
+      throw new Error('Missing required participant_id field');
     }
     
     if (!dbHealthDeclaration.phone_sent_to) {
@@ -102,11 +103,6 @@ export const updateHealthDeclarationService = async (id: string, updates: Partia
   try {
     const dbUpdates = mapHealthDeclarationToDB(updates);
     
-    // Handle mapping for participant_id if registrationId is present
-    if (updates.registrationId && !dbUpdates.participant_id) {
-      dbUpdates.participant_id = updates.registrationId;
-    }
-    
     console.log('Updating health declaration with id:', id, 'and data:', dbUpdates);
     
     const { error } = await supabase
@@ -129,5 +125,73 @@ export const updateHealthDeclarationService = async (id: string, updates: Partia
       variant: "destructive",
     });
     throw error;
+  }
+};
+
+// Add a new function to submit a completed health form
+export const submitHealthFormService = async (
+  declarationId: string, 
+  agreement: boolean, 
+  notes: string | undefined
+) => {
+  try {
+    if (!agreement) {
+      throw new Error('Must agree to health declaration');
+    }
+    
+    const updates = {
+      form_status: 'completed',
+      submission_date: new Date().toISOString(),
+      notes: notes || null
+    };
+    
+    console.log('Submitting health form for declaration:', declarationId, 'with data:', updates);
+    
+    const { error, data } = await supabase
+      .from('health_declarations')
+      .update(updates)
+      .eq('id', declarationId)
+      .select('participant_id')
+      .single();
+
+    if (error) {
+      console.error('Supabase error during health form submission:', error);
+      throw error;
+    }
+    
+    if (!data || !data.participant_id) {
+      throw new Error('Failed to retrieve registration data after form submission');
+    }
+    
+    // Return the participant_id (registrationId) for further processing
+    return data.participant_id;
+  } catch (error) {
+    console.error('Error submitting health form:', error);
+    throw error;
+  }
+};
+
+// Get a health declaration by its ID
+export const getHealthDeclarationById = async (id: string): Promise<HealthDeclaration | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('health_declarations')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching health declaration by ID:', error);
+      return null;
+    }
+
+    if (data) {
+      return mapHealthDeclarationFromDB(data);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting health declaration by ID:', error);
+    return null;
   }
 };

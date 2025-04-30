@@ -1,6 +1,5 @@
 
-import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -14,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { HealthDeclaration } from '@/types';
 import { useData } from '@/context/DataContext';
+import { Link, Copy } from 'lucide-react';
 
 interface HealthDeclarationFormProps {
   isOpen: boolean;
@@ -41,6 +41,14 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
   const baseUrl = window.location.origin;
   const healthFormUrl = `${baseUrl}/health-form?id=${healthDeclaration?.id || ''}`;
 
+  // Reset phone and link created state when dialog opens with new data
+  useEffect(() => {
+    if (isOpen) {
+      setPhone(defaultPhone);
+      setIsLinkCreated(Boolean(healthDeclaration?.id));
+    }
+  }, [isOpen, defaultPhone, healthDeclaration]);
+
   const handleSendHealthDeclaration = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -61,27 +69,33 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
       
       if (healthDeclaration) {
         // If we have an existing health declaration, update the phone number if needed
-        if (healthDeclaration.phone !== phone) {
-          await updateHealthDeclaration(healthDeclaration.id, { phone, phone_sent_to: phone });
+        if (healthDeclaration.phone !== phone || healthDeclaration.phone_sent_to !== phone) {
+          await updateHealthDeclaration(healthDeclaration.id, { 
+            phone, 
+            phone_sent_to: phone 
+          });
         }
       } else {
         // Create a new health declaration with all required fields in the correct format
+        console.log('Creating new health declaration with registrationId:', registrationId);
+        
         const newDeclaration = await addHealthDeclaration({
-          // DB required fields - IMPORTANT: participant_id is the registrationId
+          // CRITICAL: participant_id must be set to registrationId
           participant_id: registrationId,
-          phone_sent_to: phone,
-          form_status: 'pending',
-          created_at: new Date().toISOString(),
-          // Convenience fields for internal use
           registrationId: registrationId,
+          phone_sent_to: phone,
           phone: phone,
+          form_status: 'pending',
           formStatus: 'pending',
+          created_at: new Date().toISOString(),
           sentAt: new Date().toISOString()
         });
         
         if (newDeclaration) {
           declarationId = newDeclaration.id;
           setIsLinkCreated(true);
+          
+          console.log('Successfully created health declaration:', newDeclaration);
         } else {
           throw new Error("Failed to create health declaration");
         }
@@ -94,7 +108,6 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
         description: `הלינק להצהרת בריאות עבור ${participantName} הועתק ללוח. אנא שלח אותו למשתתף.`,
       });
       
-      // Don't close the dialog so user can copy the link again if needed
       if (afterSubmit) afterSubmit();
       
     } catch (error) {
@@ -138,7 +151,25 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
                 onClick={(e) => (e.target as HTMLInputElement).select()}
                 className="flex-1 text-right"
               />
-              <Button onClick={handleCopyLink}>העתק</Button>
+              <Button onClick={handleCopyLink}>
+                <Copy className="h-4 w-4 mr-1" />
+                העתק
+              </Button>
+            </div>
+            <div className="flex items-center justify-center mt-2">
+              <div className="bg-muted p-3 rounded-md flex items-center gap-2">
+                <Link className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm">
+                  סטטוס הצהרה: 
+                  <span className={`font-medium ml-1 ${
+                    healthDeclaration.formStatus === 'completed' ? 'text-green-500' : 
+                    healthDeclaration.formStatus === 'sent' ? 'text-blue-500' : 'text-amber-500'
+                  }`}>
+                    {healthDeclaration.formStatus === 'completed' ? 'הושלם' : 
+                     healthDeclaration.formStatus === 'sent' ? 'נשלח' : 'ממתין'}
+                  </span>
+                </span>
+              </div>
             </div>
             <div className="text-xs text-muted-foreground">
               כאשר המשתתף ימלא את הטופס, אישור הבריאות יעודכן אוטומטית במערכת.

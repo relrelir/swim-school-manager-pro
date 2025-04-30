@@ -22,7 +22,6 @@ export const useHealthDeclarationDialog = (
     registrations: any[]
   ) => {
     console.log('Opening health form for registration:', registrationId);
-    console.log('Found health declaration:', getHealthDeclarationForRegistration(registrationId), 'for registration:', registrationId);
     
     const registration = registrations.find(reg => reg.id === registrationId);
     if (!registration) {
@@ -46,47 +45,9 @@ export const useHealthDeclarationDialog = (
       return;
     }
 
+    // Try to fetch an existing health declaration for this registration
     let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
-
-    // If no health declaration exists for this registration, create one
-    if (!healthDeclaration) {
-      console.log('Creating new health declaration for registration:', registrationId);
-      try {
-        // Create health declaration with all required fields properly mapped
-        // IMPORTANT: participant_id in the DB is actually registrationId in our app
-        const newDeclaration = await addHealthDeclaration({
-          // Database required fields with correct mapping
-          participant_id: registrationId,  // This is the key field that needs to be correct
-          phone_sent_to: participant.phone,
-          form_status: 'pending',
-          created_at: new Date().toISOString(),
-          
-          // Convenience fields used in our frontend code
-          registrationId: registrationId,  // Duplicate of participant_id for our app's use
-          phone: participant.phone,
-          formStatus: 'pending',
-          sentAt: new Date().toISOString()
-        });
-        
-        console.log('Health declaration creation response:', newDeclaration);
-        
-        if (newDeclaration) {
-          console.log('Successfully created new health declaration:', newDeclaration);
-          healthDeclaration = newDeclaration;
-        } else {
-          console.error('Failed to create health declaration - undefined response');
-          throw new Error('Failed to create health declaration - undefined response');
-        }
-      } catch (error) {
-        console.error('Error creating health declaration:', error);
-        toast({
-          title: "שגיאה",
-          description: "לא ניתן ליצור הצהרת בריאות",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
+    console.log('Found health declaration:', healthDeclaration, 'for registration:', registrationId);
 
     // Set current declaration data for the dialog
     setCurrentHealthDeclaration({
