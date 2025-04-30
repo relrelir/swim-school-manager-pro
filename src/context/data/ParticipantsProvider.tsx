@@ -1,6 +1,7 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
-import { Participant } from '@/types';
+import { Participant, HealthDeclaration } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError, mapParticipantFromDB, mapParticipantToDB } from './utils';
 
@@ -10,6 +11,10 @@ interface ParticipantsContextType {
   updateParticipant: (participant: Participant) => void;
   deleteParticipant: (id: string) => void;
   loading: boolean;
+  healthDeclarations: HealthDeclaration[];
+  getHealthDeclarationsByParticipant: (participantId: string) => HealthDeclaration[];
+  sendHealthDeclaration: (participantId: string, phone: string, name: string) => Promise<void>;
+  updateHealthDeclarationStatus: (formId: string, isApproved: boolean, notes?: string) => Promise<void>;
 }
 
 const ParticipantsContext = createContext<ParticipantsContextType | null>(null);
@@ -24,9 +29,10 @@ export const useParticipantsContext = () => {
 
 export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [participants, setParticipants] = useState<Participant[]>([]);
+  const [healthDeclarations, setHealthDeclarations] = useState<HealthDeclaration[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load participants from Supabase
+  // Load participants and health declarations from Supabase
   useEffect(() => {
     const fetchParticipants = async () => {
       try {
@@ -43,6 +49,30 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           const transformedParticipants = data.map(participant => mapParticipantFromDB(participant));
           setParticipants(transformedParticipants);
         }
+        
+        // Fetch health declarations
+        const { data: healthData, error: healthError } = await supabase
+          .from('health_declarations')
+          .select('*');
+          
+        if (healthError) {
+          handleSupabaseError(healthError, 'fetching health declarations');
+        }
+        
+        if (healthData) {
+          // Transform health declaration data to match our type
+          const transformedHealthDeclarations = healthData.map(decl => ({
+            id: decl.id,
+            participantId: decl.participant_id,
+            formStatus: decl.form_status,
+            submissionDate: decl.submission_date,
+            notes: decl.notes,
+            phoneSentTo: decl.phone_sent_to,
+            createdAt: decl.created_at,
+            updatedAt: decl.updated_at
+          }));
+          setHealthDeclarations(transformedHealthDeclarations);
+        }
       } catch (error) {
         console.error('Error loading participants:', error);
         toast({
@@ -57,6 +87,102 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     fetchParticipants();
   }, []);
+
+  // Helper to get health declarations for a specific participant
+  const getHealthDeclarationsByParticipant = (participantId: string) => {
+    return healthDeclarations.filter(decl => decl.participantId === participantId);
+  };
+
+  // Send a health declaration form to a participant
+  const sendHealthDeclaration = async (participantId: string, phone: string, name: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-health-form', {
+        body: { participantId, phone, name }
+      });
+      
+      if (error) throw new Error(error.message);
+      
+      // Add the new health declaration to our local state
+      if (data && data.formId) {
+        const newHealthDeclaration: HealthDeclaration = {
+          id: data.formId,
+          participantId,
+          formStatus: 'pending',
+          phoneSentTo: phone,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        setHealthDeclarations([...healthDeclarations, newHealthDeclaration]);
+      }
+      
+      toast({
+        title: "נשלח בהצלחה",
+        description: "טופס הצהרת בריאות נשלח למשתתף",
+      });
+    } catch (error: any) {
+      console.error('Error sending health declaration:', error);
+      toast({
+        title: "שגיאה",
+        description: error.message || "אירעה שגיאה בשליחת הצהרת בריאות",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+  
+  // Update health declaration status
+  const updateHealthDeclarationStatus = async (formId: string, isApproved: boolean, notes?: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('update-health-form', {
+        body: { formId, agreed: isApproved, notes }
+      });
+      
+      if (error) throw new Error(error.message);
+      
+      // Update health declaration in local state
+      setHealthDeclarations(prevDeclarations => 
+        prevDeclarations.map(decl => 
+          decl.id === formId 
+            ? {
+                ...decl,
+                formStatus: isApproved ? 'approved' : 'declined',
+                submissionDate: new Date().toISOString(),
+                notes: notes || decl.notes,
+                updatedAt: new Date().toISOString()
+              }
+            : decl
+        )
+      );
+      
+      // If approved, also update the participant's health approval status
+      if (isApproved) {
+        const declaration = healthDeclarations.find(decl => decl.id === formId);
+        if (declaration) {
+          const participant = participants.find(p => p.id === declaration.participantId);
+          if (participant) {
+            await updateParticipant({
+              ...participant,
+              healthApproval: true
+            });
+          }
+        }
+      }
+      
+      toast({
+        title: "עודכן בהצלחה",
+        description: "סטטוס הצהרת הבריאות עודכן",
+      });
+    } catch (error: any) {
+      console.error('Error updating health declaration:', error);
+      toast({
+        title: "שגיאה",
+        description: error.message || "אירעה שגיאה בעדכון הצהרת בריאות",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
 
   // Add a participant
   const addParticipant = async (participant: Omit<Participant, 'id'>) => {
@@ -138,7 +264,11 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         });
       }
     },
-    loading
+    loading,
+    healthDeclarations,
+    getHealthDeclarationsByParticipant,
+    sendHealthDeclaration,
+    updateHealthDeclarationStatus
   };
 
   return (

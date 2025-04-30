@@ -81,18 +81,20 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                   value={newParticipant.phone}
                   onChange={(e) => setNewParticipant({ ...newParticipant, phone: e.target.value })}
                   required
+                  className="ltr"
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
               <Checkbox
                 id="health-approval"
                 checked={newParticipant.healthApproval}
                 onCheckedChange={(checked) => 
                   setNewParticipant({ ...newParticipant, healthApproval: checked as boolean })
                 }
+                disabled
               />
-              <Label htmlFor="health-approval" className="mr-2">אישור בריאות</Label>
+              <Label htmlFor="health-approval" className="mr-2">אישור בריאות (יישלח אוטומטית למשתתף)</Label>
             </div>
             
             <div className="space-y-4 pt-4 border-t">

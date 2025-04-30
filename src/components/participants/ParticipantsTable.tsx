@@ -1,10 +1,21 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Participant, PaymentStatus, Registration, Payment } from '@/types';
-import { Download } from 'lucide-react';
+import { Download, Send } from 'lucide-react';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogFooter 
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 interface ParticipantsTableProps {
   registrations: Registration[];
@@ -29,6 +40,11 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onUpdateHealthApproval,
   onExport,
 }) => {
+  const [isHealthFormDialogOpen, setIsHealthFormDialogOpen] = useState(false);
+  const [currentParticipant, setCurrentParticipant] = useState<Participant | null>(null);
+  const [phoneToSend, setPhoneToSend] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
   // Helper to separate actual payments from discounts
   const calculateActualPayments = (payments: Payment[]) => {
     return payments.filter(p => p.receiptNumber !== '');
@@ -37,6 +53,52 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   // Helper to calculate discount amount
   const calculateDiscountAmount = (registration: Registration) => {
     return registration.discountAmount || 0;
+  };
+
+  const handleSendHealthForm = async (participant: Participant) => {
+    setCurrentParticipant(participant);
+    setPhoneToSend(participant.phone); // Default to participant's phone
+    setIsHealthFormDialogOpen(true);
+  };
+
+  const submitHealthFormSend = async () => {
+    if (!currentParticipant || !phoneToSend.trim()) {
+      toast({
+        title: "שגיאה",
+        description: "יש להזין מספר טלפון תקין",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-health-form', {
+        body: {
+          participantId: currentParticipant.id,
+          phone: phoneToSend,
+          name: `${currentParticipant.firstName} ${currentParticipant.lastName}`
+        }
+      });
+
+      if (error) throw new Error(error.message);
+
+      toast({
+        title: "טופס נשלח בהצלחה",
+        description: `הצהרת הבריאות נשלחה ל${phoneToSend}`,
+      });
+
+      setIsHealthFormDialogOpen(false);
+    } catch (error: any) {
+      console.error('Error sending health form:', error);
+      toast({
+        title: "שגיאה בשליחת הטופס",
+        description: error.message || "אירעה שגיאה בשליחת טופס הצהרת הבריאות",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -115,15 +177,27 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 </TableCell>
                 <TableCell>{registration.discountApproved ? 'כן' : 'לא'}</TableCell>
                 <TableCell>
-                  <Checkbox 
-                    checked={participant.healthApproval} 
-                    onCheckedChange={(checked) => {
-                      if (participant) {
-                        onUpdateHealthApproval(participant, checked === true);
-                      }
-                    }}
-                    className="mx-auto block"
-                  />
+                  {participant.healthApproval ? (
+                    <Checkbox 
+                      checked={true} 
+                      onCheckedChange={(checked) => {
+                        if (participant) {
+                          onUpdateHealthApproval(participant, checked === true);
+                        }
+                      }}
+                      className="mx-auto block"
+                    />
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSendHealthForm(participant)}
+                      className="mx-auto block"
+                    >
+                      <Send className="h-4 w-4 mr-1" />
+                      שלח טופס
+                    </Button>
+                  )}
                 </TableCell>
                 <TableCell className={`font-semibold ${getStatusClassName(status)}`}>
                   {status}
@@ -153,6 +227,42 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
           })}
         </TableBody>
       </Table>
+
+      {/* Send Health Form Dialog */}
+      <Dialog open={isHealthFormDialogOpen} onOpenChange={setIsHealthFormDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>שליחת טופס הצהרת בריאות</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="participant-name">משתתף</Label>
+              <Input 
+                id="participant-name" 
+                value={currentParticipant ? `${currentParticipant.firstName} ${currentParticipant.lastName}` : ''}
+                readOnly 
+                className="bg-gray-100"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone-number">מספר טלפון לשליחה</Label>
+              <Input 
+                id="phone-number" 
+                type="tel"
+                value={phoneToSend} 
+                onChange={(e) => setPhoneToSend(e.target.value)}
+                placeholder="הכנס מספר טלפון"
+                className="ltr"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={submitHealthFormSend} disabled={isSending}>
+              {isSending ? 'שולח...' : 'שלח טופס'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,44 +1,48 @@
 
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Layout from "./components/layout/Layout";
-import SeasonPage from "./pages/SeasonPage";
-import ProductsPage from "./pages/ProductsPage";
-import ParticipantsPage from "./pages/ParticipantsPage";
-import ReportPage from "./pages/ReportPage";
-import DailyActivityPage from "./pages/DailyActivityPage";
-import NotFound from "./pages/NotFound";
-import { AuthProvider } from "./context/AuthContext";
-import { DataProvider } from "./context/DataContext";
 
-const queryClient = new QueryClient();
+import Layout from "@/components/layout/Layout";
+import NotFound from "@/pages/NotFound";
+import Index from "@/pages/Index";
+import ProductsPage from "@/pages/ProductsPage";
+import SeasonPage from "@/pages/SeasonPage";
+import ParticipantsPage from "@/pages/ParticipantsPage";
+import ReportPage from "@/pages/ReportPage";
+import DailyActivityPage from "@/pages/DailyActivityPage";
+import LoginPage from "@/pages/LoginPage";
+import HealthFormPage from "@/pages/HealthFormPage";
+import FormSuccessPage from "@/pages/FormSuccessPage";
+import { DataProvider } from "@/context/DataContext";
+import { AuthProvider } from "@/context/AuthContext";
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+function App() {
+  return (
+    <Router>
       <AuthProvider>
         <DataProvider>
+          <Routes>
+            {/* Public routes that don't require layout */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/health-form/:formId" element={<HealthFormPage />} />
+            <Route path="/form-success" element={<FormSuccessPage />} />
+            
+            {/* Routes with layout */}
+            <Route element={<Layout />}>
+              <Route index element={<Index />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/season/:seasonId" element={<SeasonPage />} />
+              <Route path="/product/:productId/participants" element={<ParticipantsPage />} />
+              <Route path="/reports" element={<ReportPage />} />
+              <Route path="/daily-activity" element={<DailyActivityPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
           <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<SeasonPage />} />
-                <Route path="/season/:seasonId/products" element={<ProductsPage />} />
-                <Route path="/product/:productId/participants" element={<ParticipantsPage />} />
-                <Route path="/report" element={<ReportPage />} />
-                <Route path="/daily-activity" element={<DailyActivityPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
-          </BrowserRouter>
         </DataProvider>
       </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </Router>
+  );
+}
 
 export default App;
