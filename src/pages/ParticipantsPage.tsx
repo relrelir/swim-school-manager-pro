@@ -96,7 +96,7 @@ const ParticipantsPage: React.FC = () => {
   };
 
   // Handler for opening payment dialog
-  const handleOpenAddPayment = (registration: any) => {
+  const handleOpenAddPayment = (registration: Registration) => {
     setCurrentRegistration(registration);
     setNewPayment({
       amount: 0,
@@ -118,14 +118,7 @@ const ParticipantsPage: React.FC = () => {
   };
   
   const updateHealthApprovalById = (registrationId: string, isApproved: boolean) => {
-    // Find the corresponding registration and participant
-    const registration = registrations.find(r => r.id === registrationId);
-    if (registration) {
-      const participant = getParticipantForRegistration(registration);
-      if (participant) {
-        handleUpdateHealthApproval(participant, isApproved);
-      }
-    }
+    handleUpdateHealthApproval(registrationId, isApproved);
   };
 
   return (

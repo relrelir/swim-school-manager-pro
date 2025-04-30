@@ -32,7 +32,6 @@ export const useRegistrationManagement = (
   const {
     handleAddParticipant: baseHandleAddParticipant,
     handleDeleteRegistration: baseHandleDeleteRegistration,
-    handleUpdateHealthApproval
   } = useRegistrationHandlers(
     addParticipant,
     addRegistration,
@@ -159,6 +158,5 @@ export const useRegistrationManagement = (
     handleAddPayment,
     handleApplyDiscount,
     handleDeleteRegistration,
-    handleUpdateHealthApproval
   };
 };

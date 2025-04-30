@@ -5,9 +5,9 @@ import { useData } from '@/context/DataContext';
 import { Registration } from '@/types';
 import { useParticipantForm } from './useParticipantForm';
 import { useParticipantUtils } from './useParticipantUtils';
-import { useHealthDeclarations } from './useHealthDeclarations';
-import { useSummaryCalculations } from './useSummaryCalculations';
 import { useRegistrationManagement } from './useRegistrationManagement';
+import { useParticipantHealth } from './useParticipantHealth';
+import { useParticipantData } from './useParticipantData';
 
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -33,7 +33,39 @@ export const useParticipants = () => {
   
   const [product, setProduct] = useState(undefined);
   
-  // Import sub-hooks
+  // Import participant utilities
+  const {
+    getParticipantForRegistration,
+    getPaymentsForRegistration,
+    getStatusClassName
+  } = useParticipantUtils(participants, payments);
+
+  // Create an adapter for updateHealthDeclaration to match expected signature
+  const updateHealthDeclaration = (declaration: any) => {
+    return baseUpdateHealthDeclaration(declaration.id, declaration);
+  };
+
+  // Load product data
+  useEffect(() => {
+    if (productId) {
+      const currentProduct = products.find(p => p.id === productId);
+      setProduct(currentProduct);
+    }
+  }, [productId, products]);
+
+  // Import participant data hook
+  const {
+    registrations,
+    setRegistrations,
+    refreshTrigger,
+    setRefreshTrigger,
+    totalParticipants,
+    registrationsFilled,
+    totalExpected,
+    totalPaid
+  } = useParticipantData(product, productId, getRegistrationsByProduct);
+
+  // Import participant form hook
   const {
     isAddParticipantOpen,
     setIsAddParticipantOpen,
@@ -47,31 +79,42 @@ export const useParticipants = () => {
     setNewPayment,
     resetForm
   } = useParticipantForm(product);
-  
-  // Participant utilities
-  const {
-    getParticipantForRegistration,
-    getPaymentsForRegistration,
-    getStatusClassName
-  } = useParticipantUtils(participants, payments);
 
-  // Create an adapter for updateHealthDeclaration to match expected signature
-  const updateHealthDeclaration = (declaration: any) => {
-    return baseUpdateHealthDeclaration(declaration.id, declaration);
-  };
+  // Update registration data when product changes
+  useEffect(() => {
+    if (product) {
+      setRegistrationData(prev => ({
+        ...prev,
+        requiredAmount: product.price,
+      }));
+    }
+  }, [product]);
 
-  // Registration management
+  // Import participant health hook
   const {
-    registrations,
-    setRegistrations,
-    refreshTrigger,
+    isHealthFormOpen,
+    setIsHealthFormOpen,
+    currentHealthDeclaration,
+    setCurrentHealthDeclaration,
+    handleOpenHealthForm: baseHandleOpenHealthForm,
+    handleUpdateHealthApproval
+  } = useParticipantHealth(
+    getHealthDeclarationForRegistration,
+    sendHealthDeclarationSMS,
+    addHealthDeclaration,
+    updateHealthDeclaration,
+    updateParticipant,
+    participants
+  );
+
+  // Import registration management hook
+  const {
     currentRegistration,
     setCurrentRegistration,
     handleAddParticipant: baseHandleAddParticipant,
     handleAddPayment: baseHandleAddPayment,
     handleApplyDiscount: baseHandleApplyDiscount,
-    handleDeleteRegistration,
-    handleUpdateHealthApproval
+    handleDeleteRegistration
   } = useRegistrationManagement(
     product,
     productId,
@@ -86,47 +129,6 @@ export const useParticipants = () => {
     updateParticipant,
     addHealthDeclaration
   );
-
-  // Health declarations hook
-  const {
-    isHealthFormOpen,
-    setIsHealthFormOpen,
-    currentHealthDeclaration,
-    setCurrentHealthDeclaration,
-    handleOpenHealthForm: baseHandleOpenHealthForm
-  } = useHealthDeclarations(
-    getHealthDeclarationForRegistration,
-    sendHealthDeclarationSMS,
-    addHealthDeclaration,
-    updateHealthDeclaration
-  );
-
-  // Summary calculations
-  const {
-    totalParticipants,
-    registrationsFilled,
-    totalExpected,
-    totalPaid
-  } = useSummaryCalculations(registrations, product);
-
-  // Load product and registrations data
-  useEffect(() => {
-    if (productId) {
-      const currentProduct = products.find(p => p.id === productId);
-      setProduct(currentProduct);
-      
-      if (currentProduct) {
-        const productRegistrations = getRegistrationsByProduct(productId);
-        setRegistrations(productRegistrations);
-        
-        // Set default required amount for new registrations
-        setRegistrationData(prev => ({
-          ...prev,
-          requiredAmount: currentProduct.price,
-        }));
-      }
-    }
-  }, [productId, products, getRegistrationsByProduct, refreshTrigger]);
 
   // Handler for opening health form - wrapper to pass required parameters
   const handleOpenHealthForm = (registrationId: string) => {

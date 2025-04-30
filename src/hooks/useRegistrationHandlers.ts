@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Participant, Registration, Payment } from '@/types';
 
@@ -129,24 +128,8 @@ export const useRegistrationHandlers = (
     return [];
   };
 
-  // Handle updating health approval
-  const handleUpdateHealthApproval = (participant: Participant, isApproved: boolean) => {
-    const updatedParticipant: Participant = {
-      ...participant,
-      healthApproval: isApproved
-    };
-    
-    updateParticipant(updatedParticipant);
-    
-    toast({
-      title: "אישור בריאות עודכן",
-      description: `אישור בריאות ${isApproved ? 'התקבל' : 'בוטל'} עבור ${participant.firstName} ${participant.lastName}`,
-    });
-  };
-
   return {
     handleAddParticipant,
     handleDeleteRegistration,
-    handleUpdateHealthApproval
   };
 };
