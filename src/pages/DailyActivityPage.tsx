@@ -7,28 +7,16 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Input } from '@/components/ui/input';
 import { format, parse, isValid } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { exportDailyActivitiesToCSV } from '@/utils/exportUtils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const DailyActivityPage: React.FC = () => {
   const { getDailyActivities } = useData();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [dateInputValue, setDateInputValue] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
-
-  // Handle date input change
-  const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setDateInputValue(value);
-    
-    // Parse the date if valid
-    const parsedDate = parse(value, 'yyyy-MM-dd', new Date());
-    if (isValid(parsedDate)) {
-      setSelectedDate(parsedDate);
-    }
-  };
+  const isMobile = useIsMobile();
 
   // Convert the date to a string format for the getDailyActivities function
   const dateString = format(selectedDate, 'yyyy-MM-dd');
@@ -80,46 +68,42 @@ const DailyActivityPage: React.FC = () => {
 
   return (
     <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">פעילות יומית</h1>
-        <div className="flex gap-2">
-          <div className="flex gap-2 items-center">
-            <Input
-              type="text"
-              placeholder="YYYY-MM-DD"
-              value={dateInputValue}
-              onChange={handleDateInputChange}
-              className="w-32"
-            />
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "justify-start text-right font-normal",
-                  )}
-                >
-                  <CalendarIcon className="ml-2 h-4 w-4" />
-                  {format(selectedDate, "d בMMMM yyyy", { locale: he })}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => {
-                    if (date) {
-                      setSelectedDate(date);
-                      setDateInputValue(format(date, 'yyyy-MM-dd'));
-                    }
-                  }}
-                  weekStartsOn={0}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <Button variant="outline" onClick={handleExport}>ייצוא לאקסל</Button>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full sm:w-auto justify-between text-right font-normal",
+                )}
+              >
+                <span>{format(selectedDate, "d בMMMM yyyy", { locale: he })}</span>
+                <CalendarIcon className="mr-2 h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(date);
+                  }
+                }}
+                weekStartsOn={0}
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          <Button 
+            variant="outline" 
+            onClick={handleExport} 
+            className="w-full sm:w-auto"
+          >
+            ייצוא לאקסל
+          </Button>
         </div>
       </div>
 
