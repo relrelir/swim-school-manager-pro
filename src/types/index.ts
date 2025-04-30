@@ -54,17 +54,6 @@ export interface Payment {
   paymentDate: string;
 }
 
-export interface HealthDeclaration {
-  id: string;
-  participantId: string;
-  formStatus: 'pending' | 'approved' | 'declined';
-  submissionDate?: string;
-  notes?: string;
-  phoneSentTo: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface RegistrationWithDetails extends Registration {
   participant: Participant;
   product: Product;

@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Participant, Registration, Payment } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
 
 export const useRegistrationHandlers = (
   addParticipant: (participant: Omit<Participant, 'id'>) => Promise<Participant | undefined> | void,
@@ -46,7 +45,7 @@ export const useRegistrationHandlers = (
       lastName: newParticipant.lastName,
       idNumber: newParticipant.idNumber,
       phone: newParticipant.phone,
-      healthApproval: false, // Always start with false, will be updated when health form is completed
+      healthApproval: newParticipant.healthApproval,
     };
     
     // Add participant first
@@ -76,29 +75,6 @@ export const useRegistrationHandlers = (
         };
         
         await addPayment(initialPayment);
-      }
-      
-      // Send health declaration form via SMS
-      try {
-        await supabase.functions.invoke('send-health-form', {
-          body: {
-            participantId: addedParticipant.id,
-            phone: addedParticipant.phone,
-            name: `${addedParticipant.firstName} ${addedParticipant.lastName}`
-          }
-        });
-        
-        toast({
-          title: "הצהרת בריאות נשלחה",
-          description: `טופס הצהרת בריאות נשלח לטלפון ${addedParticipant.phone}`,
-        });
-      } catch (error) {
-        console.error('Error sending health form:', error);
-        toast({
-          title: "שגיאה בשליחת הצהרת בריאות",
-          description: "המשתתף נרשם אך אירעה שגיאה בשליחת הצהרת הבריאות",
-          variant: "destructive",
-        });
       }
       
       // Add success toast notification

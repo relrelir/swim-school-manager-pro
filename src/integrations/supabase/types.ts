@@ -9,47 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      health_declarations: {
-        Row: {
-          created_at: string
-          form_status: string
-          id: string
-          notes: string | null
-          participant_id: string
-          phone_sent_to: string
-          submission_date: string | null
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          form_status?: string
-          id?: string
-          notes?: string | null
-          participant_id: string
-          phone_sent_to: string
-          submission_date?: string | null
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          form_status?: string
-          id?: string
-          notes?: string | null
-          participant_id?: string
-          phone_sent_to?: string
-          submission_date?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "health_declarations_participant_id_fkey"
-            columns: ["participant_id"]
-            isOneToOne: false
-            referencedRelation: "participants"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       participants: {
         Row: {
           created_at: string
