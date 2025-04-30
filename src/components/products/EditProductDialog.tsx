@@ -73,8 +73,9 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProduct) {
-      // Include calculated end date if available
+      // Include price in the updated product data
       const updatedProduct: Partial<Product> = {
+        price: editingProduct.price,
         meetingsCount: editingProduct.meetingsCount,
         daysOfWeek: editingProduct.daysOfWeek,
         startTime: editingProduct.startTime,

@@ -97,6 +97,8 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const { id, ...productData } = product;
       const dbProduct = mapProductToDB(productData);
       
+      console.log("Updating product with data:", dbProduct); // Add debug log
+      
       const { error } = await supabase
         .from('products')
         .update(dbProduct)
