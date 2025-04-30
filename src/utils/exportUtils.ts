@@ -89,14 +89,17 @@ export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[
 export const exportDailyActivitiesToCSV = (activities: any[], filename: string = 'daily-activities.csv') => {
   // Process activities to include the correct day of week and meeting number info
   const processedActivities = activities.map(activity => {
-    // The meeting info is already calculated in the UI, so we extract the values
+    // The meeting info is already calculated in the UI
     const currentMeeting = activity.currentMeeting || '';
     const totalMeetings = activity.totalMeetings || '';
     
+    // Format meeting number as text to prevent Excel from interpreting as date
+    // Prefix with apostrophe to force Excel to treat it as text
+    const meetingNumberText = `'${currentMeeting}/${totalMeetings}`;
+    
     return {
       ...activity,
-      // Format meeting number as "current/total"
-      meetingNumber: `${currentMeeting}/${totalMeetings}`
+      meetingNumber: meetingNumberText
     };
   });
 
@@ -104,11 +107,10 @@ export const exportDailyActivitiesToCSV = (activities: any[], filename: string =
     { key: 'product.name', header: 'שם פעילות' },
     { key: 'product.type', header: 'סוג פעילות' },
     { key: 'startTime', header: 'שעת התחלה' },
-    { key: 'formattedDayOfWeek', header: 'יום בשבוע' }, // Use the formatted day of week
-    { key: 'meetingNumber', header: 'מפגש מספר' }, // Add meeting number
+    { key: 'formattedDayOfWeek', header: 'יום בשבוע' }, 
+    { key: 'meetingNumber', header: 'מפגש מספר' }, 
     { key: 'numParticipants', header: 'מספר משתתפים' },
   ];
-  // Removed the location column as it's unnecessary
   
   downloadCSV(processedActivities, columns, filename);
 };

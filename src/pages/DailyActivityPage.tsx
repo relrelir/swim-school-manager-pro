@@ -27,8 +27,8 @@ const DailyActivityPage: React.FC = () => {
       return {
         ...activity,
         formattedDayOfWeek: dayOfWeekFormatted, // Add formatted day of week
-        currentMeeting: meetingInfo.current, // Add current meeting number
-        totalMeetings: meetingInfo.total, // Add total meetings
+        currentMeeting: meetingInfo.current.toString(), // Ensure it's a string
+        totalMeetings: meetingInfo.total.toString(), // Ensure it's a string
       };
     });
   };
