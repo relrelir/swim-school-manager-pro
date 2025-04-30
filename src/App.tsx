@@ -10,6 +10,8 @@ import ProductsPage from "./pages/ProductsPage";
 import ParticipantsPage from "./pages/ParticipantsPage";
 import ReportPage from "./pages/ReportPage";
 import DailyActivityPage from "./pages/DailyActivityPage";
+import HealthFormPage from "./pages/HealthFormPage";
+import FormSuccessPage from "./pages/FormSuccessPage";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./context/AuthContext";
 import { DataProvider } from "./context/DataContext";
@@ -24,16 +26,21 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<SeasonPage />} />
+            <Routes>
+              {/* Public routes for health declaration form */}
+              <Route path="/health-form" element={<HealthFormPage />} />
+              <Route path="/form-success" element={<FormSuccessPage />} />
+              
+              {/* App routes wrapped in layout */}
+              <Route path="/" element={<Layout />}>
+                <Route index element={<SeasonPage />} />
                 <Route path="/season/:seasonId/products" element={<ProductsPage />} />
                 <Route path="/product/:productId/participants" element={<ParticipantsPage />} />
                 <Route path="/report" element={<ReportPage />} />
                 <Route path="/daily-activity" element={<DailyActivityPage />} />
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
+              </Route>
+            </Routes>
           </BrowserRouter>
         </DataProvider>
       </AuthProvider>

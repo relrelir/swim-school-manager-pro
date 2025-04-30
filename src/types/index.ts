@@ -1,4 +1,3 @@
-
 export interface Season {
   id: string;
   name: string;
@@ -74,4 +73,17 @@ export interface DailyActivity {
   numParticipants: number;
   currentMeetingNumber?: number;
   totalMeetings?: number;
+}
+
+export type HealthDeclarationStatus = 'pending' | 'sent' | 'signed';
+
+export interface HealthDeclaration {
+  id: string;
+  registrationId: string;
+  phone: string;
+  formStatus: HealthDeclarationStatus;
+  sentAt: string;
+  signedAt?: string;
+  clientAnswer?: string;
+  notes?: string;
 }

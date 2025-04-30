@@ -3,18 +3,20 @@ import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Participant, PaymentStatus, Registration, Payment } from '@/types';
+import { Participant, PaymentStatus, Registration, Payment, HealthDeclaration } from '@/types';
 import { Download } from 'lucide-react';
 
 interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
   getPaymentsForRegistration: (registration: Registration) => Payment[];
+  getHealthDeclarationForRegistration?: (registrationId: string) => HealthDeclaration | undefined;
   calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   getStatusClassName: (status: PaymentStatus) => string;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
   onUpdateHealthApproval: (participant: Participant, isApproved: boolean) => void;
+  onOpenHealthForm?: (registrationId: string) => void;
   onExport?: () => void;
 }
 
@@ -22,11 +24,13 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   registrations,
   getParticipantForRegistration,
   getPaymentsForRegistration,
+  getHealthDeclarationForRegistration,
   calculatePaymentStatus,
   getStatusClassName,
   onAddPayment,
   onDeleteRegistration,
   onUpdateHealthApproval,
+  onOpenHealthForm,
   onExport,
 }) => {
   // Helper to separate actual payments from discounts
@@ -37,6 +41,68 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   // Helper to calculate discount amount
   const calculateDiscountAmount = (registration: Registration) => {
     return registration.discountAmount || 0;
+  };
+  
+  // Helper to render health form status button or checkbox
+  const renderHealthFormStatus = (registration: Registration) => {
+    if (!getHealthDeclarationForRegistration || !onOpenHealthForm) {
+      const participant = getParticipantForRegistration(registration);
+      if (!participant) return null;
+      
+      return (
+        <Checkbox 
+          checked={participant.healthApproval} 
+          onCheckedChange={(checked) => {
+            if (participant) {
+              onUpdateHealthApproval(participant, checked === true);
+            }
+          }}
+          className="mx-auto block"
+        />
+      );
+    }
+    
+    const healthDeclaration = getHealthDeclarationForRegistration(registration.id);
+    
+    if (!healthDeclaration || healthDeclaration.formStatus === 'pending') {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onOpenHealthForm(registration.id)}
+          className="w-full"
+        >
+          שלח הצהרת בריאות
+        </Button>
+      );
+    } else if (healthDeclaration.formStatus === 'sent') {
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onOpenHealthForm(registration.id)}
+          className="w-full bg-yellow-100 hover:bg-yellow-200 border-yellow-300"
+        >
+          שלח שוב
+        </Button>
+      );
+    } else if (healthDeclaration.formStatus === 'signed') {
+      const participant = getParticipantForRegistration(registration);
+      if (!participant) return null;
+      
+      // Update participant health approval automatically
+      if (!participant.healthApproval) {
+        onUpdateHealthApproval(participant, true);
+      }
+      
+      return (
+        <Checkbox 
+          checked={true}
+          disabled
+          className="mx-auto block"
+        />
+      );
+    }
   };
 
   return (
@@ -59,7 +125,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             <TableHead>תשלומים</TableHead>
             <TableHead>מספרי קבלות</TableHead>
             <TableHead>הנחה</TableHead>
-            <TableHead>אישור בריאות</TableHead>
+            <TableHead>הצהרת בריאות</TableHead>
             <TableHead>סטטוס</TableHead>
             <TableHead>פעולות</TableHead>
           </TableRow>
@@ -115,15 +181,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 </TableCell>
                 <TableCell>{registration.discountApproved ? 'כן' : 'לא'}</TableCell>
                 <TableCell>
-                  <Checkbox 
-                    checked={participant.healthApproval} 
-                    onCheckedChange={(checked) => {
-                      if (participant) {
-                        onUpdateHealthApproval(participant, checked === true);
-                      }
-                    }}
-                    className="mx-auto block"
-                  />
+                  {renderHealthFormStatus(registration)}
                 </TableCell>
                 <TableCell className={`font-semibold ${getStatusClassName(status)}`}>
                   {status}

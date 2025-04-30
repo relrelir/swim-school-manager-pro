@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
-import { Registration } from '@/types';
+import { Registration, HealthDeclaration } from '@/types';
 import { useParticipantForm } from './useParticipantForm';
 import { usePaymentHandlers } from './usePaymentHandlers';
 import { useRegistrationHandlers } from './useRegistrationHandlers';
@@ -22,12 +22,24 @@ export const useParticipants = () => {
     addPayment,
     getPaymentsByRegistration,
     payments,
-    addParticipant
+    addParticipant,
+    healthDeclarations,
+    addHealthDeclaration,
+    updateHealthDeclaration,
+    getHealthDeclarationForRegistration,
+    sendHealthDeclarationSMS
   } = useData();
   
   const [product, setProduct] = useState(undefined);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
+  const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<{
+    registrationId: string;
+    participantName: string;
+    phone: string;
+    declaration?: HealthDeclaration;
+  } | null>(null);
   
   // Import sub-hooks
   const {
@@ -90,7 +102,27 @@ export const useParticipants = () => {
     }
   }, [productId, products, getRegistrationsByProduct, refreshTrigger]);
 
-  // Wrap handlers with local state
+  // Handler for opening health form
+  const handleOpenHealthForm = (registrationId: string) => {
+    const registration = registrations.find(reg => reg.id === registrationId);
+    if (!registration) return;
+
+    const participant = getParticipantForRegistration(registration);
+    if (!participant) return;
+
+    const healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+
+    setCurrentHealthDeclaration({
+      registrationId,
+      participantName: `${participant.firstName} ${participant.lastName}`,
+      phone: participant.phone,
+      declaration: healthDeclaration
+    });
+
+    setIsHealthFormOpen(true);
+  };
+
+  // Handler for adding a new participant with health declaration
   const handleAddParticipant = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -103,13 +135,29 @@ export const useParticipants = () => {
       setIsAddParticipantOpen
     );
     
-    if (result) {
+    if (result && result.length > 0) {
+      // Find the new registration (should be the last one added)
+      const newRegistration = result[result.length - 1];
+      
+      // Create a health declaration entry for the new registration
+      if (newRegistration) {
+        const participant = getParticipantForRegistration(newRegistration);
+        if (participant) {
+          await addHealthDeclaration({
+            registrationId: newRegistration.id,
+            phone: participant.phone,
+            formStatus: 'pending',
+            sentAt: new Date().toISOString()
+          });
+        }
+      }
+      
       setRegistrations(result);
-      // Trigger refresh to update the list immediately
       setRefreshTrigger(prev => prev + 1);
     }
   };
 
+  // Wrap other handlers with local state
   const handleAddPayment = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -163,6 +211,9 @@ export const useParticipants = () => {
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
+    isHealthFormOpen,
+    setIsHealthFormOpen,
+    currentHealthDeclaration,
     newParticipant,
     setNewParticipant,
     currentRegistration,
@@ -181,10 +232,12 @@ export const useParticipants = () => {
     handleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
+    handleOpenHealthForm,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
     getStatusClassName,
     calculatePaymentStatus,
+    getHealthDeclarationForRegistration,
   };
 };

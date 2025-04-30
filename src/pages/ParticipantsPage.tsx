@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useParticipants } from '@/hooks/useParticipants';
 import ParticipantsSummaryCards from '@/components/participants/ParticipantsSummaryCards';
 import ParticipantsTable from '@/components/participants/ParticipantsTable';
+import HealthDeclarationForm from '@/components/participants/HealthDeclarationForm';
 import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
 import AddParticipantDialog from '@/components/participants/AddParticipantDialog';
 import AddPaymentDialog from '@/components/participants/AddPaymentDialog';
@@ -20,6 +21,9 @@ const ParticipantsPage: React.FC = () => {
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
+    isHealthFormOpen,
+    setIsHealthFormOpen,
+    currentHealthDeclaration,
     newParticipant,
     setNewParticipant,
     currentRegistration,
@@ -38,11 +42,13 @@ const ParticipantsPage: React.FC = () => {
     handleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
+    handleOpenHealthForm,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
     getStatusClassName,
     calculatePaymentStatus,
+    getHealthDeclarationForRegistration,
   } = useParticipants();
 
   const handleExportToCSV = () => {
@@ -112,6 +118,7 @@ const ParticipantsPage: React.FC = () => {
           registrations={registrations}
           getParticipantForRegistration={getParticipantForRegistration}
           getPaymentsForRegistration={getPaymentsForRegistration}
+          getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
           calculatePaymentStatus={calculatePaymentStatus}
           getStatusClassName={getStatusClassName}
           onAddPayment={(registration) => {
@@ -125,6 +132,7 @@ const ParticipantsPage: React.FC = () => {
           }}
           onDeleteRegistration={handleDeleteRegistration}
           onUpdateHealthApproval={handleUpdateHealthApproval}
+          onOpenHealthForm={handleOpenHealthForm}
           onExport={handleExportToCSV}
         />
       )}
@@ -151,6 +159,22 @@ const ParticipantsPage: React.FC = () => {
         onSubmit={handleAddPayment}
         onApplyDiscount={handleApplyDiscount}
       />
+
+      {/* Health Declaration Form */}
+      {currentHealthDeclaration && (
+        <HealthDeclarationForm
+          isOpen={isHealthFormOpen}
+          onOpenChange={setIsHealthFormOpen}
+          registrationId={currentHealthDeclaration.registrationId}
+          participantName={currentHealthDeclaration.participantName}
+          defaultPhone={currentHealthDeclaration.phone}
+          healthDeclaration={currentHealthDeclaration.declaration}
+          afterSubmit={() => {
+            // Force refresh the list after sending
+            setCurrentHealthDeclaration(null);
+          }}
+        />
+      )}
     </div>
   );
 };

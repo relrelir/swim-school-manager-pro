@@ -1,28 +1,159 @@
 
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { useContext } from 'react';
 import { SeasonsProvider, useSeasonsContext } from './data/SeasonsProvider';
 import { ProductsProvider, useProductsContext } from './data/ProductsProvider';
 import { ParticipantsProvider, useParticipantsContext } from './data/ParticipantsProvider';
 import { RegistrationsProvider, useRegistrationsContext } from './data/RegistrationsProvider';
 import { PaymentsProvider, usePaymentsContext } from './data/PaymentsProvider';
+import { HealthDeclarationsProvider, useHealthDeclarationsContext } from './data/HealthDeclarationsProvider';
 import { CombinedDataContextType } from './data/types';
-import { calculateCurrentMeeting } from './data/utils';
-import { Product, DailyActivity, Payment } from '@/types';
-import { format, isWithinInterval } from 'date-fns';
+import { Product } from '@/types';
 
-// Create the context
-export const DataContext = createContext<CombinedDataContextType | null>(null);
-
-// Custom hook to use the data context
+// Custom hook to access the combined data context
 export const useData = () => {
-  const context = useContext(DataContext);
-  if (context === null) {
-    throw new Error('useData must be used within a DataProvider');
-  }
-  return context;
+  const seasonsContext = useSeasonsContext();
+  const productsContext = useProductsContext();
+  const participantsContext = useParticipantsContext();
+  const registrationsContext = useRegistrationsContext();
+  const paymentsContext = usePaymentsContext();
+  const healthDeclarationsContext = useHealthDeclarationsContext();
+
+  // Function to get all registrations with additional details
+  const getAllRegistrationsWithDetails = () => {
+    const { registrations } = registrationsContext;
+    const { products } = productsContext;
+    const { seasons } = seasonsContext;
+    const { participants } = participantsContext;
+    const { payments } = paymentsContext;
+
+    return registrations.map(registration => {
+      const product = products.find(p => p.id === registration.productId);
+      const participant = participants.find(p => p.id === registration.participantId);
+      const season = product ? seasons.find(s => s.id === product.seasonId) : undefined;
+      const registrationPayments = payments.filter(p => p.registrationId === registration.id);
+      const paymentStatus = registrationsContext.calculatePaymentStatus(registration);
+
+      return {
+        ...registration,
+        product: product!,
+        participant: participant!,
+        season: season!,
+        paymentStatus,
+        payments: registrationPayments
+      };
+    }).filter(reg => reg.product && reg.participant && reg.season);
+  };
+
+  // Calculate meeting progress for a product
+  const calculateMeetingProgress = (product: Product) => {
+    // If the product is missing necessary fields, return default values
+    if (!product.startDate || !product.meetingsCount || !product.daysOfWeek || product.daysOfWeek.length === 0) {
+      return { current: 0, total: product.meetingsCount || 10 };
+    }
+
+    const startDate = new Date(product.startDate);
+    const today = new Date();
+    
+    // If today is before the start date, return 0
+    if (today < startDate) {
+      return { current: 0, total: product.meetingsCount };
+    }
+
+    // Map Hebrew days to JS day numbers (0 = Sunday, 6 = Saturday)
+    const dayMap: { [key: string]: number } = {
+      'ראשון': 0,
+      'שני': 1,
+      'שלישי': 2,
+      'רביעי': 3,
+      'חמישי': 4,
+      'שישי': 5,
+      'שבת': 6
+    };
+    
+    // Convert Hebrew days to JS day numbers
+    const activityDays = product.daysOfWeek.map(day => dayMap[day]).sort();
+    
+    let meetingCount = 0;
+    let currentDate = new Date(startDate);
+    
+    // Count meetings until today
+    while (currentDate <= today) {
+      const dayOfWeek = currentDate.getDay();
+      
+      if (activityDays.includes(dayOfWeek)) {
+        meetingCount++;
+        
+        // If we've counted all meetings, stop
+        if (meetingCount >= product.meetingsCount) {
+          break;
+        }
+      }
+      
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return { 
+      current: Math.min(meetingCount, product.meetingsCount), 
+      total: product.meetingsCount 
+    };
+  };
+
+  // Function to get daily activities for a specific date
+  const getDailyActivities = (date: string) => {
+    const selectedDate = new Date(date);
+    const dayOfWeekNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+    const dayOfWeek = dayOfWeekNames[selectedDate.getDay()];
+    
+    // Get products active on this date and day of week
+    const activeProducts = productsContext.products.filter(product => {
+      // Check if product is active on this date
+      const productStartDate = new Date(product.startDate);
+      const productEndDate = new Date(product.endDate);
+      
+      // Check if selected date is between product start and end dates
+      const isDateInRange = selectedDate >= productStartDate && selectedDate <= productEndDate;
+      
+      // Check if product runs on this day of the week
+      const isOnDayOfWeek = product.daysOfWeek?.includes(dayOfWeek);
+      
+      return isDateInRange && isOnDayOfWeek;
+    });
+    
+    return activeProducts.map(product => {
+      // Count registrations for this product
+      const productRegistrations = registrationsContext.getRegistrationsByProduct(product.id);
+      
+      // Calculate meeting number
+      const progress = calculateMeetingProgress(product);
+      
+      return {
+        product,
+        startTime: product.startTime,
+        numParticipants: productRegistrations.length,
+        currentMeetingNumber: progress.current,
+        totalMeetings: progress.total
+      };
+    });
+  };
+
+  return {
+    // Spread all individual contexts
+    ...seasonsContext,
+    ...productsContext,
+    ...participantsContext,
+    ...registrationsContext,
+    ...paymentsContext,
+    ...healthDeclarationsContext,
+    
+    // Add combined functions
+    getAllRegistrationsWithDetails,
+    calculateMeetingProgress,
+    getDailyActivities
+  };
 };
 
-// Custom provider that combines all the data providers
+// Main data provider component
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <SeasonsProvider>
@@ -30,161 +161,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         <ParticipantsProvider>
           <RegistrationsProvider>
             <PaymentsProvider>
-              <CombinedDataProvider>
+              <HealthDeclarationsProvider>
                 {children}
-              </CombinedDataProvider>
+              </HealthDeclarationsProvider>
             </PaymentsProvider>
           </RegistrationsProvider>
         </ParticipantsProvider>
       </ProductsProvider>
     </SeasonsProvider>
-  );
-};
-
-// Combined data provider component
-const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const seasonsContext = useSeasonsContext();
-  const productsContext = useProductsContext();
-  const participantsContext = useParticipantsContext();
-  const registrationsContext = useRegistrationsContext();
-  const paymentsContext = usePaymentsContext();
-
-  // Calculate total paid amount without discounts
-  const calculateActualPaidAmount = (registrationId: string): number => {
-    const registrationPayments = paymentsContext.payments.filter(p => p.registrationId === registrationId);
-    const actualPayments = registrationPayments.filter(p => p.receiptNumber !== '');
-    return actualPayments.reduce((total, payment) => total + payment.amount, 0);
-  };
-
-  // Calculate discount amount
-  const calculateDiscountAmount = (registrationId: string): number => {
-    const registration = registrationsContext.registrations.find(r => r.id === registrationId);
-    if (!registration || !registration.discountApproved) return 0;
-    
-    return registration.discountAmount || 0;
-  };
-
-  // Utility function to get all registrations with their details
-  const getAllRegistrationsWithDetails = () => {
-    return registrationsContext.registrations.map(registration => {
-      const product = productsContext.products.find(p => p.id === registration.productId);
-      const participant = participantsContext.participants.find(p => p.id === registration.participantId);
-      const payments = paymentsContext.payments.filter(p => p.registrationId === registration.id);
-      const season = product ? seasonsContext.seasons.find(s => s.id === product.seasonId) : undefined;
-      
-      // Calculate actual paid amount (excluding discounts)
-      const actualPaidAmount = calculateActualPaidAmount(registration.id);
-      const paymentStatus = registrationsContext.calculatePaymentStatus(registration);
-
-      return {
-        ...registration,
-        product,
-        participant,
-        season,
-        payments,
-        paymentStatus,
-        actualPaidAmount
-      };
-    }).filter(r => r.product && r.participant && r.season);
-  };
-
-  // Calculate the progress of meetings for a product
-  const calculateMeetingProgress = (product: Product) => {
-    return calculateCurrentMeeting(product);
-  };
-
-  // Get daily activities for a specific date
-  const getDailyActivities = (date: string): DailyActivity[] => {
-    // Filter products that are active on the selected date
-    const activeProducts = productsContext.products.filter(product => {
-      const productStartDate = new Date(product.startDate);
-      const productEndDate = new Date(product.endDate);
-      const selectedDate = new Date(date);
-      
-      // Check if the selected date is within the product's date range
-      const isInDateRange = isWithinInterval(selectedDate, {
-        start: productStartDate,
-        end: productEndDate
-      });
-      
-      if (!isInDateRange) {
-        return false;
-      }
-      
-      // If the product has specific days of the week
-      if (product.daysOfWeek && product.daysOfWeek.length > 0) {
-        const dayOfWeek = selectedDate.getDay();
-        const daysMap: Record<string, number> = {
-          'ראשון': 0,
-          'שני': 1,
-          'שלישי': 2,
-          'רביעי': 3,
-          'חמישי': 4,
-          'שישי': 5,
-          'שבת': 6
-        };
-        
-        // Check if the selected day is in the product's days of week
-        const isActiveDay = product.daysOfWeek.some(day => daysMap[day] === dayOfWeek);
-        return isActiveDay;
-      }
-      
-      // For products without specific days, just check if the date is within range
-      return true;
-    });
-    
-    // Map to the required structure with participant count and meeting info
-    return activeProducts.map(product => {
-      const productRegistrations = registrationsContext.getRegistrationsByProduct(product.id);
-      const meetingInfo = calculateCurrentMeeting(product);
-      
-      return {
-        startTime: product.startTime,
-        product,
-        numParticipants: productRegistrations.length,
-        currentMeetingNumber: meetingInfo.current,
-        totalMeetings: meetingInfo.total
-      };
-    }).sort((a, b) => {
-      // Sort by start time if available
-      if (a.startTime && b.startTime) {
-        return a.startTime.localeCompare(b.startTime);
-      } else if (a.startTime) {
-        return -1;
-      } else if (b.startTime) {
-        return 1;
-      }
-      // Fallback to product name
-      return a.product.name.localeCompare(b.product.name);
-    });
-  };
-
-  // Combine all context values
-  const combinedContextValue = useMemo(
-    () => ({
-      ...seasonsContext,
-      ...productsContext,
-      ...participantsContext,
-      ...registrationsContext,
-      ...paymentsContext,
-      getAllRegistrationsWithDetails,
-      calculateMeetingProgress,
-      getDailyActivities,
-      calculateActualPaidAmount,
-      calculateDiscountAmount
-    }),
-    [
-      seasonsContext,
-      productsContext,
-      participantsContext,
-      registrationsContext,
-      paymentsContext
-    ]
-  );
-
-  return (
-    <DataContext.Provider value={combinedContextValue}>
-      {children}
-    </DataContext.Provider>
   );
 };
