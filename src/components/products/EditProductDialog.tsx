@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Product } from '@/types';
+import { addDays } from 'date-fns';
 import EditProductForm from './EditProductForm';
 
 interface EditProductDialogProps {
