@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { exportDailyActivitiesToCSV } from '@/utils/exportUtils';
+import { calculateMeetingNumberForDate } from '@/utils/meetingCalculations';
 import DailyActivitySummaryCards from '@/components/daily-activity/DailyActivitySummaryCards';
 import DateSelector from '@/components/daily-activity/DateSelector';
 import ActivitiesTable from '@/components/daily-activity/ActivitiesTable';
@@ -16,29 +17,6 @@ const DailyActivityPage: React.FC = () => {
   // Convert the date to a string format for the getDailyActivities function
   const dateString = format(selectedDate, 'yyyy-MM-dd');
   const activities = getDailyActivities(dateString);
-
-  // Calculate the current meeting number based on the selected date
-  const calculateMeetingNumberForDate = (product: any, selectedDate: Date) => {
-    const startDate = new Date(product.startDate);
-    const today = new Date(selectedDate);
-    
-    if (today < startDate) return { current: 0, total: product.meetingsCount || 10 };
-    
-    const daysInWeekForProduct = product.daysOfWeek?.length || 1;
-    const daysDiff = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    // Calculate how many meeting days based on days difference and meeting frequency
-    const weeksPassed = Math.floor(daysDiff / 7);
-    const meetingsPassed = (weeksPassed * daysInWeekForProduct) + 1; // +1 for the first meeting
-    
-    // Make sure we don't exceed total meetings
-    const currentMeeting = Math.min(meetingsPassed, product.meetingsCount || 10);
-    
-    return {
-      current: currentMeeting,
-      total: product.meetingsCount || 10
-    };
-  };
 
   // Format the activities with the required data for export
   const getFormattedActivities = () => {

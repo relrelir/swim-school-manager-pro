@@ -1,11 +1,7 @@
 
 import React from 'react';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-
-interface MeetingInfo {
-  current: number;
-  total: number;
-}
+import { calculateMeetingNumberForDate } from '@/utils/meetingCalculations';
 
 interface Activity {
   product: {
@@ -23,13 +19,11 @@ interface Activity {
 interface ActivitiesTableProps {
   activities: Activity[];
   selectedDate: Date;
-  calculateMeetingNumberForDate: (product: any, date: Date) => MeetingInfo;
 }
 
 const ActivitiesTable: React.FC<ActivitiesTableProps> = ({
   activities,
   selectedDate,
-  calculateMeetingNumberForDate,
 }) => {
   if (activities.length === 0) {
     return (
