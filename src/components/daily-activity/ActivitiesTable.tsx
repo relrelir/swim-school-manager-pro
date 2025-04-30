@@ -55,7 +55,7 @@ const ActivitiesTable: React.FC<ActivitiesTableProps> = ({
                 <TableCell className="font-medium text-right">{activity.product.name}</TableCell>
                 <TableCell className="text-right">{activity.startTime || 'לא מוגדר'}</TableCell>
                 <TableCell className="text-right">
-                  {`${meetingInfo.current}/${meetingInfo.total}`}
+                  {`${meetingInfo.current} מתוך ${meetingInfo.total}`}
                 </TableCell>
                 <TableCell className="text-right">{activity.numParticipants}</TableCell>
                 <TableCell className="text-right">{activity.product.type}</TableCell>
