@@ -60,15 +60,15 @@ const ParticipantsPage: React.FC = () => {
     }
     
     try {
-      // Create an adapter function to match the expected signature
+      // Create an adapter function that works with the expected interface
       const registrationToPayments = (registration: Registration) => {
-        return getPaymentsForRegistration(registration.id);
+        return getPaymentsForRegistration(registration);
       };
       
       const data = prepareParticipantsData(
         registrations, 
         getParticipantForRegistration,
-        registrationToPayments, // Use the adapter function
+        registrationToPayments,
         calculatePaymentStatus
       );
       
@@ -108,11 +108,24 @@ const ParticipantsPage: React.FC = () => {
 
   // Create adapter functions to match ParticipantsContent expected function signatures
   const getPaymentsForRegistrationById = (registrationId: string) => {
-    return getPaymentsForRegistration(registrationId);
+    // Find the registration object first
+    const registration = registrations.find(r => r.id === registrationId);
+    // Only call getPaymentsForRegistration if we found the registration
+    if (registration) {
+      return getPaymentsForRegistration(registration);
+    }
+    return [];
   };
   
   const updateHealthApprovalById = (registrationId: string, isApproved: boolean) => {
-    handleUpdateHealthApproval(registrationId, isApproved);
+    // Find the corresponding registration and participant
+    const registration = registrations.find(r => r.id === registrationId);
+    if (registration) {
+      const participant = getParticipantForRegistration(registration);
+      if (participant) {
+        handleUpdateHealthApproval(participant, isApproved);
+      }
+    }
   };
 
   return (
