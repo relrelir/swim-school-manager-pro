@@ -1,6 +1,6 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 // Simple User interface for the application
@@ -14,7 +14,6 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   changePassword: (newPassword: string) => Promise<boolean>;
-  defaultPasswordChanged: boolean;
   user: User | null;
 }
 
@@ -23,7 +22,6 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => false,
   logout: () => {},
   changePassword: async () => false,
-  defaultPasswordChanged: false,
   user: null,
 });
 
@@ -31,7 +29,6 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [defaultPasswordChanged, setDefaultPasswordChanged] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   
@@ -45,31 +42,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: '1',
         displayName: 'מנהל'
       });
-      
-      // Check if default password has been changed
-      checkIfPasswordChanged();
     }
   }, []);
-
-  // Function to check if the default password has been changed
-  const checkIfPasswordChanged = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('admin_credentials')
-        .select('password')
-        .single();
-      
-      if (error) {
-        console.error('Error checking if password was changed:', error);
-        return;
-      }
-      
-      // Check if password is still the default '2014'
-      setDefaultPasswordChanged(data.password !== '2014');
-    } catch (error) {
-      console.error('Error checking if password was changed:', error);
-    }
-  };
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
@@ -101,9 +75,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: data.id,
           displayName: 'מנהל'
         });
-        
-        // Check if default password has been changed
-        setDefaultPasswordChanged(password !== '2014');
         
         return true;
       } else {
@@ -152,7 +123,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
       
-      setDefaultPasswordChanged(true);
       toast({
         title: "סיסמה עודכנה",
         description: "הסיסמה החדשה נשמרה בהצלחה",
@@ -170,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, changePassword, defaultPasswordChanged, user }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, changePassword, user }}>
       {children}
     </AuthContext.Provider>
   );

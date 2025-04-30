@@ -5,10 +5,10 @@ import { useAuth } from '@/context/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, User, Key, AlertTriangle } from 'lucide-react';
+import { LogOut, User, Key } from 'lucide-react';
 
 const Header = () => {
-  const { logout, changePassword, defaultPasswordChanged, user } = useAuth();
+  const { logout, changePassword, user } = useAuth();
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
 
@@ -38,18 +38,6 @@ const Header = () => {
         </div>
         
         <div className="flex gap-2">
-          {!defaultPasswordChanged && (
-            <Button 
-              variant="warning" 
-              onClick={() => setIsPasswordDialogOpen(true)}
-              size="sm"
-              className="flex items-center gap-1"
-            >
-              <AlertTriangle className="h-4 w-4" />
-              <span className="hidden sm:inline">שינוי סיסמת ברירת מחדל</span>
-              <span className="sm:hidden">שינוי סיסמה</span>
-            </Button>
-          )}
           <Button variant="outline" size="sm" onClick={() => setIsPasswordDialogOpen(true)} className="bg-white/10 text-white border-white/20 hover:bg-white/20">
             <Key className="h-4 w-4" />
             <span className="hidden sm:inline">החלפת סיסמה</span>
