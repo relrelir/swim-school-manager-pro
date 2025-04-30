@@ -9,11 +9,14 @@ import type { PostgrestResponse } from '@supabase/supabase-js';
  */
 export const getHealthDeclarationById = async (id: string): Promise<HealthDeclaration | null> => {
   try {
-    // Execute query
-    const { data, error } = await supabase
+    // Execute query with type assertion to avoid deep type instantiation
+    const result = await supabase
       .from('health_declarations')
       .select('*')
       .eq('id', id);
+      
+    // Type assertion after query execution
+    const { data, error } = result as PostgrestResponse<any>;
 
     if (error) {
       console.error('Error fetching health declaration by ID:', error);
@@ -36,11 +39,14 @@ export const getHealthDeclarationById = async (id: string): Promise<HealthDeclar
  */
 export const getHealthDeclarationByToken = async (token: string): Promise<HealthDeclaration | null> => {
   try {
-    // Execute query
-    const { data, error } = await supabase
+    // Execute query with type assertion to avoid deep type instantiation
+    const result = await supabase
       .from('health_declarations')
       .select('*')
       .eq('token', token);
+      
+    // Type assertion after query execution
+    const { data, error } = result as PostgrestResponse<any>;
 
     if (error) {
       console.error('Error fetching health declaration by token:', error);

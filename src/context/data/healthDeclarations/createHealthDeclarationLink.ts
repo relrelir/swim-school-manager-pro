@@ -13,10 +13,13 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     const token = uuidv4();
     
     // Check if a declaration already exists for this registration
-    const { data: existingData, error: existingError } = await supabase
+    const existingResult = await supabase
       .from('health_declarations')
       .select('id, form_status')
       .eq('participant_id', registrationId);
+    
+    // Type assertion after query execution
+    const { data: existingData, error: existingError } = existingResult as PostgrestResponse<any>;
     
     if (existingError) {
       console.error('Error checking existing declaration:', existingError);
@@ -27,7 +30,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     
     if (existingData && existingData.length > 0) {
       // Update existing declaration with new token
-      const { data: updateData, error: updateError } = await supabase
+      const updateResult = await supabase
         .from('health_declarations')
         .update({
           token,
@@ -37,6 +40,9 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
         })
         .eq('id', existingData[0].id)
         .select('id');
+      
+      // Type assertion after query execution
+      const { data: updateData, error: updateError } = updateResult as PostgrestResponse<any>;
         
       if (updateError) {
         console.error('Error updating health declaration with new token:', updateError);
@@ -60,10 +66,13 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       
       console.log('Creating new health declaration:', newDeclaration);
       
-      const { data: newData, error: insertError } = await supabase
+      const insertResult = await supabase
         .from('health_declarations')
         .insert(newDeclaration)
         .select('id');
+      
+      // Type assertion after query execution
+      const { data: newData, error: insertError } = insertResult as PostgrestResponse<any>;
       
       if (insertError) {
         console.error('Error creating health declaration:', insertError);
