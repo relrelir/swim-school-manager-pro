@@ -43,7 +43,6 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
         price={editingProduct.price}
         maxParticipants={editingProduct.maxParticipants || 10}
         notes={editingProduct.notes || ''}
-        seasonStartDate={minStartDate}
         onProductNameChange={(value) => handleChange('name', value)}
         onProductTypeChange={(value) => handleChange('type', value)}
         onStartDateChange={(value) => handleChange('startDate', value)}

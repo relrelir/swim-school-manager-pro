@@ -20,7 +20,6 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
 }) => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [calculatedEndDate, setCalculatedEndDate] = useState<string | null>(null);
-  const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
   // Update form when product changes
   useEffect(() => {
@@ -103,7 +102,6 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
             setEditingProduct={setEditingProduct}
             onSubmit={handleSubmit}
             calculatedEndDate={calculatedEndDate}
-            minStartDate={today}
           />
         )}
       </DialogContent>

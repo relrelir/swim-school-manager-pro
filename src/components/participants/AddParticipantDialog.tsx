@@ -36,8 +36,6 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   setRegistrationData,
   onSubmit,
 }) => {
-  const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">

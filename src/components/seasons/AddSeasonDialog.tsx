@@ -84,7 +84,6 @@ const AddSeasonDialog: React.FC<AddSeasonDialogProps> = ({ isOpen, onOpenChange 
                 type="date"
                 value={newSeason.startDate}
                 onChange={(e) => setNewSeason({ ...newSeason, startDate: e.target.value })}
-                min={today}
               />
             </div>
             
@@ -95,7 +94,6 @@ const AddSeasonDialog: React.FC<AddSeasonDialogProps> = ({ isOpen, onOpenChange 
                 type="date"
                 value={newSeason.endDate}
                 onChange={(e) => setNewSeason({ ...newSeason, endDate: e.target.value })}
-                min={newSeason.startDate}
               />
             </div>
           </div>

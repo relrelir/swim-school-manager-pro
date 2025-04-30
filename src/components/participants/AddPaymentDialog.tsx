@@ -124,7 +124,6 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                         onChange={(e) => setNewPayment({ ...newPayment, paymentDate: e.target.value })}
                         required
                         className="ltr"
-                        min={today}
                       />
                     </div>
                   </>
