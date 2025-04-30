@@ -10,7 +10,7 @@ import { useProductsTable } from '@/hooks/useProductsTable';
 
 // Import newly created components
 import AddProductForm from '@/components/products/AddProductForm';
-import EditProductForm from '@/components/products/EditProductForm';
+import EditProductDialog from '@/components/products/EditProductDialog';
 import ProductsTable from '@/components/products/ProductsTable';
 import EmptyProductsState from '@/components/products/EmptyProductsState';
 
@@ -57,10 +57,9 @@ const ProductsPage: React.FC = () => {
     setIsEditProductOpen(true);
   };
 
-  const handleUpdateProduct = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdateProduct = (updatedData: Partial<Product>) => {
     if (editingProduct) {
-      updateProduct(editingProduct);
+      updateProduct({ ...editingProduct, ...updatedData });
       setIsEditProductOpen(false);
       setEditingProduct(null);
       // Refresh products list
@@ -141,9 +140,10 @@ const ProductsPage: React.FC = () => {
             <DialogTitle>עריכת מוצר</DialogTitle>
           </DialogHeader>
           {editingProduct && (
-            <EditProductForm
-              editingProduct={editingProduct}
-              setEditingProduct={setEditingProduct}
+            <EditProductDialog
+              isOpen={isEditProductOpen}
+              onOpenChange={setIsEditProductOpen}
+              product={editingProduct}
               onSubmit={handleUpdateProduct}
             />
           )}

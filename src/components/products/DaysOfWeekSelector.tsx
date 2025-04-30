@@ -16,12 +16,19 @@ const DaysOfWeekSelector: React.FC<DaysOfWeekSelectorProps> = ({
   const daysOfWeek = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
   const handleDayToggle = (day: string, checked: boolean) => {
-    let updatedDays = [...selectedDays];
+    const updatedDays = [...selectedDays];
     
     if (checked) {
-      updatedDays.push(day);
+      // Add day if it's not already in the array
+      if (!updatedDays.includes(day)) {
+        updatedDays.push(day);
+      }
     } else {
-      updatedDays = updatedDays.filter(d => d !== day);
+      // Remove day if it exists in the array
+      const index = updatedDays.indexOf(day);
+      if (index >= 0) {
+        updatedDays.splice(index, 1);
+      }
     }
     
     onChange(updatedDays);
