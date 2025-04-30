@@ -12,15 +12,36 @@ import { he } from 'date-fns/locale';
 import { CalendarIcon } from 'lucide-react';
 import { exportDailyActivitiesToCSV } from '@/utils/exportUtils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Input } from '@/components/ui/input';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const DailyActivityPage: React.FC = () => {
   const { getDailyActivities } = useData();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [dateInputValue, setDateInputValue] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const isMobile = useIsMobile();
 
   // Convert the date to a string format for the getDailyActivities function
   const dateString = format(selectedDate, 'yyyy-MM-dd');
   const activities = getDailyActivities(dateString);
+
+  // Handle manual date input change
+  const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setDateInputValue(value);
+    
+    // Parse the date if valid
+    const parsedDate = parse(value, 'yyyy-MM-dd', new Date());
+    if (isValid(parsedDate)) {
+      setSelectedDate(parsedDate);
+    }
+  };
 
   // Calculate the current meeting number based on the selected date
   const calculateMeetingNumberForDate = (product: any, selectedDate: Date) => {
@@ -71,32 +92,44 @@ const DailyActivityPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold">פעילות יומית</h1>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full sm:w-auto justify-between text-right font-normal",
-                )}
-              >
-                <span>{format(selectedDate, "d בMMMM yyyy", { locale: he })}</span>
-                <CalendarIcon className="mr-2 h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => {
-                  if (date) {
-                    setSelectedDate(date);
-                  }
-                }}
-                weekStartsOn={0}
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Input
+              type="date"
+              value={dateInputValue}
+              onChange={handleDateInputChange}
+              className="w-full sm:w-auto"
+            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full sm:w-auto justify-between text-right font-normal",
+                  )}
+                >
+                  <span>{format(selectedDate, "d בMMMM yyyy", { locale: he })}</span>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date);
+                      setDateInputValue(format(date, 'yyyy-MM-dd'));
+                    }
+                  }}
+                  weekStartsOn={0}
+                  captionLayout="dropdown-buttons"
+                  fromYear={2020}
+                  toYear={2030}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
           <Button 
             variant="outline" 
             onClick={handleExport} 
