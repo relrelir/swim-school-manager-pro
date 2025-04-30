@@ -64,12 +64,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
 
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate that startTime is not empty
-    if (!newProduct.startTime) {
-      return; // Prevent form submission
-    }
-    
     onSubmit(newProduct);
     setNewProduct({
       name: '',
@@ -150,7 +144,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
         onNotesChange={handleNotesChange}
       />
       <DialogFooter className="mt-4">
-        <Button type="submit" disabled={!newProduct.startTime}>צור מוצר</Button>
+        <Button type="submit">צור מוצר</Button>
       </DialogFooter>
     </form>
   );

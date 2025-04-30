@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -140,11 +141,6 @@ const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
             required
             placeholder="--:--"
           />
-          {!startTime && (
-            <p className="text-xs text-red-500">
-              * שדה חובה
-            </p>
-          )}
         </div>
       </div>
       
