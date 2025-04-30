@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
@@ -27,8 +28,7 @@ export const useParticipants = () => {
     healthDeclarations,
     addHealthDeclaration,
     updateHealthDeclaration: baseUpdateHealthDeclaration,
-    getHealthDeclarationForRegistration,
-    sendHealthDeclarationSMS
+    getHealthDeclarationForRegistration
   } = useData();
   
   const [product, setProduct] = useState(undefined);
@@ -92,17 +92,15 @@ export const useParticipants = () => {
 
   // Import participant health hook - now passing registrations
   const {
-    isHealthFormOpen,
-    setIsHealthFormOpen,
+    isLinkDialogOpen,
+    setIsLinkDialogOpen,
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
     handleOpenHealthForm: baseHandleOpenHealthForm,
     handleUpdateHealthApproval
   } = useParticipantHealth(
     getHealthDeclarationForRegistration,
-    sendHealthDeclarationSMS,
     addHealthDeclaration,
-    updateHealthDeclaration,
     updateParticipant,
     participants,
     registrations
@@ -165,8 +163,8 @@ export const useParticipants = () => {
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
-    isHealthFormOpen,
-    setIsHealthFormOpen,
+    isLinkDialogOpen,
+    setIsLinkDialogOpen,
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
     newParticipant,

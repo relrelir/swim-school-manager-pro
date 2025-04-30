@@ -1,73 +1,112 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Registration, Participant, HealthDeclaration } from '@/types';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { CheckCircle, AlertCircle, Send } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Participant, Registration, HealthDeclaration } from '@/types';
+import { toast } from '@/components/ui/use-toast';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface TableHealthStatusProps {
   registration: Registration;
-  participant: Participant | undefined;
+  participant?: Participant;
   healthDeclaration?: HealthDeclaration;
-  onUpdateHealthApproval: (participant: Participant, isApproved: boolean) => void;
-  onOpenHealthForm?: (registrationId: string) => void;
+  onOpenHealthForm: (registrationId: string) => void;
+  onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
 }
 
 const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   registration,
   participant,
   healthDeclaration,
-  onUpdateHealthApproval,
-  onOpenHealthForm
+  onOpenHealthForm,
+  onUpdateHealthApproval
 }) => {
-  if (!onOpenHealthForm) {
-    if (!participant) return null;
-    
-    return (
-      <Checkbox 
-        checked={participant.healthApproval} 
-        onCheckedChange={(checked) => {
-          onUpdateHealthApproval(participant, checked === true);
-        }}
-        className="mx-auto block"
-      />
-    );
-  }
-  
-  if (!healthDeclaration || healthDeclaration.formStatus === 'pending') {
-    return (
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const baseUrl = window.location.origin;
+  const healthFormUrl = `${baseUrl}/health-form?id=${healthDeclaration?.id || ''}`;
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(healthFormUrl);
+    toast({
+      title: "הלינק הועתק",
+      description: "הלינק להצהרת הבריאות הועתק ללוח",
+    });
+  };
+
+  if (!participant) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      {participant.healthApproval ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <CheckCircle className="h-5 w-5 text-green-500" />
+          </TooltipTrigger>
+          <TooltipContent>
+            אישור בריאות התקבל
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <AlertCircle className="h-5 w-5 text-amber-500" />
+          </TooltipTrigger>
+          <TooltipContent>
+            אישור בריאות חסר
+          </TooltipContent>
+        </Tooltip>
+      )}
+      
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
-        onClick={() => onOpenHealthForm(registration.id)}
-        className="w-full"
+        className={cn("flex items-center")}
+        onClick={() => setIsLinkDialogOpen(true)}
       >
-        שלח הצהרת בריאות
+        <Send className="h-4 w-4 mr-1" />
+        שלח
       </Button>
-    );
-  } else if (healthDeclaration.formStatus === 'sent') {
-    return (
+
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
-        onClick={() => onOpenHealthForm(registration.id)}
-        className="w-full bg-yellow-100 hover:bg-yellow-200 border-yellow-300"
+        className={cn(
+          participant.healthApproval ? "text-red-500 hover:text-red-600" : "text-green-500 hover:text-green-600"
+        )}
+        onClick={() => onUpdateHealthApproval(registration.id, !participant.healthApproval)}
       >
-        שלח שוב
+        {participant.healthApproval ? 'בטל אישור' : 'סמן כמאושר'}
       </Button>
-    );
-  } else if (healthDeclaration.formStatus === 'signed') {
-    if (!participant) return null;
-    
-    return (
-      <Checkbox 
-        checked={true}
-        disabled
-        className="mx-auto block"
-      />
-    );
-  }
-  
-  return null;
+
+      <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>לינק להצהרת בריאות</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="text-sm">
+              העתק את הלינק ושלח למשתתף בוואטסאפ:
+            </div>
+            <div className="flex gap-2">
+              <Input
+                value={healthFormUrl}
+                readOnly
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+                className="flex-1"
+              />
+              <Button onClick={handleCopyLink}>העתק</Button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              כאשר המשתתף ימלא את הטופס, אישור הבריאות יעודכן אוטומטית במערכת.
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 };
 
 export default TableHealthStatus;

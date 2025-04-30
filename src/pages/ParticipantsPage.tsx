@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
@@ -161,8 +160,8 @@ const ParticipantsPage: React.FC = () => {
         setIsAddParticipantOpen={setIsAddParticipantOpen}
         isAddPaymentOpen={isAddPaymentOpen}
         setIsAddPaymentOpen={setIsAddPaymentOpen}
-        isHealthFormOpen={isHealthFormOpen}
-        setIsHealthFormOpen={setIsHealthFormOpen}
+        isHealthFormOpen={false}
+        setIsHealthFormOpen={() => {}}
         newParticipant={newParticipant}
         setNewParticipant={setNewParticipant}
         registrationData={registrationData}
@@ -171,8 +170,8 @@ const ParticipantsPage: React.FC = () => {
         participants={participants}
         newPayment={newPayment}
         setNewPayment={setNewPayment}
-        currentHealthDeclaration={currentHealthDeclaration}
-        setCurrentHealthDeclaration={setCurrentHealthDeclaration}
+        currentHealthDeclaration={null}
+        setCurrentHealthDeclaration={() => {}}
         handleAddParticipant={handleAddParticipant}
         handleAddPayment={handleAddPayment}
         handleApplyDiscount={handleApplyDiscountWrapper}

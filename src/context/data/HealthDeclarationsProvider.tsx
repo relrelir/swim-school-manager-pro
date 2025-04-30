@@ -10,7 +10,6 @@ interface HealthDeclarationsContextType {
   addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined> | void;
   updateHealthDeclaration: (id: string, updates: Partial<HealthDeclaration>) => Promise<void>;
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined;
-  sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -103,6 +102,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
 
       if (error) {
         handleSupabaseError(error, 'adding health declaration');
+        return undefined;
       }
 
       if (data) {
@@ -119,6 +119,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
         variant: "destructive",
       });
     }
+    return undefined;
   };
 
   // Update a health declaration
@@ -156,58 +157,11 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
     return healthDeclarations.find(declaration => declaration.registrationId === registrationId);
   };
 
-  // Send SMS for health declaration
-  const sendHealthDeclarationSMS = async (healthDeclarationId: string, phone: string) => {
-    try {
-      // Call the Supabase edge function to send SMS
-      const { error, data } = await supabase.functions.invoke('send-health-sms', {
-        body: {
-          declarationId: healthDeclarationId,
-          phone: phone
-        },
-      });
-      
-      if (error) {
-        throw new Error(`Error sending SMS: ${error.message}`);
-      }
-
-      // Update local state
-      setHealthDeclarations(declarations => 
-        declarations.map(declaration => 
-          declaration.id === healthDeclarationId 
-            ? { 
-                ...declaration, 
-                phone: phone, 
-                formStatus: 'sent', 
-                sentAt: new Date().toISOString()
-              } 
-            : declaration
-        )
-      );
-
-      toast({
-        title: "SMS נשלח",
-        description: `קישור להצהרת בריאות נשלח למספר ${phone}`,
-      });
-      
-      console.log('SMS sent successfully:', data);
-    } catch (error) {
-      console.error('Error sending SMS:', error);
-      toast({
-        title: "שגיאה",
-        description: "אירעה שגיאה בשליחת SMS",
-        variant: "destructive",
-      });
-      throw error;
-    }
-  };
-
   const contextValue: HealthDeclarationsContextType = {
     healthDeclarations,
     addHealthDeclaration,
     updateHealthDeclaration,
     getHealthDeclarationForRegistration,
-    sendHealthDeclarationSMS,
     loading
   };
 

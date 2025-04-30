@@ -2,17 +2,16 @@
 import { useState } from 'react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 export const useParticipantHealth = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
-  sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>,
-  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => void,
-  updateHealthDeclaration: (declaration: HealthDeclaration) => void,
+  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>,
   updateParticipant: (participant: Participant) => void,
   participants: Participant[],
-  registrations: Registration[] // Add registrations parameter
+  registrations: Registration[]
 ) => {
-  const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<{
     registrationId: string;
     participantName: string;
@@ -20,11 +19,10 @@ export const useParticipantHealth = (
     declaration?: HealthDeclaration;
   } | null>(null);
 
-  // Handler for opening health form
-  const handleOpenHealthForm = (
+  // Handler for opening health link dialog
+  const handleOpenHealthForm = async (
     registrationId: string, 
-    getParticipantForRegistration: (registration: Registration) => Participant | undefined, 
-    registrations: Registration[]
+    getParticipantForRegistration: (registration: Registration) => Participant | undefined
   ) => {
     const registration = registrations.find(reg => reg.id === registrationId);
     if (!registration) return;
@@ -32,7 +30,28 @@ export const useParticipantHealth = (
     const participant = getParticipantForRegistration(registration);
     if (!participant) return;
 
-    const healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+    let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+
+    // If no health declaration exists for this registration, create one
+    if (!healthDeclaration) {
+      const newDeclaration = await addHealthDeclaration({
+        registrationId,
+        phone: participant.phone,
+        formStatus: 'pending',
+        sentAt: new Date().toISOString()
+      });
+      
+      if (newDeclaration) {
+        healthDeclaration = newDeclaration;
+      } else {
+        toast({
+          title: "שגיאה",
+          description: "לא ניתן ליצור הצהרת בריאות",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
 
     setCurrentHealthDeclaration({
       registrationId,
@@ -41,7 +60,7 @@ export const useParticipantHealth = (
       declaration: healthDeclaration
     });
 
-    setIsHealthFormOpen(true);
+    setIsLinkDialogOpen(true);
   };
 
   // Handle updating health approval
@@ -67,8 +86,8 @@ export const useParticipantHealth = (
   };
 
   return {
-    isHealthFormOpen,
-    setIsHealthFormOpen,
+    isLinkDialogOpen,
+    setIsLinkDialogOpen,
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
     handleOpenHealthForm,
