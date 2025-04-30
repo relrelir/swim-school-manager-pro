@@ -90,7 +90,7 @@ export const useParticipants = () => {
     }
   }, [product]);
 
-  // Import participant health hook
+  // Import participant health hook - now passing registrations
   const {
     isHealthFormOpen,
     setIsHealthFormOpen,
@@ -104,7 +104,8 @@ export const useParticipants = () => {
     addHealthDeclaration,
     updateHealthDeclaration,
     updateParticipant,
-    participants
+    participants,
+    registrations // Pass registrations to the hook
   );
 
   // Import registration management hook

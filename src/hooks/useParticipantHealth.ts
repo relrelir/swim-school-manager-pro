@@ -9,7 +9,8 @@ export const useParticipantHealth = (
   addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => void,
   updateHealthDeclaration: (declaration: HealthDeclaration) => void,
   updateParticipant: (participant: Participant) => void,
-  participants: Participant[]
+  participants: Participant[],
+  registrations: Registration[] // Add registrations parameter
 ) => {
   const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
   const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<{
