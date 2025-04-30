@@ -12,8 +12,8 @@ const DaysOfWeekSelector: React.FC<DaysOfWeekSelectorProps> = ({
   selectedDays,
   onChange,
 }) => {
-  // Hebrew days of the week
-  const daysOfWeek = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  // Hebrew days of the week - excluding Shabbat from selectable days
+  const daysOfWeek = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי'];
 
   const handleDayToggle = (day: string, checked: boolean) => {
     const updatedDays = [...selectedDays];
@@ -50,6 +50,17 @@ const DaysOfWeekSelector: React.FC<DaysOfWeekSelectorProps> = ({
             <Label htmlFor={`day-${day}`} className="mr-2">{day}</Label>
           </div>
         ))}
+        
+        {/* Display Shabbat as disabled option */}
+        <div key="שבת" className="flex items-center space-x-2 space-x-reverse opacity-50">
+          <Checkbox 
+            id="day-שבת"
+            checked={false}
+            disabled={true}
+            onCheckedChange={() => {}}
+          />
+          <Label htmlFor="day-שבת" className="mr-2">שבת (יום מנוחה)</Label>
+        </div>
       </div>
     </div>
   );
