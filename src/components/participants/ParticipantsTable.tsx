@@ -40,6 +40,12 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
     return registration.discountAmount || 0;
   };
 
+  // Helper to calculate effective amount required after discount
+  const calculateEffectiveRequiredAmount = (registration: Registration) => {
+    const discountAmount = registration.discountAmount || 0;
+    return Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
+  };
+
   return (
     <div className="overflow-x-auto">
       <ParticipantsTableHeader onExport={onExport} />
@@ -50,6 +56,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             <TableHead>שם מלא</TableHead>
             <TableHead>ת.ז</TableHead>
             <TableHead>טלפון</TableHead>
+            <TableHead>סכום מקורי</TableHead>
             <TableHead>סכום לתשלום</TableHead>
             <TableHead>תשלומים</TableHead>
             <TableHead>מספרי קבלות</TableHead>
@@ -64,6 +71,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             const participant = getParticipantForRegistration(registration);
             const registrationPayments = getPaymentsForRegistration(registration);
             const discountAmount = calculateDiscountAmount(registration);
+            const effectiveRequiredAmount = calculateEffectiveRequiredAmount(registration);
             const status = calculatePaymentStatus(registration);
             const hasPayments = registrationPayments.length > 0;
             const healthDeclaration = getHealthDeclarationForRegistration && 
@@ -80,6 +88,9 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                   {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.requiredAmount)}
                 </TableCell>
                 <TableCell>
+                  {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(effectiveRequiredAmount)}
+                </TableCell>
+                <TableCell>
                   <TablePaymentInfo 
                     payments={registrationPayments} 
                     discountAmount={discountAmount}
@@ -89,7 +100,11 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 <TableCell>
                   <TableReceiptNumbers payments={registrationPayments} />
                 </TableCell>
-                <TableCell>{registration.discountApproved ? 'כן' : 'לא'}</TableCell>
+                <TableCell>
+                  {registration.discountApproved && discountAmount > 0 ? 
+                    Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount) : 
+                    'לא'}
+                </TableCell>
                 <TableCell>
                   <TableHealthStatus 
                     registration={registration}

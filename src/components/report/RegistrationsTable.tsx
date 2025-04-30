@@ -44,6 +44,12 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
     return registration.discountAmount || 0;
   };
 
+  // Helper to calculate amount required after discount
+  const getEffectiveRequiredAmount = (registration: RegistrationWithDetails) => {
+    const discountAmount = registration.discountAmount || 0;
+    return Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
+  };
+
   return (
     <>
       {registrations.length === 0 ? (
@@ -61,6 +67,7 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
                 <TableHead>עונה</TableHead>
                 <TableHead>מוצר</TableHead>
                 <TableHead>סוג מוצר</TableHead>
+                <TableHead>סכום מקורי</TableHead>
                 <TableHead>סכום לתשלום</TableHead>
                 <TableHead>סכום ששולם</TableHead>
                 <TableHead>הנחה</TableHead>
@@ -76,6 +83,7 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
                 const receiptNumbers = actualPayments.map(p => p.receiptNumber).join(', ');
                 const actualPaidAmount = calculateActualPaidAmount(registration);
                 const discountAmount = getDiscountAmount(registration);
+                const effectiveRequiredAmount = getEffectiveRequiredAmount(registration);
                 
                 // Calculate meeting progress
                 const meetingProgress = calculateMeetingProgress(registration.product);
@@ -89,10 +97,11 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({ registrations }
                     <TableCell>{registration.product.name}</TableCell>
                     <TableCell>{registration.product.type}</TableCell>
                     <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.requiredAmount)}</TableCell>
+                    <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(effectiveRequiredAmount)}</TableCell>
                     <TableCell>{Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(actualPaidAmount)}</TableCell>
                     <TableCell>
-                      {discountAmount > 0 ? (
-                        <span className="text-gray-500 font-medium">
+                      {discountAmount > 0 && registration.discountApproved ? (
+                        <span className="text-blue-500 font-medium">
                           {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount)}
                         </span>
                       ) : '-'}

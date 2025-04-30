@@ -10,11 +10,18 @@ interface ReportSummaryCardsProps {
 const ReportSummaryCards: React.FC<ReportSummaryCardsProps> = ({ registrations }) => {
   // Calculate totals
   const totalRequiredAmount = registrations.reduce((sum, reg) => sum + reg.requiredAmount, 0);
-  const totalPaidAmount = registrations.reduce((sum, reg) => sum + reg.paidAmount, 0);
+  const totalDiscountAmount = registrations.reduce((sum, reg) => 
+    sum + (reg.discountApproved ? (reg.discountAmount || 0) : 0), 0);
+  const totalEffectiveAmount = registrations.reduce((sum, reg) => 
+    sum + Math.max(0, reg.requiredAmount - (reg.discountApproved ? (reg.discountAmount || 0) : 0)), 0);
+  const totalPaidAmount = registrations.reduce((sum, reg) => {
+    if (!reg.payments) return sum + reg.paidAmount;
+    return sum + reg.payments.reduce((pSum, payment) => pSum + payment.amount, 0);
+  }, 0);
   const totalRegistrations = registrations.length;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
           <div className="text-2xl font-bold">{totalRegistrations}</div>
@@ -25,6 +32,14 @@ const ReportSummaryCards: React.FC<ReportSummaryCardsProps> = ({ registrations }
         <CardContent className="p-4 flex flex-col items-center">
           <div className="text-2xl font-bold">
             {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(totalRequiredAmount)}
+          </div>
+          <div className="text-sm text-gray-500">סכום מקורי</div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-4 flex flex-col items-center">
+          <div className="text-2xl font-bold">
+            {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(totalEffectiveAmount)}
           </div>
           <div className="text-sm text-gray-500">סה"כ לתשלום</div>
         </CardContent>

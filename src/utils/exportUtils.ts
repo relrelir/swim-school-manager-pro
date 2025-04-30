@@ -1,3 +1,4 @@
+
 import { RegistrationWithDetails, PaymentDetails } from '@/types';
 
 // Function to convert data to CSV with UTF-8 BOM support for Hebrew
@@ -70,12 +71,17 @@ export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[
     // Format the meeting progress in Hebrew format
     const meetingProgress = `${meetingCurrent} מתוך ${meetingTotal}`;
     
+    // Calculate effective required amount (after discount)
+    const discountAmount = reg.discountAmount || 0;
+    const effectiveRequiredAmount = Math.max(0, reg.requiredAmount - (reg.discountApproved ? discountAmount : 0));
+    
     return {
       ...reg,
       paidAmount: totalPaid,
+      effectiveRequiredAmount: effectiveRequiredAmount,
       receiptNumbers: receiptNumbers,
       meetingProgress: meetingProgress,
-      discountAmount: reg.discountAmount || 0
+      discountAmount: reg.discountApproved ? (reg.discountAmount || 0) : 0
     };
   });
   
@@ -87,10 +93,11 @@ export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[
     { key: 'season.name', header: 'עונה' },
     { key: 'product.name', header: 'מוצר' },
     { key: 'product.type', header: 'סוג מוצר' },
-    { key: 'meetingProgress', header: 'מפגשים' },  // Meeting progress column
-    { key: 'requiredAmount', header: 'סכום לתשלום' },
+    { key: 'meetingProgress', header: 'מפגשים' },
+    { key: 'requiredAmount', header: 'סכום מקורי' },
+    { key: 'effectiveRequiredAmount', header: 'סכום לתשלום' },
     { key: 'paidAmount', header: 'סכום ששולם' },
-    { key: 'discountAmount', header: 'סכום הנחה' }, // New discount amount column
+    { key: 'discountAmount', header: 'סכום הנחה' },
     { key: 'receiptNumbers', header: 'מספרי קבלות' },
     { key: 'paymentStatus', header: 'סטטוס תשלום' },
     { key: 'discountApproved', header: 'הנחה אושרה' },

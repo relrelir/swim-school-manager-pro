@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { PaymentStatus, Registration } from '@/types';
 import { RegistrationsContextType } from './types';
@@ -119,21 +118,22 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
   const calculatePaymentStatus = (registration: Registration, actualPaidAmount?: number): PaymentStatus => {
     // The discountAmount is the difference between paidAmount and actualPaidAmount
     const discountAmount = registration.discountAmount || 0;
-    const paidWithoutDiscount = actualPaidAmount !== undefined ? actualPaidAmount : (registration.paidAmount - discountAmount);
+    const paidWithoutDiscount = actualPaidAmount !== undefined ? actualPaidAmount : registration.paidAmount;
+    
+    // Calculate the effective amount that needs to be paid after discount
+    const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - discountAmount);
     
     if (registration.discountApproved) {
-      const remainingAmount = registration.requiredAmount - discountAmount;
-      
-      if (paidWithoutDiscount >= remainingAmount) {
+      if (paidWithoutDiscount >= effectiveRequiredAmount) {
         return 'מלא / הנחה';
       }
       return 'חלקי / הנחה';
-    } else if (registration.paidAmount >= registration.requiredAmount) {
-      if (registration.paidAmount > registration.requiredAmount) {
+    } else if (paidWithoutDiscount >= registration.requiredAmount) {
+      if (paidWithoutDiscount > registration.requiredAmount) {
         return 'יתר';
       }
       return 'מלא';
-    } else if (registration.paidAmount < registration.requiredAmount) {
+    } else if (paidWithoutDiscount < registration.requiredAmount) {
       return 'חלקי';
     }
     

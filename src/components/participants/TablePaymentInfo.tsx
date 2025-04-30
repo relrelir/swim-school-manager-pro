@@ -28,7 +28,7 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
         </div>
       ))}
       {discountApproved && discountAmount > 0 && (
-        <div className="text-sm text-gray-500 font-medium">
+        <div className="text-sm text-blue-500 font-medium">
           {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount)} (הנחה)
         </div>
       )}
