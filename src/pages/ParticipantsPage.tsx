@@ -1,20 +1,14 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { useParticipants } from '@/hooks/useParticipants';
-import ParticipantsSummaryCards from '@/components/participants/ParticipantsSummaryCards';
-import ParticipantsTable from '@/components/participants/ParticipantsTable';
-import HealthDeclarationForm from '@/components/participants/HealthDeclarationForm';
-import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
-import AddParticipantDialog from '@/components/participants/AddParticipantDialog';
-import AddPaymentDialog from '@/components/participants/AddPaymentDialog';
-import { prepareParticipantsData, exportToCSV } from '@/utils/exportParticipants';
 import { toast } from "@/components/ui/use-toast";
-import { ArrowRight, Plus, FileDown } from 'lucide-react';
+import { prepareParticipantsData, exportToCSV } from '@/utils/exportParticipants';
+
+import ParticipantsHeader from '@/components/participants/ParticipantsHeader';
+import ParticipantsContent from '@/components/participants/ParticipantsContent';
+import ParticipantsDialogs from '@/components/participants/ParticipantsDialogs';
 
 const ParticipantsPage: React.FC = () => {
-  const navigate = useNavigate();
   const {
     product,
     registrations,
@@ -53,6 +47,7 @@ const ParticipantsPage: React.FC = () => {
     getHealthDeclarationForRegistration,
   } = useParticipants();
 
+  // Handle CSV Export
   const handleExportToCSV = () => {
     if (registrations.length === 0) {
       toast({
@@ -88,108 +83,74 @@ const ParticipantsPage: React.FC = () => {
     }
   };
 
+  // Handler for opening add participant dialog
+  const handleOpenAddParticipant = () => {
+    resetForm();
+    setIsAddParticipantOpen(true);
+  };
+
+  // Handler for opening payment dialog
+  const handleOpenAddPayment = (registration: any) => {
+    setCurrentRegistration(registration);
+    setNewPayment({
+      amount: 0,
+      receiptNumber: '',
+      paymentDate: new Date().toISOString().substring(0, 10),
+    });
+    setIsAddPaymentOpen(true);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-2 mb-1">
-            <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="flex gap-2">
-              <ArrowRight className="h-4 w-4" />
-              <span>חזרה למוצרים</span>
-            </Button>
-          </div>
-          <h1 className="text-2xl font-bold font-alef">
-            {product ? `משתתפים ב${product.name}` : 'משתתפים'}
-          </h1>
-        </div>
-        
-        <div className="flex gap-2">
-          <Button onClick={handleExportToCSV} variant="outline" className="flex items-center gap-2">
-            <FileDown className="h-4 w-4" />
-            <span>ייצוא CSV</span>
-          </Button>
-          <Button onClick={() => {
-            resetForm();
-            setIsAddParticipantOpen(true);
-          }} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            <span>הוסף משתתף</span>
-          </Button>
-        </div>
-      </div>
+      {/* Page Header */}
+      <ParticipantsHeader 
+        product={product}
+        onExport={handleExportToCSV}
+        onAddParticipant={handleOpenAddParticipant}
+      />
 
-      <ParticipantsSummaryCards 
+      {/* Main Content */}
+      <ParticipantsContent
+        registrations={registrations}
         totalParticipants={totalParticipants}
         product={product}
         totalExpected={totalExpected}
         totalPaid={totalPaid}
         registrationsFilled={registrationsFilled}
+        getParticipantForRegistration={getParticipantForRegistration}
+        getPaymentsForRegistration={getPaymentsForRegistration}
+        getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
+        calculatePaymentStatus={calculatePaymentStatus}
+        getStatusClassName={getStatusClassName}
+        onAddPayment={handleOpenAddPayment}
+        onDeleteRegistration={handleDeleteRegistration}
+        onUpdateHealthApproval={handleUpdateHealthApproval}
+        onOpenHealthForm={handleOpenHealthForm}
+        onExport={handleExportToCSV}
       />
 
-      {registrations.length === 0 ? (
-        <EmptyParticipantsState />
-      ) : (
-        <ParticipantsTable
-          registrations={registrations}
-          getParticipantForRegistration={getParticipantForRegistration}
-          getPaymentsForRegistration={getPaymentsForRegistration}
-          getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
-          calculatePaymentStatus={calculatePaymentStatus}
-          getStatusClassName={getStatusClassName}
-          onAddPayment={(registration) => {
-            setCurrentRegistration(registration);
-            setNewPayment({
-              amount: 0,
-              receiptNumber: '',
-              paymentDate: new Date().toISOString().substring(0, 10),
-            });
-            setIsAddPaymentOpen(true);
-          }}
-          onDeleteRegistration={handleDeleteRegistration}
-          onUpdateHealthApproval={handleUpdateHealthApproval}
-          onOpenHealthForm={handleOpenHealthForm}
-          onExport={handleExportToCSV}
-        />
-      )}
-
-      {/* Add Participant Dialog */}
-      <AddParticipantDialog
-        isOpen={isAddParticipantOpen}
-        onOpenChange={setIsAddParticipantOpen}
+      {/* Dialogs */}
+      <ParticipantsDialogs
+        isAddParticipantOpen={isAddParticipantOpen}
+        setIsAddParticipantOpen={setIsAddParticipantOpen}
+        isAddPaymentOpen={isAddPaymentOpen}
+        setIsAddPaymentOpen={setIsAddPaymentOpen}
+        isHealthFormOpen={isHealthFormOpen}
+        setIsHealthFormOpen={setIsHealthFormOpen}
         newParticipant={newParticipant}
         setNewParticipant={setNewParticipant}
         registrationData={registrationData}
         setRegistrationData={setRegistrationData}
-        onSubmit={handleAddParticipant}
-      />
-
-      {/* Add Payment Dialog */}
-      <AddPaymentDialog
-        isOpen={isAddPaymentOpen}
-        onOpenChange={setIsAddPaymentOpen}
         currentRegistration={currentRegistration}
         participants={participants}
         newPayment={newPayment}
         setNewPayment={setNewPayment}
-        onSubmit={handleAddPayment}
-        onApplyDiscount={handleApplyDiscount}
+        currentHealthDeclaration={currentHealthDeclaration}
+        setCurrentHealthDeclaration={setCurrentHealthDeclaration}
+        handleAddParticipant={handleAddParticipant}
+        handleAddPayment={handleAddPayment}
+        handleApplyDiscount={handleApplyDiscount}
       />
-
-      {/* Health Declaration Form */}
-      {currentHealthDeclaration && (
-        <HealthDeclarationForm
-          isOpen={isHealthFormOpen}
-          onOpenChange={setIsHealthFormOpen}
-          registrationId={currentHealthDeclaration.registrationId}
-          participantName={currentHealthDeclaration.participantName}
-          defaultPhone={currentHealthDeclaration.phone}
-          healthDeclaration={currentHealthDeclaration.declaration}
-          afterSubmit={() => {
-            // Force refresh the list after sending
-            setCurrentHealthDeclaration(null);
-          }}
-        />
-      )}
     </div>
   );
 };

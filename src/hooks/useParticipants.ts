@@ -26,7 +26,7 @@ export const useParticipants = () => {
     addParticipant,
     healthDeclarations,
     addHealthDeclaration,
-    updateHealthDeclaration,
+    updateHealthDeclaration: baseUpdateHealthDeclaration,
     getHealthDeclarationForRegistration,
     sendHealthDeclarationSMS
   } = useData();
@@ -55,6 +55,11 @@ export const useParticipants = () => {
     getStatusClassName
   } = useParticipantUtils(participants, payments);
 
+  // Create an adapter for updateHealthDeclaration to match expected signature
+  const updateHealthDeclaration = (declaration: any) => {
+    return baseUpdateHealthDeclaration(declaration.id, declaration);
+  };
+
   // Registration management
   const {
     registrations,
@@ -64,7 +69,7 @@ export const useParticipants = () => {
     setCurrentRegistration,
     handleAddParticipant: baseHandleAddParticipant,
     handleAddPayment: baseHandleAddPayment,
-    handleApplyDiscount,
+    handleApplyDiscount: baseHandleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval
   } = useRegistrationManagement(
@@ -150,6 +155,11 @@ export const useParticipants = () => {
     );
   };
 
+  // Adapter for handleApplyDiscount to match expected signature in AddPaymentDialog
+  const handleApplyDiscountAdapter = (amount: number) => {
+    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen);
+  };
+
   return {
     product,
     registrations,
@@ -176,7 +186,7 @@ export const useParticipants = () => {
     participants,
     handleAddParticipant,
     handleAddPayment,
-    handleApplyDiscount,
+    handleApplyDiscount: handleApplyDiscountAdapter,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
     handleOpenHealthForm,
