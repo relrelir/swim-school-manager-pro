@@ -12,6 +12,7 @@ interface TableHealthStatusProps {
   participant?: Participant;
   healthDeclaration?: HealthDeclaration;
   onUpdateHealthApproval: (isApproved: boolean) => void;
+  onOpenHealthForm?: () => void;
 }
 
 const TableHealthStatus: React.FC<TableHealthStatusProps> = ({

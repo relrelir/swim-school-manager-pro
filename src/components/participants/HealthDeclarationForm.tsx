@@ -27,56 +27,31 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
   onOpenChange,
   registrationId,
   participantName,
-  defaultPhone,
   healthDeclaration,
   afterSubmit
 }) => {
-  const [phone, setPhone] = useState(defaultPhone);
   const { addHealthDeclaration, updateHealthDeclaration } = useData();
   const [isLoading, setIsLoading] = useState(false);
   const [isLinkCreated, setIsLinkCreated] = useState(Boolean(healthDeclaration?.id));
   const baseUrl = window.location.origin;
   const healthFormUrl = `${baseUrl}/health-form?id=${healthDeclaration?.id || ''}`;
 
-  // Reset phone and link created state when dialog opens with new data
+  // Reset link created state when dialog opens with new data
   useEffect(() => {
     if (isOpen) {
-      setPhone(defaultPhone);
       setIsLinkCreated(Boolean(healthDeclaration?.id));
     }
-  }, [isOpen, defaultPhone, healthDeclaration]);
+  }, [isOpen, healthDeclaration]);
 
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPhone(e.target.value);
-  };
-
-  const handleSendHealthDeclaration = async (e: React.FormEvent) => {
+  const handleCreateHealthDeclaration = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate phone number
-    if (!phone || phone.trim() === '') {
-      toast({
-        title: "שגיאה",
-        description: "יש להזין מספר טלפון",
-        variant: "destructive",
-      });
-      return;
-    }
     
     setIsLoading(true);
     
     try {
       let declarationId = healthDeclaration?.id;
       
-      if (healthDeclaration) {
-        // If we have an existing health declaration, update the phone number if needed
-        if (healthDeclaration.phone !== phone || healthDeclaration.phone_sent_to !== phone) {
-          await updateHealthDeclaration(healthDeclaration.id, { 
-            phone, 
-            phone_sent_to: phone 
-          });
-        }
-      } else {
+      if (!healthDeclaration) {
         // Create a new health declaration with all required fields in the correct format
         console.log('Creating new health declaration with registrationId:', registrationId);
         
@@ -84,11 +59,10 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
           // CRITICAL: participant_id must be set to registrationId
           participant_id: registrationId,
           registrationId: registrationId,
-          phone_sent_to: phone,
-          phone: phone,
           form_status: 'pending',
           formStatus: 'pending',
           created_at: new Date().toISOString(),
+          token: '',
           sentAt: new Date().toISOString()
         });
         
@@ -131,17 +105,14 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
         </DialogHeader>
         {isLinkCreated && healthDeclaration?.id ? (
           <HealthFormLink 
-            healthFormUrl={healthFormUrl}
-            participantName={participantName}
-            formStatus={healthDeclaration.formStatus || healthDeclaration.form_status}
+            registrationId={registrationId}
+            isDisabled={healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed'}
           />
         ) : (
           <CreateHealthForm
-            phone={phone}
             participantName={participantName}
             isLoading={isLoading}
-            onPhoneChange={handlePhoneChange}
-            onSubmit={handleSendHealthDeclaration}
+            onSubmit={handleCreateHealthDeclaration}
           />
         )}
       </DialogContent>

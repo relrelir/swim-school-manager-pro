@@ -13,6 +13,14 @@ export const useParticipantHealth = (
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
   const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<any>(null);
 
+  // Handler for opening health form dialog
+  const handleOpenHealthForm = (registrationId: string) => {
+    // Find the health declaration for this registration
+    const healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+    setCurrentHealthDeclaration(healthDeclaration || { registrationId });
+    setIsLinkDialogOpen(true);
+  };
+
   // Handler for health approval toggle
   const handleUpdateHealthApproval = async (registrationId: string, isApproved: boolean) => {
     try {
@@ -64,6 +72,7 @@ export const useParticipantHealth = (
     setIsLinkDialogOpen,
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
+    handleOpenHealthForm,
     handleUpdateHealthApproval
   };
 };

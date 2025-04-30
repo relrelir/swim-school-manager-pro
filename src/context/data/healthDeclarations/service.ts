@@ -36,44 +36,29 @@ export const fetchHealthDeclarations = async () => {
 
 export const addHealthDeclarationService = async (healthDeclaration: Omit<HealthDeclaration, 'id'>) => {
   try {
-    // Generate a unique token
-    const token = uuidv4();
+    // Generate a unique token if not provided
+    if (!healthDeclaration.token) {
+      healthDeclaration.token = uuidv4();
+    }
     
     // Convert to DB field names format
     const dbHealthDeclaration = mapHealthDeclarationToDB({
       ...healthDeclaration,
-      token,
-      form_status: 'pending'
+      form_status: healthDeclaration.form_status || 'pending'
     });
     
     console.log('Pre-insert health declaration data:', dbHealthDeclaration);
     
-    // CRITICAL: Triple-check the participant_id is set correctly - this MUST be the registration ID
-    if (!dbHealthDeclaration.participant_id) {
-      console.error('Missing required participant_id field. Available data:', healthDeclaration);
-      
-      // Last resort fallback: try to extract from either source if we have it
-      if (healthDeclaration.registrationId) {
-        console.log('Setting participant_id from registrationId:', healthDeclaration.registrationId);
-        dbHealthDeclaration.participant_id = healthDeclaration.registrationId;
-      } else if (healthDeclaration.participant_id) {
-        console.log('Using provided participant_id:', healthDeclaration.participant_id);
-        dbHealthDeclaration.participant_id = healthDeclaration.participant_id;
-      } else {
-        throw new Error('Missing required participant_id field (registrationId)');
-      }
-    }
-    
     // Validate required fields
     if (!dbHealthDeclaration.participant_id) {
-      throw new Error('Missing required participant_id field');
+      throw new Error('Missing required participant_id field (registrationId)');
     }
     
     console.log('Final health declaration data for insert:', dbHealthDeclaration);
     
     const { data, error } = await supabase
       .from('health_declarations')
-      .insert([dbHealthDeclaration])
+      .insert(dbHealthDeclaration)
       .select()
       .single();
 
@@ -263,15 +248,15 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       
       declarationId = existingData.id;
     } else {
-      // Create new declaration
+      // Create new declaration with a single object (not an array)
       const { data: newData, error: insertError } = await supabase
         .from('health_declarations')
-        .insert([{
+        .insert({
           participant_id: registrationId,
           token,
           form_status: 'pending',
           created_at: new Date().toISOString()
-        }])
+        })
         .select('id')
         .single();
         

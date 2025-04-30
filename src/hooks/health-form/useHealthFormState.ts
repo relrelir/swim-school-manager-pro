@@ -21,8 +21,8 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     setFormState(prev => ({ ...prev, agreement: value }));
   };
   
-  const handleNotesChange = (value: string) => {
-    setFormState(prev => ({ ...prev, notes: value }));
+  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormState(prev => ({ ...prev, notes: e.target.value }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
