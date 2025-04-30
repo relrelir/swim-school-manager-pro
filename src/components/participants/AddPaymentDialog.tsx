@@ -38,6 +38,7 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
 }) => {
   const [isDiscount, setIsDiscount] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
+  const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -123,6 +124,7 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                         onChange={(e) => setNewPayment({ ...newPayment, paymentDate: e.target.value })}
                         required
                         className="ltr"
+                        min={today}
                       />
                     </div>
                   </>

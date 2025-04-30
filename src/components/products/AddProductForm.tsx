@@ -14,10 +14,12 @@ interface AddProductFormProps {
 
 const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason }) => {
   const { calculateEndDate } = useSeasonProducts();
+  const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
     name: '',
     type: 'קורס',
-    startDate: currentSeason?.startDate || '',
+    startDate: currentSeason?.startDate || today,
     endDate: currentSeason?.endDate || '',
     price: 0,
     maxParticipants: 10,
@@ -32,14 +34,17 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
   // Update defaults if season changes
   useEffect(() => {
     if (currentSeason) {
+      // Use the later date between today and season start date
+      const startDate = currentSeason.startDate < today ? today : currentSeason.startDate;
+      
       setNewProduct(prev => ({
         ...prev,
-        startDate: currentSeason.startDate,
+        startDate: startDate,
         endDate: currentSeason.endDate,
         seasonId: currentSeason.id,
       }));
     }
-  }, [currentSeason]);
+  }, [currentSeason, today]);
 
   // Calculate end date when relevant fields change
   useEffect(() => {
@@ -63,7 +68,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
     setNewProduct({
       name: '',
       type: 'קורס',
-      startDate: currentSeason?.startDate || '',
+      startDate: currentSeason?.startDate || today,
       endDate: currentSeason?.endDate || '',
       price: 0,
       maxParticipants: 10,
@@ -126,7 +131,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
         price={newProduct.price}
         maxParticipants={newProduct.maxParticipants}
         notes={newProduct.notes}
-        seasonStartDate={currentSeason?.startDate}
+        seasonStartDate={today}
         seasonEndDate={currentSeason?.endDate}
         onProductNameChange={handleProductNameChange}
         onProductTypeChange={handleProductTypeChange}

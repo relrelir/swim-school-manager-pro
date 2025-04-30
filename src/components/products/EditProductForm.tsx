@@ -10,13 +10,15 @@ interface EditProductFormProps {
   setEditingProduct: React.Dispatch<React.SetStateAction<Product | null>>;
   onSubmit: (e: React.FormEvent) => void;
   calculatedEndDate: string | null;
+  minStartDate?: string;
 }
 
 const EditProductForm: React.FC<EditProductFormProps> = ({
   editingProduct,
   setEditingProduct,
   onSubmit,
-  calculatedEndDate
+  calculatedEndDate,
+  minStartDate
 }) => {
   const handleChange = (field: keyof Product, value: any) => {
     setEditingProduct(prev => {
@@ -41,6 +43,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
         price={editingProduct.price}
         maxParticipants={editingProduct.maxParticipants || 10}
         notes={editingProduct.notes || ''}
+        seasonStartDate={minStartDate}
         onProductNameChange={(value) => handleChange('name', value)}
         onProductTypeChange={(value) => handleChange('type', value)}
         onStartDateChange={(value) => handleChange('startDate', value)}

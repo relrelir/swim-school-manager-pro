@@ -14,9 +14,11 @@ interface AddSeasonDialogProps {
 
 const AddSeasonDialog: React.FC<AddSeasonDialogProps> = ({ isOpen, onOpenChange }) => {
   const { addSeason } = useData();
+  const today = new Date().toISOString().substring(0, 10); // Get current date in YYYY-MM-DD format
+  
   const [newSeason, setNewSeason] = useState({
     name: "",
-    startDate: new Date().toISOString().substring(0, 10),
+    startDate: today,
     endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().substring(0, 10)
   });
 
@@ -43,7 +45,7 @@ const AddSeasonDialog: React.FC<AddSeasonDialogProps> = ({ isOpen, onOpenChange 
       // Reset form
       setNewSeason({
         name: "",
-        startDate: new Date().toISOString().substring(0, 10),
+        startDate: today,
         endDate: new Date(new Date().setMonth(new Date().getMonth() + 3)).toISOString().substring(0, 10)
       });
       
@@ -82,6 +84,7 @@ const AddSeasonDialog: React.FC<AddSeasonDialogProps> = ({ isOpen, onOpenChange 
                 type="date"
                 value={newSeason.startDate}
                 onChange={(e) => setNewSeason({ ...newSeason, startDate: e.target.value })}
+                min={today}
               />
             </div>
             
@@ -92,6 +95,7 @@ const AddSeasonDialog: React.FC<AddSeasonDialogProps> = ({ isOpen, onOpenChange 
                 type="date"
                 value={newSeason.endDate}
                 onChange={(e) => setNewSeason({ ...newSeason, endDate: e.target.value })}
+                min={newSeason.startDate}
               />
             </div>
           </div>

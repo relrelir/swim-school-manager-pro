@@ -56,6 +56,9 @@ const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
   onMaxParticipantsChange,
   onNotesChange,
 }) => {
+  // Get current date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+  
   return (
     <div className="space-y-4 py-2">
       <div className="space-y-2">
@@ -96,7 +99,7 @@ const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
             onChange={(e) => onStartDateChange(e.target.value)}
             required
             className="ltr"
-            min={seasonStartDate}
+            min={today}
             max={seasonEndDate}
           />
         </div>
