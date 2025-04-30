@@ -1,5 +1,8 @@
 
-import { Participant, Product, Registration, Season, Payment, PaymentStatus, DailyActivity, HealthDeclaration } from '@/types';
+import { Participant, Product, Registration, Season, Payment, PaymentStatus, HealthDeclaration } from '@/types';
+
+// Import the DailyActivity type or define it here
+import { DailyActivity, RegistrationWithDetails } from '@/types';
 
 export interface SeasonsContextType {
   seasons: Season[];
@@ -54,7 +57,7 @@ export interface HealthDeclarationsContextType {
 }
 
 export interface CombinedDataContextType extends SeasonsContextType, ProductsContextType, ParticipantsContextType, RegistrationsContextType, PaymentsContextType, HealthDeclarationsContextType {
-  getAllRegistrationsWithDetails: () => any[];
+  getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
   calculateMeetingProgress: (product: Product) => { current: number; total: number };
   getDailyActivities: (date: string) => DailyActivity[];
 }

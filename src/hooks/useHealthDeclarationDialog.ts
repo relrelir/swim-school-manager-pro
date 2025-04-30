@@ -36,12 +36,16 @@ export const useHealthDeclarationDialog = (
     if (!healthDeclaration) {
       console.log('Creating new health declaration for registration:', registrationId);
       try {
-        // Important: we need to directly use the field names that match the DB schema
+        // Create new health declaration with both snake_case DB fields and convenience fields
         const newDeclaration = await addHealthDeclaration({
-          participant_id: registrationId,  // In DB, this field stores the registration ID
+          participant_id: registrationId,
           phone_sent_to: participant.phone,
           form_status: 'pending',
-          created_at: new Date().toISOString()
+          created_at: new Date().toISOString(),
+          registrationId: registrationId,
+          phone: participant.phone,
+          formStatus: 'pending',
+          sentAt: new Date().toISOString()
         });
         
         if (newDeclaration) {

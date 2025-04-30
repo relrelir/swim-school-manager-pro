@@ -65,7 +65,7 @@ export interface Payment {
   receiptNumber: string;
 }
 
-export type PaymentStatus = 'paid' | 'partial' | 'unpaid' | 'discounted';
+export type PaymentStatus = 'paid' | 'partial' | 'unpaid' | 'discounted' | 'מלא' | 'חלקי' | 'יתר' | 'הנחה' | 'מלא / הנחה' | 'חלקי / הנחה';
 
 export interface PaymentStatusDetails {
   paid: number;
@@ -73,7 +73,6 @@ export interface PaymentStatusDetails {
   status: PaymentStatus;
 }
 
-// Update the HealthDeclaration interface to match our database structure
 export interface HealthDeclaration {
   id: string;
   participant_id: string; // This is the field name in the database (stores registration ID)
@@ -89,4 +88,29 @@ export interface HealthDeclaration {
   formStatus?: 'pending' | 'signed' | 'expired'; // For convenience in our code
   submissionDate?: string; // For convenience in our code
   sentAt?: string; // For convenience in our code
+}
+
+// Add missing types needed by other components
+export interface RegistrationWithDetails extends Registration {
+  participant: Participant;
+  product: Product;
+  season: Season;
+  payments?: Payment[];
+  paymentStatus: PaymentStatus;
+}
+
+export interface PaymentDetails {
+  id: string;
+  registrationId: string;
+  amount: number;
+  receiptNumber: string;
+  createdAt: string;
+}
+
+export interface DailyActivity {
+  product: Product;
+  startTime: string;
+  numParticipants: number;
+  currentMeetingNumber: number;
+  totalMeetings: number;
 }
