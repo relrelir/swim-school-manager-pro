@@ -1,3 +1,4 @@
+
 import { Product, Registration } from '@/types';
 
 export const useSummaryCalculations = (registrations: Registration[], product?: Product) => {
@@ -9,7 +10,7 @@ export const useSummaryCalculations = (registrations: Registration[], product?: 
   const totalExpected = registrations.reduce((sum, reg) => {
     // Apply any discount to the required amount
     const discountAmount = reg.discountAmount || 0;
-    const effectiveRequiredAmount = Math.max(0, reg.requiredAmount - discountAmount);
+    const effectiveRequiredAmount = Math.max(0, reg.requiredAmount - (reg.discountApproved ? discountAmount : 0));
     return sum + effectiveRequiredAmount;
   }, 0);
   

@@ -122,7 +122,7 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     const paidWithoutDiscount = actualPaidAmount !== undefined ? actualPaidAmount : registration.paidAmount;
     
     // Calculate the effective amount that needs to be paid after discount
-    const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - discountAmount);
+    const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
     
     if (registration.discountApproved) {
       if (paidWithoutDiscount >= effectiveRequiredAmount) {
