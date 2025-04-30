@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Participant, Product } from '@/types';
 
 export const useParticipantForm = (product?: Product) => {
@@ -26,6 +26,16 @@ export const useParticipantForm = (product?: Product) => {
     receiptNumber: '',
     paymentDate: new Date().toISOString().substring(0, 10),
   });
+
+  // Update requiredAmount whenever product changes
+  useEffect(() => {
+    if (product?.price) {
+      setRegistrationData(prev => ({
+        ...prev,
+        requiredAmount: product.price,
+      }));
+    }
+  }, [product]);
 
   // Reset form data
   const resetForm = () => {

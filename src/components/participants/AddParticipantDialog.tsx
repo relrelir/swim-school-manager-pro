@@ -105,13 +105,8 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                     id="required-amount"
                     type="number"
                     value={registrationData.requiredAmount}
-                    onChange={(e) => setRegistrationData({ 
-                      ...registrationData, 
-                      requiredAmount: Number(e.target.value) 
-                    })}
-                    required
-                    min={0}
-                    className="ltr"
+                    className="bg-gray-100 ltr"
+                    readOnly
                   />
                 </div>
                 <div className="space-y-2">
