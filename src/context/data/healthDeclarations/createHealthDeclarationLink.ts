@@ -30,7 +30,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     
     if (existingData) {
       // Update existing declaration with new token
-      const updateResponse: PostgrestResponse<any> = await supabase
+      const updateResponse: PostgrestResponse<{ id: string }> = await supabase
         .from('health_declarations')
         .update({
           token,
@@ -40,7 +40,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
         })
         .eq('id', existingData.id)
         .select('id')
-        .maybeSingle();
+        .single();
         
       const { data: updateData, error: updateError } = updateResponse;
         
@@ -66,11 +66,11 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       
       console.log('Creating new health declaration:', newDeclaration);
       
-      const insertResponse: PostgrestResponse<any> = await supabase
+      const insertResponse: PostgrestResponse<{ id: string }> = await supabase
         .from('health_declarations')
         .insert(newDeclaration)
         .select('id')
-        .maybeSingle();
+        .single();
       
       const { data: newData, error: insertError } = insertResponse;
         

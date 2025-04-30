@@ -9,18 +9,18 @@ import type { PostgrestResponse } from '@supabase/supabase-js';
  */
 export const getHealthDeclarationById = async (id: string): Promise<HealthDeclaration | null> => {
   try {
-    // Create a query builder first
-    const query = supabase
+    // Build query
+    const builder = supabase
       .from('health_declarations')
       .select('*')
       .eq('id', id);
     
     // Execute query with explicit typing
-    const response: PostgrestResponse<any> = await query.maybeSingle();
-    
-    const { data, error } = response;
+    const { data, error }: PostgrestResponse<any> = await builder.single();
 
     if (error) {
+      // If not found, return null
+      if (error.code === 'PGRST116') return null;
       console.error('Error fetching health declaration by ID:', error);
       return null;
     }
@@ -41,18 +41,18 @@ export const getHealthDeclarationById = async (id: string): Promise<HealthDeclar
  */
 export const getHealthDeclarationByToken = async (token: string): Promise<HealthDeclaration | null> => {
   try {
-    // Create a query builder first
-    const query = supabase
+    // Build query
+    const builder = supabase
       .from('health_declarations')
       .select('*')
       .eq('token', token);
     
     // Execute query with explicit typing
-    const response: PostgrestResponse<any> = await query.maybeSingle();
-    
-    const { data, error } = response;
+    const { data, error }: PostgrestResponse<any> = await builder.single();
 
     if (error) {
+      // If not found, return null
+      if (error.code === 'PGRST116') return null;
       console.error('Error fetching health declaration by token:', error);
       return null;
     }
