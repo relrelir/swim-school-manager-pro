@@ -1,11 +1,14 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
-import { Registration, HealthDeclaration } from '@/types';
+import { Registration } from '@/types';
 import { useParticipantForm } from './useParticipantForm';
 import { usePaymentHandlers } from './usePaymentHandlers';
 import { useRegistrationHandlers } from './useRegistrationHandlers';
 import { useParticipantUtils } from './useParticipantUtils';
+import { useHealthDeclarations } from './useHealthDeclarations';
+import { useSummaryCalculations } from './useSummaryCalculations';
 
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -32,13 +35,6 @@ export const useParticipants = () => {
   const [product, setProduct] = useState(undefined);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
-  const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<{
-    registrationId: string;
-    participantName: string;
-    phone: string;
-    declaration?: HealthDeclaration;
-  } | null>(null);
   
   // Import sub-hooks
   const {
@@ -82,6 +78,28 @@ export const useParticipants = () => {
     getStatusClassName
   } = useParticipantUtils(participants, payments);
 
+  // Health declarations hook
+  const {
+    isHealthFormOpen,
+    setIsHealthFormOpen,
+    currentHealthDeclaration,
+    setCurrentHealthDeclaration,
+    handleOpenHealthForm: baseHandleOpenHealthForm
+  } = useHealthDeclarations(
+    getHealthDeclarationForRegistration,
+    sendHealthDeclarationSMS,
+    addHealthDeclaration,
+    updateHealthDeclaration
+  );
+
+  // Summary calculations
+  const {
+    totalParticipants,
+    registrationsFilled,
+    totalExpected,
+    totalPaid
+  } = useSummaryCalculations(registrations, product);
+
   // Load product and registrations data
   useEffect(() => {
     if (productId) {
@@ -101,24 +119,9 @@ export const useParticipants = () => {
     }
   }, [productId, products, getRegistrationsByProduct, refreshTrigger]);
 
-  // Handler for opening health form
+  // Handler for opening health form - wrapper to pass required parameters
   const handleOpenHealthForm = (registrationId: string) => {
-    const registration = registrations.find(reg => reg.id === registrationId);
-    if (!registration) return;
-
-    const participant = getParticipantForRegistration(registration);
-    if (!participant) return;
-
-    const healthDeclaration = getHealthDeclarationForRegistration(registrationId);
-
-    setCurrentHealthDeclaration({
-      registrationId,
-      participantName: `${participant.firstName} ${participant.lastName}`,
-      phone: participant.phone,
-      declaration: healthDeclaration
-    });
-
-    setIsHealthFormOpen(true);
+    baseHandleOpenHealthForm(registrationId, getParticipantForRegistration, registrations);
   };
 
   // Handler for adding a new participant with health declaration
@@ -196,12 +199,6 @@ export const useParticipants = () => {
       setRegistrations(result);
     }
   };
-
-  // Calculate totals
-  const totalParticipants = registrations.length;
-  const registrationsFilled = product ? (totalParticipants / product.maxParticipants) * 100 : 0;
-  const totalExpected = registrations.reduce((sum, reg) => sum + reg.requiredAmount, 0);
-  const totalPaid = registrations.reduce((sum, reg) => sum + reg.paidAmount, 0);
 
   return {
     product,
