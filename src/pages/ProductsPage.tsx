@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { useData } from '@/context/DataContext';
 import { Product } from '@/types';
 import { useProductsTable } from '@/hooks/useProductsTable';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 
 // Import newly created components
 import AddProductForm from '@/components/products/AddProductForm';
@@ -18,6 +21,7 @@ const ProductsPage: React.FC = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
   const { seasons, products, addProduct, getProductsBySeason, updateProduct } = useData();
+  const isMobile = useIsMobile();
   
   const [currentSeason, setCurrentSeason] = useState(seasons.find(s => s.id === seasonId));
   const [seasonProducts, setSeasonProducts] = useState<Product[]>([]);
@@ -75,6 +79,14 @@ const ProductsPage: React.FC = () => {
       return dateString;
     }
   };
+
+  // Function to render the Add Product form based on device
+  const renderAddProductForm = () => (
+    <AddProductForm 
+      onSubmit={handleCreateProduct} 
+      currentSeason={currentSeason}
+    />
+  );
   
   return (
     <div className="container mx-auto">
@@ -120,35 +132,61 @@ const ProductsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Add Product Dialog */}
-      <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>הוסף מוצר חדש</DialogTitle>
-          </DialogHeader>
-          <AddProductForm 
-            onSubmit={handleCreateProduct} 
-            currentSeason={currentSeason}
-          />
-        </DialogContent>
-      </Dialog>
+      {/* Responsive Add Product - Dialog for desktop, Sheet for mobile */}
+      {isMobile ? (
+        <Sheet open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
+          <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+            <SheetHeader className="mb-4">
+              <SheetTitle className="text-right">הוסף מוצר חדש</SheetTitle>
+            </SheetHeader>
+            {renderAddProductForm()}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isAddProductOpen} onOpenChange={setIsAddProductOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>הוסף מוצר חדש</DialogTitle>
+            </DialogHeader>
+            {renderAddProductForm()}
+          </DialogContent>
+        </Dialog>
+      )}
 
-      {/* Edit Product Dialog */}
-      <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>עריכת מוצר</DialogTitle>
-          </DialogHeader>
-          {editingProduct && (
-            <EditProductDialog
-              isOpen={isEditProductOpen}
-              onOpenChange={setIsEditProductOpen}
-              product={editingProduct}
-              onSubmit={handleUpdateProduct}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Edit Product Dialog - Also using Sheet for mobile */}
+      {isMobile ? (
+        <Sheet open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
+          <SheetContent side="bottom" className="h-[85vh] overflow-y-auto">
+            <SheetHeader className="mb-4">
+              <SheetTitle className="text-right">עריכת מוצר</SheetTitle>
+            </SheetHeader>
+            {editingProduct && (
+              <EditProductDialog
+                isOpen={isEditProductOpen}
+                onOpenChange={setIsEditProductOpen}
+                product={editingProduct}
+                onSubmit={handleUpdateProduct}
+              />
+            )}
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={isEditProductOpen} onOpenChange={setIsEditProductOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>עריכת מוצר</DialogTitle>
+            </DialogHeader>
+            {editingProduct && (
+              <EditProductDialog
+                isOpen={isEditProductOpen}
+                onOpenChange={setIsEditProductOpen}
+                product={editingProduct}
+                onSubmit={handleUpdateProduct}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
