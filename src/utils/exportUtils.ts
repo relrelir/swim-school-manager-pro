@@ -1,4 +1,3 @@
-
 import { RegistrationWithDetails, PaymentDetails } from '@/types';
 
 // Function to convert data to CSV with UTF-8 BOM support for Hebrew
@@ -75,7 +74,8 @@ export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[
       ...reg,
       paidAmount: totalPaid,
       receiptNumbers: receiptNumbers,
-      meetingProgress: meetingProgress
+      meetingProgress: meetingProgress,
+      discountAmount: reg.discountAmount || 0
     };
   });
   
@@ -87,9 +87,10 @@ export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[
     { key: 'season.name', header: 'עונה' },
     { key: 'product.name', header: 'מוצר' },
     { key: 'product.type', header: 'סוג מוצר' },
-    { key: 'meetingProgress', header: 'מפגשים' },  // New column for meeting progress
+    { key: 'meetingProgress', header: 'מפגשים' },  // Meeting progress column
     { key: 'requiredAmount', header: 'סכום לתשלום' },
     { key: 'paidAmount', header: 'סכום ששולם' },
+    { key: 'discountAmount', header: 'סכום הנחה' }, // New discount amount column
     { key: 'receiptNumbers', header: 'מספרי קבלות' },
     { key: 'paymentStatus', header: 'סטטוס תשלום' },
     { key: 'discountApproved', header: 'הנחה אושרה' },
@@ -126,4 +127,3 @@ export const exportDailyActivitiesToCSV = (activities: any[], filename: string =
   
   downloadCSV(processedActivities, columns, filename);
 };
-
