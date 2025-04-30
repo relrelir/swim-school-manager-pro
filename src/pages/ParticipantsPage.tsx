@@ -121,6 +121,11 @@ const ParticipantsPage: React.FC = () => {
     handleUpdateHealthApproval(registrationId, isApproved);
   };
 
+  // Create an adapter for the handleApplyDiscount function to match the expected signature
+  const handleApplyDiscountWrapper = (amount: number) => {
+    handleApplyDiscount(amount, setIsAddPaymentOpen);
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -170,7 +175,7 @@ const ParticipantsPage: React.FC = () => {
         setCurrentHealthDeclaration={setCurrentHealthDeclaration}
         handleAddParticipant={handleAddParticipant}
         handleAddPayment={handleAddPayment}
-        handleApplyDiscount={handleApplyDiscount}
+        handleApplyDiscount={handleApplyDiscountWrapper}
       />
     </div>
   );
