@@ -1,4 +1,3 @@
-
 export interface Season {
   id: string;
   name: string;
@@ -21,6 +20,8 @@ export interface Product {
   meetingsCount?: number;
   daysOfWeek?: string[];
   startTime?: string;
+  discountAmount?: number;
+  effectivePrice?: number;
 }
 
 export interface Participant {

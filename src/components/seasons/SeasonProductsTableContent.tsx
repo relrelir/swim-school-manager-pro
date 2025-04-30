@@ -40,7 +40,7 @@ const SeasonProductsTableContent: React.FC<SeasonProductsTableContentProps> = ({
             <TableCell>{product.type}</TableCell>
             <TableCell>
               {formatPrice(product.price)}
-              {discountAmount > 0 && (
+              {product.discountAmount && product.discountAmount > 0 && (
                 <div className="text-sm text-green-600">
                   {formatPrice(effectivePrice)} (אחרי הנחה)
                 </div>
