@@ -4,16 +4,13 @@ import {
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
+  DialogTitle 
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { HealthDeclaration } from '@/types';
 import { useData } from '@/context/DataContext';
-import { Link, Copy } from 'lucide-react';
+import CreateHealthForm from './health-declaration/CreateHealthForm';
+import HealthFormLink from './health-declaration/HealthFormLink';
 
 interface HealthDeclarationFormProps {
   isOpen: boolean;
@@ -48,6 +45,10 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
       setIsLinkCreated(Boolean(healthDeclaration?.id));
     }
   }, [isOpen, defaultPhone, healthDeclaration]);
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPhone(e.target.value);
+  };
 
   const handleSendHealthDeclaration = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,30 +123,6 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     }
   };
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(healthFormUrl);
-    toast({
-      title: "הלינק הועתק",
-      description: "הלינק להצהרת הבריאות הועתק ללוח",
-    });
-  };
-
-  // Helper function to get status display text and color
-  const getStatusDisplay = (status?: string) => {
-    if (!status) return { text: 'ממתין', color: 'text-amber-500' };
-    
-    // Safe comparison with string literals
-    if (status === 'completed') return { text: 'הושלם', color: 'text-green-500' };
-    if (status === 'signed') return { text: 'חתום', color: 'text-green-500' };
-    if (status === 'sent') return { text: 'נשלח', color: 'text-blue-500' };
-    if (status === 'expired') return { text: 'פג תוקף', color: 'text-red-500' };
-    return { text: 'ממתין', color: 'text-amber-500' };
-  };
-
-  // Get status display properties
-  const formStatus = healthDeclaration?.formStatus || healthDeclaration?.form_status;
-  const statusDisplay = getStatusDisplay(formStatus);
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -153,71 +130,19 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
           <DialogTitle>הצהרת בריאות</DialogTitle>
         </DialogHeader>
         {isLinkCreated && healthDeclaration?.id ? (
-          <div className="grid gap-4 py-4">
-            <div className="text-sm">
-              הצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
-            </div>
-            <div className="text-sm">
-              העתק את הלינק ושלח למשתתף בוואטסאפ/מייל:
-            </div>
-            <div className="flex gap-2">
-              <Input
-                value={healthFormUrl}
-                readOnly
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-                className="flex-1 text-right"
-              />
-              <Button onClick={handleCopyLink}>
-                <Copy className="h-4 w-4 mr-1" />
-                העתק
-              </Button>
-            </div>
-            <div className="flex items-center justify-center mt-2">
-              <div className="bg-muted p-3 rounded-md flex items-center gap-2">
-                <Link className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm">
-                  סטטוס הצהרה: 
-                  <span className={`font-medium ml-1 ${statusDisplay.color}`}>
-                    {statusDisplay.text}
-                  </span>
-                </span>
-              </div>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              כאשר המשתתף ימלא את הטופס, אישור הבריאות יעודכן אוטומטית במערכת.
-            </div>
-          </div>
+          <HealthFormLink 
+            healthFormUrl={healthFormUrl}
+            participantName={participantName}
+            formStatus={healthDeclaration.formStatus || healthDeclaration.form_status}
+          />
         ) : (
-          <form onSubmit={handleSendHealthDeclaration}>
-            <div className="grid gap-4 py-4">
-              <div className="text-sm">
-                יצירת הצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
-              </div>
-              
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-left col-span-1">
-                  טלפון
-                </Label>
-                <Input
-                  id="phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="הזן מספר טלפון"
-                  className="col-span-3 text-right"
-                  required
-                />
-              </div>
-              
-              <div className="text-xs text-muted-foreground">
-                לאחר יצירת ההצהרה תוכל להעתיק את הלינק ולשלוח למשתתף בוואטסאפ או מייל.
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'מכין...' : 'צור הצהרה'}
-              </Button>
-            </DialogFooter>
-          </form>
+          <CreateHealthForm
+            phone={phone}
+            participantName={participantName}
+            isLoading={isLoading}
+            onPhoneChange={handlePhoneChange}
+            onSubmit={handleSendHealthDeclaration}
+          />
         )}
       </DialogContent>
     </Dialog>
