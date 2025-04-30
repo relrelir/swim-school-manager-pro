@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
@@ -54,7 +53,7 @@ export const useParticipants = () => {
     }
   }, [productId, products]);
 
-  // Import participant data hook
+  // Import participant data hook - now passing the getPaymentsForRegistration function
   const {
     registrations,
     setRegistrations,
@@ -64,7 +63,7 @@ export const useParticipants = () => {
     registrationsFilled,
     totalExpected,
     totalPaid
-  } = useParticipantData(product, productId, getRegistrationsByProduct);
+  } = useParticipantData(product, productId, getRegistrationsByProduct, getPaymentsForRegistration);
 
   // Import participant form hook
   const {

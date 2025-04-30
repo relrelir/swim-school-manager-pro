@@ -1,15 +1,17 @@
 
 import { useState, useEffect } from 'react';
-import { Product, Registration, Participant } from '@/types';
+import { useSummaryCalculations } from './useSummaryCalculations';
+import { Registration } from '@/types';
 
 export const useParticipantData = (
-  product: any,
-  productId: string | undefined,
-  getRegistrationsByProduct: (productId: string) => Registration[]
+  product: any, 
+  productId: string | undefined, 
+  getRegistrationsByProduct: (productId: string) => Registration[],
+  getPaymentsForRegistration?: (registration: Registration) => any[]
 ) => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-
+  
   // Load registrations data
   useEffect(() => {
     if (productId) {
@@ -17,32 +19,27 @@ export const useParticipantData = (
       setRegistrations(productRegistrations);
     }
   }, [productId, getRegistrationsByProduct, refreshTrigger]);
-
+  
   // Calculate summary data
-  const calculateSummaryData = (registrations: Registration[], product?: Product) => {
-    const totalParticipants = registrations.length;
-    const registrationsFilled = product?.maxParticipants 
-      ? Math.min(100, Math.round((totalParticipants / product.maxParticipants) * 100))
-      : 0;
-      
-    const totalExpected = registrations.reduce((sum, reg) => sum + reg.requiredAmount, 0);
-    const totalPaid = registrations.reduce((sum, reg) => sum + reg.paidAmount, 0);
-    
-    return {
-      totalParticipants,
-      registrationsFilled,
-      totalExpected,
-      totalPaid
-    };
-  };
-
-  const summaryData = calculateSummaryData(registrations, product);
+  const { 
+    totalParticipants, 
+    registrationsFilled, 
+    totalExpected, 
+    totalPaid 
+  } = useSummaryCalculations(
+    registrations, 
+    product, 
+    getPaymentsForRegistration
+  );
 
   return {
     registrations,
     setRegistrations,
     refreshTrigger,
     setRefreshTrigger,
-    ...summaryData
+    totalParticipants,
+    registrationsFilled,
+    totalExpected,
+    totalPaid
   };
 };

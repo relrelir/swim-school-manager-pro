@@ -1,7 +1,7 @@
 
-import { Product, Registration } from '@/types';
+import { Product, Registration, Payment } from '@/types';
 
-export const useSummaryCalculations = (registrations: Registration[], product?: Product) => {
+export const useSummaryCalculations = (registrations: Registration[], product?: Product, paymentsForRegistrations?: (registration: Registration) => Payment[]) => {
   // Calculate totals
   const totalParticipants = registrations.length;
   const registrationsFilled = product ? (totalParticipants / product.maxParticipants) * 100 : 0;
@@ -14,10 +14,15 @@ export const useSummaryCalculations = (registrations: Registration[], product?: 
     return sum + effectiveRequiredAmount;
   }, 0);
   
-  // Total paid amount - sum of actual payments, not the paidAmount field
+  // Total paid amount - calculate from actual payments if available, or fall back to paidAmount
   const totalPaid = registrations.reduce((sum, reg) => {
-    // Since we can't access the payments directly here, we use the paidAmount
-    // which should represent the sum of actual payments
+    if (paymentsForRegistrations) {
+      // Get actual payments (excluding discounts) and sum their amounts
+      const actualPayments = paymentsForRegistrations(reg);
+      const actualPaymentSum = actualPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
+      return sum + actualPaymentSum;
+    }
+    // Fall back to paidAmount
     return sum + reg.paidAmount;
   }, 0);
 

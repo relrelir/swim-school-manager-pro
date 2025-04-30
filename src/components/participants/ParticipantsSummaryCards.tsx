@@ -6,8 +6,8 @@ import { Product } from '@/types';
 interface ParticipantsSummaryCardsProps {
   totalParticipants: number;
   product: Product | undefined;
-  totalExpected: number;
-  totalPaid: number;
+  totalExpected: number; // This should be effectiveRequired (after discounts)
+  totalPaid: number;     // This should be actual payments
   registrationsFilled: number;
 }
 

@@ -13,7 +13,7 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
   discountAmount,
   discountApproved
 }) => {
-  // Helper to separate actual payments from discounts
+  // Helper to identify actual payments (ones that have receipt numbers)
   const actualPayments = payments.filter(p => p.receiptNumber !== '');
   
   if (actualPayments.length === 0) {
