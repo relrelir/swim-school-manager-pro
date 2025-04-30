@@ -37,10 +37,11 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
   afterSubmit
 }) => {
   const [phone, setPhone] = useState(defaultPhone);
-  const { addHealthDeclaration, sendHealthDeclarationSMS, updateHealthDeclaration } = useData();
+  const { addHealthDeclaration, updateHealthDeclaration } = useData();
   const [isLoading, setIsLoading] = useState(false);
+  const baseUrl = window.location.origin;
 
-  const handleSendSMS = async (e: React.FormEvent) => {
+  const handleSendHealthDeclaration = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate phone number
@@ -56,13 +57,13 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     setIsLoading(true);
     
     try {
+      let declarationId = healthDeclaration?.id;
+      
       if (healthDeclaration) {
         // If we have an existing health declaration, update the phone number if needed
         if (healthDeclaration.phone !== phone) {
           await updateHealthDeclaration(healthDeclaration.id, { phone });
         }
-        // Send SMS
-        await sendHealthDeclarationSMS(healthDeclaration.id, phone);
       } else {
         // Create a new health declaration
         const newDeclaration = await addHealthDeclaration({
@@ -73,17 +74,19 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
         });
         
         if (newDeclaration) {
-          // Send SMS for the new declaration
-          await sendHealthDeclarationSMS(newDeclaration.id, phone);
+          declarationId = newDeclaration.id;
         } else {
           throw new Error("Failed to create health declaration");
         }
       }
       
-      // Show success message
+      // Show success message with copy link option
+      const healthFormUrl = `${baseUrl}/health-form?id=${declarationId}`;
+      
+      navigator.clipboard.writeText(healthFormUrl);
       toast({
-        title: "הצהרת בריאות נשלחה",
-        description: `הצהרת בריאות נשלחה למספר ${phone}`,
+        title: "לינק להצהרת בריאות הועתק",
+        description: `הלינק להצהרת בריאות עבור ${participantName} הועתק ללוח. אנא שלח אותו למשתתף.`,
       });
       
       // Close the form and refresh if needed
@@ -91,10 +94,10 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
       if (afterSubmit) afterSubmit();
       
     } catch (error) {
-      console.error('Error sending health declaration SMS:', error);
+      console.error('Error creating health declaration:', error);
       toast({
         title: "שגיאה",
-        description: "אירעה שגיאה בשליחת הצהרת הבריאות",
+        description: "אירעה שגיאה ביצירת הצהרת הבריאות",
         variant: "destructive",
       });
     } finally {
@@ -106,12 +109,12 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>שליחת הצהרת בריאות</DialogTitle>
+          <DialogTitle>יצירת הצהרת בריאות</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSendSMS}>
+        <form onSubmit={handleSendHealthDeclaration}>
           <div className="grid gap-4 py-4">
             <div className="text-sm">
-              שליחת הצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
+              יצירת הצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
@@ -129,12 +132,12 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
             </div>
             
             <div className="text-xs text-muted-foreground">
-              הודעת SMS תישלח למספר זה עם קישור להצהרת הבריאות.
+              לאחר יצירת ההצהרה תוכל להעתיק את הלינק ולשלוח למשתתף בוואטסאפ.
             </div>
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'שולח...' : healthDeclaration?.formStatus === 'sent' ? 'שלח שוב' : 'שלח'}
+              {isLoading ? 'מכין...' : healthDeclaration?.formStatus === 'sent' ? 'צור מחדש' : 'צור הצהרה'}
             </Button>
           </DialogFooter>
         </form>

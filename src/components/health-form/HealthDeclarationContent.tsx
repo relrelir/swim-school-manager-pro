@@ -1,0 +1,71 @@
+
+import React from 'react';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+
+interface HealthDeclarationContentProps {
+  participantName: string;
+  formState: {
+    agreement: boolean;
+    notes: string;
+  };
+  handleAgreementChange: (checked: boolean) => void;
+  handleNotesChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+}
+
+const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
+  participantName,
+  formState,
+  handleAgreementChange,
+  handleNotesChange
+}) => {
+  return (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <div className="flex items-start space-x-2 space-y-0">
+          <Label 
+            htmlFor="health-declaration" 
+            className="flex-grow text-base font-medium"
+          >
+            אני מצהיר/ה בזאת כי:
+          </Label>
+        </div>
+        
+        <div className="text-sm space-y-2 rounded-md border p-4">
+          <p>• בני/בתי נמצא/ת בכושר ובמצב בריאותי תקין המאפשר השתתפות בפעילות.</p>
+          <p>• לא ידוע לי על מגבלות רפואיות המונעות מבני/בתי להשתתף בפעילות.</p>
+          <p>• לא ידוע לי על רגישויות, מחלות או בעיות רפואיות אחרות שעלולות להשפיע על השתתפותו/ה בפעילות.</p>
+          <p>• אני מתחייב/ת להודיע למדריכים על כל שינוי במצב הבריאותי של בני/בתי.</p>
+        </div>
+        
+        <div className="flex items-center space-x-2 space-y-0 pt-2">
+          <Checkbox 
+            id="health-agreement" 
+            checked={formState.agreement}
+            onCheckedChange={checked => handleAgreementChange(checked === true)}
+            required
+          />
+          <Label 
+            htmlFor="health-agreement" 
+            className="mr-2 text-sm"
+          >
+            אני מאשר/ת את הצהרת הבריאות
+          </Label>
+        </div>
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="notes">הערות רפואיות (אופציונלי)</Label>
+        <Textarea 
+          id="notes" 
+          placeholder="אם יש מידע רפואי נוסף שעלינו לדעת, אנא ציין כאן"
+          value={formState.notes}
+          onChange={handleNotesChange}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default HealthDeclarationContent;
