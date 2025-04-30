@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Product } from '@/types';
 import { format } from 'date-fns';
 import { Edit, Users } from 'lucide-react';
+import { calculateCurrentMeeting } from '@/context/data/utils';
 
 interface ProductsTableProps {
   products: Product[];
@@ -33,9 +33,33 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
     }
   };
 
+  // Format time (HH:mm format)
+  const formatTime = (timeString: string | undefined) => {
+    if (!timeString) return '-';
+    
+    // If time is already in HH:mm format, return it
+    if (/^\d{2}:\d{2}$/.test(timeString)) {
+      return timeString;
+    }
+    
+    // Otherwise try to extract hours and minutes
+    try {
+      const [hours, minutes] = timeString.split(':');
+      return `${hours}:${minutes}`;
+    } catch (e) {
+      return timeString;
+    }
+  };
+
   // Format price with ILS symbol
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(price);
+  };
+  
+  // Format meeting count as XX/XX
+  const formatMeetingCount = (product: Product) => {
+    const { current, total } = calculateCurrentMeeting(product);
+    return `${current}/${total}`;
   };
   
   const goToParticipants = (productId: string) => {
@@ -66,6 +90,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
           </TableHead>
           <TableHead>ימים</TableHead>
           <TableHead>שעת התחלה</TableHead>
+          <TableHead>מפגש</TableHead>
           <TableHead>פעולות</TableHead>
         </TableRow>
       </TableHeader>
@@ -79,7 +104,8 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
             <TableCell>{formatPrice(product.price)}</TableCell>
             <TableCell>{product.maxParticipants}</TableCell>
             <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
-            <TableCell>{product.startTime || '-'}</TableCell>
+            <TableCell>{formatTime(product.startTime)}</TableCell>
+            <TableCell>{formatMeetingCount(product)}</TableCell>
             <TableCell>
               <div className="flex space-x-2">
                 <Button variant="outline" size="sm" onClick={() => goToParticipants(product.id)}>

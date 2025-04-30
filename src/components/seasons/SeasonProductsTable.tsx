@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -43,9 +42,33 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
     }
   };
 
+  // Format time (HH:mm format)
+  const formatTime = (timeString: string | undefined) => {
+    if (!timeString) return '-';
+    
+    // If time is already in HH:mm format, return it
+    if (/^\d{2}:\d{2}$/.test(timeString)) {
+      return timeString;
+    }
+    
+    // Otherwise try to extract hours and minutes
+    try {
+      const [hours, minutes] = timeString.split(':');
+      return `${hours}:${minutes}`;
+    } catch (e) {
+      return timeString;
+    }
+  };
+
   // Format price with ILS symbol
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(price);
+  };
+
+  // Format meeting count as XX/XX
+  const formatMeetingCount = (product: Product) => {
+    const meetingInfo = getProductMeetingInfo(product);
+    return `${meetingInfo.current}/${meetingInfo.total}`;
   };
 
   if (!season) {
@@ -129,47 +152,42 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
                 </TableHead>
                 <TableHead>ימי פעילות</TableHead>
                 <TableHead>שעת התחלה</TableHead>
-                <TableHead>מפגשים</TableHead>
+                <TableHead>מפגש</TableHead>
                 <TableHead>פעולות</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAndSortedProducts.map((product) => {
-                const meetingInfo = getProductMeetingInfo(product);
-                return (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.type}</TableCell>
-                    <TableCell>{formatPrice(product.price)}</TableCell>
-                    <TableCell>{formatDate(product.startDate)}</TableCell>
-                    <TableCell>{formatDate(product.endDate)}</TableCell>
-                    <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
-                    <TableCell>{product.startTime || '-'}</TableCell>
-                    <TableCell>
-                      {meetingInfo.current}/{meetingInfo.total}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => navigate(`/product/${product.id}/participants`)}
-                        >
-                          משתתפים
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => onEditProduct(product)}
-                        >
-                          <Edit className="h-4 w-4 ml-1" />
-                          ערוך
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {filteredAndSortedProducts.map((product) => (
+                <TableRow key={product.id}>
+                  <TableCell className="font-medium">{product.name}</TableCell>
+                  <TableCell>{product.type}</TableCell>
+                  <TableCell>{formatPrice(product.price)}</TableCell>
+                  <TableCell>{formatDate(product.startDate)}</TableCell>
+                  <TableCell>{formatDate(product.endDate)}</TableCell>
+                  <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
+                  <TableCell>{formatTime(product.startTime)}</TableCell>
+                  <TableCell>{formatMeetingCount(product)}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigate(`/product/${product.id}/participants`)}
+                      >
+                        משתתפים
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => onEditProduct(product)}
+                      >
+                        <Edit className="h-4 w-4 ml-1" />
+                        ערוך
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </div>
