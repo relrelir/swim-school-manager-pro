@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Product, Season } from '@/types';
 import { Edit, ChevronUp, ChevronDown, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { useProductsTable } from '@/hooks/useProductsTable';
+import { useData } from '@/context/DataContext';
 
 interface SeasonProductsTableProps {
   season: Season | null;
@@ -22,6 +24,7 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
   onEditProduct
 }) => {
   const navigate = useNavigate();
+  const { getRegistrationsByProduct } = useData();
   
   // Use our custom hook for filtering and sorting
   const { 
@@ -69,6 +72,12 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
   const formatMeetingCount = (product: Product) => {
     const meetingInfo = getProductMeetingInfo(product);
     return `${meetingInfo.current}/${meetingInfo.total}`;
+  };
+
+  // Get participants count for a product
+  const getParticipantsCount = (productId: string) => {
+    const registrations = getRegistrationsByProduct(productId);
+    return registrations.length;
   };
 
   if (!season) {
@@ -153,6 +162,16 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
                 <TableHead>ימי פעילות</TableHead>
                 <TableHead>שעת התחלה</TableHead>
                 <TableHead>מפגש</TableHead>
+                <TableHead 
+                  className="cursor-pointer" 
+                  onClick={() => handleSort('maxParticipants')}
+                >
+                  <div className="flex items-center justify-end">
+                    משתתפים {sortField === 'maxParticipants' && (
+                      sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead>פעולות</TableHead>
               </TableRow>
             </TableHeader>
@@ -167,6 +186,7 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
                   <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
                   <TableCell>{formatTime(product.startTime)}</TableCell>
                   <TableCell>{formatMeetingCount(product)}</TableCell>
+                  <TableCell>{getParticipantsCount(product.id)}/{product.maxParticipants}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button 

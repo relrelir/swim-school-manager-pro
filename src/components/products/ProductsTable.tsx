@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { Product } from '@/types';
 import { format } from 'date-fns';
 import { Edit, Users } from 'lucide-react';
 import { calculateCurrentMeeting } from '@/context/data/utils';
+import { useData } from '@/context/DataContext';
 
 interface ProductsTableProps {
   products: Product[];
@@ -23,6 +25,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
   onEditProduct
 }) => {
   const navigate = useNavigate();
+  const { getRegistrationsByProduct } = useData();
   
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -61,6 +64,12 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
     const { current, total } = calculateCurrentMeeting(product);
     return `${current}/${total}`;
   };
+
+  // Get participants count for a product
+  const getParticipantsCount = (productId: string) => {
+    const registrations = getRegistrationsByProduct(productId);
+    return registrations.length;
+  };
   
   const goToParticipants = (productId: string) => {
     navigate(`/product/${productId}/participants`);
@@ -86,7 +95,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
             מחיר {sortField === 'price' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
           </TableHead>
           <TableHead className="cursor-pointer" onClick={() => handleSort('maxParticipants')}>
-            מקסימום משתתפים {sortField === 'maxParticipants' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
+            משתתפים {sortField === 'maxParticipants' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}
           </TableHead>
           <TableHead>ימים</TableHead>
           <TableHead>שעת התחלה</TableHead>
@@ -102,7 +111,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
             <TableCell>{formatDate(product.startDate)}</TableCell>
             <TableCell>{formatDate(product.endDate)}</TableCell>
             <TableCell>{formatPrice(product.price)}</TableCell>
-            <TableCell>{product.maxParticipants}</TableCell>
+            <TableCell>{getParticipantsCount(product.id)}/{product.maxParticipants}</TableCell>
             <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
             <TableCell>{formatTime(product.startTime)}</TableCell>
             <TableCell>{formatMeetingCount(product)}</TableCell>
