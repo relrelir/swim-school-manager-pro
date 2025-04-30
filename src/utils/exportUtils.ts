@@ -53,17 +53,29 @@ export const downloadCSV = (data: any[], columns: { key: string, header: string 
 
 // Function to export all registrations to CSV
 export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[], filename: string = 'registrations.csv') => {
-  // Process registration data to combine payment information
+  // Process registration data to combine payment information and include meeting progress
   const processedRegistrations = registrations.map(reg => {
     // If reg.payments exists, process them
     const payments = reg.payments || [];
     const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
     const receiptNumbers = payments.map(payment => payment.receiptNumber).join(', ');
     
+    // Calculate meeting progress for this registration's product
+    const meetingCurrent = reg.product.meetingsCount ? Math.min(
+      Math.ceil((new Date().getTime() - new Date(reg.product.startDate).getTime()) / (24 * 60 * 60 * 1000) / 7) + 1,
+      reg.product.meetingsCount
+    ) : 0;
+    
+    const meetingTotal = reg.product.meetingsCount || 0;
+    
+    // Format the meeting progress in Hebrew format
+    const meetingProgress = `${meetingCurrent} מתוך ${meetingTotal}`;
+    
     return {
       ...reg,
       paidAmount: totalPaid,
-      receiptNumbers: receiptNumbers
+      receiptNumbers: receiptNumbers,
+      meetingProgress: meetingProgress
     };
   });
   
@@ -75,6 +87,7 @@ export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[
     { key: 'season.name', header: 'עונה' },
     { key: 'product.name', header: 'מוצר' },
     { key: 'product.type', header: 'סוג מוצר' },
+    { key: 'meetingProgress', header: 'מפגשים' },  // New column for meeting progress
     { key: 'requiredAmount', header: 'סכום לתשלום' },
     { key: 'paidAmount', header: 'סכום ששולם' },
     { key: 'receiptNumbers', header: 'מספרי קבלות' },
@@ -113,3 +126,4 @@ export const exportDailyActivitiesToCSV = (activities: any[], filename: string =
   
   downloadCSV(processedActivities, columns, filename);
 };
+
