@@ -15,7 +15,6 @@ interface AddProductFormProps {
 const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason }) => {
   const { calculateEndDate } = useSeasonProducts();
   const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-  const defaultTime = "08:00"; // Default start time (8:00 AM)
   
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
     name: '',
@@ -28,7 +27,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
     seasonId: currentSeason?.id || '',
     meetingsCount: 1,
     daysOfWeek: [],
-    startTime: defaultTime,
+    startTime: '',
   });
   const [calculatedEndDate, setCalculatedEndDate] = useState<string | null>(null);
 
@@ -65,6 +64,12 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
 
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate that startTime is not empty
+    if (!newProduct.startTime) {
+      return; // Prevent form submission
+    }
+    
     onSubmit(newProduct);
     setNewProduct({
       name: '',
@@ -77,7 +82,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
       seasonId: currentSeason?.id || '',
       meetingsCount: 1,
       daysOfWeek: [],
-      startTime: defaultTime,
+      startTime: '',
     });
   };
 
@@ -145,7 +150,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
         onNotesChange={handleNotesChange}
       />
       <DialogFooter className="mt-4">
-        <Button type="submit">צור מוצר</Button>
+        <Button type="submit" disabled={!newProduct.startTime}>צור מוצר</Button>
       </DialogFooter>
     </form>
   );
