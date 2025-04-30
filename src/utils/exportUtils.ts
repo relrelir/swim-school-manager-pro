@@ -93,9 +93,9 @@ export const exportDailyActivitiesToCSV = (activities: any[], filename: string =
     const currentMeeting = activity.currentMeeting || '';
     const totalMeetings = activity.totalMeetings || '';
     
-    // Format meeting number as text to prevent Excel from interpreting as date
-    // Prefix with apostrophe to force Excel to treat it as text
-    const meetingNumberText = `'${currentMeeting}/${totalMeetings}`;
+    // Format meeting number with spaces around the slash to prevent Excel from interpreting as date
+    // The spaces will make Excel treat it as text instead of a date
+    const meetingNumberText = `${currentMeeting} / ${totalMeetings}`;
     
     return {
       ...activity,
