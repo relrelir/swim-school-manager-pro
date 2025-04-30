@@ -6,19 +6,48 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { useAuth } from '@/context/AuthContext';
 import { User, Key, Loader2 } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
 
 const LoginPage = () => {
   const [username, setUsername] = useState('ענבר במדבר 2014');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const { toast } = useToast();
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!password) {
+      toast({
+        title: "שגיאה",
+        description: "אנא הכנס סיסמה",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
+    console.log('Login attempt with:', { username, password });
     
     try {
-      await login(username, password);
+      const success = await login(username, password);
+      console.log('Login result:', success);
+      
+      if (!success) {
+        toast({
+          title: "שגיאת התחברות",
+          description: "שם משתמש או סיסמה שגויים",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      toast({
+        title: "שגיאת התחברות",
+        description: "אירעה שגיאה בהתחברות, אנא נסה שנית",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

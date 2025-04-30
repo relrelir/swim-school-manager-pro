@@ -59,7 +59,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .select('password')
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error checking if password was changed:', error);
+        return;
+      }
       
       // Check if password is still the default '2014'
       setDefaultPasswordChanged(data.password !== '2014');
@@ -70,13 +73,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (username: string, password: string): Promise<boolean> => {
     try {
+      console.log('Attempting login with:', { username, password });
+      
       const { data, error } = await supabase
         .from('admin_credentials')
         .select('*')
         .eq('username', username)
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Login error:', error);
+        toast({
+          title: "שגיאת התחברות",
+          description: "אירעה שגיאה בהתחברות, אנא נסה שנית",
+          variant: "destructive",
+        });
+        return false;
+      }
+      
+      console.log('Login data received:', data);
       
       if (data && data.password === password) {
         setIsAuthenticated(true);
@@ -92,6 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         return true;
       } else {
+        console.error('Password mismatch or no data');
         toast({
           title: "שגיאת התחברות",
           description: "שם משתמש או סיסמה שגויים",
@@ -126,7 +142,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         })
         .eq('username', 'ענבר במדבר 2014');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating password:', error);
+        toast({
+          title: "שגיאה",
+          description: "אירעה שגיאה בעדכון הסיסמה",
+          variant: "destructive",
+        });
+        return false;
+      }
       
       setDefaultPasswordChanged(true);
       toast({
