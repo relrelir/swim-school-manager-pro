@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Registration } from '@/types';
+import { Registration, Participant, Payment, HealthDeclaration, PaymentStatus } from '@/types';
 import ParticipantsSummaryCards from '@/components/participants/ParticipantsSummaryCards';
 import ParticipantsTable from '@/components/participants/ParticipantsTable';
 import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
@@ -12,14 +12,14 @@ interface ParticipantsContentProps {
   totalExpected: number;
   totalPaid: number;
   registrationsFilled: number;
-  getParticipantForRegistration: (registration: Registration) => any;
-  getPaymentsForRegistration: (registrationId: string) => any[];
-  getHealthDeclarationForRegistration: (registrationId: string) => any;
-  calculatePaymentStatus: (registration: Registration) => any;
+  getParticipantForRegistration: (registration: Registration) => Participant | undefined;
+  getPaymentsForRegistration: (registrationId: string) => Payment[]; // Changed to accept registrationId
+  getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined;
+  calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   getStatusClassName: (status: string) => string;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (id: string) => void;
-  onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
+  onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void; // Changed to accept registrationId
   onOpenHealthForm: (registrationId: string) => void;
   onExport: () => void;
 }
@@ -42,6 +42,19 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
   onOpenHealthForm,
   onExport
 }) => {
+  // Create adapter functions to handle the type conversion
+  const getPaymentsAdapter = (registration: Registration) => {
+    return getPaymentsForRegistration(registration.id);
+  };
+  
+  const updateHealthApprovalAdapter = (participant: Participant, isApproved: boolean) => {
+    // Find the registration for this participant
+    const registration = registrations.find(reg => reg.participantId === participant.id);
+    if (registration) {
+      onUpdateHealthApproval(registration.id, isApproved);
+    }
+  };
+
   return (
     <>
       <ParticipantsSummaryCards 
@@ -58,13 +71,13 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
         <ParticipantsTable
           registrations={registrations}
           getParticipantForRegistration={getParticipantForRegistration}
-          getPaymentsForRegistration={getPaymentsForRegistration}
+          getPaymentsForRegistration={getPaymentsAdapter}
           getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
           calculatePaymentStatus={calculatePaymentStatus}
           getStatusClassName={getStatusClassName}
           onAddPayment={onAddPayment}
           onDeleteRegistration={onDeleteRegistration}
-          onUpdateHealthApproval={onUpdateHealthApproval}
+          onUpdateHealthApproval={updateHealthApprovalAdapter}
           onOpenHealthForm={onOpenHealthForm}
           onExport={onExport}
         />

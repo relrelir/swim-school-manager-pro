@@ -62,7 +62,7 @@ const ParticipantsPage: React.FC = () => {
       const data = prepareParticipantsData(
         registrations, 
         getParticipantForRegistration,
-        getPaymentsForRegistration,
+        (registration) => getPaymentsForRegistration(registration.id), // Adapter function
         calculatePaymentStatus
       );
       
