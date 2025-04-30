@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -41,14 +42,29 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
 
   const handleSendSMS = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate phone number
+    if (!phone || phone.trim() === '') {
+      toast({
+        title: "שגיאה",
+        description: "יש להזין מספר טלפון",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
       if (healthDeclaration) {
-        // If we have an existing health declaration, send SMS
+        // If we have an existing health declaration, update the phone number if needed
+        if (healthDeclaration.phone !== phone) {
+          await updateHealthDeclaration(healthDeclaration.id, { phone });
+        }
+        // Send SMS
         await sendHealthDeclarationSMS(healthDeclaration.id, phone);
       } else {
-        // Otherwise create a new one
+        // Create a new health declaration
         const newDeclaration = await addHealthDeclaration({
           registrationId: registrationId,
           phone: phone,
@@ -59,8 +75,16 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
         if (newDeclaration) {
           // Send SMS for the new declaration
           await sendHealthDeclarationSMS(newDeclaration.id, phone);
+        } else {
+          throw new Error("Failed to create health declaration");
         }
       }
+      
+      // Show success message
+      toast({
+        title: "הצהרת בריאות נשלחה",
+        description: `הצהרת בריאות נשלחה למספר ${phone}`,
+      });
       
       // Close the form and refresh if needed
       onOpenChange(false);
