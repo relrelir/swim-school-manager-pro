@@ -13,21 +13,21 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     const token = uuidv4();
     
     // Check if a declaration already exists for this registration
-    const { data: existingData, error: existingError }: PostgrestResponse<any> = await supabase
+    const { data: existingData, error: existingError } = await supabase
       .from('health_declarations')
-      .select('id, form_status', { single: true })
+      .select('id, form_status')
       .eq('participant_id', registrationId);
     
-    if (existingError && existingError.code !== 'PGRST116') { // PGRST116 is "No rows found"
+    if (existingError) {
       console.error('Error checking existing declaration:', existingError);
       throw existingError;
     }
     
     let declarationId: string;
     
-    if (existingData) {
+    if (existingData && existingData.length > 0) {
       // Update existing declaration with new token
-      const { data: updateData, error: updateError }: PostgrestResponse<{ id: string }> = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('health_declarations')
         .update({
           token,
@@ -35,19 +35,19 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
           submission_date: null,
           notes: null
         })
-        .eq('id', existingData.id)
-        .select('id', { single: true });
+        .eq('id', existingData[0].id)
+        .select('id');
         
       if (updateError) {
         console.error('Error updating health declaration with new token:', updateError);
         throw updateError;
       }
       
-      if (!updateData) {
+      if (!updateData || updateData.length === 0) {
         throw new Error('No data returned when updating health declaration');
       }
       
-      declarationId = updateData.id;
+      declarationId = updateData[0].id;
     } else {
       // Create new declaration
       const newDeclaration = {
@@ -60,21 +60,21 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       
       console.log('Creating new health declaration:', newDeclaration);
       
-      const { data: newData, error: insertError }: PostgrestResponse<{ id: string }> = await supabase
+      const { data: newData, error: insertError } = await supabase
         .from('health_declarations')
         .insert(newDeclaration)
-        .select('id', { single: true });
+        .select('id');
       
       if (insertError) {
         console.error('Error creating health declaration:', insertError);
         throw insertError;
       }
       
-      if (!newData) {
+      if (!newData || newData.length === 0) {
         throw new Error('No data returned when creating health declaration');
       }
       
-      declarationId = newData.id;
+      declarationId = newData[0].id;
     }
     
     // Return the full URL

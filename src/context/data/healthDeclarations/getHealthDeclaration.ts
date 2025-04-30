@@ -9,21 +9,19 @@ import type { PostgrestResponse } from '@supabase/supabase-js';
  */
 export const getHealthDeclarationById = async (id: string): Promise<HealthDeclaration | null> => {
   try {
-    // Execute query with single option in select
-    const { data, error }: PostgrestResponse<any> = await supabase
+    // Execute query
+    const { data, error } = await supabase
       .from('health_declarations')
-      .select('*', { single: true })
+      .select('*')
       .eq('id', id);
 
     if (error) {
-      // If not found, return null
-      if (error.code === 'PGRST116') return null;
       console.error('Error fetching health declaration by ID:', error);
       return null;
     }
 
-    if (data) {
-      return mapHealthDeclarationFromDB(data);
+    if (data && data.length > 0) {
+      return mapHealthDeclarationFromDB(data[0]);
     }
     
     return null;
@@ -38,21 +36,19 @@ export const getHealthDeclarationById = async (id: string): Promise<HealthDeclar
  */
 export const getHealthDeclarationByToken = async (token: string): Promise<HealthDeclaration | null> => {
   try {
-    // Execute query with single option in select
-    const { data, error }: PostgrestResponse<any> = await supabase
+    // Execute query
+    const { data, error } = await supabase
       .from('health_declarations')
-      .select('*', { single: true })
+      .select('*')
       .eq('token', token);
 
     if (error) {
-      // If not found, return null
-      if (error.code === 'PGRST116') return null;
       console.error('Error fetching health declaration by token:', error);
       return null;
     }
 
-    if (data) {
-      return mapHealthDeclarationFromDB(data);
+    if (data && data.length > 0) {
+      return mapHealthDeclarationFromDB(data[0]);
     }
     
     return null;
