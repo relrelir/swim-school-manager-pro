@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useData } from '@/context/DataContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -122,7 +121,7 @@ const DailyActivityPage: React.FC = () => {
                     }
                   }}
                   weekStartsOn={0}
-                  captionLayout="dropdown-buttons"
+                  captionLayout="dropdown"
                   fromYear={2020}
                   toYear={2030}
                   className={cn("p-3 pointer-events-auto")}
