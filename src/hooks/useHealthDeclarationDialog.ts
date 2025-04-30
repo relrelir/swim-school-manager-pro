@@ -24,10 +24,26 @@ export const useHealthDeclarationDialog = (
     console.log('Found health declaration:', getHealthDeclarationForRegistration(registrationId), 'for registration:', registrationId);
     
     const registration = registrations.find(reg => reg.id === registrationId);
-    if (!registration) return;
+    if (!registration) {
+      console.error('Registration not found:', registrationId);
+      toast({
+        title: "שגיאה",
+        description: "לא נמצא רישום תקף",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const participant = participants.find(p => p.id === registration.participantId);
-    if (!participant) return;
+    if (!participant) {
+      console.error('Participant not found for registration:', registrationId);
+      toast({
+        title: "שגיאה",
+        description: "לא נמצא משתתף לרישום זה",
+        variant: "destructive",
+      });
+      return;
+    }
 
     let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
 
@@ -35,25 +51,29 @@ export const useHealthDeclarationDialog = (
     if (!healthDeclaration) {
       console.log('Creating new health declaration for registration:', registrationId);
       try {
-        // Create new health declaration with properly mapped fields
+        // Create health declaration with all required fields properly mapped
         const newDeclaration = await addHealthDeclaration({
-          // Map database fields correctly
-          participant_id: registrationId, // This MUST be the registration ID for the database
+          // Essential DB fields with correct naming
+          participant_id: registrationId,
           phone_sent_to: participant.phone,
           form_status: 'pending',
           created_at: new Date().toISOString(),
-          // Additional fields for convenience in our code
+          
+          // Convenience fields used in our frontend code
           registrationId: registrationId,
           phone: participant.phone,
           formStatus: 'pending',
           sentAt: new Date().toISOString()
         });
         
+        console.log('Health declaration creation response:', newDeclaration);
+        
         if (newDeclaration) {
-          console.log('Created new health declaration:', newDeclaration);
+          console.log('Successfully created new health declaration:', newDeclaration);
           healthDeclaration = newDeclaration;
         } else {
-          throw new Error('Failed to create health declaration');
+          console.error('Failed to create health declaration - undefined response');
+          throw new Error('Failed to create health declaration - undefined response');
         }
       } catch (error) {
         console.error('Error creating health declaration:', error);
@@ -66,6 +86,7 @@ export const useHealthDeclarationDialog = (
       }
     }
 
+    // Set current declaration data for the dialog
     setCurrentHealthDeclaration({
       registrationId,
       participantName: `${participant.firstName} ${participant.lastName}`,

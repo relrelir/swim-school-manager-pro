@@ -38,17 +38,27 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
     // Convert to DB field names format
     const dbHealthDeclaration = mapHealthDeclarationToDB(healthDeclaration);
     
-    // Ensure participant_id is properly set
-    if (!dbHealthDeclaration.participant_id && healthDeclaration.registrationId) {
-      dbHealthDeclaration.participant_id = healthDeclaration.registrationId;
+    // Log the data we're about to send to the database
+    console.log('Pre-insert health declaration data:', dbHealthDeclaration);
+    console.log('Original health declaration input:', healthDeclaration);
+    
+    // Triple-check the participant_id is set correctly
+    if (!dbHealthDeclaration.participant_id) {
+      if (healthDeclaration.registrationId) {
+        console.log('Setting participant_id from registrationId:', healthDeclaration.registrationId);
+        dbHealthDeclaration.participant_id = healthDeclaration.registrationId;
+      } else {
+        console.error('Missing required participant_id and no registrationId available');
+        throw new Error('Missing required participant_id field');
+      }
     }
     
     // Final validation check
     if (!dbHealthDeclaration.participant_id) {
-      throw new Error('Missing required participant_id field');
+      throw new Error('Missing required participant_id field even after fallback');
     }
     
-    console.log('Creating health declaration with data:', dbHealthDeclaration);
+    console.log('Final health declaration data for insert:', dbHealthDeclaration);
     
     const { data, error } = await supabase
       .from('health_declarations')
@@ -57,14 +67,19 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
       .single();
 
     if (error) {
+      console.error('Supabase error during health declaration insert:', error);
       handleSupabaseError(error, 'adding health declaration');
       return undefined;
     }
 
     if (data) {
+      console.log('Health declaration created successfully:', data);
       // Convert back to our TypeScript model format
       return mapHealthDeclarationFromDB(data);
     }
+    
+    console.error('No data returned from health declaration insert');
+    return undefined;
   } catch (error) {
     console.error('Error adding health declaration:', error);
     toast({
@@ -72,8 +87,8 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
       description: "אירעה שגיאה בהוספת הצהרת בריאות חדשה",
       variant: "destructive",
     });
+    return undefined;
   }
-  return undefined;
 };
 
 export const updateHealthDeclarationService = async (id: string, updates: Partial<HealthDeclaration>) => {
@@ -85,12 +100,15 @@ export const updateHealthDeclarationService = async (id: string, updates: Partia
       dbUpdates.participant_id = updates.registrationId;
     }
     
+    console.log('Updating health declaration with id:', id, 'and data:', dbUpdates);
+    
     const { error } = await supabase
       .from('health_declarations')
       .update(dbUpdates)
       .eq('id', id);
 
     if (error) {
+      console.error('Supabase error during health declaration update:', error);
       handleSupabaseError(error, 'updating health declaration');
     }
     
