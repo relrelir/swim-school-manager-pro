@@ -1,5 +1,5 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 
 import Layout from "@/components/layout/Layout";
@@ -27,8 +27,8 @@ function App() {
             <Route path="/health-form/:formId" element={<HealthFormPage />} />
             <Route path="/form-success" element={<FormSuccessPage />} />
             
-            {/* Routes with layout */}
-            <Route element={<Layout />}>
+            {/* Routes with layout - using Outlet as children */}
+            <Route element={<Layout><Outlet /></Layout>}>
               <Route index element={<Index />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/season/:seasonId" element={<SeasonPage />} />

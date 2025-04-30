@@ -60,17 +60,24 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
         
         if (healthData) {
-          // Transform health declaration data to match our type
-          const transformedHealthDeclarations = healthData.map(decl => ({
-            id: decl.id,
-            participantId: decl.participant_id,
-            formStatus: decl.form_status,
-            submissionDate: decl.submission_date,
-            notes: decl.notes,
-            phoneSentTo: decl.phone_sent_to,
-            createdAt: decl.created_at,
-            updatedAt: decl.updated_at
-          }));
+          // Transform health declaration data to match our type with proper status types
+          const transformedHealthDeclarations: HealthDeclaration[] = healthData.map(decl => {
+            // Ensure formStatus is one of the valid enum values
+            let formStatus: 'pending' | 'approved' | 'declined' = 'pending';
+            if (decl.form_status === 'approved') formStatus = 'approved';
+            if (decl.form_status === 'declined') formStatus = 'declined';
+            
+            return {
+              id: decl.id,
+              participantId: decl.participant_id,
+              formStatus,
+              submissionDate: decl.submission_date,
+              notes: decl.notes,
+              phoneSentTo: decl.phone_sent_to,
+              createdAt: decl.created_at,
+              updatedAt: decl.updated_at
+            };
+          });
           setHealthDeclarations(transformedHealthDeclarations);
         }
       } catch (error) {
@@ -161,7 +168,7 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         if (declaration) {
           const participant = participants.find(p => p.id === declaration.participantId);
           if (participant) {
-            await updateParticipant({
+            await updateParticipantHealth({
               ...participant,
               healthApproval: true
             });
@@ -216,33 +223,62 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  // Update participant specific for health approval
+  const updateParticipantHealth = async (participant: Participant) => {
+    try {
+      const { id, ...participantData } = participant;
+      const dbParticipant = mapParticipantToDB(participantData);
+      
+      const { error } = await supabase
+        .from('participants')
+        .update(dbParticipant)
+        .eq('id', id);
+
+      if (error) {
+        handleSupabaseError(error, 'updating participant');
+      }
+
+      setParticipants(participants.map(p => p.id === id ? participant : p));
+    } catch (error) {
+      console.error('Error updating participant:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בעדכון משתתף",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Update a participant (general function)
+  const updateParticipant = async (participant: Participant) => {
+    try {
+      const { id, ...participantData } = participant;
+      const dbParticipant = mapParticipantToDB(participantData);
+      
+      const { error } = await supabase
+        .from('participants')
+        .update(dbParticipant)
+        .eq('id', id);
+
+      if (error) {
+        handleSupabaseError(error, 'updating participant');
+      }
+
+      setParticipants(participants.map(p => p.id === id ? participant : p));
+    } catch (error) {
+      console.error('Error updating participant:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בעדכון משתתף",
+        variant: "destructive",
+      });
+    }
+  };
+
   const contextValue: ParticipantsContextType = {
     participants,
     addParticipant,
-    updateParticipant: async (participant: Participant) => {
-      try {
-        const { id, ...participantData } = participant;
-        const dbParticipant = mapParticipantToDB(participantData);
-        
-        const { error } = await supabase
-          .from('participants')
-          .update(dbParticipant)
-          .eq('id', id);
-
-        if (error) {
-          handleSupabaseError(error, 'updating participant');
-        }
-
-        setParticipants(participants.map(p => p.id === id ? participant : p));
-      } catch (error) {
-        console.error('Error updating participant:', error);
-        toast({
-          title: "שגיאה",
-          description: "אירעה שגיאה בעדכון משתתף",
-          variant: "destructive",
-        });
-      }
-    },
+    updateParticipant,
     deleteParticipant: async (id: string) => {
       try {
         const { error } = await supabase
