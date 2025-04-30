@@ -1,48 +1,61 @@
 
-import { Participant } from '@/types';
+import { useState } from 'react';
 import { toast } from "@/components/ui/use-toast";
-import { useHealthDeclarationDialog } from './useHealthDeclarationDialog';
+import { Participant, Registration } from '@/types';
 
 export const useParticipantHealth = (
-  getHealthDeclarationForRegistration: (registrationId: string) => any,
-  addHealthDeclaration: (declaration: Omit<any, 'id'>) => Promise<any>,
-  updateParticipant: (participant: Participant) => void,
+  getHealthDeclarationForRegistration: any,
+  addHealthDeclaration: any,
+  updateParticipant: any,
   participants: Participant[],
-  registrations: any[]
+  registrations: Registration[]
 ) => {
-  // Use the extracted dialog functionality
-  const {
-    isLinkDialogOpen,
-    setIsLinkDialogOpen,
-    currentHealthDeclaration,
-    setCurrentHealthDeclaration,
-    handleOpenHealthForm: baseHandleOpenHealthForm
-  } = useHealthDeclarationDialog(getHealthDeclarationForRegistration, addHealthDeclaration);
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<any>(null);
 
-  // Wrapper function for opening health form with stored participants and registrations
-  const handleOpenHealthForm = (registrationId: string) => {
-    return baseHandleOpenHealthForm(registrationId, participants, registrations);
-  };
-
-  // Handle updating health approval
-  const handleUpdateHealthApproval = (registrationId: string, isApproved: boolean) => {
-    // Find the corresponding registration and participant
-    const registration = registrations.find(reg => reg.id === registrationId);
-    if (registration) {
-      const participant = participants.find(p => p.id === registration.participantId);
-      if (participant) {
-        const updatedParticipant: Participant = {
-          ...participant,
-          healthApproval: isApproved
-        };
-        
-        updateParticipant(updatedParticipant);
-        
+  // Handler for health approval toggle
+  const handleUpdateHealthApproval = async (registrationId: string, isApproved: boolean) => {
+    try {
+      // Find registration and participant
+      const registration = registrations.find(r => r.id === registrationId);
+      if (!registration) {
         toast({
-          title: "אישור בריאות עודכן",
-          description: `אישור בריאות ${isApproved ? 'התקבל' : 'בוטל'} עבור ${participant.firstName} ${participant.lastName}`,
+          title: "שגיאה",
+          description: "לא נמצא רישום מתאים",
+          variant: "destructive",
         });
+        return;
       }
+
+      const participant = participants.find(p => p.id === registration.participantId);
+      if (!participant) {
+        toast({
+          title: "שגיאה",
+          description: "לא נמצא משתתף מתאים",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update the participant's health approval status
+      await updateParticipant({
+        ...participant,
+        healthApproval: isApproved
+      });
+
+      toast({
+        title: isApproved ? "אישור בריאות עודכן" : "אישור בריאות בוטל",
+        description: isApproved 
+          ? "המשתתף מאושר מבחינת בריאות" 
+          : "אישור הבריאות של המשתתף בוטל",
+      });
+    } catch (error) {
+      console.error('Error updating health approval:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בעדכון אישור הבריאות",
+        variant: "destructive",
+      });
     }
   };
 
@@ -51,7 +64,6 @@ export const useParticipantHealth = (
     setIsLinkDialogOpen,
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
-    handleOpenHealthForm,
     handleUpdateHealthApproval
   };
 };

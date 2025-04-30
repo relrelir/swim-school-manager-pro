@@ -2,15 +2,15 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle, AlertCircle, Send } from 'lucide-react';
+import { CheckCircle, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Participant, Registration, HealthDeclaration } from '@/types';
+import HealthFormLink from './health-declaration/HealthFormLink';
 
 interface TableHealthStatusProps {
   registration: Registration;
   participant?: Participant;
   healthDeclaration?: HealthDeclaration;
-  onOpenHealthForm: () => void;
   onUpdateHealthApproval: (isApproved: boolean) => void;
 }
 
@@ -18,10 +18,11 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   registration,
   participant,
   healthDeclaration,
-  onOpenHealthForm,
   onUpdateHealthApproval
 }) => {
   if (!participant) return null;
+
+  const isFormSigned = healthDeclaration && healthDeclaration.formStatus === 'signed';
 
   return (
     <div className="flex items-center gap-2">
@@ -45,15 +46,10 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </Tooltip>
       )}
       
-      <Button
-        variant="ghost"
-        size="sm"
-        className={cn("flex items-center")}
-        onClick={onOpenHealthForm}
-      >
-        <Send className="h-4 w-4 mr-1" />
-        הצהרה
-      </Button>
+      <HealthFormLink 
+        registrationId={registration.id} 
+        isDisabled={isFormSigned || false} 
+      />
 
       <Button
         variant="ghost"

@@ -1,36 +1,28 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
 import { submitHealthFormService } from '@/context/data/healthDeclarations/service';
-import { supabase } from '@/integrations/supabase/client';
+import { toast } from "@/components/ui/use-toast";
 
-interface HealthFormState {
+interface FormState {
   agreement: boolean;
   notes: string;
 }
 
 export const useHealthFormState = (healthDeclarationId: string | null) => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [formState, setFormState] = useState<HealthFormState>({
+  const [formState, setFormState] = useState<FormState>({
     agreement: false,
     notes: ''
   });
   
-  const navigate = useNavigate();
-  
-  const handleAgreementChange = (checked: boolean) => {
-    setFormState(prev => ({
-      ...prev,
-      agreement: checked
-    }));
+  const handleAgreementChange = (value: boolean) => {
+    setFormState(prev => ({ ...prev, agreement: value }));
   };
   
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormState(prev => ({
-      ...prev,
-      notes: e.target.value
-    }));
+  const handleNotesChange = (value: string) => {
+    setFormState(prev => ({ ...prev, notes: value }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,7 +40,7 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     if (!formState.agreement) {
       toast({
         title: "שגיאה",
-        description: "יש לאשר את הצהרת הבריאות",
+        description: "יש לאשר את הצהרת הבריאות כדי להמשיך",
         variant: "destructive",
       });
       return;
@@ -57,47 +49,17 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     setIsLoading(true);
     
     try {
-      // Submit the health form
-      const registrationId = await submitHealthFormService(
-        healthDeclarationId, 
-        formState.agreement, 
-        formState.notes
+      await submitHealthFormService(
+        healthDeclarationId,
+        formState.agreement,
+        formState.notes || undefined
       );
       
-      // Update participant health approval
-      if (registrationId) {
-        // First get the participant ID from registration
-        const { data: registrationData, error: registrationError } = await supabase
-          .from('registrations')
-          .select('participantid')
-          .eq('id', registrationId)
-          .single();
-        
-        if (registrationError || !registrationData) {
-          console.error('Error fetching registration data:', registrationError);
-        } else {
-          const participantId = registrationData.participantid;
-          
-          // Update participant's health approval status
-          if (participantId) {
-            const { error: updateError } = await supabase
-              .from('participants')
-              .update({ healthapproval: true })
-              .eq('id', participantId);
-            
-            if (updateError) {
-              console.error('Error updating participant health approval:', updateError);
-            }
-          }
-        }
-      }
-      
       toast({
-        title: "תודה!",
-        description: "הצהרת הבריאות התקבלה בהצלחה",
+        title: "הצהרת הבריאות נשלחה בהצלחה",
+        description: "תודה על מילוי הטופס",
       });
       
-      // Redirect to success page
       navigate('/form-success');
     } catch (error) {
       console.error('Error submitting health form:', error);

@@ -4,6 +4,7 @@ import { toast } from "@/components/ui/use-toast";
 import { HealthDeclaration } from '@/types';
 import { mapHealthDeclarationFromDB, mapHealthDeclarationToDB } from './mappers';
 import { handleSupabaseError } from '../utils';
+import { v4 as uuidv4 } from 'uuid';
 
 export const fetchHealthDeclarations = async () => {
   try {
@@ -35,10 +36,16 @@ export const fetchHealthDeclarations = async () => {
 
 export const addHealthDeclarationService = async (healthDeclaration: Omit<HealthDeclaration, 'id'>) => {
   try {
-    // Convert to DB field names format
-    const dbHealthDeclaration = mapHealthDeclarationToDB(healthDeclaration);
+    // Generate a unique token
+    const token = uuidv4();
     
-    // Log the data we're about to send to the database
+    // Convert to DB field names format
+    const dbHealthDeclaration = mapHealthDeclarationToDB({
+      ...healthDeclaration,
+      token,
+      form_status: 'pending'
+    });
+    
     console.log('Pre-insert health declaration data:', dbHealthDeclaration);
     
     // CRITICAL: Triple-check the participant_id is set correctly - this MUST be the registration ID
@@ -60,10 +67,6 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
     // Validate required fields
     if (!dbHealthDeclaration.participant_id) {
       throw new Error('Missing required participant_id field');
-    }
-    
-    if (!dbHealthDeclaration.phone_sent_to) {
-      throw new Error('Missing required phone_sent_to field');
     }
     
     console.log('Final health declaration data for insert:', dbHealthDeclaration);
@@ -140,7 +143,7 @@ export const submitHealthFormService = async (
     }
     
     const updates = {
-      form_status: 'completed',
+      form_status: 'signed',
       submission_date: new Date().toISOString(),
       notes: notes || null
     };
@@ -192,6 +195,108 @@ export const getHealthDeclarationById = async (id: string): Promise<HealthDeclar
     return null;
   } catch (error) {
     console.error('Error getting health declaration by ID:', error);
+    return null;
+  }
+};
+
+// Get a health declaration by its token
+export const getHealthDeclarationByToken = async (token: string): Promise<HealthDeclaration | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('health_declarations')
+      .select('*')
+      .eq('token', token)
+      .single();
+
+    if (error) {
+      console.error('Error fetching health declaration by token:', error);
+      return null;
+    }
+
+    if (data) {
+      return mapHealthDeclarationFromDB(data);
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error getting health declaration by token:', error);
+    return null;
+  }
+};
+
+// Create a health declaration link
+export const createHealthDeclarationLink = async (registrationId: string): Promise<string | null> => {
+  try {
+    // Generate a unique token
+    const token = uuidv4();
+    
+    // Check if a declaration already exists for this registration
+    const { data: existingData, error: existingError } = await supabase
+      .from('health_declarations')
+      .select('id, form_status')
+      .eq('participant_id', registrationId)
+      .single();
+    
+    if (existingError && existingError.code !== 'PGRST116') { // PGRST116 is "No rows found"
+      console.error('Error checking existing declaration:', existingError);
+      throw existingError;
+    }
+    
+    let declarationId: string;
+    
+    if (existingData) {
+      // Update existing declaration with new token
+      const { error: updateError } = await supabase
+        .from('health_declarations')
+        .update({
+          token,
+          form_status: 'pending',
+          submission_date: null,
+          notes: null
+        })
+        .eq('id', existingData.id);
+        
+      if (updateError) {
+        console.error('Error updating health declaration with new token:', updateError);
+        throw updateError;
+      }
+      
+      declarationId = existingData.id;
+    } else {
+      // Create new declaration
+      const { data: newData, error: insertError } = await supabase
+        .from('health_declarations')
+        .insert([{
+          participant_id: registrationId,
+          token,
+          form_status: 'pending',
+          created_at: new Date().toISOString()
+        }])
+        .select('id')
+        .single();
+        
+      if (insertError) {
+        console.error('Error creating health declaration:', insertError);
+        throw insertError;
+      }
+      
+      if (!newData) {
+        throw new Error('No data returned when creating health declaration');
+      }
+      
+      declarationId = newData.id;
+    }
+    
+    // Return the full URL
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/health-form/${token}`;
+  } catch (error) {
+    console.error('Error creating health declaration link:', error);
+    toast({
+      title: "שגיאה",
+      description: "אירעה שגיאה ביצירת קישור להצהרת בריאות",
+      variant: "destructive",
+    });
     return null;
   }
 };

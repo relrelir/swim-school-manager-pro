@@ -1,79 +1,83 @@
 
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
-import { Link, Copy } from 'lucide-react';
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { CopyIcon, CheckIcon, LinkIcon } from "lucide-react";
+import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/service';
 
 interface HealthFormLinkProps {
-  healthFormUrl: string;
-  participantName: string;
-  formStatus?: string;
+  registrationId: string;
+  isDisabled: boolean;
 }
 
-const HealthFormLink: React.FC<HealthFormLinkProps> = ({ 
-  healthFormUrl, 
-  participantName, 
-  formStatus 
-}) => {
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(healthFormUrl);
-    toast({
-      title: "הלינק הועתק",
-      description: "הלינק להצהרת הבריאות הועתק ללוח",
-    });
+const HealthFormLink = ({ registrationId, isDisabled }: HealthFormLinkProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  
+  const handleGenerateLink = async () => {
+    setIsGenerating(true);
+    try {
+      const link = await createHealthDeclarationLink(registrationId);
+      if (link) {
+        await copyToClipboard(link);
+        setIsCopied(true);
+        toast({
+          title: "הקישור הועתק",
+          description: "הדבק ושלח ללקוח",
+        });
+        
+        // Reset copied state after 3 seconds
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error generating health form link:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה ביצירת הקישור",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
-
-  // Helper function to get status display text and color
-  const getStatusDisplay = (status?: string) => {
-    if (!status) return { text: 'ממתין', color: 'text-amber-500' };
-    
-    // Safe comparison with string literals
-    if (status === 'completed') return { text: 'הושלם', color: 'text-green-500' };
-    if (status === 'signed') return { text: 'חתום', color: 'text-green-500' };
-    if (status === 'sent') return { text: 'נשלח', color: 'text-blue-500' };
-    if (status === 'expired') return { text: 'פג תוקף', color: 'text-red-500' };
-    return { text: 'ממתין', color: 'text-amber-500' };
+  
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      return false;
+    }
   };
-
-  // Get status display properties
-  const statusDisplay = getStatusDisplay(formStatus);
-
+  
   return (
-    <div className="grid gap-4 py-4">
-      <div className="text-sm">
-        הצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
-      </div>
-      <div className="text-sm">
-        העתק את הלינק ושלח למשתתף בוואטסאפ/מייל:
-      </div>
-      <div className="flex gap-2">
-        <Input
-          value={healthFormUrl}
-          readOnly
-          onClick={(e) => (e.target as HTMLInputElement).select()}
-          className="flex-1 text-right"
-        />
-        <Button onClick={handleCopyLink}>
-          <Copy className="h-4 w-4 mr-1" />
-          העתק
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex items-center"
+          onClick={handleGenerateLink}
+          disabled={isDisabled || isGenerating}
+        >
+          {isGenerating ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+          ) : isCopied ? (
+            <CheckIcon className="h-4 w-4 mr-1 text-green-500" />
+          ) : (
+            <LinkIcon className="h-4 w-4 mr-1" />
+          )}
+          קבל לינק
         </Button>
-      </div>
-      <div className="flex items-center justify-center mt-2">
-        <div className="bg-muted p-3 rounded-md flex items-center gap-2">
-          <Link className="h-5 w-5 text-muted-foreground" />
-          <span className="text-sm">
-            סטטוס הצהרה: 
-            <span className={`font-medium ml-1 ${statusDisplay.color}`}>
-              {statusDisplay.text}
-            </span>
-          </span>
-        </div>
-      </div>
-      <div className="text-xs text-muted-foreground">
-        כאשר המשתתף ימלא את הטופס, אישור הבריאות יעודכן אוטומטית במערכת.
-      </div>
-    </div>
+      </TooltipTrigger>
+      <TooltipContent>
+        {isDisabled ? "טופס כבר מולא" : "יצירת קישור למילוי הצהרת בריאות"}
+      </TooltipContent>
+    </Tooltip>
   );
 };
 

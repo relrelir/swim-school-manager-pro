@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getHealthDeclarationById } from '@/context/data/healthDeclarations/service';
+import { getHealthDeclarationByToken } from '@/context/data/healthDeclarations/service';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useHealthDeclarationLoader = () => {
@@ -13,20 +13,18 @@ export const useHealthDeclarationLoader = () => {
   const location = useLocation();
   
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const declarationId = queryParams.get('id');
+    const pathParts = location.pathname.split('/');
+    const token = pathParts[pathParts.length - 1];
     
-    if (!declarationId) {
+    if (!token) {
       setError('הקישור אינו תקין. חסר מזהה הצהרת בריאות.');
       setIsLoadingData(false);
       return;
     }
     
-    setHealthDeclarationId(declarationId);
-    
     const loadHealthDeclaration = async () => {
       try {
-        const declaration = await getHealthDeclarationById(declarationId);
+        const declaration = await getHealthDeclarationByToken(token);
         
         if (!declaration) {
           setError('לא נמצאה הצהרת בריאות תואמת.');
@@ -35,18 +33,19 @@ export const useHealthDeclarationLoader = () => {
         }
         
         // Check if the form is already completed
-        const formStatusValue = declaration.form_status || declaration.formStatus;
-        if (formStatusValue === 'completed') {
+        if (declaration.formStatus === 'signed') {
           setError('הצהרת בריאות זו כבר מולאה. תודה!');
           setIsLoadingData(false);
           return;
         }
         
+        setHealthDeclarationId(declaration.id);
+        
         // Get participant name
         const { data: participantData, error: participantError } = await supabase
           .from('registrations')
           .select('participants(firstname, lastname)')
-          .eq('id', declaration.participant_id)
+          .eq('id', declaration.registrationId)
           .single();
         
         if (participantError || !participantData) {
@@ -65,7 +64,7 @@ export const useHealthDeclarationLoader = () => {
     };
     
     loadHealthDeclaration();
-  }, [location.search]);
+  }, [location.pathname]);
   
   return {
     isLoadingData,

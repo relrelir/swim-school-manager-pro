@@ -6,7 +6,7 @@ export const mapHealthDeclarationFromDB = (dbDeclaration: any): HealthDeclaratio
   return {
     id: dbDeclaration.id,
     participant_id: dbDeclaration.participant_id,
-    phone_sent_to: dbDeclaration.phone_sent_to,
+    token: dbDeclaration.token,
     form_status: dbDeclaration.form_status,
     submission_date: dbDeclaration.submission_date,
     created_at: dbDeclaration.created_at,
@@ -14,7 +14,6 @@ export const mapHealthDeclarationFromDB = (dbDeclaration: any): HealthDeclaratio
     
     // Map to convenience fields for use in our code
     registrationId: dbDeclaration.participant_id,
-    phone: dbDeclaration.phone_sent_to,
     formStatus: dbDeclaration.form_status,
     submissionDate: dbDeclaration.submission_date,
     sentAt: dbDeclaration.created_at
@@ -36,11 +35,9 @@ export const mapHealthDeclarationToDB = (declaration: Partial<HealthDeclaration>
     result.participant_id = declaration.registrationId;
   }
   
-  // Handle phone mapping, prioritizing direct field over convenience field
-  if (declaration.phone_sent_to !== undefined) {
-    result.phone_sent_to = declaration.phone_sent_to;
-  } else if (declaration.phone !== undefined) {
-    result.phone_sent_to = declaration.phone;
+  // Handle token field
+  if (declaration.token !== undefined) {
+    result.token = declaration.token;
   }
   
   // Handle form status mapping, prioritizing direct field over convenience field
