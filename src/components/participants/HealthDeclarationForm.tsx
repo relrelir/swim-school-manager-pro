@@ -130,6 +130,20 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     });
   };
 
+  // Helper function to get status display text and color
+  const getStatusDisplay = (status?: string) => {
+    if (!status) return { text: 'ממתין', color: 'text-amber-500' };
+    
+    // Safe comparison using in operator with type guard
+    if (status === 'completed') return { text: 'הושלם', color: 'text-green-500' };
+    if (status === 'sent') return { text: 'נשלח', color: 'text-blue-500' };
+    return { text: 'ממתין', color: 'text-amber-500' };
+  };
+
+  // Get status display properties
+  const formStatus = healthDeclaration?.formStatus || healthDeclaration?.form_status;
+  const statusDisplay = getStatusDisplay(formStatus);
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -161,12 +175,8 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
                 <Link className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm">
                   סטטוס הצהרה: 
-                  <span className={`font-medium ml-1 ${
-                    healthDeclaration.formStatus === 'completed' ? 'text-green-500' : 
-                    healthDeclaration.formStatus === 'sent' ? 'text-blue-500' : 'text-amber-500'
-                  }`}>
-                    {healthDeclaration.formStatus === 'completed' ? 'הושלם' : 
-                     healthDeclaration.formStatus === 'sent' ? 'נשלח' : 'ממתין'}
+                  <span className={`font-medium ml-1 ${statusDisplay.color}`}>
+                    {statusDisplay.text}
                   </span>
                 </span>
               </div>
