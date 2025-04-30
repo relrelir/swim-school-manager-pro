@@ -64,7 +64,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         variant="ghost"
         size="sm"
         className={cn("flex items-center")}
-        onClick={() => setIsLinkDialogOpen(true)}
+        onClick={() => onOpenHealthForm(registration.id)}
       >
         <Send className="h-4 w-4 mr-1" />
         שלח

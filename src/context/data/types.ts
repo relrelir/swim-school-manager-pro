@@ -47,10 +47,9 @@ export interface PaymentsContextType {
 
 export interface HealthDeclarationsContextType {
   healthDeclarations: HealthDeclaration[];
-  addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined> | void;
+  addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>;
   updateHealthDeclaration: (id: string, updates: Partial<HealthDeclaration>) => Promise<void>;
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined;
-  sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>;
   loading: boolean;
 }
 

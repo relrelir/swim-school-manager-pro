@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
@@ -16,8 +17,8 @@ const ParticipantsPage: React.FC = () => {
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
-    isHealthFormOpen,
-    setIsHealthFormOpen,
+    isLinkDialogOpen,
+    setIsLinkDialogOpen,
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
     newParticipant,
