@@ -87,14 +87,28 @@ export const exportRegistrationsToCSV = (registrations: RegistrationWithDetails[
 
 // Function to export daily activities to CSV
 export const exportDailyActivitiesToCSV = (activities: any[], filename: string = 'daily-activities.csv') => {
+  // Process activities to include the correct day of week and meeting number info
+  const processedActivities = activities.map(activity => {
+    // The meeting info is already calculated in the UI, so we extract the values
+    const currentMeeting = activity.currentMeeting || '';
+    const totalMeetings = activity.totalMeetings || '';
+    
+    return {
+      ...activity,
+      // Format meeting number as "current/total"
+      meetingNumber: `${currentMeeting}/${totalMeetings}`
+    };
+  });
+
   const columns = [
     { key: 'product.name', header: 'שם פעילות' },
     { key: 'product.type', header: 'סוג פעילות' },
     { key: 'startTime', header: 'שעת התחלה' },
-    { key: 'dayOfWeek', header: 'יום בשבוע' },
+    { key: 'formattedDayOfWeek', header: 'יום בשבוע' }, // Use the formatted day of week
+    { key: 'meetingNumber', header: 'מפגש מספר' }, // Add meeting number
     { key: 'numParticipants', header: 'מספר משתתפים' },
-    { key: 'location', header: 'מיקום' },
   ];
+  // Removed the location column as it's unnecessary
   
-  downloadCSV(activities, columns, filename);
+  downloadCSV(processedActivities, columns, filename);
 };

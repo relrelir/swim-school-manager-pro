@@ -14,7 +14,7 @@ import { CalendarIcon } from 'lucide-react';
 import { exportDailyActivitiesToCSV } from '@/utils/exportUtils';
 
 const DailyActivityPage: React.FC = () => {
-  const { getDailyActivities, calculateMeetingProgress } = useData();
+  const { getDailyActivities } = useData();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [dateInputValue, setDateInputValue] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
 
@@ -57,9 +57,25 @@ const DailyActivityPage: React.FC = () => {
     };
   };
 
+  // Format the activities with the required data for export
+  const getFormattedActivities = () => {
+    const dayOfWeekFormatted = format(selectedDate, 'EEEE', { locale: he });
+    
+    return activities.map(activity => {
+      const meetingInfo = calculateMeetingNumberForDate(activity.product, selectedDate);
+      return {
+        ...activity,
+        formattedDayOfWeek: dayOfWeekFormatted, // Add formatted day of week
+        currentMeeting: meetingInfo.current, // Add current meeting number
+        totalMeetings: meetingInfo.total, // Add total meetings
+      };
+    });
+  };
+
   const handleExport = () => {
     const formattedDate = format(selectedDate, 'yyyy-MM-dd');
-    exportDailyActivitiesToCSV(activities, formattedDate);
+    const formattedActivities = getFormattedActivities();
+    exportDailyActivitiesToCSV(formattedActivities, `daily-activities-${formattedDate}.csv`);
   };
 
   return (
