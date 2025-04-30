@@ -1,73 +1,135 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Alef:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
  
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* שורשי מערכת העיצוב - בסיס צבעים */
+    --background: 210 33% 99%;
+    --foreground: 210 25% 10%;
+    
+    /* צבעי כרטיס */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 210 25% 10%;
+    
+    /* צבעי חלונית */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    --popover-foreground: 210 25% 10%;
+    
+    /* צבעי מותג ראשיים */
+    --primary: 199 100% 33%; /* #006CA9 */
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
+    --primary-hover: 199 100% 28%; 
+    
+    /* צבעי מותג משניים */
+    --secondary: 196 100% 42%; /* #0096D6 */
+    --secondary-foreground: 210 40% 98%;
+    --secondary-hover: 196 100% 37%;
+    
+    /* צבעי רקע משניים */
+    --muted: 210 20% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
+    
+    /* צבעי הדגשה */
+    --accent: 199 100% 33%;
+    --accent-foreground: 210 40% 98%;
+    
+    /* צבעי התראות */
+    --destructive: 0 84.2% 60.2%; /* #DC3545 */
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
+    --warning: 48 100% 52%; /* #FFC107 */
+    --warning-foreground: 210 25% 10%;
+    --success: 134 61% 41%; /* #28A745 */
+    --success-foreground: 210 40% 98%;
+    
+    /* צבעי גבולות ואינטראקציה */
+    --border: 214.3 31.8% 91.4%; /* #F8FAFC */
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 199 100% 33%;
     --radius: 0.5rem;
-    --status-paid: 141, 79%, 85%;
-    --status-partial: 48, 96%, 89%;
-    --status-overdue: 0, 96%, 89%;
+    
+    /* סטטוס תשלום */
+    --status-paid: 134, 61%, 85%; /* ירוק בהיר */
+    --status-partial: 48, 100%, 89%; /* צהוב בהיר */
+    --status-overdue: 0, 84%, 89%; /* אדום בהיר */
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 210 25% 10%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    
+    --card: 210 25% 10%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    
+    --popover: 210 25% 10%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
+    
+    --primary: 199 100% 40%; /* כחול בהיר יותר לדרק מוד */
+    --primary-foreground: 210 25% 10%;
+    
+    --secondary: 196 100% 50%;
+    --secondary-foreground: 210 25% 10%;
+    
+    --muted: 210 20% 20%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    
+    --accent: 199 100% 40%;
+    --accent-foreground: 210 25% 10%;
+    
+    --destructive: 0 84.2% 65%; /* בהיר יותר בדארק מוד */
+    --destructive-foreground: 210 25% 10%;
+    
+    --border: 210 20% 20%;
+    --input: 210 20% 20%;
+    --ring: 199 100% 40%;
+    
+    /* סטטוס תשלום - דארק מוד */
+    --status-paid: 134, 51%, 35%;
+    --status-partial: 48, 90%, 40%;
+    --status-overdue: 0, 74%, 40%;
   }
 }
 
-/* Apply RTL direction to the whole document */
+/* הגדרות כלליות לכל המסמך */
 html, body, #root {
   direction: rtl;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 
     'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-/* Override specific LTR controls */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Alef', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* הגדרה ספציפית לכותרות */
+h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 1.75rem;
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: 1.5rem;
+  line-height: 1.3;
+}
+
+/* הגדרות LTR לרכיבים ספציפיים */
 .ltr {
   direction: ltr;
   text-align: left;
 }
 
-/* RTL adjustments for common UI components */
+/* התאמות RTL למרווחים */
 .mr-2 {
   margin-right: 0;
   margin-left: 0.5rem;
@@ -82,6 +144,53 @@ html, body, #root {
   --tw-space-x-reverse: 1;
   margin-right: calc(0.5rem * var(--tw-space-x-reverse));
   margin-left: calc(0.5rem * calc(1 - var(--tw-space-x-reverse)));
+}
+
+/* טבלה עם רקעים מחליפים */
+.data-table tbody tr:nth-child(even) {
+  background-color: hsl(var(--muted));
+}
+
+/* אפקטים למעבר עכבר על כפתורים ואלמנטים אינטראקטיביים */
+.hover-effect {
+  transition: all 150ms ease-in-out;
+}
+
+.hover-effect:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* אנימציות כניסה ויציאה */
+@keyframes fade-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade-in-scale {
+  animation: fade-in-scale 150ms ease-out forwards;
+}
+
+/* Skeleton loading */
+.skeleton-loader {
+  background: linear-gradient(110deg, var(--muted) 8%, #f5f5f5 18%, var(--muted) 33%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
 }
 
 @layer base {

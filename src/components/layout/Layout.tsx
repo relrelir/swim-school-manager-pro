@@ -17,14 +17,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-background">
       <Header />
-      <div className="flex flex-1">
-        <Navigation />
-        <main className="flex-1 p-6">
-          {children}
-        </main>
-      </div>
+      <Navigation />
+      <main className="flex-1 container mx-auto p-4 md:p-6 animate-fade-in">
+        {children}
+      </main>
     </div>
   );
 };

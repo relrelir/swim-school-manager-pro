@@ -16,7 +16,15 @@ import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./context/AuthContext";
 import { DataProvider } from "./context/DataContext";
 
-const queryClient = new QueryClient();
+// יצירת לקוח עבור React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -24,23 +32,25 @@ const App = () => (
       <AuthProvider>
         <DataProvider>
           <Toaster />
-          <Sonner />
+          <Sonner position="bottom-left" className="rtl" />
           <BrowserRouter>
-            <Routes>
-              {/* Public routes for health declaration form */}
-              <Route path="/health-form" element={<HealthFormPage />} />
-              <Route path="/form-success" element={<FormSuccessPage />} />
-              
-              {/* App routes wrapped in layout */}
-              <Route path="/" element={<Layout><Outlet /></Layout>}>
-                <Route index element={<SeasonPage />} />
-                <Route path="/season/:seasonId/products" element={<ProductsPage />} />
-                <Route path="/product/:productId/participants" element={<ParticipantsPage />} />
-                <Route path="/report" element={<ReportPage />} />
-                <Route path="/daily-activity" element={<DailyActivityPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
+            <div className="min-h-screen flex flex-col bg-background font-inter antialiased">
+              <Routes>
+                {/* Public routes for health declaration form */}
+                <Route path="/health-form" element={<HealthFormPage />} />
+                <Route path="/form-success" element={<FormSuccessPage />} />
+                
+                {/* App routes wrapped in layout */}
+                <Route path="/" element={<Layout><Outlet /></Layout>}>
+                  <Route index element={<SeasonPage />} />
+                  <Route path="/season/:seasonId/products" element={<ProductsPage />} />
+                  <Route path="/product/:productId/participants" element={<ParticipantsPage />} />
+                  <Route path="/report" element={<ReportPage />} />
+                  <Route path="/daily-activity" element={<DailyActivityPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </div>
           </BrowserRouter>
         </DataProvider>
       </AuthProvider>

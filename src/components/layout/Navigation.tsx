@@ -1,49 +1,43 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Calendar, FileText } from 'lucide-react';
+import { Calendar, FileText, Home, BarChart3, Users } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
 const Navigation: React.FC = () => {
-  const linkClass = "flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-muted transition-colors";
-  const activeLinkClass = "bg-muted";
+  const navItems = [
+    { path: '/', icon: <Home className="h-5 w-5" />, label: 'עונות וקורסים' },
+    { path: '/report', icon: <FileText className="h-5 w-5" />, label: 'דו"ח רישומים' },
+    { path: '/daily-activity', icon: <Calendar className="h-5 w-5" />, label: 'פעילות יומית' },
+    // ניתן להוסיף פריטי ניווט נוספים כאן
+  ];
   
   return (
-    <nav className="flex justify-center p-4 border-b">
-      <ul className="flex space-x-4 space-x-reverse">
-        <li>
-          <NavLink 
-            to="/" 
-            className={({ isActive }) => 
-              `${linkClass} ${isActive ? activeLinkClass : ''}`
-            }
-            end
-          >
-            עונות
-          </NavLink>
-        </li>
-        <li>
-          <NavLink 
-            to="/report" 
-            className={({ isActive }) => 
-              `${linkClass} ${isActive ? activeLinkClass : ''}`
-            }
-          >
-            <FileText size={18} />
-            <span>דו"ח רישומים</span>
-          </NavLink>
-        </li>
-        <li>
-          <NavLink 
-            to="/daily-activity" 
-            className={({ isActive }) => 
-              `${linkClass} ${isActive ? activeLinkClass : ''}`
-            }
-          >
-            <Calendar size={18} />
-            <span>דו"ח פעילות יומי</span>
-          </NavLink>
-        </li>
-      </ul>
+    <nav className="flex flex-col p-1 border-b bg-white shadow-navbar">
+      <div className="container mx-auto">
+        <ul className="flex flex-wrap items-center justify-center md:justify-start gap-1">
+          {navItems.map((item) => (
+            <li key={item.path}>
+              <NavLink 
+                to={item.path} 
+                className={({ isActive }) => 
+                  cn(
+                    "flex items-center gap-2 px-4 py-3 rounded-md font-medium transition-colors",
+                    "hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/20",
+                    isActive 
+                      ? "text-primary bg-primary/10 font-semibold"
+                      : "text-foreground/80"
+                  )
+                }
+                end={item.path === '/'}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </div>
     </nav>
   );
 };

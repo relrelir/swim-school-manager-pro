@@ -11,6 +11,7 @@ import AddParticipantDialog from '@/components/participants/AddParticipantDialog
 import AddPaymentDialog from '@/components/participants/AddPaymentDialog';
 import { prepareParticipantsData, exportToCSV } from '@/utils/exportParticipants';
 import { toast } from "@/components/ui/use-toast";
+import { ArrowRight, Plus, FileDown } from 'lucide-react';
 
 const ParticipantsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -88,20 +89,33 @@ const ParticipantsPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <Button variant="outline" onClick={() => navigate(-1)}>חזרה למוצרים</Button>
-          <h1 className="text-2xl font-bold mt-2">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2 mb-1">
+            <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="flex gap-2">
+              <ArrowRight className="h-4 w-4" />
+              <span>חזרה למוצרים</span>
+            </Button>
+          </div>
+          <h1 className="text-2xl font-bold font-alef">
             {product ? `משתתפים ב${product.name}` : 'משתתפים'}
           </h1>
         </div>
-        <Button onClick={() => {
-          resetForm();
-          setIsAddParticipantOpen(true);
-        }}>
-          הוסף משתתף
-        </Button>
+        
+        <div className="flex gap-2">
+          <Button onClick={handleExportToCSV} variant="outline" className="flex items-center gap-2">
+            <FileDown className="h-4 w-4" />
+            <span>ייצוא CSV</span>
+          </Button>
+          <Button onClick={() => {
+            resetForm();
+            setIsAddParticipantOpen(true);
+          }} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            <span>הוסף משתתף</span>
+          </Button>
+        </div>
       </div>
 
       <ParticipantsSummaryCards 

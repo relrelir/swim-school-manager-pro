@@ -7,6 +7,7 @@ import EditProductDialog from '@/components/products/EditProductDialog';
 import AddSeasonDialog from '@/components/seasons/AddSeasonDialog';
 import SeasonSummary from '@/components/seasons/SeasonSummary';
 import SeasonProductsTable from '@/components/seasons/SeasonProductsTable';
+import { Plus } from 'lucide-react';
 
 export default function SeasonPage() {
   const { seasons } = useData();
@@ -37,7 +38,16 @@ export default function SeasonPage() {
   }, [seasons, seasonProducts]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <h1 className="text-2xl font-bold font-alef">ניהול עונות וקורסים</h1>
+        
+        <Button onClick={() => setIsAddSeasonOpen(true)} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          <span>הוסף עונה</span>
+        </Button>
+      </div>
+
       <SeasonSummary 
         seasons={seasons}
         seasonProducts={seasonProductCounts}
@@ -45,12 +55,14 @@ export default function SeasonPage() {
       />
 
       {season && (
-        <SeasonProductsTable 
-          season={season}
-          products={seasonProducts}
-          getProductMeetingInfo={getProductMeetingInfo}
-          onEditProduct={handleEditProduct}
-        />
+        <div className="bg-white rounded-lg shadow-card p-6 animate-fade-in">
+          <SeasonProductsTable 
+            season={season}
+            products={seasonProducts}
+            getProductMeetingInfo={getProductMeetingInfo}
+            onEditProduct={handleEditProduct}
+          />
+        </div>
       )}
 
       <AddSeasonDialog 
