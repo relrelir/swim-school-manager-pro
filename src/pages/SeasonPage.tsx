@@ -51,7 +51,6 @@ export default function SeasonPage() {
       <SeasonSummary 
         seasons={seasons}
         seasonProducts={seasonProductCounts}
-        onAddSeason={() => setIsAddSeasonOpen(true)}
       />
 
       {season && (
