@@ -4,11 +4,10 @@ import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
 import { Registration } from '@/types';
 import { useParticipantForm } from './useParticipantForm';
-import { usePaymentHandlers } from './usePaymentHandlers';
-import { useRegistrationHandlers } from './useRegistrationHandlers';
 import { useParticipantUtils } from './useParticipantUtils';
 import { useHealthDeclarations } from './useHealthDeclarations';
 import { useSummaryCalculations } from './useSummaryCalculations';
+import { useRegistrationManagement } from './useRegistrationManagement';
 
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -33,8 +32,6 @@ export const useParticipants = () => {
   } = useData();
   
   const [product, setProduct] = useState(undefined);
-  const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
   // Import sub-hooks
   const {
@@ -51,32 +48,39 @@ export const useParticipants = () => {
     resetForm
   } = useParticipantForm(product);
   
-  const {
-    currentRegistration,
-    setCurrentRegistration,
-    handleAddPayment: baseHandleAddPayment,
-    handleApplyDiscount: baseHandleApplyDiscount
-  } = usePaymentHandlers(addPayment, updateRegistration, getRegistrationsByProduct);
-  
-  const {
-    handleAddParticipant: baseHandleAddParticipant,
-    handleDeleteRegistration: baseHandleDeleteRegistration,
-    handleUpdateHealthApproval
-  } = useRegistrationHandlers(
-    addParticipant,
-    addRegistration,
-    updateParticipant,
-    deleteRegistration,
-    addPayment,
-    getPaymentsByRegistration,
-    getRegistrationsByProduct
-  );
-  
+  // Participant utilities
   const {
     getParticipantForRegistration,
     getPaymentsForRegistration,
     getStatusClassName
   } = useParticipantUtils(participants, payments);
+
+  // Registration management
+  const {
+    registrations,
+    setRegistrations,
+    refreshTrigger,
+    currentRegistration,
+    setCurrentRegistration,
+    handleAddParticipant: baseHandleAddParticipant,
+    handleAddPayment: baseHandleAddPayment,
+    handleApplyDiscount,
+    handleDeleteRegistration,
+    handleUpdateHealthApproval
+  } = useRegistrationManagement(
+    product,
+    productId,
+    participants,
+    addParticipant,
+    addRegistration,
+    updateRegistration,
+    deleteRegistration,
+    addPayment,
+    getPaymentsByRegistration,
+    getRegistrationsByProduct,
+    updateParticipant,
+    addHealthDeclaration
+  );
 
   // Health declarations hook
   const {
@@ -124,80 +128,26 @@ export const useParticipants = () => {
     baseHandleOpenHealthForm(registrationId, getParticipantForRegistration, registrations);
   };
 
-  // Handler for adding a new participant with health declaration
-  const handleAddParticipant = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const result = await baseHandleAddParticipant(
+  // Wrapper for handleAddParticipant
+  const handleAddParticipant = (e: React.FormEvent) => {
+    return baseHandleAddParticipant(
       e, 
-      productId,
-      newParticipant,
-      registrationData,
-      resetForm,
-      setIsAddParticipantOpen
+      newParticipant, 
+      registrationData, 
+      resetForm, 
+      setIsAddParticipantOpen,
+      getParticipantForRegistration
     );
-    
-    if (result && result.length > 0) {
-      // Find the new registration (should be the last one added)
-      const newRegistration = result[result.length - 1];
-      
-      // Create a health declaration entry for the new registration
-      if (newRegistration) {
-        const participant = getParticipantForRegistration(newRegistration);
-        if (participant) {
-          await addHealthDeclaration({
-            registrationId: newRegistration.id,
-            phone: participant.phone,
-            formStatus: 'pending',
-            sentAt: new Date().toISOString()
-          });
-        }
-      }
-      
-      setRegistrations(result);
-      setRefreshTrigger(prev => prev + 1);
-    }
   };
 
-  // Wrap other handlers with local state
+  // Wrapper for handleAddPayment
   const handleAddPayment = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const updatedRegistrations = baseHandleAddPayment(
+    return baseHandleAddPayment(
       e,
       newPayment,
       setIsAddPaymentOpen,
-      setNewPayment,
-      productId
+      setNewPayment
     );
-    
-    if (updatedRegistrations.length > 0) {
-      setRegistrations(updatedRegistrations);
-    }
-  };
-
-  const handleApplyDiscount = (discountAmount: number) => {
-    const updatedRegistrations = baseHandleApplyDiscount(
-      discountAmount,
-      setIsAddPaymentOpen,
-      productId
-    );
-    
-    if (updatedRegistrations.length > 0) {
-      setRegistrations(updatedRegistrations);
-    }
-  };
-
-  const handleDeleteRegistration = async (registrationId: string) => {
-    const result = await baseHandleDeleteRegistration(
-      registrationId,
-      registrations,
-      productId
-    );
-    
-    if (result) {
-      setRegistrations(result);
-    }
   };
 
   return {
