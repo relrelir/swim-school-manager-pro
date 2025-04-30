@@ -1,26 +1,9 @@
 
 import { HealthDeclaration } from '@/types';
 
-// Map from DB schema (snake_case) to our TypeScript model (camelCase)
-export const mapHealthDeclarationFromDB = (dbDeclaration: any): HealthDeclaration => {
-  return {
-    id: dbDeclaration.id,
-    participant_id: dbDeclaration.participant_id,
-    token: dbDeclaration.token,
-    form_status: dbDeclaration.form_status,
-    submission_date: dbDeclaration.submission_date,
-    created_at: dbDeclaration.created_at,
-    notes: dbDeclaration.notes,
-    
-    // Map to convenience fields for use in our code
-    registrationId: dbDeclaration.participant_id,
-    formStatus: dbDeclaration.form_status,
-    submissionDate: dbDeclaration.submission_date,
-    sentAt: dbDeclaration.created_at
-  };
-};
-
-// Map from our TypeScript model (camelCase) to DB schema (snake_case)
+/**
+ * Map from our TypeScript model (camelCase) to DB schema (snake_case)
+ */
 export const mapHealthDeclarationToDB = (declaration: Partial<HealthDeclaration>): any => {
   const result: any = {};
   
