@@ -3,12 +3,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableHeader } from "@/components/ui/table";
+import { Search } from 'lucide-react';
 import { Product, Season } from '@/types';
-import { Edit, ChevronUp, ChevronDown, Search } from 'lucide-react';
-import { format } from 'date-fns';
 import { useProductsTable } from '@/hooks/useProductsTable';
 import { useData } from '@/context/DataContext';
+import SeasonProductsTableHeader from './SeasonProductsTableHeader';
+import SeasonProductsTableContent from './SeasonProductsTableContent';
 
 interface SeasonProductsTableProps {
   season: Season | null;
@@ -35,44 +36,6 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
     handleSort, 
     filteredAndSortedProducts 
   } = useProductsTable({ products });
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy');
-    } catch (e) {
-      return dateString;
-    }
-  };
-
-  // Format time (HH:mm format)
-  const formatTime = (timeString: string | undefined) => {
-    if (!timeString) return '-';
-    
-    // If time is already in HH:mm format, return it
-    if (/^\d{2}:\d{2}$/.test(timeString)) {
-      return timeString;
-    }
-    
-    // Otherwise try to extract hours and minutes
-    try {
-      const [hours, minutes] = timeString.split(':');
-      return `${hours}:${minutes}`;
-    } catch (e) {
-      return timeString;
-    }
-  };
-
-  // Format price with ILS symbol
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(price);
-  };
-
-  // Format meeting count as XX/XX
-  const formatMeetingCount = (product: Product) => {
-    const meetingInfo = getProductMeetingInfo(product);
-    return `${meetingInfo.current}/${meetingInfo.total}`;
-  };
 
   // Get participants count for a product
   const getParticipantsCount = (productId: string) => {
@@ -108,107 +71,18 @@ const SeasonProductsTable: React.FC<SeasonProductsTableProps> = ({
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead 
-                  className="cursor-pointer" 
-                  onClick={() => handleSort('name')}
-                >
-                  <div className="flex items-center justify-end">
-                    שם {sortField === 'name' && (
-                      sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />
-                    )}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer" 
-                  onClick={() => handleSort('type')}
-                >
-                  <div className="flex items-center justify-end">
-                    סוג {sortField === 'type' && (
-                      sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />
-                    )}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer" 
-                  onClick={() => handleSort('price')}
-                >
-                  <div className="flex items-center justify-end">
-                    מחיר {sortField === 'price' && (
-                      sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />
-                    )}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer" 
-                  onClick={() => handleSort('startDate')}
-                >
-                  <div className="flex items-center justify-end">
-                    תאריך התחלה {sortField === 'startDate' && (
-                      sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />
-                    )}
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="cursor-pointer" 
-                  onClick={() => handleSort('endDate')}
-                >
-                  <div className="flex items-center justify-end">
-                    תאריך סיום {sortField === 'endDate' && (
-                      sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />
-                    )}
-                  </div>
-                </TableHead>
-                <TableHead>ימי פעילות</TableHead>
-                <TableHead>שעת התחלה</TableHead>
-                <TableHead>מפגש</TableHead>
-                <TableHead 
-                  className="cursor-pointer" 
-                  onClick={() => handleSort('maxParticipants')}
-                >
-                  <div className="flex items-center justify-end">
-                    משתתפים {sortField === 'maxParticipants' && (
-                      sortDirection === 'asc' ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />
-                    )}
-                  </div>
-                </TableHead>
-                <TableHead>פעולות</TableHead>
-              </TableRow>
+              <SeasonProductsTableHeader 
+                sortField={sortField}
+                sortDirection={sortDirection}
+                handleSort={handleSort}
+              />
             </TableHeader>
-            <TableBody>
-              {filteredAndSortedProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.type}</TableCell>
-                  <TableCell>{formatPrice(product.price)}</TableCell>
-                  <TableCell>{formatDate(product.startDate)}</TableCell>
-                  <TableCell>{formatDate(product.endDate)}</TableCell>
-                  <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
-                  <TableCell>{formatTime(product.startTime)}</TableCell>
-                  <TableCell>{formatMeetingCount(product)}</TableCell>
-                  <TableCell>{getParticipantsCount(product.id)}/{product.maxParticipants}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => navigate(`/product/${product.id}/participants`)}
-                      >
-                        משתתפים
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => onEditProduct(product)}
-                      >
-                        <Edit className="h-4 w-4 ml-1" />
-                        ערוך
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
+            <SeasonProductsTableContent 
+              products={filteredAndSortedProducts}
+              getProductMeetingInfo={getProductMeetingInfo}
+              getParticipantsCount={getParticipantsCount}
+              onEditProduct={onEditProduct}
+            />
           </Table>
         </div>
       ) : (

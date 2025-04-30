@@ -1,0 +1,54 @@
+
+import React from 'react';
+import { TableBody, TableRow, TableCell } from "@/components/ui/table";
+import { Product } from '@/types';
+import { formatDate, formatPrice, formatTime, formatParticipantsCount } from '@/utils/formatters';
+import SeasonProductsTableActions from './SeasonProductsTableActions';
+
+interface SeasonProductsTableContentProps {
+  products: Product[];
+  getProductMeetingInfo: (product: Product) => { current: number; total: number };
+  getParticipantsCount: (productId: string) => number;
+  onEditProduct: (product: Product) => void;
+}
+
+const SeasonProductsTableContent: React.FC<SeasonProductsTableContentProps> = ({
+  products,
+  getProductMeetingInfo,
+  getParticipantsCount,
+  onEditProduct
+}) => {
+  // Format meeting count as XX/XX
+  const formatMeetingCount = (product: Product) => {
+    const meetingInfo = getProductMeetingInfo(product);
+    return `${meetingInfo.current}/${meetingInfo.total}`;
+  };
+
+  return (
+    <TableBody>
+      {products.map((product) => (
+        <TableRow key={product.id}>
+          <TableCell className="font-medium">{product.name}</TableCell>
+          <TableCell>{product.type}</TableCell>
+          <TableCell>{formatPrice(product.price)}</TableCell>
+          <TableCell>{formatDate(product.startDate)}</TableCell>
+          <TableCell>{formatDate(product.endDate)}</TableCell>
+          <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
+          <TableCell>{formatTime(product.startTime)}</TableCell>
+          <TableCell>{formatMeetingCount(product)}</TableCell>
+          <TableCell>
+            {formatParticipantsCount(getParticipantsCount(product.id), product.maxParticipants)}
+          </TableCell>
+          <TableCell>
+            <SeasonProductsTableActions 
+              product={product} 
+              onEditProduct={onEditProduct} 
+            />
+          </TableCell>
+        </TableRow>
+      ))}
+    </TableBody>
+  );
+};
+
+export default SeasonProductsTableContent;
