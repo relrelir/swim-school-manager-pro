@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { PaymentStatus, Registration } from '@/types';
 import { RegistrationsContextType } from './types';
@@ -114,9 +115,9 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     return registrations.filter(registration => registration.productId === productId);
   };
 
-  // Calculate payment status
+  // Calculate payment status, properly accounting for discounts
   const calculatePaymentStatus = (registration: Registration, actualPaidAmount?: number): PaymentStatus => {
-    // The discountAmount is the difference between paidAmount and actualPaidAmount
+    // The discountAmount is the amount of discount applied to this registration
     const discountAmount = registration.discountAmount || 0;
     const paidWithoutDiscount = actualPaidAmount !== undefined ? actualPaidAmount : registration.paidAmount;
     

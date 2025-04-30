@@ -16,7 +16,7 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
   // Helper to separate actual payments from discounts
   const actualPayments = payments.filter(p => p.receiptNumber !== '');
   
-  if (actualPayments.length === 0) {
+  if (actualPayments.length === 0 && !discountAmount) {
     return <span className="text-gray-500">-</span>;
   }
   
@@ -27,6 +27,13 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
           {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(payment.amount)}
         </div>
       ))}
+      
+      {/* Display discount amount if approved */}
+      {discountApproved && discountAmount > 0 && (
+        <div className="text-sm text-green-600">
+          הנחה: {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount)}
+        </div>
+      )}
     </div>
   );
 };
