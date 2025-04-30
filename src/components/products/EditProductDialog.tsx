@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Product } from '@/types';
-import { addDays } from 'date-fns';
 import EditProductForm from './EditProductForm';
 
 interface EditProductDialogProps {
@@ -73,13 +72,17 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProduct) {
-      onSubmit({
+      // Include calculated end date if available
+      const updatedProduct: Partial<Product> = {
         meetingsCount: editingProduct.meetingsCount,
         daysOfWeek: editingProduct.daysOfWeek,
         startTime: editingProduct.startTime,
         maxParticipants: editingProduct.maxParticipants,
-        notes: editingProduct.notes
-      });
+        notes: editingProduct.notes,
+        endDate: calculatedEndDate || editingProduct.endDate
+      };
+      
+      onSubmit(updatedProduct);
     }
   };
 
@@ -88,6 +91,9 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>עריכת מוצר</DialogTitle>
+          <DialogDescription>
+            שינוי במפגשים או בימי הפעילות ישנה את תאריך הסיום המחושב.
+          </DialogDescription>
         </DialogHeader>
         {editingProduct && (
           <EditProductForm

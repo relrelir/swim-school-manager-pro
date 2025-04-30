@@ -9,6 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Product, ProductType } from '@/types';
 import { Season } from '@/types';
+import { addDays, format } from 'date-fns';
+import { useSeasonProducts } from '@/hooks/useSeasonProducts';
 
 interface AddProductFormProps {
   onSubmit: (product: Omit<Product, 'id'>) => void;
@@ -16,6 +18,7 @@ interface AddProductFormProps {
 }
 
 const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason }) => {
+  const { calculateEndDate } = useSeasonProducts();
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
     name: '',
     type: 'קורס',
@@ -29,6 +32,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
     daysOfWeek: [],
     startTime: '',
   });
+  const [calculatedEndDate, setCalculatedEndDate] = useState<string | null>(null);
 
   // Update defaults if season changes
   useEffect(() => {
@@ -41,6 +45,22 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
       }));
     }
   }, [currentSeason]);
+
+  // Calculate end date when relevant fields change
+  useEffect(() => {
+    if (newProduct.startDate && newProduct.daysOfWeek?.length > 0 && newProduct.meetingsCount) {
+      const endDate = calculateEndDate(
+        newProduct.startDate,
+        newProduct.meetingsCount,
+        newProduct.daysOfWeek
+      );
+      setCalculatedEndDate(endDate);
+      setNewProduct(prev => ({
+        ...prev,
+        endDate: endDate
+      }));
+    }
+  }, [newProduct.startDate, newProduct.daysOfWeek, newProduct.meetingsCount, calculateEndDate]);
 
   const handleCreateProduct = (e: React.FormEvent) => {
     e.preventDefault();
@@ -107,17 +127,20 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="end-date">תאריך סיום</Label>
+            <Label htmlFor="end-date">תאריך סיום (מחושב)</Label>
             <Input
               id="end-date"
               type="date"
-              value={newProduct.endDate}
-              onChange={(e) => setNewProduct({ ...newProduct, endDate: e.target.value })}
-              required
-              className="ltr"
-              min={newProduct.startDate}
-              max={currentSeason?.endDate}
+              value={calculatedEndDate || newProduct.endDate}
+              readOnly
+              className="ltr bg-gray-100"
+              title="תאריך הסיום מחושב אוטומטית לפי ימי הפעילות ומספר המפגשים"
             />
+            {calculatedEndDate && (
+              <p className="text-xs text-blue-600">
+                * מחושב אוטומטית לפי מספר המפגשים וימי הפעילות
+              </p>
+            )}
           </div>
         </div>
         
