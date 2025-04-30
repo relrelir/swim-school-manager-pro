@@ -9,7 +9,7 @@ import { User, Key, Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 const LoginPage = () => {
-  const [username, setUsername] = useState('ענבר במדבר 2014');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -17,6 +17,15 @@ const LoginPage = () => {
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!username) {
+      toast({
+        title: "שגיאה",
+        description: "אנא הכנס שם משתמש",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (!password) {
       toast({
@@ -73,8 +82,7 @@ const LoginPage = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                disabled
-                className="bg-gray-100"
+                className="bg-white"
               />
             </div>
             
@@ -91,9 +99,6 @@ const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
-              <p className="text-sm text-gray-500">
-                סיסמת ברירת מחדל: 2014
-              </p>
             </div>
           </CardContent>
           <CardFooter>
