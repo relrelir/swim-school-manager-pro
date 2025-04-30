@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
 import { v4 as uuidv4 } from 'uuid';
-import type { PostgrestResponse } from '@supabase/supabase-js';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 /**
  * Create a health declaration link
@@ -19,16 +19,19 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       .eq('participant_id', registrationId);
     
     // Type assertion after query execution
-    const { data: existingData, error: existingError } = existingResult as PostgrestResponse<any>;
+    const existingResponse = existingResult as {
+      data: any[] | null;
+      error: PostgrestError | null;
+    };
     
-    if (existingError) {
-      console.error('Error checking existing declaration:', existingError);
-      throw existingError;
+    if (existingResponse.error) {
+      console.error('Error checking existing declaration:', existingResponse.error);
+      throw existingResponse.error;
     }
     
     let declarationId: string;
     
-    if (existingData && existingData.length > 0) {
+    if (existingResponse.data && existingResponse.data.length > 0) {
       // Update existing declaration with new token
       const updateResult = await supabase
         .from('health_declarations')
@@ -38,22 +41,25 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
           submission_date: null,
           notes: null
         })
-        .eq('id', existingData[0].id)
+        .eq('id', existingResponse.data[0].id)
         .select('id');
       
       // Type assertion after query execution
-      const { data: updateData, error: updateError } = updateResult as PostgrestResponse<any>;
+      const updateResponse = updateResult as {
+        data: any[] | null;
+        error: PostgrestError | null;
+      };
         
-      if (updateError) {
-        console.error('Error updating health declaration with new token:', updateError);
-        throw updateError;
+      if (updateResponse.error) {
+        console.error('Error updating health declaration with new token:', updateResponse.error);
+        throw updateResponse.error;
       }
       
-      if (!updateData || updateData.length === 0) {
+      if (!updateResponse.data || updateResponse.data.length === 0) {
         throw new Error('No data returned when updating health declaration');
       }
       
-      declarationId = updateData[0].id;
+      declarationId = updateResponse.data[0].id;
     } else {
       // Create new declaration
       const newDeclaration = {
@@ -72,18 +78,21 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
         .select('id');
       
       // Type assertion after query execution
-      const { data: newData, error: insertError } = insertResult as PostgrestResponse<any>;
+      const insertResponse = insertResult as {
+        data: any[] | null;
+        error: PostgrestError | null;
+      };
       
-      if (insertError) {
-        console.error('Error creating health declaration:', insertError);
-        throw insertError;
+      if (insertResponse.error) {
+        console.error('Error creating health declaration:', insertResponse.error);
+        throw insertResponse.error;
       }
       
-      if (!newData || newData.length === 0) {
+      if (!insertResponse.data || insertResponse.data.length === 0) {
         throw new Error('No data returned when creating health declaration');
       }
       
-      declarationId = newData[0].id;
+      declarationId = insertResponse.data[0].id;
     }
     
     // Return the full URL
