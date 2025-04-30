@@ -24,6 +24,7 @@ const ParticipantsPage: React.FC = () => {
     isHealthFormOpen,
     setIsHealthFormOpen,
     currentHealthDeclaration,
+    setCurrentHealthDeclaration,
     newParticipant,
     setNewParticipant,
     currentRegistration,

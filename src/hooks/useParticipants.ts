@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
@@ -214,6 +213,7 @@ export const useParticipants = () => {
     isHealthFormOpen,
     setIsHealthFormOpen,
     currentHealthDeclaration,
+    setCurrentHealthDeclaration,
     newParticipant,
     setNewParticipant,
     currentRegistration,

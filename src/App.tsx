@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
 import Layout from "./components/layout/Layout";
 import SeasonPage from "./pages/SeasonPage";
 import ProductsPage from "./pages/ProductsPage";
@@ -32,7 +32,7 @@ const App = () => (
               <Route path="/form-success" element={<FormSuccessPage />} />
               
               {/* App routes wrapped in layout */}
-              <Route path="/" element={<Layout />}>
+              <Route path="/" element={<Layout><Outlet /></Layout>}>
                 <Route index element={<SeasonPage />} />
                 <Route path="/season/:seasonId/products" element={<ProductsPage />} />
                 <Route path="/product/:productId/participants" element={<ParticipantsPage />} />
