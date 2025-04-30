@@ -42,20 +42,27 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
     console.log('Pre-insert health declaration data:', dbHealthDeclaration);
     console.log('Original health declaration input:', healthDeclaration);
     
-    // Triple-check the participant_id is set correctly
+    // Triple-check the participant_id is set correctly - this MUST be the registration ID
     if (!dbHealthDeclaration.participant_id) {
       if (healthDeclaration.registrationId) {
         console.log('Setting participant_id from registrationId:', healthDeclaration.registrationId);
         dbHealthDeclaration.participant_id = healthDeclaration.registrationId;
+      } else if (healthDeclaration.participant_id) {
+        console.log('Using provided participant_id:', healthDeclaration.participant_id);
+        dbHealthDeclaration.participant_id = healthDeclaration.participant_id;
       } else {
         console.error('Missing required participant_id and no registrationId available');
         throw new Error('Missing required participant_id field');
       }
     }
     
-    // Final validation check
+    // Final validation check for required fields
     if (!dbHealthDeclaration.participant_id) {
       throw new Error('Missing required participant_id field even after fallback');
+    }
+    
+    if (!dbHealthDeclaration.phone_sent_to) {
+      throw new Error('Missing required phone_sent_to field');
     }
     
     console.log('Final health declaration data for insert:', dbHealthDeclaration);
@@ -110,6 +117,7 @@ export const updateHealthDeclarationService = async (id: string, updates: Partia
     if (error) {
       console.error('Supabase error during health declaration update:', error);
       handleSupabaseError(error, 'updating health declaration');
+      return false;
     }
     
     return true;

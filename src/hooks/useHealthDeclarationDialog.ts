@@ -21,6 +21,7 @@ export const useHealthDeclarationDialog = (
     participants: Participant[], 
     registrations: any[]
   ) => {
+    console.log('Opening health form for registration:', registrationId);
     console.log('Found health declaration:', getHealthDeclarationForRegistration(registrationId), 'for registration:', registrationId);
     
     const registration = registrations.find(reg => reg.id === registrationId);
@@ -52,15 +53,16 @@ export const useHealthDeclarationDialog = (
       console.log('Creating new health declaration for registration:', registrationId);
       try {
         // Create health declaration with all required fields properly mapped
+        // IMPORTANT: participant_id in the DB is actually registrationId in our app
         const newDeclaration = await addHealthDeclaration({
-          // Essential DB fields with correct naming
-          participant_id: registrationId,
+          // Database required fields with correct mapping
+          participant_id: registrationId,  // This is the key field that needs to be correct
           phone_sent_to: participant.phone,
           form_status: 'pending',
           created_at: new Date().toISOString(),
           
           // Convenience fields used in our frontend code
-          registrationId: registrationId,
+          registrationId: registrationId,  // Duplicate of participant_id for our app's use
           phone: participant.phone,
           formStatus: 'pending',
           sentAt: new Date().toISOString()

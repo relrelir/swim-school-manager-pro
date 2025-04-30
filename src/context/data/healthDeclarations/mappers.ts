@@ -28,7 +28,8 @@ export const mapHealthDeclarationToDB = (declaration: Partial<HealthDeclaration>
   // Transfer id field directly if it exists
   if (declaration.id !== undefined) result.id = declaration.id;
   
-  // Carefully handle the participant_id mapping, prioritizing direct field over convenience field
+  // When mapping to the database, we need to ensure participant_id gets mapped correctly
+  // The participant_id in the DB is actually the registration ID in our application
   if (declaration.participant_id !== undefined) {
     result.participant_id = declaration.participant_id;
   } else if (declaration.registrationId !== undefined) {
