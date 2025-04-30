@@ -28,6 +28,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     
     if (existingResult.data && existingResult.data.length > 0) {
       // Update existing declaration with new token
+      console.log('Updating existing health declaration with new token');
       const updateResult = await supabase
         .from('health_declarations')
         .update({
