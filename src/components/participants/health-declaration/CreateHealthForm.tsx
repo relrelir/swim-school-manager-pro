@@ -1,6 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
+import { createHealthDeclarationLink } from "@/context/data/healthDeclarations/service";
 
 interface CreateHealthFormProps {
   participantName: string;
@@ -13,8 +15,21 @@ const CreateHealthForm: React.FC<CreateHealthFormProps> = ({
   isLoading,
   onSubmit
 }) => {
+  const [creatingLink, setCreatingLink] = useState(false);
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreatingLink(true);
+    
+    try {
+      await onSubmit(e);
+    } finally {
+      setCreatingLink(false);
+    }
+  };
+  
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <p className="text-sm text-gray-500 mb-2">
           יצירת טופס הצהרת בריאות עבור {participantName}
@@ -25,8 +40,8 @@ const CreateHealthForm: React.FC<CreateHealthFormProps> = ({
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'יוצר קישור...' : 'צור קישור להצהרת בריאות'}
+        <Button type="submit" disabled={isLoading || creatingLink}>
+          {isLoading || creatingLink ? 'יוצר קישור...' : 'צור קישור להצהרת בריאות'}
         </Button>
       </div>
     </form>

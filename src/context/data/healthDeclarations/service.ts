@@ -5,10 +5,11 @@ import { HealthDeclaration } from '@/types';
 import { mapHealthDeclarationFromDB, mapHealthDeclarationToDB } from './mappers';
 import { handleSupabaseError } from '../utils';
 import { v4 as uuidv4 } from 'uuid';
+import type { PostgrestResponse } from '@supabase/supabase-js';
 
-export const fetchHealthDeclarations = async () => {
+export const fetchHealthDeclarations = async (): Promise<HealthDeclaration[]> => {
   try {
-    const { data, error } = await supabase
+    const { data, error }: PostgrestResponse<any> = await supabase
       .from('health_declarations')
       .select('*');
 
@@ -248,15 +249,20 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       
       declarationId = existingData.id;
     } else {
-      // Create new declaration with a single object (not an array)
+      // Create new declaration
+      const newDeclaration = {
+        participant_id: registrationId,
+        token,
+        form_status: 'pending',
+        created_at: new Date().toISOString(),
+        phone_sent_to: '' // Required by the database schema but we don't use it
+      };
+      
+      console.log('Creating new health declaration:', newDeclaration);
+      
       const { data: newData, error: insertError } = await supabase
         .from('health_declarations')
-        .insert({
-          participant_id: registrationId,
-          token,
-          form_status: 'pending',
-          created_at: new Date().toISOString()
-        })
+        .insert(newDeclaration)
         .select('id')
         .single();
         

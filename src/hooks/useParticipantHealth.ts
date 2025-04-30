@@ -14,7 +14,7 @@ export const useParticipantHealth = (
   const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<any>(null);
 
   // Handler for opening health form dialog
-  const handleOpenHealthForm = (registrationId: string) => {
+  const handleOpenHealthForm = async (registrationId: string, getParticipantFn?: any) => {
     // Find the health declaration for this registration
     const healthDeclaration = getHealthDeclarationForRegistration(registrationId);
     setCurrentHealthDeclaration(healthDeclaration || { registrationId });
