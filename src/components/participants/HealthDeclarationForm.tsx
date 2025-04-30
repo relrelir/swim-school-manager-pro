@@ -134,9 +134,11 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
   const getStatusDisplay = (status?: string) => {
     if (!status) return { text: 'ממתין', color: 'text-amber-500' };
     
-    // Safe comparison using in operator with type guard
+    // Safe comparison with string literals
     if (status === 'completed') return { text: 'הושלם', color: 'text-green-500' };
+    if (status === 'signed') return { text: 'חתום', color: 'text-green-500' };
     if (status === 'sent') return { text: 'נשלח', color: 'text-blue-500' };
+    if (status === 'expired') return { text: 'פג תוקף', color: 'text-red-500' };
     return { text: 'ממתין', color: 'text-amber-500' };
   };
 

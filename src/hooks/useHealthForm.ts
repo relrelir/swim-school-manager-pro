@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getHealthDeclarationById, submitHealthFormService } from '@/context/data/healthDeclarations/service';
@@ -40,8 +41,9 @@ export const useHealthForm = () => {
           return;
         }
         
-        // Type-safe comparison by checking for the specific value
-        if (declaration.form_status === 'completed' || declaration.formStatus === 'completed') {
+        // Check if the form is already completed
+        const formStatusValue = declaration.form_status || declaration.formStatus;
+        if (formStatusValue === 'completed') {
           setError('הצהרת בריאות זו כבר מולאה. תודה!');
           setIsLoadingData(false);
           return;

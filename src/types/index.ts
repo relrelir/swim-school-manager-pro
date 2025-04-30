@@ -77,7 +77,7 @@ export interface HealthDeclaration {
   id: string;
   participant_id: string; // This is the field name in the database (stores registration ID)
   phone_sent_to: string;
-  form_status: 'pending' | 'signed' | 'expired';
+  form_status: 'pending' | 'signed' | 'expired' | 'completed';
   submission_date?: string;
   created_at: string;
   notes?: string;
@@ -85,7 +85,7 @@ export interface HealthDeclaration {
   // These fields are used in our TypeScript code but mapped differently when sending to the database
   registrationId?: string; // For convenience in our code
   phone?: string; // For convenience in our code
-  formStatus?: 'pending' | 'signed' | 'expired'; // For convenience in our code
+  formStatus?: 'pending' | 'signed' | 'expired' | 'completed'; // For convenience in our code
   submissionDate?: string; // For convenience in our code
   sentAt?: string; // For convenience in our code
 }
