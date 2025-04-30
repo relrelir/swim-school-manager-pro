@@ -9,8 +9,20 @@ import { HealthDeclarationsProvider, useHealthDeclarationsContext } from './data
 import { CombinedDataContextType } from './data/types';
 import { Product } from '@/types';
 
+// Create a context for combined data
+const DataContext = React.createContext<CombinedDataContextType | null>(null);
+
 // Custom hook to access the combined data context
 export const useData = () => {
+  const context = useContext(DataContext);
+  if (!context) {
+    throw new Error('useData must be used within a DataProvider');
+  }
+  return context;
+};
+
+// Internal component to combine all context data
+const DataConsumer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const seasonsContext = useSeasonsContext();
   const productsContext = useProductsContext();
   const participantsContext = useParticipantsContext();
@@ -137,7 +149,7 @@ export const useData = () => {
     });
   };
 
-  return {
+  const contextValue: CombinedDataContextType = {
     // Spread all individual contexts
     ...seasonsContext,
     ...productsContext,
@@ -151,6 +163,12 @@ export const useData = () => {
     calculateMeetingProgress,
     getDailyActivities
   };
+
+  return (
+    <DataContext.Provider value={contextValue}>
+      {children}
+    </DataContext.Provider>
+  );
 };
 
 // Main data provider component
@@ -162,7 +180,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           <RegistrationsProvider>
             <PaymentsProvider>
               <HealthDeclarationsProvider>
-                {children}
+                <DataConsumer>
+                  {children}
+                </DataConsumer>
               </HealthDeclarationsProvider>
             </PaymentsProvider>
           </RegistrationsProvider>
