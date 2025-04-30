@@ -12,11 +12,13 @@ export interface ParticipantExportData {
   idNumber: string;
   phone: string;
   requiredAmount: string;
+  effectiveAmount: string;
   paidAmount: string;
   receiptNumbers: string;
+  discountAmount: string;
   discountApplied: string;
   healthApproval: string;
-  paymentStatus: PaymentStatus;  // Updated to use PaymentStatus type
+  paymentStatus: PaymentStatus;
   registrationDate: string;
 }
 
@@ -37,6 +39,13 @@ export function prepareParticipantsData(
         .map(p => p.receiptNumber)
         .join(', ');
       
+      // Calculate effective required amount after discount
+      const discountAmount = registration.discountAmount || 0;
+      const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
+      
+      // Calculate actual paid amount from payments collection
+      const actualPaidAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
+      
       const paymentStatus = calculatePaymentStatus(registration);
       
       const registrationDate = registration.registrationDate 
@@ -48,8 +57,10 @@ export function prepareParticipantsData(
         idNumber: participant.idNumber,
         phone: participant.phone,
         requiredAmount: formatCurrency(registration.requiredAmount),
-        paidAmount: formatCurrency(registration.paidAmount),
+        effectiveAmount: formatCurrency(effectiveRequiredAmount),
+        paidAmount: formatCurrency(actualPaidAmount),
         receiptNumbers,
+        discountAmount: formatCurrency(registration.discountApproved ? discountAmount : 0),
         discountApplied: registration.discountApproved ? 'כן' : 'לא',
         healthApproval: participant.healthApproval ? 'כן' : 'לא',
         paymentStatus,
@@ -65,8 +76,10 @@ export function exportToCSV(data: ParticipantExportData[], filename: string) {
     fullName: 'שם מלא',
     idNumber: 'ת.ז',
     phone: 'טלפון',
-    requiredAmount: 'סכום לתשלום',
+    requiredAmount: 'סכום מקורי',
+    effectiveAmount: 'סכום לתשלום (אחרי הנחות)',
     paidAmount: 'סכום ששולם',
+    discountAmount: 'סכום הנחה',
     receiptNumbers: 'מספרי קבלות',
     discountApplied: 'הנחה',
     healthApproval: 'אישור בריאות',
