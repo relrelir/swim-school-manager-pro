@@ -9,12 +9,14 @@ import type { PostgrestResponse } from '@supabase/supabase-js';
  */
 export const getHealthDeclarationById = async (id: string): Promise<HealthDeclaration | null> => {
   try {
-    // Breaking down the query chain and using explicit typing
-    const response: PostgrestResponse<any> = await supabase
+    // Create a query builder first
+    const query = supabase
       .from('health_declarations')
       .select('*')
-      .eq('id', id)
-      .maybeSingle();
+      .eq('id', id);
+    
+    // Execute query with explicit typing
+    const response: PostgrestResponse<any> = await query.maybeSingle();
     
     const { data, error } = response;
 
@@ -39,12 +41,14 @@ export const getHealthDeclarationById = async (id: string): Promise<HealthDeclar
  */
 export const getHealthDeclarationByToken = async (token: string): Promise<HealthDeclaration | null> => {
   try {
-    // Breaking down the query chain and using explicit typing
-    const response: PostgrestResponse<any> = await supabase
+    // Create a query builder first
+    const query = supabase
       .from('health_declarations')
       .select('*')
-      .eq('token', token)
-      .maybeSingle();
+      .eq('token', token);
+    
+    // Execute query with explicit typing
+    const response: PostgrestResponse<any> = await query.maybeSingle();
     
     const { data, error } = response;
 

@@ -38,16 +38,22 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
           submission_date: null,
           notes: null
         })
-        .eq('id', existingData.id);
+        .eq('id', existingData.id)
+        .select('id')
+        .maybeSingle();
         
-      const { error: updateError } = updateResponse;
+      const { data: updateData, error: updateError } = updateResponse;
         
       if (updateError) {
         console.error('Error updating health declaration with new token:', updateError);
         throw updateError;
       }
       
-      declarationId = existingData.id;
+      if (!updateData) {
+        throw new Error('No data returned when updating health declaration');
+      }
+      
+      declarationId = updateData.id;
     } else {
       // Create new declaration
       const newDeclaration = {
@@ -63,7 +69,8 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       const insertResponse: PostgrestResponse<any> = await supabase
         .from('health_declarations')
         .insert(newDeclaration)
-        .select('id');
+        .select('id')
+        .maybeSingle();
       
       const { data: newData, error: insertError } = insertResponse;
         
@@ -72,11 +79,11 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
         throw insertError;
       }
       
-      if (!newData || newData.length === 0) {
+      if (!newData) {
         throw new Error('No data returned when creating health declaration');
       }
       
-      declarationId = newData[0].id;
+      declarationId = newData.id;
     }
     
     // Return the full URL
