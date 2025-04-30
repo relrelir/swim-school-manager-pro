@@ -8,6 +8,7 @@ import { useParticipantUtils } from './useParticipantUtils';
 import { useRegistrationManagement } from './useRegistrationManagement';
 import { useParticipantHealth } from './useParticipantHealth';
 import { useParticipantData } from './useParticipantData';
+import { useParticipantHandlers } from './useParticipantHandlers';
 
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -105,7 +106,7 @@ export const useParticipants = () => {
     updateHealthDeclaration,
     updateParticipant,
     participants,
-    registrations // Pass registrations to the hook
+    registrations
   );
 
   // Import registration management hook
@@ -131,36 +132,31 @@ export const useParticipants = () => {
     addHealthDeclaration
   );
 
-  // Handler for opening health form - wrapper to pass required parameters
-  const handleOpenHealthForm = (registrationId: string) => {
-    baseHandleOpenHealthForm(registrationId, getParticipantForRegistration, registrations);
-  };
+  // Import participant handlers
+  const {
+    handleOpenHealthForm,
+    handleAddParticipant: wrapperHandleAddParticipant,
+    handleAddPayment: wrapperHandleAddPayment,
+    handleApplyDiscount: handleApplyDiscountAdapter
+  } = useParticipantHandlers(
+    baseHandleOpenHealthForm,
+    baseHandleAddParticipant,
+    baseHandleAddPayment,
+    baseHandleApplyDiscount,
+    newParticipant,
+    registrationData,
+    getParticipantForRegistration,
+    registrations
+  );
 
-  // Wrapper for handleAddParticipant
+  // Final wrapper for handleAddParticipant
   const handleAddParticipant = (e: React.FormEvent) => {
-    return baseHandleAddParticipant(
-      e, 
-      newParticipant, 
-      registrationData, 
-      resetForm, 
-      setIsAddParticipantOpen,
-      getParticipantForRegistration
-    );
+    return wrapperHandleAddParticipant(e, resetForm, setIsAddParticipantOpen);
   };
 
-  // Wrapper for handleAddPayment
+  // Final wrapper for handleAddPayment
   const handleAddPayment = (e: React.FormEvent) => {
-    return baseHandleAddPayment(
-      e,
-      newPayment,
-      setIsAddPaymentOpen,
-      setNewPayment
-    );
-  };
-
-  // Adapter for handleApplyDiscount to match expected signature in AddPaymentDialog
-  const handleApplyDiscountAdapter = (amount: number) => {
-    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen);
+    return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
   };
 
   return {
