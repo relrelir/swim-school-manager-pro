@@ -138,6 +138,7 @@ const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
             value={startTime}
             onChange={(e) => onStartTimeChange(e.target.value)}
             className="ltr"
+            required
           />
         </div>
       </div>

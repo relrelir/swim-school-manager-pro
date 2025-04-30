@@ -15,6 +15,7 @@ interface AddProductFormProps {
 const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason }) => {
   const { calculateEndDate } = useSeasonProducts();
   const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  const defaultTime = "08:00"; // Default start time (8:00 AM)
   
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
     name: '',
@@ -27,7 +28,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
     seasonId: currentSeason?.id || '',
     meetingsCount: 1,
     daysOfWeek: [],
-    startTime: '',
+    startTime: defaultTime,
   });
   const [calculatedEndDate, setCalculatedEndDate] = useState<string | null>(null);
 
@@ -76,7 +77,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
       seasonId: currentSeason?.id || '',
       meetingsCount: 1,
       daysOfWeek: [],
-      startTime: '',
+      startTime: defaultTime,
     });
   };
 
