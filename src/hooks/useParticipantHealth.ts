@@ -19,14 +19,11 @@ export const useParticipantHealth = (
   } | null>(null);
 
   // Handler for opening health link dialog
-  const handleOpenHealthForm = async (
-    registrationId: string, 
-    getParticipantForRegistration: (registration: Registration) => Participant | undefined
-  ) => {
+  const handleOpenHealthForm = async (registrationId: string) => {
     const registration = registrations.find(reg => reg.id === registrationId);
     if (!registration) return;
 
-    const participant = getParticipantForRegistration(registration);
+    const participant = participants.find(p => p.id === registration.participantId);
     if (!participant) return;
 
     let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
@@ -65,7 +62,7 @@ export const useParticipantHealth = (
   // Handle updating health approval
   const handleUpdateHealthApproval = (registrationId: string, isApproved: boolean) => {
     // Find the corresponding registration and participant
-    const registration = registrations.find(reg => reg.participantId && reg.id === registrationId);
+    const registration = registrations.find(reg => reg.id === registrationId);
     if (registration) {
       const participant = participants.find(p => p.id === registration.participantId);
       if (participant) {

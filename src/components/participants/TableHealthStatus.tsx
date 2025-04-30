@@ -13,8 +13,8 @@ interface TableHealthStatusProps {
   registration: Registration;
   participant?: Participant;
   healthDeclaration?: HealthDeclaration;
-  onOpenHealthForm: (registrationId: string) => void;
-  onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
+  onOpenHealthForm: () => void;
+  onUpdateHealthApproval: (isApproved: boolean) => void;
 }
 
 const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
@@ -64,7 +64,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         variant="ghost"
         size="sm"
         className={cn("flex items-center")}
-        onClick={() => onOpenHealthForm(registration.id)}
+        onClick={onOpenHealthForm}
       >
         <Send className="h-4 w-4 mr-1" />
         שלח
@@ -76,7 +76,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         className={cn(
           participant.healthApproval ? "text-red-500 hover:text-red-600" : "text-green-500 hover:text-green-600"
         )}
-        onClick={() => onUpdateHealthApproval(registration.id, !participant.healthApproval)}
+        onClick={() => onUpdateHealthApproval(!participant.healthApproval)}
       >
         {participant.healthApproval ? 'בטל אישור' : 'סמן כמאושר'}
       </Button>

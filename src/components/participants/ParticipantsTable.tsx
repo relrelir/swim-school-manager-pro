@@ -17,7 +17,7 @@ interface ParticipantsTableProps {
   getStatusClassName: (status: PaymentStatus) => string;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
-  onUpdateHealthApproval: (participant: Participant, isApproved: boolean) => void;
+  onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
   onOpenHealthForm?: (registrationId: string) => void;
   onExport?: () => void;
 }
@@ -110,8 +110,8 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     registration={registration}
                     participant={participant}
                     healthDeclaration={healthDeclaration}
-                    onUpdateHealthApproval={onUpdateHealthApproval}
-                    onOpenHealthForm={onOpenHealthForm}
+                    onUpdateHealthApproval={(isApproved) => onUpdateHealthApproval(registration.id, isApproved)}
+                    onOpenHealthForm={() => onOpenHealthForm && onOpenHealthForm(registration.id)}
                   />
                 </TableCell>
                 <TableCell className={`font-semibold ${getStatusClassName(status)}`}>
