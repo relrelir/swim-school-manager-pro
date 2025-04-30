@@ -21,7 +21,13 @@ export function useProducts() {
       }
 
       // Transform data to match our Product type
-      const transformedProducts: Product[] = data?.map(product => mapProductFromDB(product)) || [];
+      const transformedProducts: Product[] = data?.map(product => {
+        const mappedProduct = mapProductFromDB(product);
+        return {
+          ...mappedProduct,
+          active: mappedProduct.active !== undefined ? mappedProduct.active : true
+        };
+      }) || [];
 
       setProducts(transformedProducts);
     } catch (error) {
@@ -53,7 +59,11 @@ export function useProducts() {
       }
 
       if (data) {
-        const newProduct = mapProductFromDB(data);
+        const mappedProduct = mapProductFromDB(data);
+        const newProduct: Product = {
+          ...mappedProduct,
+          active: mappedProduct.active !== undefined ? mappedProduct.active : true
+        };
         setProducts([...products, newProduct]);
       }
     } catch (error) {

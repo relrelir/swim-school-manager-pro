@@ -42,6 +42,7 @@ export const useHealthDeclarationDialog = (
           phone_sent_to: participant.phone,
           form_status: 'pending',
           created_at: new Date().toISOString(),
+          // Additional fields for convenience in our code
           registrationId: registrationId,
           phone: participant.phone,
           formStatus: 'pending',

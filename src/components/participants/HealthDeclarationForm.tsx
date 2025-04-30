@@ -65,8 +65,13 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
           await updateHealthDeclaration(healthDeclaration.id, { phone });
         }
       } else {
-        // Create a new health declaration
+        // Create a new health declaration with all required fields in the correct format
         const newDeclaration = await addHealthDeclaration({
+          participant_id: registrationId,
+          phone_sent_to: phone,
+          form_status: 'pending',
+          created_at: new Date().toISOString(),
+          // Optional fields for internal use
           registrationId: registrationId,
           phone: phone,
           formStatus: 'pending',
