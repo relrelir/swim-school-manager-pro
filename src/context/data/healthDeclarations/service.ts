@@ -9,9 +9,12 @@ import type { PostgrestResponse } from '@supabase/supabase-js';
 
 export const fetchHealthDeclarations = async (): Promise<HealthDeclaration[]> => {
   try {
-    const { data, error }: PostgrestResponse<any> = await supabase
+    // Breaking down the query chain and using explicit typing
+    const response: PostgrestResponse<any> = await supabase
       .from('health_declarations')
       .select('*');
+
+    const { data, error } = response;
 
     if (error) {
       handleSupabaseError(error, 'fetching health declarations');
@@ -57,11 +60,13 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
     
     console.log('Final health declaration data for insert:', dbHealthDeclaration);
     
-    const { data, error } = await supabase
+    // Breaking down the query chain and using explicit typing
+    const response: PostgrestResponse<any> = await supabase
       .from('health_declarations')
       .insert(dbHealthDeclaration)
-      .select()
-      .single();
+      .select();
+      
+    const { data, error } = response;
 
     if (error) {
       console.error('Supabase error during health declaration insert:', error);
@@ -69,10 +74,10 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
       return undefined;
     }
 
-    if (data) {
-      console.log('Health declaration created successfully:', data);
+    if (data && data.length > 0) {
+      console.log('Health declaration created successfully:', data[0]);
       // Convert back to our TypeScript model format
-      return mapHealthDeclarationFromDB(data);
+      return mapHealthDeclarationFromDB(data[0]);
     }
     
     console.error('No data returned from health declaration insert');
@@ -94,10 +99,13 @@ export const updateHealthDeclarationService = async (id: string, updates: Partia
     
     console.log('Updating health declaration with id:', id, 'and data:', dbUpdates);
     
-    const { error } = await supabase
+    // Breaking down the query chain and using explicit typing
+    const response: PostgrestResponse<any> = await supabase
       .from('health_declarations')
       .update(dbUpdates)
       .eq('id', id);
+    
+    const { error } = response;
 
     if (error) {
       console.error('Supabase error during health declaration update:', error);
@@ -136,24 +144,26 @@ export const submitHealthFormService = async (
     
     console.log('Submitting health form for declaration:', declarationId, 'with data:', updates);
     
-    const { error, data } = await supabase
+    // Breaking down the query chain and using explicit typing
+    const response: PostgrestResponse<any> = await supabase
       .from('health_declarations')
       .update(updates)
       .eq('id', declarationId)
-      .select('participant_id')
-      .single();
+      .select('participant_id');
+    
+    const { data, error } = response;
 
     if (error) {
       console.error('Supabase error during health form submission:', error);
       throw error;
     }
     
-    if (!data || !data.participant_id) {
+    if (!data || data.length === 0 || !data[0].participant_id) {
       throw new Error('Failed to retrieve registration data after form submission');
     }
     
     // Return the participant_id (registrationId) for further processing
-    return data.participant_id;
+    return data[0].participant_id;
   } catch (error) {
     console.error('Error submitting health form:', error);
     throw error;
@@ -163,11 +173,14 @@ export const submitHealthFormService = async (
 // Get a health declaration by its ID
 export const getHealthDeclarationById = async (id: string): Promise<HealthDeclaration | null> => {
   try {
-    const { data, error } = await supabase
+    // Breaking down the query chain and using explicit typing
+    const response: PostgrestResponse<any> = await supabase
       .from('health_declarations')
       .select('*')
       .eq('id', id)
-      .single();
+      .maybeSingle();
+    
+    const { data, error } = response;
 
     if (error) {
       console.error('Error fetching health declaration by ID:', error);
@@ -188,11 +201,14 @@ export const getHealthDeclarationById = async (id: string): Promise<HealthDeclar
 // Get a health declaration by its token
 export const getHealthDeclarationByToken = async (token: string): Promise<HealthDeclaration | null> => {
   try {
-    const { data, error } = await supabase
+    // Breaking down the query chain and using explicit typing
+    const response: PostgrestResponse<any> = await supabase
       .from('health_declarations')
       .select('*')
       .eq('token', token)
-      .single();
+      .maybeSingle();
+    
+    const { data, error } = response;
 
     if (error) {
       console.error('Error fetching health declaration by token:', error);
@@ -217,11 +233,13 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     const token = uuidv4();
     
     // Check if a declaration already exists for this registration
-    const { data: existingData, error: existingError } = await supabase
+    const existingResponse: PostgrestResponse<any> = await supabase
       .from('health_declarations')
       .select('id, form_status')
       .eq('participant_id', registrationId)
-      .single();
+      .maybeSingle();
+    
+    const { data: existingData, error: existingError } = existingResponse;
     
     if (existingError && existingError.code !== 'PGRST116') { // PGRST116 is "No rows found"
       console.error('Error checking existing declaration:', existingError);
@@ -232,7 +250,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     
     if (existingData) {
       // Update existing declaration with new token
-      const { error: updateError } = await supabase
+      const updateResponse: PostgrestResponse<any> = await supabase
         .from('health_declarations')
         .update({
           token,
@@ -241,6 +259,8 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
           notes: null
         })
         .eq('id', existingData.id);
+        
+      const { error: updateError } = updateResponse;
         
       if (updateError) {
         console.error('Error updating health declaration with new token:', updateError);
@@ -260,22 +280,23 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       
       console.log('Creating new health declaration:', newDeclaration);
       
-      const { data: newData, error: insertError } = await supabase
+      const insertResponse: PostgrestResponse<any> = await supabase
         .from('health_declarations')
         .insert(newDeclaration)
-        .select('id')
-        .single();
+        .select('id');
+      
+      const { data: newData, error: insertError } = insertResponse;
         
       if (insertError) {
         console.error('Error creating health declaration:', insertError);
         throw insertError;
       }
       
-      if (!newData) {
+      if (!newData || newData.length === 0) {
         throw new Error('No data returned when creating health declaration');
       }
       
-      declarationId = newData.id;
+      declarationId = newData[0].id;
     }
     
     // Return the full URL
