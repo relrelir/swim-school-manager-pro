@@ -24,29 +24,45 @@ const SeasonProductsTableContent: React.FC<SeasonProductsTableContentProps> = ({
     return `${meetingInfo.current}/${meetingInfo.total}`;
   };
 
+  // Calculate effective price after discount
+  const getEffectivePrice = (product: Product) => {
+    const discountAmount = product.discountAmount || 0;
+    return Math.max(0, product.price - discountAmount);
+  };
+
   return (
     <TableBody>
-      {products.map((product) => (
-        <TableRow key={product.id}>
-          <TableCell className="font-medium">{product.name}</TableCell>
-          <TableCell>{product.type}</TableCell>
-          <TableCell>{formatPrice(product.price)}</TableCell>
-          <TableCell>{formatDate(product.startDate)}</TableCell>
-          <TableCell>{formatDate(product.endDate)}</TableCell>
-          <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
-          <TableCell>{formatTime(product.startTime)}</TableCell>
-          <TableCell>{formatMeetingCount(product)}</TableCell>
-          <TableCell>
-            {formatParticipantsCount(getParticipantsCount(product.id), product.maxParticipants)}
-          </TableCell>
-          <TableCell>
-            <SeasonProductsTableActions 
-              product={product} 
-              onEditProduct={onEditProduct} 
-            />
-          </TableCell>
-        </TableRow>
-      ))}
+      {products.map((product) => {
+        const effectivePrice = getEffectivePrice(product);
+        return (
+          <TableRow key={product.id}>
+            <TableCell className="font-medium">{product.name}</TableCell>
+            <TableCell>{product.type}</TableCell>
+            <TableCell>
+              {formatPrice(product.price)}
+              {discountAmount > 0 && (
+                <div className="text-sm text-green-600">
+                  {formatPrice(effectivePrice)} (אחרי הנחה)
+                </div>
+              )}
+            </TableCell>
+            <TableCell>{formatDate(product.startDate)}</TableCell>
+            <TableCell>{formatDate(product.endDate)}</TableCell>
+            <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
+            <TableCell>{formatTime(product.startTime)}</TableCell>
+            <TableCell>{formatMeetingCount(product)}</TableCell>
+            <TableCell>
+              {formatParticipantsCount(getParticipantsCount(product.id), product.maxParticipants)}
+            </TableCell>
+            <TableCell>
+              <SeasonProductsTableActions 
+                product={product} 
+                onEditProduct={onEditProduct} 
+              />
+            </TableCell>
+          </TableRow>
+        );
+      })}
     </TableBody>
   );
 };

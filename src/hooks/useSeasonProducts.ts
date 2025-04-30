@@ -100,11 +100,23 @@ export const useSeasonProducts = () => {
         );
       }
       
+      // Calculate effective price after discount
+      const price = productData.price !== undefined ? productData.price : editingProduct.price;
+      const discountAmount = productData.discountAmount !== undefined ? 
+                             productData.discountAmount : 
+                             editingProduct.discountAmount || 0;
+      const effectivePrice = Math.max(0, price - discountAmount);
+      
       const updatedProduct: Product = {
         ...editingProduct,
         ...productData,
-        endDate
+        endDate,
+        price, // Ensure price is included
+        discountAmount, // Ensure discount is included
+        effectivePrice // Add the calculated effective price
       };
+      
+      console.log("Updating product with data:", updatedProduct);
       
       try {
         await updateProduct(updatedProduct);

@@ -73,7 +73,7 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProduct) {
-      // Include price in the updated product data
+      // Include price and all other necessary fields in the updated product data
       const updatedProduct: Partial<Product> = {
         price: editingProduct.price,
         meetingsCount: editingProduct.meetingsCount,
@@ -81,7 +81,9 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
         startTime: editingProduct.startTime,
         maxParticipants: editingProduct.maxParticipants,
         notes: editingProduct.notes,
-        endDate: calculatedEndDate || editingProduct.endDate
+        endDate: calculatedEndDate || editingProduct.endDate,
+        discountAmount: editingProduct.discountAmount,
+        effectivePrice: editingProduct.effectivePrice
       };
       
       onSubmit(updatedProduct);
