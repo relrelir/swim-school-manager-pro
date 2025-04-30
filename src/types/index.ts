@@ -1,34 +1,24 @@
-export interface Season {
+export interface User {
   id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
+  email: string;
+  name?: string;
+  role: 'admin' | 'user';
 }
-
-export type ProductType = 'קייטנה' | 'חוג' | 'קורס';
 
 export interface Product {
   id: string;
   name: string;
-  type: ProductType;
-  startDate: string;
-  endDate: string;
+  description?: string;
   price: number;
-  maxParticipants: number;
-  notes: string;
-  seasonId: string;
-  meetingsCount?: number;
-  daysOfWeek?: string[];
-  startTime?: string;
-  discountAmount?: number;
-  effectivePrice?: number;
+  imageUrl?: string;
+  active: boolean;
 }
 
 export interface Participant {
   id: string;
   firstName: string;
   lastName: string;
-  idNumber: string;
+  email?: string;
   phone: string;
   healthApproval: boolean;
 }
@@ -37,55 +27,32 @@ export interface Registration {
   id: string;
   productId: string;
   participantId: string;
-  requiredAmount: number;
-  paidAmount: number;
-  receiptNumber: string;
-  discountApproved: boolean;
   registrationDate: string;
-  discountAmount?: number;
+  requiredAmount: number;
+  discountApproved: boolean;
 }
-
-export type PaymentStatus = 'מלא' | 'חלקי' | 'הנחה' | 'יתר' | 'מלא / הנחה' | 'חלקי / הנחה';
 
 export interface Payment {
   id: string;
   registrationId: string;
+  paymentDate: string;
   amount: number;
   receiptNumber: string;
-  paymentDate: string;
 }
 
-export interface RegistrationWithDetails extends Registration {
-  participant: Participant;
-  product: Product;
-  season: Season;
-  paymentStatus: PaymentStatus;
-  payments?: Payment[];
+export interface PaymentStatus {
+  paid: number;
+  expected: number;
+  status: 'paid' | 'partial' | 'unpaid' | 'discounted';
 }
 
-export interface PaymentDetails {
-  amount: number;
-  receiptNumber: string;
-  paymentDate: string;
-}
-
-export interface DailyActivity {
-  startTime?: string;
-  product: Product;
-  numParticipants: number;
-  currentMeetingNumber?: number;
-  totalMeetings?: number;
-}
-
-export type HealthDeclarationStatus = 'pending' | 'sent' | 'signed';
-
+// Update the HealthDeclaration interface to match our application model
 export interface HealthDeclaration {
   id: string;
-  registrationId: string;
+  registrationId: string; // This maps to participant_id in the database
   phone: string;
-  formStatus: HealthDeclarationStatus;
+  formStatus: 'pending' | 'signed' | 'expired';
+  submissionDate?: string;
   sentAt: string;
-  signedAt?: string;
-  clientAnswer?: string;
   notes?: string;
 }

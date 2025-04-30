@@ -47,21 +47,32 @@ export const useHealthForm = () => {
         }
 
         // Then fetch the registration to get participant details
+        const registrationId = declarationData.participant_id;
+        if (!registrationId) {
+          throw new Error('מזהה הרשמה חסר בהצהרת הבריאות');
+        }
+
         const { data: registrationData, error: registrationError } = await supabase
           .from('registrations')
-          .select('participantid')
-          .eq('id', declarationData.participant_id)
+          .select('*')
+          .eq('id', registrationId)
           .single();
           
         if (registrationError || !registrationData) {
           throw new Error('לא נמצאה הרשמה תואמת להצהרת בריאות זו');
         }
 
+        // Get the participant ID from registration
+        const participantId = registrationData.participantid;
+        if (!participantId) {
+          throw new Error('מזהה משתתף חסר בהרשמה');
+        }
+
         // Finally fetch the participant details
         const { data: participantData, error: participantError } = await supabase
           .from('participants')
           .select('firstname, lastname')
-          .eq('id', registrationData.participantid)
+          .eq('id', participantId)
           .single();
 
         if (participantError || !participantData) {
@@ -127,10 +138,10 @@ export const useHealthForm = () => {
         throw new Error(healthDeclarationError.message);
       }
 
-      // Get the participant ID from the health declaration
+      // Get the registration ID from the health declaration
       const { data: healthDecData, error: healthDecFetchError } = await supabase
         .from('health_declarations')
-        .select('participant_id')
+        .select('participant_id') // This is the registration ID
         .eq('id', declarationId)
         .single();
 
@@ -138,10 +149,13 @@ export const useHealthForm = () => {
         throw new Error('לא ניתן למצוא את ההרשמה המקושרת להצהרת בריאות זו');
       }
 
+      const registrationId = healthDecData.participant_id;
+
+      // Get participant ID from the registration
       const { data: registrationData, error: registrationError } = await supabase
         .from('registrations')
         .select('participantid')
-        .eq('id', healthDecData.participant_id)
+        .eq('id', registrationId)
         .single();
 
       if (registrationError || !registrationData) {

@@ -38,9 +38,18 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
     // Convert to DB field names format
     const dbHealthDeclaration = mapHealthDeclarationToDB(healthDeclaration);
     
+    // Map registrationId to participant_id for the DB schema
+    const { registrationId, ...rest } = dbHealthDeclaration;
+    const dbData = {
+      ...rest,
+      participant_id: registrationId
+    };
+    
+    console.log('Creating health declaration with data:', dbData);
+    
     const { data, error } = await supabase
       .from('health_declarations')
-      .insert([dbHealthDeclaration])
+      .insert([dbData])
       .select()
       .single();
 
@@ -68,13 +77,32 @@ export const updateHealthDeclarationService = async (id: string, updates: Partia
   try {
     const dbUpdates = mapHealthDeclarationToDB(updates);
     
-    const { error } = await supabase
-      .from('health_declarations')
-      .update(dbUpdates)
-      .eq('id', id);
+    // Handle the registrationId to participant_id mapping if present
+    if (dbUpdates.registrationId) {
+      const { registrationId, ...rest } = dbUpdates;
+      const dbData = {
+        ...rest,
+        participant_id: registrationId
+      };
+      
+      const { error } = await supabase
+        .from('health_declarations')
+        .update(dbData)
+        .eq('id', id);
 
-    if (error) {
-      handleSupabaseError(error, 'updating health declaration');
+      if (error) {
+        handleSupabaseError(error, 'updating health declaration');
+      }
+    } else {
+      // No registrationId in the updates
+      const { error } = await supabase
+        .from('health_declarations')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) {
+        handleSupabaseError(error, 'updating health declaration');
+      }
     }
     
     return true;

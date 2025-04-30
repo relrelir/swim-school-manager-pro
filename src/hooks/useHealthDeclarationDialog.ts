@@ -28,19 +28,27 @@ export const useHealthDeclarationDialog = (
     if (!participant) return;
 
     let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+    console.log('Found health declaration:', healthDeclaration, 'for registration:', registrationId);
 
     // If no health declaration exists for this registration, create one
     if (!healthDeclaration) {
-      const newDeclaration = await addHealthDeclaration({
-        registrationId,
-        phone: participant.phone,
-        formStatus: 'pending',
-        sentAt: new Date().toISOString()
-      });
-      
-      if (newDeclaration) {
-        healthDeclaration = newDeclaration;
-      } else {
+      console.log('Creating new health declaration for registration:', registrationId);
+      try {
+        const newDeclaration = await addHealthDeclaration({
+          registrationId, // This will be mapped to participant_id in the service
+          phone: participant.phone,
+          formStatus: 'pending',
+          sentAt: new Date().toISOString()
+        });
+        
+        if (newDeclaration) {
+          console.log('Created new health declaration:', newDeclaration);
+          healthDeclaration = newDeclaration;
+        } else {
+          throw new Error('Failed to create health declaration');
+        }
+      } catch (error) {
+        console.error('Error creating health declaration:', error);
         toast({
           title: "שגיאה",
           description: "לא ניתן ליצור הצהרת בריאות",
