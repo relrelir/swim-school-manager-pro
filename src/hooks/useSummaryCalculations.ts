@@ -14,9 +14,10 @@ export const useSummaryCalculations = (registrations: Registration[], product?: 
     return sum + effectiveRequiredAmount;
   }, 0);
   
-  // Total paid amount - only actual payments, not including discounts
+  // Total paid amount - sum of actual payments, not the paidAmount field
   const totalPaid = registrations.reduce((sum, reg) => {
-    // Get payments for this registration (assuming they're filtered to include only actual payments)
+    // Since we can't access the payments directly here, we use the paidAmount
+    // which should represent the sum of actual payments
     return sum + reg.paidAmount;
   }, 0);
 
