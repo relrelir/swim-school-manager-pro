@@ -1,6 +1,7 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 // Simple User interface for the application
 interface User {
@@ -10,18 +11,18 @@ interface User {
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (password: string) => boolean;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
-  changePassword: (newPassword: string) => void;
+  changePassword: (newPassword: string) => Promise<boolean>;
   defaultPasswordChanged: boolean;
   user: User | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
-  login: () => false,
+  login: async () => false,
   logout: () => {},
-  changePassword: () => {},
+  changePassword: async () => false,
   defaultPasswordChanged: false,
   user: null,
 });
@@ -30,20 +31,12 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [password, setPassword] = useState('1234');
   const [defaultPasswordChanged, setDefaultPasswordChanged] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   
-  // Check if there's a saved password in localStorage
+  // Check if there's a saved auth state
   useEffect(() => {
-    const savedPassword = localStorage.getItem('swimSchoolPassword');
-    if (savedPassword) {
-      setPassword(savedPassword);
-      setDefaultPasswordChanged(true);
-    }
-    
-    // Check if there's a saved auth state
     const savedAuth = localStorage.getItem('swimSchoolAuth');
     if (savedAuth === 'true') {
       setIsAuthenticated(true);
@@ -52,23 +45,65 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         id: '1',
         displayName: 'מנהל'
       });
+      
+      // Check if default password has been changed
+      checkIfPasswordChanged();
     }
   }, []);
 
-  const login = (enteredPassword: string): boolean => {
-    if (enteredPassword === password) {
-      setIsAuthenticated(true);
-      localStorage.setItem('swimSchoolAuth', 'true');
-      // Set user data when logging in
-      setUser({
-        id: '1',
-        displayName: 'מנהל'
-      });
-      return true;
-    } else {
+  // Function to check if the default password has been changed
+  const checkIfPasswordChanged = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_credentials')
+        .select('password')
+        .single();
+      
+      if (error) throw error;
+      
+      // Check if password is still the default '2014'
+      setDefaultPasswordChanged(data.password !== '2014');
+    } catch (error) {
+      console.error('Error checking if password was changed:', error);
+    }
+  };
+
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_credentials')
+        .select('*')
+        .eq('username', username)
+        .single();
+      
+      if (error) throw error;
+      
+      if (data && data.password === password) {
+        setIsAuthenticated(true);
+        localStorage.setItem('swimSchoolAuth', 'true');
+        // Set user data when logging in
+        setUser({
+          id: data.id,
+          displayName: 'מנהל'
+        });
+        
+        // Check if default password has been changed
+        setDefaultPasswordChanged(password !== '2014');
+        
+        return true;
+      } else {
+        toast({
+          title: "שגיאת התחברות",
+          description: "שם משתמש או סיסמה שגויים",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       toast({
         title: "שגיאת התחברות",
-        description: "סיסמה שגויה, נסה שנית",
+        description: "אירעה שגיאה בהתחברות, אנא נסה שנית",
         variant: "destructive",
       });
       return false;
@@ -81,14 +116,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('swimSchoolAuth');
   };
 
-  const changePassword = (newPassword: string) => {
-    setPassword(newPassword);
-    localStorage.setItem('swimSchoolPassword', newPassword);
-    setDefaultPasswordChanged(true);
-    toast({
-      title: "סיסמה עודכנה",
-      description: "הסיסמה החדשה נשמרה בהצלחה",
-    });
+  const changePassword = async (newPassword: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('admin_credentials')
+        .update({ 
+          password: newPassword,
+          updated_at: new Date().toISOString()
+        })
+        .eq('username', 'ענבר במדבר 2014');
+      
+      if (error) throw error;
+      
+      setDefaultPasswordChanged(true);
+      toast({
+        title: "סיסמה עודכנה",
+        description: "הסיסמה החדשה נשמרה בהצלחה",
+      });
+      return true;
+    } catch (error) {
+      console.error('Error updating password:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בעדכון הסיסמה",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   return (
