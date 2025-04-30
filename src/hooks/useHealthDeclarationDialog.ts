@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { HealthDeclaration, Participant } from '@/types';
 import { toast } from "@/components/ui/use-toast";
+import { supabase } from '@/integrations/supabase/client';
 
 export const useHealthDeclarationDialog = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
@@ -21,6 +22,8 @@ export const useHealthDeclarationDialog = (
     participants: Participant[], 
     registrations: any[]
   ) => {
+    console.log('Found health declaration:', getHealthDeclarationForRegistration(registrationId), 'for registration:', registrationId);
+    
     const registration = registrations.find(reg => reg.id === registrationId);
     if (!registration) return;
 
@@ -28,17 +31,17 @@ export const useHealthDeclarationDialog = (
     if (!participant) return;
 
     let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
-    console.log('Found health declaration:', healthDeclaration, 'for registration:', registrationId);
 
     // If no health declaration exists for this registration, create one
     if (!healthDeclaration) {
       console.log('Creating new health declaration for registration:', registrationId);
       try {
+        // Important: we need to directly use the field names that match the DB schema
         const newDeclaration = await addHealthDeclaration({
-          registrationId, // This will be mapped to participant_id in the service
-          phone: participant.phone,
-          formStatus: 'pending',
-          sentAt: new Date().toISOString()
+          participant_id: registrationId,  // In DB, this field stores the registration ID
+          phone_sent_to: participant.phone,
+          form_status: 'pending',
+          created_at: new Date().toISOString()
         });
         
         if (newDeclaration) {
