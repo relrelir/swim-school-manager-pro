@@ -11,8 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/components/ui/use-toast';
 import { HealthDeclaration } from '@/types';
 import { useData } from '@/context/DataContext';
@@ -39,7 +37,9 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
   const [phone, setPhone] = useState(defaultPhone);
   const { addHealthDeclaration, updateHealthDeclaration } = useData();
   const [isLoading, setIsLoading] = useState(false);
+  const [isLinkCreated, setIsLinkCreated] = useState(Boolean(healthDeclaration?.id));
   const baseUrl = window.location.origin;
+  const healthFormUrl = `${baseUrl}/health-form?id=${healthDeclaration?.id || ''}`;
 
   const handleSendHealthDeclaration = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,22 +75,20 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
         
         if (newDeclaration) {
           declarationId = newDeclaration.id;
+          setIsLinkCreated(true);
         } else {
           throw new Error("Failed to create health declaration");
         }
       }
       
       // Show success message with copy link option
-      const healthFormUrl = `${baseUrl}/health-form?id=${declarationId}`;
-      
-      navigator.clipboard.writeText(healthFormUrl);
+      navigator.clipboard.writeText(`${baseUrl}/health-form?id=${declarationId}`);
       toast({
         title: "לינק להצהרת בריאות הועתק",
         description: `הלינק להצהרת בריאות עבור ${participantName} הועתק ללוח. אנא שלח אותו למשתתף.`,
       });
       
-      // Close the form and refresh if needed
-      onOpenChange(false);
+      // Don't close the dialog so user can copy the link again if needed
       if (afterSubmit) afterSubmit();
       
     } catch (error) {
@@ -105,42 +103,73 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     }
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(healthFormUrl);
+    toast({
+      title: "הלינק הועתק",
+      description: "הלינק להצהרת הבריאות הועתק ללוח",
+    });
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>יצירת הצהרת בריאות</DialogTitle>
+          <DialogTitle>הצהרת בריאות</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSendHealthDeclaration}>
+        {isLinkCreated && healthDeclaration?.id ? (
           <div className="grid gap-4 py-4">
             <div className="text-sm">
-              יצירת הצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
+              הצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
             </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-left col-span-1">
-                טלפון
-              </Label>
+            <div className="text-sm">
+              העתק את הלינק ושלח למשתתף בוואטסאפ/מייל:
+            </div>
+            <div className="flex gap-2">
               <Input
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="הזן מספר טלפון"
-                className="col-span-3 text-right"
-                required
+                value={healthFormUrl}
+                readOnly
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+                className="flex-1 text-right"
               />
+              <Button onClick={handleCopyLink}>העתק</Button>
             </div>
-            
             <div className="text-xs text-muted-foreground">
-              לאחר יצירת ההצהרה תוכל להעתיק את הלינק ולשלוח למשתתף בוואטסאפ.
+              כאשר המשתתף ימלא את הטופס, אישור הבריאות יעודכן אוטומטית במערכת.
             </div>
           </div>
-          <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'מכין...' : healthDeclaration?.formStatus === 'sent' ? 'צור מחדש' : 'צור הצהרה'}
-            </Button>
-          </DialogFooter>
-        </form>
+        ) : (
+          <form onSubmit={handleSendHealthDeclaration}>
+            <div className="grid gap-4 py-4">
+              <div className="text-sm">
+                יצירת הצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
+              </div>
+              
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="phone" className="text-left col-span-1">
+                  טלפון
+                </Label>
+                <Input
+                  id="phone"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="הזן מספר טלפון"
+                  className="col-span-3 text-right"
+                  required
+                />
+              </div>
+              
+              <div className="text-xs text-muted-foreground">
+                לאחר יצירת ההצהרה תוכל להעתיק את הלינק ולשלוח למשתתף בוואטסאפ או מייל.
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'מכין...' : 'צור הצהרה'}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

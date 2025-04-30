@@ -1,13 +1,10 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CheckCircle, AlertCircle, Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Participant, Registration, HealthDeclaration } from '@/types';
-import { toast } from '@/components/ui/use-toast';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -24,18 +21,6 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   onOpenHealthForm,
   onUpdateHealthApproval
 }) => {
-  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
-  const baseUrl = window.location.origin;
-  const healthFormUrl = `${baseUrl}/health-form?id=${healthDeclaration?.id || ''}`;
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(healthFormUrl);
-    toast({
-      title: "הלינק הועתק",
-      description: "הלינק להצהרת הבריאות הועתק ללוח",
-    });
-  };
-
   if (!participant) return null;
 
   return (
@@ -67,7 +52,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         onClick={onOpenHealthForm}
       >
         <Send className="h-4 w-4 mr-1" />
-        שלח
+        הצהרה
       </Button>
 
       <Button
@@ -80,31 +65,6 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
       >
         {participant.healthApproval ? 'בטל אישור' : 'סמן כמאושר'}
       </Button>
-
-      <Dialog open={isLinkDialogOpen} onOpenChange={setIsLinkDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>לינק להצהרת בריאות</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="text-sm">
-              העתק את הלינק ושלח למשתתף בוואטסאפ:
-            </div>
-            <div className="flex gap-2">
-              <Input
-                value={healthFormUrl}
-                readOnly
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-                className="flex-1"
-              />
-              <Button onClick={handleCopyLink}>העתק</Button>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              כאשר המשתתף ימלא את הטופס, אישור הבריאות יעודכן אוטומטית במערכת.
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

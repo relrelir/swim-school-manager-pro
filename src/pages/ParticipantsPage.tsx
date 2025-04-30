@@ -161,8 +161,8 @@ const ParticipantsPage: React.FC = () => {
         setIsAddParticipantOpen={setIsAddParticipantOpen}
         isAddPaymentOpen={isAddPaymentOpen}
         setIsAddPaymentOpen={setIsAddPaymentOpen}
-        isHealthFormOpen={false}
-        setIsHealthFormOpen={() => {}}
+        isHealthFormOpen={isLinkDialogOpen}
+        setIsHealthFormOpen={setIsLinkDialogOpen}
         newParticipant={newParticipant}
         setNewParticipant={setNewParticipant}
         registrationData={registrationData}
@@ -171,8 +171,8 @@ const ParticipantsPage: React.FC = () => {
         participants={participants}
         newPayment={newPayment}
         setNewPayment={setNewPayment}
-        currentHealthDeclaration={null}
-        setCurrentHealthDeclaration={() => {}}
+        currentHealthDeclaration={currentHealthDeclaration}
+        setCurrentHealthDeclaration={setCurrentHealthDeclaration}
         handleAddParticipant={handleAddParticipant}
         handleAddPayment={handleAddPayment}
         handleApplyDiscount={handleApplyDiscountWrapper}
