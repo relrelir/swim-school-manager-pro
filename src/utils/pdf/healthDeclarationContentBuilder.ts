@@ -36,7 +36,7 @@ export const buildHealthDeclarationPDF = (
   try {
     console.log("Starting PDF generation with data:", { participant });
     
-    // Add title
+    // Add title - using direct Hebrew text
     addPdfTitle(pdf, 'הצהרת בריאות');
     
     // Add date
@@ -44,7 +44,7 @@ export const buildHealthDeclarationPDF = (
       ? format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy HH:mm') 
       : format(new Date(), 'dd/MM/yyyy HH:mm');
     
-    addPdfDate(pdf, formattedDate);
+    addPdfDate(pdf, `תאריך: ${formattedDate}`);
     
     // Add participant details
     addSectionTitle(pdf, 'פרטי המשתתף', 45);

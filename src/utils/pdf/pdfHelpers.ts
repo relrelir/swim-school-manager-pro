@@ -59,58 +59,52 @@ export const createDataTable = (
   startY: number, 
   hasHeader: boolean = false
 ): number => {
-  // Configure autotable with RTL support
-  const tableConfig: any = {
-    startY,
-    styles: { 
-      font: 'helvetica',
-      halign: 'right',
-    },
-    headStyles: {
-      fillColor: [200, 200, 200],
-      textColor: [0, 0, 0],
-      fontStyle: 'normal',
-    },
-    bodyStyles: {
-      fontStyle: 'normal',
-    },
-    theme: 'grid',
-  };
+  try {
+    // Configure autotable with RTL support
+    const tableConfig: any = {
+      startY,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 10,
+        halign: 'right',
+        cellPadding: 5,
+        lineColor: [100, 100, 100],
+        lineWidth: 0.1,
+      },
+      headStyles: {
+        fillColor: [230, 230, 230],
+        textColor: [0, 0, 0],
+        fontStyle: 'bold',
+      },
+      columnStyles: {
+        0: { fontStyle: 'bold', fillColor: [240, 240, 240] }
+      },
+      margin: { right: 20 }
+    };
 
-  if (hasHeader) {
-    const headers = data[0];
-    const body = data.slice(1);
-    
-    try {
+    if (hasHeader) {
+      const headers = data[0];
+      const body = data.slice(1);
+      
       autoTable(pdf, {
         ...tableConfig,
         head: [headers],
         body: body,
       });
-    } catch (error) {
-      console.error("Error creating table with header:", error);
-    }
-  } else {
-    try {
+    } else {
       autoTable(pdf, {
         ...tableConfig,
         body: data,
       });
-    } catch (error) {
-      console.error("Error creating table without header:", error);
     }
-  }
-
-  // Return the new y position after the table
-  let finalY = 0;
-  try {
-    finalY = (pdf as any).lastAutoTable.finalY + 5;
+    
+    // Return the new y position after the table
+    return (pdf as any).lastAutoTable.finalY + 5;
   } catch (error) {
-    console.error("Error getting finalY, using default value:", error);
-    finalY = startY + 50; // Default fallback value
+    console.error("Error creating data table:", error);
+    return startY + 50; // Default fallback position
   }
-  
-  return finalY;
 };
 
 /**
@@ -121,29 +115,24 @@ export const createPlainTextTable = (
   data: (string | number)[][], 
   startY: number
 ): number => {
-  // Configure autotable with RTL support for plain text
   try {
     autoTable(pdf, {
       startY,
       body: data,
       styles: { 
         font: 'helvetica',
+        fontSize: 10,
         halign: 'right',
+        cellPadding: 3,
       },
       theme: 'plain',
+      margin: { right: 20 },
     });
+    
+    // Return the new y position after the table
+    return (pdf as any).lastAutoTable.finalY + 5;
   } catch (error) {
     console.error("Error creating plain text table:", error);
+    return startY + 30; // Default fallback position
   }
-
-  // Return the new y position after the table
-  let finalY = 0;
-  try {
-    finalY = (pdf as any).lastAutoTable.finalY + 5;
-  } catch (error) {
-    console.error("Error getting finalY for plain table, using default value:", error);
-    finalY = startY + 30; // Default fallback value
-  }
-  
-  return finalY;
 };

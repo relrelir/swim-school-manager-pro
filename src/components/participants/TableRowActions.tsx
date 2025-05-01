@@ -44,7 +44,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     
     // Update state
     setHasHealthDeclaration(declarationExists);
-  }, [registration.id, getHealthDeclarationForRegistration, healthDeclarations]);
+  }, [registration.id, registration.participantId, getHealthDeclarationForRegistration, healthDeclarations]);
 
   // Handle download registration PDF
   const handleGenerateRegPdf = async () => {
@@ -70,7 +70,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     
     setIsGeneratingHealthPdf(true);
     try {
-      console.log("Looking for health declaration for registration ID:", registration.id);
+      console.log("Looking for health declaration for registration ID:", registration.id, "participant ID:", registration.participantId);
       const healthDeclaration = getHealthDeclarationForRegistration(registration.id);
       
       if (!healthDeclaration || !healthDeclaration.id) {

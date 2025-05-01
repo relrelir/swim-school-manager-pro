@@ -19,8 +19,11 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
     console.log("Failed to parse notes as JSON, trying regex", notes);
     
     // If not valid JSON, try to extract using regex
-    const nameMatch = notes.match(/parentName"?:\s*"?([^",}]+)"?/i);
-    const idMatch = notes.match(/parentId"?:\s*"?([^",}]+)"?/i);
+    const nameMatch = notes.match(/parentName"?:\s*"?([^",}]+)"?/i) || 
+                     notes.match(/הורה\/אפוטרופוס:\s*([^,]+)/);
+    
+    const idMatch = notes.match(/parentId"?:\s*"?([^",}]+)"?/i) || 
+                   notes.match(/ת\.ז\.:\s*([^\n]+)/);
     
     const result = {
       parentName: nameMatch ? nameMatch[1].trim() : '',
@@ -50,11 +53,16 @@ export const parseMedicalNotes = (notes: string | null): string => {
     
     // If not valid JSON, try to extract using regex
     const notesMatch = notes.match(/notes"?:\s*"?([^",}]+)"?/i) || 
-                      notes.match(/medicalNotes"?:\s*"?([^",}]+)"?/i);
+                      notes.match(/medicalNotes"?:\s*"?([^",}]+)"?/i) ||
+                      notes.match(/הערות רפואיות:\s*([^\n]+)/);
     
     const result = notesMatch ? notesMatch[1].trim() : '';
-    console.log("Extracted medical notes using regex:", result);
-    return result;
+    
+    // Remove parent info pattern if present to isolate medical notes
+    const cleanResult = result.replace(/הורה\/אפוטרופוס:[^,]+,\s*ת\.ז\.:[^\n]+\n*/g, '').trim();
+    
+    console.log("Extracted medical notes using regex:", cleanResult);
+    return cleanResult;
   }
 };
 
