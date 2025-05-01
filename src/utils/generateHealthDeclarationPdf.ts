@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { createPdf } from './pdf/pdfHelpers';
 import { buildHealthDeclarationPDF } from './pdf/healthDeclarationContentBuilder';
+import { toast } from "@/components/ui/use-toast";
 
 export const generateHealthDeclarationPdf = async (registrationId: string) => {
   try {
@@ -40,9 +41,19 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
     // Save the PDF
     pdf.save(fileName);
     
+    toast({
+      title: "PDF נוצר בהצלחה",
+      description: "הצהרת הבריאות נשמרה במכשיר שלך",
+    });
+    
     return fileName;
   } catch (error) {
     console.error('Error generating health declaration PDF:', error);
+    toast({
+      title: "שגיאה",
+      description: error instanceof Error ? error.message : 'אירעה שגיאה ביצירת ה-PDF',
+      variant: "destructive",
+    });
     throw error;
   }
 };

@@ -1,8 +1,6 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import 'src/assets/fonts/Roboto-Regular-normal';
-import 'src/assets/fonts/Roboto-Bold-bold';
 
 // Extend the jsPDF type to include the lastAutoTable property added by autotable plugin
 declare module 'jspdf' {
@@ -82,7 +80,6 @@ export const createDataTable = (
       font: 'David',
       fontSize: 10,
       halign: 'right',
-      direction: 'rtl',
     },
     headStyles: {
       fillColor: [220, 220, 220],
@@ -112,7 +109,6 @@ export const createPlainTextTable = (
       font: 'David',
       fontSize: 10,
       halign: 'right',
-      direction: 'rtl',
     },
     columnStyles: columnWidths || {}
   });

@@ -2,10 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle, AlertCircle } from 'lucide-react';
+import { CheckCircle, AlertCircle, FileDownIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import HealthFormLink from './health-declaration/HealthFormLink';
+import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -21,11 +22,22 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   healthDeclaration,
   onUpdateHealthApproval
 }) => {
+  const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
+
   if (!participant) return null;
 
   // Check if the form is signed (completed)
   const isFormSigned = healthDeclaration && 
     (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed');
+  
+  const handleDownloadPdf = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      await generateHealthDeclarationPdf(registration.id);
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   return (
     <div className="flex items-center gap-2">
@@ -49,10 +61,34 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </Tooltip>
       )}
       
-      <HealthFormLink 
-        registrationId={registration.id} 
-        isDisabled={isFormSigned || false} 
-      />
+      {isFormSigned ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-blue-500 hover:text-blue-600"
+              onClick={handleDownloadPdf}
+              disabled={isGeneratingPdf}
+            >
+              {isGeneratingPdf ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-1" />
+              ) : (
+                <FileDownIcon className="h-4 w-4 mr-1" />
+              )}
+              הורד PDF
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            הורד הצהרת בריאות
+          </TooltipContent>
+        </Tooltip>
+      ) : (
+        <HealthFormLink 
+          registrationId={registration.id} 
+          isDisabled={isFormSigned || false} 
+        />
+      )}
 
       <Button
         variant="ghost"
