@@ -35,14 +35,17 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
     console.log("Creating PDF with participant data:", participant);
     
     try {
-      // Create the PDF document with RTL and Hebrew font support
+      // Create the PDF document with RTL and font support
       const pdf = createRtlPdf();
+      console.log("PDF object created successfully");
       
       // Build the PDF content
       const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
+      console.log("PDF content built successfully");
       
       // Save the PDF
       pdf.save(fileName);
+      console.log("PDF saved successfully");
       
       toast({
         title: "PDF נוצר בהצלחה",
@@ -52,6 +55,11 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
       return fileName;
     } catch (error) {
       console.error('Error building health declaration PDF:', error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה ביצירת PDF",
+        description: "נא לנסות שוב מאוחר יותר",
+      });
       throw new Error('אירעה שגיאה ביצירת מסמך ה-PDF');
     }
   } catch (error) {

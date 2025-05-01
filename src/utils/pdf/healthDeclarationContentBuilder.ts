@@ -78,7 +78,7 @@ export const buildHealthDeclarationPDF = (
       item
     ]);
     
-    // Fixed: Removed the fourth parameter
+    // Fixed: Removed the fourth parameter to match function signature
     lastY = createPlainTextTable(pdf, declarationData, lastY + 20);
     
     // Add medical notes if any

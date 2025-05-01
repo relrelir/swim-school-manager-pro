@@ -51,6 +51,8 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       throw new Error('פרטי המוצר לא נמצאו');
     }
     
+    console.log("Data fetched successfully, creating PDF...");
+    
     // Adapt database fields to our Registration type
     const registrationData: Registration = {
       id: registration.id,
@@ -83,14 +85,17 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       receiptNumber: payment.receiptnumber
     })) : [];
     
-    // Create the PDF document with RTL and Hebrew font support
+    // Create the PDF document with RTL and font support
     const pdf = createRtlPdf();
+    console.log("PDF object created successfully");
     
     // Build the PDF content
     const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
+    console.log("PDF content built successfully");
     
     // Save the PDF
     pdf.save(fileName);
+    console.log("PDF saved successfully");
     
     toast({
       title: "PDF נוצר בהצלחה",

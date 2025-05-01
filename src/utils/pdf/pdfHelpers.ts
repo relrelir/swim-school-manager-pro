@@ -17,8 +17,8 @@ export const createPdf = (): jsPDF => {
   // Set document to RTL
   pdf.setR2L(true);
   
-  // Use the Alef font for Hebrew text
-  pdf.setFont('Alef');
+  // Use standard font
+  pdf.setFont('helvetica');
   
   return pdf;
 };
@@ -63,7 +63,7 @@ export const createDataTable = (
   const tableConfig = {
     startY,
     styles: { 
-      font: 'Alef',
+      font: 'helvetica',
       halign: 'right',
     },
     headStyles: {
@@ -113,7 +113,7 @@ export const createPlainTextTable = (
     startY,
     body: data,
     styles: { 
-      font: 'Alef',
+      font: 'helvetica',
       halign: 'right',
     },
     theme: 'plain',
