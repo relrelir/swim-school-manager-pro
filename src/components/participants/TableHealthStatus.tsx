@@ -2,10 +2,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle, AlertCircle, FileText, Link as LinkIcon, Printer } from 'lucide-react';
+import { CheckCircle, AlertCircle, Printer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Participant, Registration, HealthDeclaration } from '@/types';
-import HealthFormLink from './health-declaration/HealthFormLink';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -72,7 +71,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </Tooltip>
       )}
       
-      {isFormSigned ? (
+      {isFormSigned && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -90,12 +89,6 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
             הדפס הצהרת בריאות
           </TooltipContent>
         </Tooltip>
-      ) : (
-        <HealthFormLink 
-          registrationId={registration.id} 
-          isDisabled={isFormSigned} 
-          declarationId={healthDeclaration?.id}
-        />
       )}
     </div>
   );

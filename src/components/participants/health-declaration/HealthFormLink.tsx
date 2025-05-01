@@ -10,9 +10,10 @@ interface HealthFormLinkProps {
   registrationId: string;
   isDisabled: boolean;
   declarationId?: string;
+  className?: string;
 }
 
-const HealthFormLink = ({ registrationId, isDisabled, declarationId }: HealthFormLinkProps) => {
+const HealthFormLink = ({ registrationId, isDisabled, declarationId, className }: HealthFormLinkProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   
@@ -70,45 +71,24 @@ const HealthFormLink = ({ registrationId, isDisabled, declarationId }: HealthFor
     }
   };
   
+  // This component is now only used in the HealthDeclarationForm dialog
+  // It will only show the "Generate Link" functionality
   return (
-    <div className="flex gap-2">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          {isDisabled && declarationId ? (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center text-blue-500 hover:text-blue-600"
-              onClick={handlePrintDeclaration}
-              disabled={isGenerating}
-            >
-              <Printer className="h-4 w-4 mr-1" />
-              הדפס הצהרה
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="flex items-center"
-              onClick={handleGenerateLink}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : isCopied ? (
-                <CheckIcon className="h-4 w-4 mr-1 text-green-500" />
-              ) : (
-                <LinkIcon className="h-4 w-4 mr-1" />
-              )}
-              קבל לינק
-            </Button>
-          )}
-        </TooltipTrigger>
-        <TooltipContent>
-          {isDisabled && declarationId ? "הדפסת הצהרת בריאות" : "יצירת קישור למילוי הצהרת בריאות"}
-        </TooltipContent>
-      </Tooltip>
-    </div>
+    <Button
+      variant="default"
+      className={className || "w-full"}
+      onClick={handleGenerateLink}
+      disabled={isGenerating}
+    >
+      {isGenerating ? (
+        <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
+      ) : isCopied ? (
+        <CheckIcon className="h-4 w-4 mr-2 text-green-500" />
+      ) : (
+        <LinkIcon className="h-4 w-4 mr-2" />
+      )}
+      צור קישור להצהרת בריאות
+    </Button>
   );
 };
 

@@ -96,38 +96,20 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
         <TooltipContent>הורד אישור רישום</TooltipContent>
       </Tooltip>
       
-      {isHealthFormSigned ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleGenerateHealthPdf}
-              disabled={isGeneratingHealthPdf}
-            >
-              {isGeneratingHealthPdf ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <FileText className="h-4 w-4" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>הורד הצהרת בריאות</TooltipContent>
-        </Tooltip>
-      ) : onOpenHealthForm && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenHealthForm(registration.id)}
-            >
-              <FileText className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>הצהרת בריאות</TooltipContent>
-        </Tooltip>
-      )}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={isHealthFormSigned ? handleGenerateHealthPdf : () => onOpenHealthForm && onOpenHealthForm(registration.id)}
+          >
+            <FileText className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {isHealthFormSigned ? 'הורד הצהרת בריאות' : 'הצהרת בריאות'}
+        </TooltipContent>
+      </Tooltip>
       
       <Tooltip>
         <TooltipTrigger asChild>

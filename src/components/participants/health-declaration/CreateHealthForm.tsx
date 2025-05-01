@@ -1,8 +1,7 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
-import { createHealthDeclarationLink } from "@/context/data/healthDeclarations/service";
+import { LinkIcon } from "lucide-react";
 
 interface CreateHealthFormProps {
   participantName: string;
@@ -15,17 +14,9 @@ const CreateHealthForm: React.FC<CreateHealthFormProps> = ({
   isLoading,
   onSubmit
 }) => {
-  const [creatingLink, setCreatingLink] = useState(false);
-  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCreatingLink(true);
-    
-    try {
-      await onSubmit(e);
-    } finally {
-      setCreatingLink(false);
-    }
+    onSubmit(e);
   };
   
   return (
@@ -40,8 +31,13 @@ const CreateHealthForm: React.FC<CreateHealthFormProps> = ({
       </div>
 
       <div className="flex justify-end">
-        <Button type="submit" disabled={isLoading || creatingLink}>
-          {isLoading || creatingLink ? 'יוצר קישור...' : 'צור קישור להצהרת בריאות'}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'יוצר קישור...' : (
+            <>
+              <LinkIcon className="h-4 w-4 mr-2" />
+              צור קישור להצהרת בריאות
+            </>
+          )}
         </Button>
       </div>
     </form>

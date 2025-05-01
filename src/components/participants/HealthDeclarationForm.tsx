@@ -4,12 +4,12 @@ import {
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogFooter 
 } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 import { HealthDeclaration } from '@/types';
 import { useData } from '@/context/DataContext';
-import CreateHealthForm from './health-declaration/CreateHealthForm';
 import HealthFormLink from './health-declaration/HealthFormLink';
 
 interface HealthDeclarationFormProps {
@@ -30,7 +30,7 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
   healthDeclaration,
   afterSubmit
 }) => {
-  const { addHealthDeclaration, updateHealthDeclaration } = useData();
+  const { addHealthDeclaration } = useData();
   const [isLoading, setIsLoading] = useState(false);
   const [isLinkCreated, setIsLinkCreated] = useState(Boolean(healthDeclaration?.id));
   const baseUrl = window.location.origin;
@@ -43,9 +43,7 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     }
   }, [isOpen, healthDeclaration]);
 
-  const handleCreateHealthDeclaration = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleCreateHealthDeclaration = async () => {
     setIsLoading(true);
     
     try {
@@ -76,13 +74,6 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
         }
       }
       
-      // Show success message with copy link option
-      navigator.clipboard.writeText(`${baseUrl}/health-form?id=${declarationId}`);
-      toast({
-        title: "לינק להצהרת בריאות הועתק",
-        description: `הלינק להצהרת בריאות עבור ${participantName} הועתק ללוח. אנא שלח אותו למשתתף.`,
-      });
-      
       if (afterSubmit) afterSubmit();
       
     } catch (error) {
@@ -97,25 +88,47 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     }
   };
 
+  const isFormSigned = Boolean(
+    healthDeclaration && 
+    (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed')
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>הצהרת בריאות</DialogTitle>
         </DialogHeader>
-        {isLinkCreated && healthDeclaration?.id ? (
-          <HealthFormLink 
-            registrationId={registrationId}
-            isDisabled={healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed'}
-            declarationId={healthDeclaration.id}
-          />
-        ) : (
-          <CreateHealthForm
-            participantName={participantName}
-            isLoading={isLoading}
-            onSubmit={handleCreateHealthDeclaration}
-          />
-        )}
+        
+        <div className="py-4">
+          <p className="text-sm text-gray-500 mb-4">
+            {isFormSigned 
+              ? `הצהרת הבריאות עבור ${participantName} כבר חתומה` 
+              : `יצירת טופס הצהרת בריאות עבור ${participantName}`
+            }
+          </p>
+          
+          {isFormSigned ? (
+            <p className="text-sm text-green-600 font-medium">
+              הצהרת הבריאות מולאה ונחתמה בהצלחה. תוכל להדפיס אותה דרך הטבלה.
+            </p>
+          ) : (
+            <p className="text-sm mb-4">
+              לחץ על הכפתור להלן כדי ליצור קישור ייחודי להצהרת בריאות. הקישור יועתק ללוח.
+            </p>
+          )}
+        </div>
+
+        <DialogFooter>
+          {!isFormSigned && (
+            <HealthFormLink 
+              registrationId={registrationId}
+              isDisabled={false}
+              declarationId={healthDeclaration?.id}
+              className="w-full"
+            />
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
