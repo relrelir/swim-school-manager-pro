@@ -79,10 +79,8 @@ export const buildHealthDeclarationPDF = (
       item
     ]);
     
-    lastY = createPlainTextTable(pdf, declarationData, lastY + 20, {
-      0: { cellWidth: 5 },
-      1: { cellWidth: 'auto' },
-    });
+    // Fix: Remove the fourth parameter that's causing the error
+    lastY = createPlainTextTable(pdf, declarationData, lastY + 20);
     
     // Add medical notes if any
     if (healthDeclaration.notes) {
