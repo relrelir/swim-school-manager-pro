@@ -29,12 +29,20 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
 
   if (!participant) return null;
 
-  console.log("Health declaration in TableHealthStatus:", {
-    healthDeclaration,
-    regId: registration.id,
+  // Check if the form is signed (completed)
+  const isFormSigned = Boolean(
+    healthDeclaration && 
+    (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed')
+  );
+  
+  console.log("Health declaration status in TableHealthStatus:", {
+    registrationId: registration.id,
     participantId: registration.participantId,
-    healthDeclarationId: healthDeclaration?.id,
-    formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status
+    hasDeclaration: Boolean(healthDeclaration),
+    healthDeclarationObj: healthDeclaration,
+    formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
+    isFormSigned,
+    healthDeclarationId: healthDeclaration?.id
   });
   
   // Handle print health declaration
@@ -48,8 +56,6 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
       });
       return;
     }
-    
-    console.log("Printing health declaration with ID:", healthDeclaration.id);
     
     setIsGeneratingPdf(true);
     try {

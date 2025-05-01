@@ -12,8 +12,6 @@ export const createPdf = (): jsPDF => {
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
-    putOnlyUsedFonts: true,
-    compress: true
   });
   
   // Set document to RTL
@@ -49,8 +47,6 @@ export const addPdfDate = (pdf: jsPDF, date: string): void => {
 export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
   configureDocumentStyle(pdf);
   pdf.setFontSize(14);
-  // Force RTL again for section titles
-  pdf.setR2L(true);
   pdf.text(title, pdf.internal.pageSize.width - 20, y, { align: 'right' });
 };
 
@@ -63,16 +59,12 @@ export const createDataTable = (
   startY: number, 
   hasHeader: boolean = false
 ): number => {
-  // Force RTL mode before creating tables
-  pdf.setR2L(true);
-  
   // Configure autotable with RTL support
   const tableConfig: any = {
     startY,
     styles: { 
       font: 'helvetica',
       halign: 'right',
-      textDirection: 'rtl',
     },
     headStyles: {
       fillColor: [200, 200, 200],
@@ -81,7 +73,6 @@ export const createDataTable = (
     },
     bodyStyles: {
       fontStyle: 'normal',
-      textDirection: 'rtl',
     },
     theme: 'grid',
   };
@@ -95,10 +86,6 @@ export const createDataTable = (
         ...tableConfig,
         head: [headers],
         body: body,
-        didParseCell: function(data) {
-          data.cell.styles.halign = 'right';
-          data.cell.styles.textDirection = 'rtl';
-        }
       });
     } catch (error) {
       console.error("Error creating table with header:", error);
@@ -108,10 +95,6 @@ export const createDataTable = (
       autoTable(pdf, {
         ...tableConfig,
         body: data,
-        didParseCell: function(data) {
-          data.cell.styles.halign = 'right';
-          data.cell.styles.textDirection = 'rtl';
-        }
       });
     } catch (error) {
       console.error("Error creating table without header:", error);
@@ -138,9 +121,6 @@ export const createPlainTextTable = (
   data: (string | number)[][], 
   startY: number
 ): number => {
-  // Force RTL mode before creating tables
-  pdf.setR2L(true);
-  
   // Configure autotable with RTL support for plain text
   try {
     autoTable(pdf, {
@@ -149,13 +129,8 @@ export const createPlainTextTable = (
       styles: { 
         font: 'helvetica',
         halign: 'right',
-        textDirection: 'rtl',
       },
       theme: 'plain',
-      didParseCell: function(data) {
-        data.cell.styles.halign = 'right';
-        data.cell.styles.textDirection = 'rtl';
-      }
     });
   } catch (error) {
     console.error("Error creating plain text table:", error);

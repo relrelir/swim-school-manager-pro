@@ -10,15 +10,10 @@ export const createRtlPdf = (): jsPDF => {
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
-    putOnlyUsedFonts: true,
-    compress: true
   });
 
   // Configure for Hebrew text support
   configureHebrewFont(pdf);
-  
-  // Make sure R2L is properly set
-  pdf.setR2L(true);
   
   console.log("RTL PDF created successfully");
   return pdf;

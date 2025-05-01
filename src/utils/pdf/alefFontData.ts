@@ -10,14 +10,6 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Use standard font
     pdf.setFont('helvetica');
     
-    // Enhanced RTL configuration
-    if (pdf.internal && pdf.internal.events) {
-      // Add event listener to ensure RTL text is displayed correctly in all elements
-      pdf.internal.events.subscribe('addFont', function() {
-        pdf.setR2L(true);
-      });
-    }
-    
     console.log("Hebrew font configuration applied with RTL support");
   } catch (error) {
     console.error("Error configuring Hebrew font:", error);
