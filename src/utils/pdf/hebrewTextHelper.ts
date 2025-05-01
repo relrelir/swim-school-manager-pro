@@ -1,29 +1,31 @@
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * This function prepares Hebrew text for jsPDF rendering with proper RTL support
+ * With proper RTL support and font, we don't need to reverse text anymore
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // For jsPDF with setR2L(true), we need to reverse the text to ensure correct display
-  return reverseText(text);
+  // With proper RTL and font setup, we can just return the text as is
+  return text;
 };
 
 /**
- * Helper function to reverse the order of characters in a string
- * This is needed because jsPDF's RTL support sometimes needs additional help
+ * Legacy helper function kept for backward compatibility
+ * No longer needed with proper RTL support
  */
 export const reverseText = (text: string): string => {
   if (!text) return '';
-  return text.split('').reverse().join('');
+  // With proper RTL support, text reversal is no longer needed
+  return text;
 };
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
+ * With proper RTL support, this function is simplified
  */
 export const prepareRtlText = (text: string): string => {
   if (!text) return '';
-  // For Hebrew text in tables, we need to reverse the characters
-  return reverseText(text);
+  // With proper RTL support, text preparation is no longer needed
+  return text;
 };

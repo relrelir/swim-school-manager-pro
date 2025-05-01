@@ -1,114 +1,125 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-
-// Extend the jsPDF type to include the lastAutoTable property added by autotable plugin
-declare module 'jspdf' {
-  interface jsPDF {
-    lastAutoTable: {
-      finalY: number;
-    };
-  }
-}
+import { configureDocumentStyle } from './pdfConfig';
 
 /**
- * Creates and configures a new PDF document with Hebrew support
+ * Creates a new PDF document with RTL support for Hebrew
  */
 export const createPdf = (): jsPDF => {
-  // Create PDF with right-to-left support
+  // Use the RTL PDF creation from our pdfConfig
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   });
   
-  // Use a standard font that works reliably
-  pdf.setFont('helvetica');
+  // Add the font for Hebrew support
+  pdf.addFont('Alef-Regular.ttf', 'Alef', 'normal');
   
-  // Enable right-to-left mode - critical for Hebrew text
+  // Set document to RTL
   pdf.setR2L(true);
+  
+  // Use the Alef font for Hebrew text
+  pdf.setFont('Alef');
   
   return pdf;
 };
 
 /**
- * Adds a title to the PDF
+ * Adds a title to the PDF document
  */
 export const addPdfTitle = (pdf: jsPDF, title: string): void => {
   pdf.setFontSize(20);
-  pdf.setFont('helvetica', 'bold');
   pdf.text(title, pdf.internal.pageSize.width / 2, 20, { align: 'center' });
-  pdf.setFont('helvetica', 'normal');
 };
 
 /**
- * Adds a date to the PDF
+ * Adds the current date to the PDF document
  */
-export const addPdfDate = (pdf: jsPDF, dateString: string): void => {
-  pdf.setFontSize(12);
-  pdf.text(`תאריך: ${dateString}`, pdf.internal.pageSize.width - 20, 30, { align: 'right' });
+export const addPdfDate = (pdf: jsPDF, date: string): void => {
+  pdf.setFontSize(10);
+  pdf.text(date, pdf.internal.pageSize.width - 20, 10, { align: 'right' });
 };
 
 /**
- * Adds a section title to the PDF
+ * Adds a section title to the PDF document
  */
-export const addSectionTitle = (pdf: jsPDF, title: string, yPosition: number): void => {
+export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
   pdf.setFontSize(14);
-  pdf.setFont('helvetica', 'bold');
-  pdf.text(title, 20, yPosition);
-  pdf.setFont('helvetica', 'normal');
+  pdf.setFont('Alef', 'normal');
+  pdf.text(title, pdf.internal.pageSize.width - 20, y, { align: 'right' });
 };
 
 /**
- * Creates a table in the PDF
+ * Creates a data table in the PDF document
  */
 export const createDataTable = (
   pdf: jsPDF, 
-  data: string[][], 
+  data: (string | number)[][], 
   startY: number, 
   hasHeader: boolean = false
 ): number => {
-  autoTable(pdf, {
+  // Configure autotable with RTL support
+  const tableConfig = {
     startY,
-    head: hasHeader ? [['Key', 'Value']] : [],
-    body: data,
-    theme: 'grid',
-    styles: {
-      font: 'helvetica',
-      fontSize: 10,
-      halign: 'right'
+    styles: { 
+      font: 'Alef',
+      halign: 'right',
     },
     headStyles: {
-      fillColor: [220, 220, 220],
-      font: 'helvetica',
-      fontStyle: 'bold',
-    }
-  });
-  
-  return pdf.lastAutoTable.finalY;
+      fillColor: [200, 200, 200],
+      textColor: [0, 0, 0],
+      fontStyle: 'normal',
+    },
+    bodyStyles: {
+      fontStyle: 'normal',
+    },
+    theme: 'grid',
+  };
+
+  if (hasHeader) {
+    const headers = data[0];
+    const body = data.slice(1);
+    
+    // @ts-ignore - the types for autoTable are not complete
+    autoTable(pdf, {
+      ...tableConfig,
+      head: [headers],
+      body: body,
+    });
+  } else {
+    // @ts-ignore - the types for autoTable are not complete
+    autoTable(pdf, {
+      ...tableConfig,
+      body: data,
+    });
+  }
+
+  // Return the new y position after the table
+  return (pdf as any).lastAutoTable.finalY + 5;
 };
 
 /**
- * Creates a plain text table in the PDF (without grid)
+ * Creates a plain text table (without grid lines)
  */
 export const createPlainTextTable = (
-  pdf: jsPDF,
-  data: string[][],
-  startY: number,
-  columnWidths?: { [key: number]: { cellWidth: number | 'auto' } }
+  pdf: jsPDF, 
+  data: (string | number)[][], 
+  startY: number
 ): number => {
+  // Configure autotable with RTL support for plain text
+  // @ts-ignore - the types for autoTable are not complete
   autoTable(pdf, {
     startY,
-    head: [],
     body: data,
-    theme: 'plain',
-    styles: {
-      font: 'helvetica',
-      fontSize: 10,
-      halign: 'right'
+    styles: { 
+      font: 'Alef',
+      halign: 'right',
     },
-    columnStyles: columnWidths || {}
+    theme: 'plain',
   });
-  
-  return pdf.lastAutoTable.finalY;
+
+  // Return the new y position after the table
+  return (pdf as any).lastAutoTable.finalY + 5;
 };

@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createPdf } from './pdf/pdfHelpers';
+import { createRtlPdf } from './pdf/pdfConfig';
 import { buildRegistrationPDF } from './pdf/registrationPdfContentBuilder';
 import { toast } from "@/components/ui/use-toast";
 import { Registration, Participant, Payment } from '@/types';
@@ -83,8 +83,8 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       receiptNumber: payment.receiptnumber
     })) : [];
     
-    // Create the PDF document
-    const pdf = createPdf();
+    // Create the PDF document with RTL and Hebrew font support
+    const pdf = createRtlPdf();
     
     // Build the PDF content
     const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);

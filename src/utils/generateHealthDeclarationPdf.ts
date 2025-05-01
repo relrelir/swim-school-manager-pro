@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createPdf } from './pdf/pdfHelpers';
+import { createRtlPdf } from './pdf/pdfConfig';
 import { buildHealthDeclarationPDF } from './pdf/healthDeclarationContentBuilder';
 import { toast } from "@/components/ui/use-toast";
 
@@ -35,8 +35,8 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
     console.log("Creating PDF with participant data:", participant);
     
     try {
-      // Create the PDF document with RTL support
-      const pdf = createPdf();
+      // Create the PDF document with RTL and Hebrew font support
+      const pdf = createRtlPdf();
       
       // Build the PDF content
       const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
