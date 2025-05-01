@@ -47,12 +47,12 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   
   // Handle print health declaration
   const handlePrintHealthDeclaration = async () => {
-    if (!healthDeclaration) {
-      console.error("Cannot generate PDF: Health declaration is missing");
+    if (!healthDeclaration || !healthDeclaration.id) {
+      console.error("Cannot generate PDF: Health declaration is missing or has no ID");
       toast({
         variant: "destructive",
         title: "שגיאה",
-        description: "הצהרת הבריאות לא נמצאה",
+        description: "הצהרת הבריאות לא נמצאה או חסר מזהה",
       });
       return;
     }
@@ -163,7 +163,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
       </Tooltip>
       
       {/* Print Button - Always visible when a health declaration exists */}
-      {healthDeclaration && healthDeclaration.id && (
+      {healthDeclaration && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

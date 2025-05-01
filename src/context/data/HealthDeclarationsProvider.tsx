@@ -63,7 +63,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
     );
     
     if (declaration) {
-      console.log("Found by registrationId direct match:", declaration);
+      console.log("Found health declaration by registrationId direct match:", declaration);
       return declaration;
     }
     
@@ -73,11 +73,29 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
     );
     
     if (declaration) {
-      console.log("Found by participant_id match:", declaration);
+      console.log("Found health declaration by participant_id match:", declaration);
       return declaration;
     }
     
-    // 3. If registrationId has underscore, try to extract participant ID
+    // 3. Try to match using participant ID from registration ID
+    // This is needed because sometimes the health declaration is stored with the participantId instead of registrationId
+    const participantIdFromRegistration = registrationId.split('-').pop(); // Get the last part after the dash
+    
+    if (participantIdFromRegistration) {
+      declaration = healthDeclarations.find(declaration => {
+        const declarationParticipantId = declaration.participant_id?.split('-').pop();
+        const declarationRegistrationId = declaration.registrationId?.split('-').pop();
+        return declarationParticipantId === participantIdFromRegistration || 
+               declarationRegistrationId === participantIdFromRegistration;
+      });
+      
+      if (declaration) {
+        console.log("Found health declaration by participant ID part match:", declaration);
+        return declaration;
+      }
+    }
+    
+    // 4. If registrationId has underscore, try to extract participant ID
     if (registrationId.includes('_')) {
       const parts = registrationId.split('_');
       const possibleParticipantId = parts[parts.length - 1];
@@ -87,12 +105,12 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
       );
       
       if (declaration) {
-        console.log("Found by extracted participant ID:", declaration);
+        console.log("Found health declaration by extracted participant ID:", declaration);
         return declaration;
       }
     }
     
-    // 4. Last attempt - look for any health declaration with this registration's participant ID
+    // 5. Last attempt - look for any health declaration with this registration's participant ID
     // This requires getting the participantId part from the registration ID format
     const lastDashIndex = registrationId.lastIndexOf('-');
     if (lastDashIndex !== -1) {
@@ -105,12 +123,12 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
       });
       
       if (declaration) {
-        console.log("Found by partial ID match:", declaration);
+        console.log("Found health declaration by partial ID match:", declaration);
         return declaration;
       }
     }
     
-    // If still not found, log detailed info for debugging
+    // If still not found, check all declarations and log them for debugging
     console.log("Declaration not found for registration ID:", registrationId);
     console.log("Available declaration details:", 
       healthDeclarations.map(d => ({ 
