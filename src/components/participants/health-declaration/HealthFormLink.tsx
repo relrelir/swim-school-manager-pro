@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { LinkIcon, CheckIcon, FileIcon } from "lucide-react";
+import { LinkIcon, CheckIcon, FileIcon, DownloadIcon } from "lucide-react";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
 import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 
@@ -89,9 +89,9 @@ const HealthFormLink = ({ registrationId, isDisabled }: HealthFormLinkProps) => 
             {isGenerating ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
             ) : (
-              <FileIcon className="h-4 w-4 mr-1" />
+              <DownloadIcon className="h-4 w-4 mr-1" />
             )}
-            הצג
+            הורד PDF
           </Button>
         ) : (
           <Button
@@ -113,7 +113,7 @@ const HealthFormLink = ({ registrationId, isDisabled }: HealthFormLinkProps) => 
         )}
       </TooltipTrigger>
       <TooltipContent>
-        {isDisabled ? "הצג והורד הצהרת בריאות" : "יצירת קישור למילוי הצהרת בריאות"}
+        {isDisabled ? "הורד הצהרת בריאות כ-PDF" : "יצירת קישור למילוי הצהרת בריאות"}
       </TooltipContent>
     </Tooltip>
   );
