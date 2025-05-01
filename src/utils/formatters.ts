@@ -16,3 +16,51 @@ export const formatDate = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
   return dateObj.toLocaleDateString('he-IL');
 };
+
+/**
+ * Format a price (alias to formatCurrency for better semantics)
+ */
+export const formatPrice = (price: number): string => {
+  return formatCurrency(price);
+};
+
+/**
+ * Format time from 24h format to local time format
+ */
+export const formatTime = (time: string): string => {
+  try {
+    if (!time) return '';
+    
+    // Parse hours and minutes from time string (expecting format like "14:30")
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Create a date object to use toLocaleTimeString
+    const date = new Date();
+    date.setHours(hours);
+    date.setMinutes(minutes);
+    
+    // Format time according to locale (without seconds)
+    return date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    console.error('Error formatting time:', e);
+    return time; // Return original if there's an error
+  }
+};
+
+/**
+ * Format participants count as "X/Y"
+ */
+export const formatParticipantsCount = (current: number, max: number | undefined): string => {
+  if (max === undefined || max === null) {
+    return `${current}`;
+  }
+  return `${current}/${max}`;
+};
+
+/**
+ * Format meeting count as "X/Y"
+ */
+export const formatMeetingCount = (current: number, total: number): string => {
+  return `${current}/${total}`;
+};
+
