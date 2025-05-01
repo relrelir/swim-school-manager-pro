@@ -1,8 +1,17 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import * as pdfjs from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { format } from 'date-fns';
+
+// Extend the jsPDF type to include the lastAutoTable property added by autotable plugin
+declare module 'jspdf' {
+  interface jsPDF {
+    lastAutoTable: {
+      finalY: number;
+    };
+  }
+}
 
 export const generateHealthDeclarationPdf = async (registrationId: string) => {
   try {
@@ -36,7 +45,7 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
     const parentInfo = parseParentInfo(healthDeclaration.notes);
     
     // Create the PDF
-    const pdf = new pdfjs.jsPDF({
+    const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
       format: 'a4',
