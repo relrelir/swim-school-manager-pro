@@ -42,8 +42,24 @@ export const submitHealthFormService = async (
       throw new Error('Failed to retrieve registration data after form submission');
     }
     
-    // Return the participant_id (registrationId) for further processing
-    return data[0].participant_id;
+    // Get the participant_id to update their health approval status
+    const participantId = data[0].participant_id;
+    
+    // Update the participant's health approval status
+    const participantResponse = await supabase
+      .from('participants')
+      .update({ healthapproval: true })
+      .eq('id', participantId);
+      
+    if (participantResponse.error) {
+      console.error('Error updating participant health approval:', participantResponse.error);
+      throw participantResponse.error;
+    }
+    
+    console.log('Successfully updated health approval for participant:', participantId);
+    
+    // Return the participant_id for further processing
+    return participantId;
   } catch (error) {
     console.error('Error submitting health form:', error);
     throw error;
