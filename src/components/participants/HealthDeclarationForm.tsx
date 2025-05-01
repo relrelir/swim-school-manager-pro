@@ -107,6 +107,7 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
           <HealthFormLink 
             registrationId={registrationId}
             isDisabled={healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed'}
+            declarationId={healthDeclaration.id}
           />
         ) : (
           <CreateHealthForm

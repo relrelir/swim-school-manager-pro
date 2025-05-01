@@ -193,6 +193,42 @@ h3 {
   }
 }
 
+/* Print-specific styles */
+@media print {
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+  
+  body {
+    background-color: white;
+    font-size: 12pt;
+  }
+  
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  /* Make sure content doesn't break across pages unnaturally */
+  .print-content {
+    break-inside: avoid;
+  }
+  
+  /* Improve form rendering */
+  input, textarea {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+  }
+  
+  /* Ensure checkbox visibility */
+  input[type="checkbox"] {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

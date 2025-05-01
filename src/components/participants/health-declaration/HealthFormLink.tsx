@@ -3,16 +3,16 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { LinkIcon, CheckIcon, FileIcon, DownloadIcon } from "lucide-react";
+import { LinkIcon, CheckIcon, Printer, Download } from "lucide-react";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
-import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 
 interface HealthFormLinkProps {
   registrationId: string;
   isDisabled: boolean;
+  declarationId?: string;
 }
 
-const HealthFormLink = ({ registrationId, isDisabled }: HealthFormLinkProps) => {
+const HealthFormLink = ({ registrationId, isDisabled, declarationId }: HealthFormLinkProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   
@@ -45,24 +45,18 @@ const HealthFormLink = ({ registrationId, isDisabled }: HealthFormLinkProps) => 
     }
   };
   
-  const handleDownloadPdf = async () => {
-    setIsGenerating(true);
-    try {
-      await generateHealthDeclarationPdf(registrationId);
-      toast({
-        title: "PDF נוצר בהצלחה",
-        description: "הצהרת הבריאות נשמרה במכשיר שלך",
-      });
-    } catch (error) {
-      console.error('Error generating PDF:', error);
+  const handlePrintDeclaration = () => {
+    if (!declarationId) {
       toast({
         title: "שגיאה",
-        description: "אירעה שגיאה ביצירת ה-PDF",
+        description: "לא נמצא מזהה להצהרת הבריאות",
         variant: "destructive",
       });
-    } finally {
-      setIsGenerating(false);
+      return;
     }
+    
+    const printUrl = `${window.location.origin}/print/health-declaration?id=${declarationId}`;
+    window.open(printUrl, '_blank', 'noopener,noreferrer');
   };
   
   const copyToClipboard = async (text: string) => {
@@ -76,46 +70,48 @@ const HealthFormLink = ({ registrationId, isDisabled }: HealthFormLinkProps) => 
   };
   
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        {isDisabled ? (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center"
-            onClick={handleDownloadPdf}
-            disabled={isGenerating}
-          >
-            {isGenerating ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              <DownloadIcon className="h-4 w-4 mr-1" />
-            )}
-            הורד PDF
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="flex items-center"
-            onClick={handleGenerateLink}
-            disabled={isGenerating}
-          >
-            {isGenerating ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : isCopied ? (
-              <CheckIcon className="h-4 w-4 mr-1 text-green-500" />
-            ) : (
-              <LinkIcon className="h-4 w-4 mr-1" />
-            )}
-            קבל לינק
-          </Button>
-        )}
-      </TooltipTrigger>
-      <TooltipContent>
-        {isDisabled ? "הורד הצהרת בריאות כ-PDF" : "יצירת קישור למילוי הצהרת בריאות"}
-      </TooltipContent>
-    </Tooltip>
+    <div className="flex gap-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {isDisabled ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center"
+              onClick={handlePrintDeclaration}
+              disabled={isGenerating || !declarationId}
+            >
+              {isGenerating ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : (
+                <Printer className="h-4 w-4 mr-1" />
+              )}
+              הדפסה
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="flex items-center"
+              onClick={handleGenerateLink}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              ) : isCopied ? (
+                <CheckIcon className="h-4 w-4 mr-1 text-green-500" />
+              ) : (
+                <LinkIcon className="h-4 w-4 mr-1" />
+              )}
+              קבל לינק
+            </Button>
+          )}
+        </TooltipTrigger>
+        <TooltipContent>
+          {isDisabled ? "הדפסת הצהרת בריאות" : "יצירת קישור למילוי הצהרת בריאות"}
+        </TooltipContent>
+      </Tooltip>
+    </div>
   );
 };
 
