@@ -15,6 +15,7 @@ export const mapHealthDeclarationFromDB = (dbDeclaration: any): HealthDeclaratio
     notes: dbDeclaration.notes,
     
     // Map to convenience fields for use in our code
+    // Consider that participant_id might be either a registration ID or a participant ID
     registrationId: dbDeclaration.participant_id,
     formStatus: dbDeclaration.form_status,
     submissionDate: dbDeclaration.submission_date,

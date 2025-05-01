@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CheckCircle, AlertCircle, Printer } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 
 interface TableHealthStatusProps {
@@ -32,6 +31,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   
   console.log("Health declaration status:", {
     registrationId: registration.id,
+    participantId: registration.participantId,
     hasDeclaration: Boolean(healthDeclaration),
     formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
     isFormSigned

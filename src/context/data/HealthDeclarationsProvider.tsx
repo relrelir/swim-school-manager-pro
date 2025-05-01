@@ -48,7 +48,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
   // Get health declaration for a specific registration
   const getHealthDeclarationForRegistration = (registrationId: string) => {
     console.log("Looking for health declaration for registration:", registrationId);
-    console.log("Available declarations:", healthDeclarations);
+    console.log("Available declarations:", healthDeclarations.length);
     
     // First, try to find a health declaration that has participant_id equal to registrationId
     // This handles cases where the registration ID was saved as participant_id in the database
@@ -63,7 +63,19 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
       );
     }
     
-    console.log("Found declaration:", declaration);
+    // If still not found, log more details for debugging
+    if (!declaration) {
+      console.log("Declaration not found by direct match, available IDs:", 
+        healthDeclarations.map(d => ({ 
+          id: d.id, 
+          participant_id: d.participant_id, 
+          registrationId: d.registrationId,
+          form_status: d.form_status
+        }))
+      );
+    } else {
+      console.log("Found declaration:", declaration);
+    }
     
     return declaration;
   };
