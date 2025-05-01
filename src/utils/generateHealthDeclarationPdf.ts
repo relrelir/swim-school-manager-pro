@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
-import { makePdf } from '@/pdf/pdfService';
+import { makePdf, createTableData } from '@/pdf/pdfService';
 import { format } from 'date-fns';
 import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './pdf/healthDeclarationParser';
 
@@ -65,35 +65,19 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
           
           // Participant section
           { text: 'פרטי המשתתף', style: 'subheader', margin: [0, 10, 0, 10] },
-          {
-            table: {
-              widths: ['30%', '70%'],
-              headerRows: 0,
-              body: [
-                [{ text: 'שם מלא', style: 'tableHeader' }, `${participant.firstname} ${participant.lastname}`],
-                [{ text: 'תעודת זהות', style: 'tableHeader' }, participant.idnumber],
-                [{ text: 'טלפון', style: 'tableHeader' }, participant.phone],
-              ]
-            },
-            layout: 'lightHorizontalLines',
-            margin: [0, 0, 0, 20]
-          },
+          createTableData(
+            ['שם מלא', 'תעודת זהות', 'טלפון'],
+            [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
+          ),
           
           // Parent section (if available)
-          parentInfo.parentName || parentInfo.parentId ? [
+          parentInfo.parentName || parentInfo.parentId ? 
+          [
             { text: 'פרטי ההורה/אפוטרופוס', style: 'subheader', margin: [0, 10, 0, 10] },
-            {
-              table: {
-                widths: ['30%', '70%'],
-                headerRows: 0,
-                body: [
-                  [{ text: 'שם מלא', style: 'tableHeader' }, parentInfo.parentName || ''],
-                  [{ text: 'תעודת זהות', style: 'tableHeader' }, parentInfo.parentId || ''],
-                ]
-              },
-              layout: 'lightHorizontalLines',
-              margin: [0, 0, 0, 20]
-            }
+            createTableData(
+              ['שם מלא', 'תעודת זהות'],
+              [[parentInfo.parentName || '', parentInfo.parentId || '']]
+            )
           ] : [],
           
           // Declaration items

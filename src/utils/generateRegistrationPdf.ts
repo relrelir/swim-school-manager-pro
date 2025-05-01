@@ -1,10 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
-import { makePdf } from '@/pdf/pdfService';
+import { makePdf, createTableData } from '@/pdf/pdfService';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatters';
-import { Registration, Participant, Payment } from '@/types';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
@@ -85,57 +84,31 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         
         // Participant information
         { text: 'פרטי משתתף:', style: 'subheader' },
-        {
-          table: {
-            widths: ['30%', '70%'],
-            headerRows: 0,
-            body: [
-              [{ text: 'שם מלא:', style: 'tableHeader' }, `${participant.firstname} ${participant.lastname}`],
-              [{ text: 'תעודת זהות:', style: 'tableHeader' }, participant.idnumber],
-              [{ text: 'טלפון:', style: 'tableHeader' }, participant.phone],
-            ]
-          },
-          layout: 'lightHorizontalLines',
-          margin: [0, 0, 0, 20]
-        },
+        createTableData(
+          ['שם מלא:', 'תעודת זהות:', 'טלפון:'],
+          [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
+        ),
         
         // Registration information
-        { text: 'פרטי רישום:', style: 'subheader' },
-        {
-          table: {
-            widths: ['30%', '70%'],
-            headerRows: 0,
-            body: [
-              [{ text: 'תאריך רישום:', style: 'tableHeader' }, registrationDate],
-              [{ text: 'סכום מקורי:', style: 'tableHeader' }, formatCurrency(registration.requiredamount)],
-              [{ text: 'הנחה:', style: 'tableHeader' }, registration.discountapproved ? formatCurrency(registration.discountamount || 0) : 'לא'],
-              [{ text: 'סכום לתשלום:', style: 'tableHeader' }, formatCurrency(effectiveRequiredAmount)],
-              [{ text: 'סכום ששולם:', style: 'tableHeader' }, formatCurrency(registration.paidamount)],
-            ]
-          },
-          layout: 'lightHorizontalLines',
-          margin: [0, 0, 0, 20]
-        },
+        { text: 'פרטי רישום:', style: 'subheader', margin: [0, 20, 0, 10] },
+        createTableData(
+          ['תאריך רישום:', 'סכום מקורי:', 'הנחה:', 'סכום לתשלום:', 'סכום ששולם:'],
+          [[
+            registrationDate,
+            formatCurrency(registration.requiredamount),
+            registration.discountapproved ? formatCurrency(registration.discountamount || 0) : 'לא',
+            formatCurrency(effectiveRequiredAmount),
+            formatCurrency(registration.paidamount)
+          ]]
+        ),
         
         // Payment details if any exist
         payments && payments.length > 0 ? [
-          { text: 'פרטי תשלומים:', style: 'subheader' },
-          {
-            table: {
-              widths: ['*', '*', '*'],
-              headerRows: 1,
-              body: [
-                [
-                  { text: 'תאריך תשלום', style: 'tableHeader', alignment: 'right' },
-                  { text: 'מספר קבלה', style: 'tableHeader', alignment: 'right' },
-                  { text: 'סכום', style: 'tableHeader', alignment: 'right' }
-                ],
-                ...paymentRows
-              ]
-            },
-            layout: 'lightHorizontalLines',
-            margin: [0, 0, 0, 20]
-          }
+          { text: 'פרטי תשלומים:', style: 'subheader', margin: [0, 20, 0, 10] },
+          createTableData(
+            ['תאריך תשלום', 'מספר קבלה', 'סכום'],
+            paymentRows
+          )
         ] : [],
         
         // Footer

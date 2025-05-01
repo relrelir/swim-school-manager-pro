@@ -77,9 +77,12 @@ export async function makePdf(
 ): Promise<void | Blob> {
   // Set default RTL and font
   const definition: TDocumentDefinitions = {
-    pageDirection: 'rtl',
-    defaultStyle: { font: 'NotoHebrew' },
-    ...docDef
+    ...docDef,
+    rightToLeft: true,
+    defaultStyle: { 
+      font: 'NotoHebrew',
+      ...docDef.defaultStyle
+    }
   };
 
   // Create the PDF
