@@ -163,7 +163,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
       </Tooltip>
       
       {/* Print Button - Always visible when a health declaration exists */}
-      {healthDeclaration && (
+      {healthDeclaration && healthDeclaration.id && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

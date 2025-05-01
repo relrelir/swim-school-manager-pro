@@ -8,6 +8,11 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
   try {
     console.log("Starting health declaration PDF generation for declaration ID:", healthDeclarationId);
     
+    if (!healthDeclarationId) {
+      console.error("Health declaration ID is missing or invalid");
+      throw new Error('מזהה הצהרת הבריאות חסר או לא תקין');
+    }
+    
     // Get the health declaration directly by ID - this should be more reliable than searching by registration ID
     let { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
