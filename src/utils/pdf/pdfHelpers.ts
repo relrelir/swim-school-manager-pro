@@ -51,7 +51,7 @@ export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
 };
 
 /**
- * Creates a data table in the PDF document
+ * Creates a data table in the PDF document with RTL support
  */
 export const createDataTable = (
   pdf: jsPDF, 
@@ -81,24 +81,40 @@ export const createDataTable = (
     const headers = data[0];
     const body = data.slice(1);
     
-    autoTable(pdf, {
-      ...tableConfig,
-      head: [headers],
-      body: body,
-    });
+    try {
+      autoTable(pdf, {
+        ...tableConfig,
+        head: [headers],
+        body: body,
+      });
+    } catch (error) {
+      console.error("Error creating table with header:", error);
+    }
   } else {
-    autoTable(pdf, {
-      ...tableConfig,
-      body: data,
-    });
+    try {
+      autoTable(pdf, {
+        ...tableConfig,
+        body: data,
+      });
+    } catch (error) {
+      console.error("Error creating table without header:", error);
+    }
   }
 
   // Return the new y position after the table
-  return (pdf as any).lastAutoTable.finalY + 5;
+  let finalY = 0;
+  try {
+    finalY = (pdf as any).lastAutoTable.finalY + 5;
+  } catch (error) {
+    console.error("Error getting finalY, using default value:", error);
+    finalY = startY + 50; // Default fallback value
+  }
+  
+  return finalY;
 };
 
 /**
- * Creates a plain text table (without grid lines)
+ * Creates a plain text table (without grid lines) with RTL support
  */
 export const createPlainTextTable = (
   pdf: jsPDF, 
@@ -106,16 +122,28 @@ export const createPlainTextTable = (
   startY: number
 ): number => {
   // Configure autotable with RTL support for plain text
-  autoTable(pdf, {
-    startY,
-    body: data,
-    styles: { 
-      font: 'helvetica',
-      halign: 'right',
-    },
-    theme: 'plain',
-  });
+  try {
+    autoTable(pdf, {
+      startY,
+      body: data,
+      styles: { 
+        font: 'helvetica',
+        halign: 'right',
+      },
+      theme: 'plain',
+    });
+  } catch (error) {
+    console.error("Error creating plain text table:", error);
+  }
 
   // Return the new y position after the table
-  return (pdf as any).lastAutoTable.finalY + 5;
+  let finalY = 0;
+  try {
+    finalY = (pdf as any).lastAutoTable.finalY + 5;
+  } catch (error) {
+    console.error("Error getting finalY for plain table, using default value:", error);
+    finalY = startY + 30; // Default fallback value
+  }
+  
+  return finalY;
 };
