@@ -1,10 +1,10 @@
 
-import * as pdfMake from "pdfmake/build/pdfmake";
-import * as vfsFonts from "pdfmake/build/vfs_fonts";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
 import type { TDocumentDefinitions, Content } from "pdfmake/interfaces";
 
-// Initialize pdfMake with the default fonts
-pdfMake.vfs = vfsFonts.pdfMake.vfs;
+// Initialize pdfMake with the fonts
+(pdfMake as any).vfs = pdfFonts.pdfMake.vfs;
 
 /**
  * Create and download/return a PDF
@@ -24,7 +24,7 @@ export async function makePdf(
       ...docDef.defaultStyle
     },
     pageDirection: "rtl", // Use pageDirection instead of rightToLeft
-    ...docDef as any, // Cast to any to prevent TypeScript errors
+    ...docDef, // Merge all other properties
   };
 
   // Create the PDF

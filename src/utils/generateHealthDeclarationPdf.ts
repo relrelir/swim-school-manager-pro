@@ -57,61 +57,117 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       // Generate the filename
       const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
       
-      // Prepare the content array, filtering out null items later
-      const contentItems: Array<any> = [
-        // Title
-        { text: 'הצהרת בריאות', style: 'header', alignment: 'center' } as any,
-        { text: `תאריך: ${formattedDate}`, alignment: 'left', margin: [0, 0, 0, 20] } as any,
-        
-        // Participant section
-        { text: 'פרטי המשתתף', style: 'subheader', margin: [0, 10, 0, 10] } as any,
-        createTableData(
-          ['שם מלא', 'תעודת זהות', 'טלפון'],
-          [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
-        ),
-        
-        // Parent section (if available)
-        parentInfo.parentName || parentInfo.parentId ? 
-          { text: 'פרטי ההורה/אפוטרופוס', style: 'subheader', margin: [0, 10, 0, 10] } as any : null,
-        
-        parentInfo.parentName || parentInfo.parentId ? 
-          createTableData(
-            ['שם מלא', 'תעודת זהות'],
-            [[parentInfo.parentName || '', parentInfo.parentId || '']]
-          ) : null,
-        
-        // Declaration items
-        { text: 'תוכן ההצהרה', style: 'subheader', margin: [0, 10, 0, 10] } as any,
-        
-        // Declaration items as a table
-        {
-          table: {
-            widths: ['auto', '*'],
-            body: declarationItems.map(item => ['•', { text: item, alignment: 'right' }])
-          },
-          layout: 'noBorders',
-          margin: [10, 5, 0, 10]
-        } as any,
-        
-        // Medical notes (if available)
-        medicalNotes ? { text: 'הערות רפואיות', style: 'subheader', margin: [0, 20, 0, 10] } as any : null,
-        medicalNotes ? { text: medicalNotes, margin: [0, 0, 0, 20] } as any : null,
-        
-        // Confirmation
-        { text: 'אישור', style: 'subheader', margin: [0, 20, 0, 10] } as any,
-        { text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.', margin: [0, 0, 0, 20] } as any,
-        
-        // Signature line
-        { text: 'חתימת ההורה/אפוטרופוס: ________________', margin: [0, 30, 0, 0] } as any,
-      ].filter(Boolean); // Filter out null items
+      // Prepare the content array with proper type casting
+      const contentItems: Content[] = [];
       
-      // Create PDF document definition
+      // Add title
+      contentItems.push({ 
+        text: 'הצהרת בריאות', 
+        style: 'header', 
+        alignment: 'center' 
+      } as Content);
+      
+      // Add date
+      contentItems.push({ 
+        text: `תאריך: ${formattedDate}`, 
+        alignment: 'left', 
+        margin: [0, 0, 0, 20] 
+      } as Content);
+      
+      // Add participant section
+      contentItems.push({ 
+        text: 'פרטי המשתתף', 
+        style: 'subheader', 
+        margin: [0, 10, 0, 10] 
+      } as Content);
+      
+      // Add participant table
+      contentItems.push(createTableData(
+        ['שם מלא', 'תעודת זהות', 'טלפון'],
+        [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
+      ) as Content);
+      
+      // Add parent section if available
+      if (parentInfo.parentName || parentInfo.parentId) {
+        contentItems.push({ 
+          text: 'פרטי ההורה/אפוטרופוס', 
+          style: 'subheader', 
+          margin: [0, 10, 0, 10] 
+        } as Content);
+        
+        contentItems.push(createTableData(
+          ['שם מלא', 'תעודת זהות'],
+          [[parentInfo.parentName || '', parentInfo.parentId || '']]
+        ) as Content);
+      }
+      
+      // Add declaration items section
+      contentItems.push({ 
+        text: 'תוכן ההצהרה', 
+        style: 'subheader', 
+        margin: [0, 10, 0, 10] 
+      } as Content);
+      
+      // Add declaration items as a table
+      contentItems.push({
+        table: {
+          widths: ['auto', '*'],
+          body: declarationItems.map(item => ['•', { text: item, alignment: 'right' }])
+        },
+        layout: 'noBorders',
+        margin: [10, 5, 0, 10]
+      } as Content);
+      
+      // Add medical notes if available
+      if (medicalNotes) {
+        contentItems.push({ 
+          text: 'הערות רפואיות', 
+          style: 'subheader', 
+          margin: [0, 20, 0, 10] 
+        } as Content);
+        
+        contentItems.push({ 
+          text: medicalNotes, 
+          margin: [0, 0, 0, 20] 
+        } as Content);
+      }
+      
+      // Add confirmation
+      contentItems.push({ 
+        text: 'אישור', 
+        style: 'subheader', 
+        margin: [0, 20, 0, 10] 
+      } as Content);
+      
+      contentItems.push({ 
+        text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.', 
+        margin: [0, 0, 0, 20] 
+      } as Content);
+      
+      // Add signature line
+      contentItems.push({ 
+        text: 'חתימת ההורה/אפוטרופוס: ________________', 
+        margin: [0, 30, 0, 0] 
+      } as Content);
+      
+      // Create PDF document definition with fixed margin format
       const docDefinition = {
-        content: contentItems as Content[],
+        content: contentItems,
         styles: {
-          header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
-          subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },
-          tableHeader: { bold: true, fillColor: '#f5f5f5' }
+          header: { 
+            fontSize: 18, 
+            bold: true, 
+            margin: [0, 0, 0, 10] 
+          },
+          subheader: { 
+            fontSize: 14, 
+            bold: true, 
+            margin: [0, 10, 0, 5] 
+          },
+          tableHeader: { 
+            bold: true, 
+            fillColor: '#f5f5f5' 
+          }
         }
       };
       

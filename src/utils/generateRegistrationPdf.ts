@@ -75,56 +75,106 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     // Generate filename
     const fileName = `registration_${participant.firstname}_${participant.lastname}_${registration.id.substring(0, 8)}.pdf`;
     
-    // Prepare content items array, filtering out null items later
-    const contentItems: Array<any> = [
-      // Title with product name
-      { text: 'אישור רישום למוצר', style: 'header', alignment: 'center' } as any,
-      { text: `מוצר: ${product.name}`, style: 'productName', alignment: 'center', margin: [0, 0, 0, 20] } as any,
-      { text: `תאריך: ${currentDate}`, alignment: 'left', margin: [0, 0, 0, 20] } as any,
-      
-      // Participant information
-      { text: 'פרטי משתתף:', style: 'subheader' } as any,
-      createTableData(
-        ['שם מלא:', 'תעודת זהות:', 'טלפון:'],
-        [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
-      ),
-      
-      // Registration information
-      { text: 'פרטי רישום:', style: 'subheader', margin: [0, 20, 0, 10] } as any,
-      createTableData(
-        ['תאריך רישום:', 'סכום מקורי:', 'הנחה:', 'סכום לתשלום:', 'סכום ששולם:'],
-        [[
-          registrationDate,
-          formatCurrency(registration.requiredamount),
-          registration.discountapproved ? formatCurrency(registration.discountamount || 0) : 'לא',
-          formatCurrency(effectiveRequiredAmount),
-          formatCurrency(registration.paidamount)
-        ]]
-      ),
-      
-      // Payment details if any exist
-      payments && payments.length > 0 ? 
-        { text: 'פרטי תשלומים:', style: 'subheader', margin: [0, 20, 0, 10] } as any : null,
-        
-      payments && payments.length > 0 ? 
-        createTableData(
-          ['תאריך תשלום', 'מספר קבלה', 'סכום'],
-          paymentRows
-        ) : null,
-      
-      // Footer
-      { text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', style: 'footer', alignment: 'center', margin: [0, 30, 0, 0] } as any
-    ].filter(Boolean); // Filter out null items
+    // Prepare content items array with correct typing
+    const contentItems: Content[] = [];
     
-    // Create PDF document definition
+    // Title with product name
+    contentItems.push({ 
+      text: 'אישור רישום למוצר', 
+      style: 'header', 
+      alignment: 'center' 
+    } as Content);
+    
+    contentItems.push({ 
+      text: `מוצר: ${product.name}`, 
+      style: 'productName', 
+      alignment: 'center', 
+      margin: [0, 0, 0, 20] 
+    } as Content);
+    
+    contentItems.push({ 
+      text: `תאריך: ${currentDate}`, 
+      alignment: 'left', 
+      margin: [0, 0, 0, 20] 
+    } as Content);
+    
+    // Participant information
+    contentItems.push({ 
+      text: 'פרטי משתתף:', 
+      style: 'subheader' 
+    } as Content);
+    
+    contentItems.push(createTableData(
+      ['שם מלא:', 'תעודת זהות:', 'טלפון:'],
+      [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
+    ) as Content);
+    
+    // Registration information
+    contentItems.push({ 
+      text: 'פרטי רישום:', 
+      style: 'subheader', 
+      margin: [0, 20, 0, 10] 
+    } as Content);
+    
+    contentItems.push(createTableData(
+      ['תאריך רישום:', 'סכום מקורי:', 'הנחה:', 'סכום לתשלום:', 'סכום ששולם:'],
+      [[
+        registrationDate,
+        formatCurrency(registration.requiredamount),
+        registration.discountapproved ? formatCurrency(registration.discountamount || 0) : 'לא',
+        formatCurrency(effectiveRequiredAmount),
+        formatCurrency(registration.paidamount)
+      ]]
+    ) as Content);
+    
+    // Payment details if any exist
+    if (payments && payments.length > 0) {
+      contentItems.push({ 
+        text: 'פרטי תשלומים:', 
+        style: 'subheader', 
+        margin: [0, 20, 0, 10] 
+      } as Content);
+      
+      contentItems.push(createTableData(
+        ['תאריך תשלום', 'מספר קבלה', 'סכום'],
+        paymentRows
+      ) as Content);
+    }
+    
+    // Footer
+    contentItems.push({ 
+      text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', 
+      style: 'footer', 
+      alignment: 'center', 
+      margin: [0, 30, 0, 0] 
+    } as Content);
+    
+    // Create PDF document definition with fixed margin format
     const docDefinition = {
-      content: contentItems as Content[],
+      content: contentItems,
       styles: {
-        header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
-        productName: { fontSize: 16, bold: true },
-        subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 10] },
-        tableHeader: { bold: true, fillColor: '#f5f5f5' },
-        footer: { fontSize: 10, italics: true }
+        header: { 
+          fontSize: 18, 
+          bold: true, 
+          margin: [0, 0, 0, 10] 
+        },
+        productName: { 
+          fontSize: 16, 
+          bold: true 
+        },
+        subheader: { 
+          fontSize: 14, 
+          bold: true, 
+          margin: [0, 10, 0, 10] 
+        },
+        tableHeader: { 
+          bold: true, 
+          fillColor: '#f5f5f5' 
+        },
+        footer: { 
+          fontSize: 10, 
+          italics: true 
+        }
       }
     };
     
