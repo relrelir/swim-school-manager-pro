@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { generateRegistrationPdf } from '@/utils/generateRegistrationPdf';
 import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 import { useHealthDeclarationsContext } from '@/context/data/HealthDeclarationsProvider';
+import { toast } from "@/components/ui/use-toast";
 
 interface TableRowActionsProps {
   registration: Registration;
@@ -23,7 +24,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
 }) => {
   const [isGeneratingRegPdf, setIsGeneratingRegPdf] = React.useState(false);
   const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = React.useState(false);
-  const { getHealthDeclarationForRegistration } = useHealthDeclarationsContext();
+  const { getHealthDeclarationForRegistration, healthDeclarations } = useHealthDeclarationsContext();
 
   // Handle download registration PDF
   const handleGenerateRegPdf = async () => {
@@ -39,6 +40,11 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   const handlePrintHealthDeclaration = async () => {
     if (!registration || !registration.id) {
       console.error("Cannot generate PDF: Invalid registration", registration);
+      toast({
+        title: "שגיאה",
+        description: "פרטי הרישום אינם תקינים",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -49,23 +55,50 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       
       if (!healthDeclaration || !healthDeclaration.id) {
         console.error("Health declaration not found for registration:", registration.id);
+        toast({
+          title: "הצהרת בריאות לא נמצאה",
+          description: "לא נמצאה הצהרה עבור רישום זה",
+          variant: "destructive"
+        });
         return;
       }
       
       console.log("Generating PDF for health declaration ID:", healthDeclaration.id);
       await generateHealthDeclarationPdf(healthDeclaration.id);
+      
+      toast({
+        title: "הצהרת הבריאות נוצרה בהצלחה",
+        description: "המסמך נשמר למכשיר שלך"
+      });
     } catch (error) {
       console.error("Error generating health declaration PDF:", error);
+      toast({
+        title: "שגיאה ביצירת הצהרת בריאות",
+        description: "אירעה שגיאה בעת יצירת המסמך",
+        variant: "destructive"
+      });
     } finally {
       setIsGeneratingHealthPdf(false);
     }
   };
   
   // Check if a health declaration exists for this registration
-  const healthDeclaration = getHealthDeclarationForRegistration(registration.id);
-  const hasHealthDeclaration = Boolean(healthDeclaration && healthDeclaration.id);
+  // This function runs after component mount to provide better debugging
+  const [hasHealthDeclaration, setHasHealthDeclaration] = React.useState(false);
   
-  console.log("Registration", registration.id, "has health declaration:", hasHealthDeclaration, healthDeclaration);
+  React.useEffect(() => {
+    // This separate check in useEffect provides better debug info
+    const healthDeclaration = getHealthDeclarationForRegistration(registration.id);
+    const hasDeclaration = Boolean(healthDeclaration && healthDeclaration.id);
+    
+    console.log(
+      `Registration ${registration.id} health declaration check:`, 
+      hasDeclaration ? `Found (ID: ${healthDeclaration?.id})` : "Not found", 
+      `Total available declarations: ${healthDeclarations.length}`
+    );
+    
+    setHasHealthDeclaration(hasDeclaration);
+  }, [registration.id, getHealthDeclarationForRegistration, healthDeclarations]);
   
   return (
     <div className="flex gap-2 justify-end">
@@ -100,7 +133,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
         <TooltipContent>הורד אישור רישום</TooltipContent>
       </Tooltip>
       
-      {/* Health Declaration Print Button - Always visible */}
+      {/* Health Declaration Print Button */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -108,7 +141,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
             size="icon"
             onClick={handlePrintHealthDeclaration}
             disabled={isGeneratingHealthPdf || !hasHealthDeclaration}
-            className={!hasHealthDeclaration ? "opacity-50 cursor-not-allowed" : ""}
           >
             {isGeneratingHealthPdf ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

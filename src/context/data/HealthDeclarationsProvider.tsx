@@ -19,7 +19,8 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
     const loadDeclarations = async () => {
       try {
         const declarations = await fetchHealthDeclarations();
-        console.log("Loaded health declarations:", declarations);
+        console.log("Loaded health declarations:", declarations.length, 
+          declarations.map(d => ({ id: d.id, participant_id: d.participant_id, registrationId: d.registrationId })));
         setHealthDeclarations(declarations);
       } catch (error) {
         console.error("Error loading health declarations:", error);
@@ -64,13 +65,13 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
 
   // Get health declaration for a specific registration
   const getHealthDeclarationForRegistration = (registrationId: string) => {
-    console.log("Looking for health declaration for registration:", registrationId);
-    console.log("Available declarations:", healthDeclarations.length);
-    
     if (!registrationId) {
       console.error("Registration ID is undefined or null");
       return undefined;
     }
+    
+    console.log("Looking for health declaration for registration:", registrationId);
+    console.log("Available declarations:", healthDeclarations.length);
     
     // Try multiple matching strategies
     
@@ -80,91 +81,124 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
     );
     
     if (declaration) {
-      console.log("Found health declaration by registrationId direct match:", declaration);
+      console.log("Found health declaration by registrationId direct match:", declaration.id);
       return declaration;
     }
     
-    // 2. Try participant_id field (legacy field)
+    // 2. Try participant_id field (participant ID might be stored here)
     declaration = healthDeclarations.find(declaration => 
       declaration.participant_id === registrationId
     );
     
     if (declaration) {
-      console.log("Found health declaration by participant_id match:", declaration);
+      console.log("Found health declaration by participant_id match:", declaration.id);
       return declaration;
     }
     
-    // 3. Try to match using participant ID from registration ID
-    // This is needed because sometimes the health declaration is stored with the participantId instead of registrationId
-    const participantIdFromRegistration = registrationId.split('-').pop(); // Get the last part after the dash
-    
-    if (participantIdFromRegistration) {
-      declaration = healthDeclarations.find(declaration => {
-        const declarationParticipantId = declaration.participant_id?.split('-').pop();
-        const declarationRegistrationId = declaration.registrationId?.split('-').pop();
-        return declarationParticipantId === participantIdFromRegistration || 
-               declarationRegistrationId === participantIdFromRegistration;
+    // 3. Try to extract participant ID from registration ID and match with participant_id field
+    // Registration IDs often follow a pattern like 'something-participantId'
+    const parts = registrationId.split('-');
+    if (parts.length > 1) {
+      const participantIdPart = parts[parts.length - 1];
+      
+      declaration = healthDeclarations.find(d => {
+        // Check if participantId appears anywhere in the declaration's participant_id
+        return d.participant_id?.includes(participantIdPart) || d.registrationId?.includes(participantIdPart);
       });
       
       if (declaration) {
-        console.log("Found health declaration by participant ID part match:", declaration);
+        console.log("Found health declaration by participant ID part match:", declaration.id, "for registration:", registrationId);
         return declaration;
       }
     }
     
-    // 4. If registrationId has underscore, try to extract participant ID
+    // 4. If registrationId contains underscores, try extracting participant ID
     if (registrationId.includes('_')) {
       const parts = registrationId.split('_');
       const possibleParticipantId = parts[parts.length - 1];
       
       declaration = healthDeclarations.find(d => 
-        d.participant_id === possibleParticipantId || d.registrationId === possibleParticipantId
+        d.participant_id?.includes(possibleParticipantId) || d.registrationId?.includes(possibleParticipantId)
       );
       
       if (declaration) {
-        console.log("Found health declaration by extracted participant ID:", declaration);
+        console.log("Found health declaration by underscore-separated ID:", declaration.id);
         return declaration;
       }
     }
     
-    // 5. Last attempt - look for any health declaration with this registration's participant ID
-    // This requires getting the participantId part from the registration ID format
-    const lastDashIndex = registrationId.lastIndexOf('-');
-    if (lastDashIndex !== -1) {
-      const possibleParticipantIdPart = registrationId.substring(lastDashIndex + 1);
+    // 5. Look for any health declaration that might contain parts of the registration ID
+    declaration = healthDeclarations.find(d => {
+      if (!d.participant_id && !d.registrationId) return false;
       
-      declaration = healthDeclarations.find(d => {
-        const participantIdMatch = d.participant_id?.includes(possibleParticipantIdPart);
-        const registrationIdMatch = d.registrationId?.includes(possibleParticipantIdPart);
-        return participantIdMatch || registrationIdMatch;
-      });
-      
-      if (declaration) {
-        console.log("Found health declaration by partial ID match:", declaration);
-        return declaration;
+      for (const part of parts) {
+        if (part.length > 5) { // Only check substantial parts, not single chars
+          if (d.participant_id?.includes(part) || d.registrationId?.includes(part)) {
+            return true;
+          }
+        }
       }
+      return false;
+    });
+    
+    if (declaration) {
+      console.log("Found health declaration by partial ID match:", declaration.id);
+      return declaration;
     }
     
-    // 6. Try matching by numerical part if participant_id contains numbers
+    // 6. Try matching any numeric part if participant_id contains numbers
     const numericMatch = registrationId.match(/\d+/);
     if (numericMatch) {
       const numericPart = numericMatch[0];
-      declaration = healthDeclarations.find(d => {
-        const participantIdNumericMatch = d.participant_id?.match(/\d+/);
-        const registrationIdNumericMatch = d.registrationId?.match(/\d+/);
-        return (participantIdNumericMatch && participantIdNumericMatch[0] === numericPart) || 
-               (registrationIdNumericMatch && registrationIdNumericMatch[0] === numericPart);
-      });
+      if (numericPart.length > 3) { // Only check numeric patterns of reasonable length
+        declaration = healthDeclarations.find(d => {
+          const participantIdNumericMatch = d.participant_id?.match(/\d+/);
+          const registrationIdNumericMatch = d.registrationId?.match(/\d+/);
+          return (participantIdNumericMatch && participantIdNumericMatch[0] === numericPart) || 
+                 (registrationIdNumericMatch && registrationIdNumericMatch[0] === numericPart);
+        });
+      }
       
       if (declaration) {
-        console.log("Found health declaration by numeric part match:", declaration);
+        console.log("Found health declaration by numeric part match:", declaration.id);
         return declaration;
       }
     }
     
-    // If still not found, check all declarations and log them for debugging
+    // 7. Try to find a declaration where participant_id matches any part of registrationId or vice versa
+    const registrationSegments = registrationId.split(/[-_]/); // Split by common separators
+    
+    declaration = healthDeclarations.find(d => {
+      if (!d.participant_id && !d.registrationId) return false;
+      
+      // Check if any segment of registrationId appears in participant_id
+      for (const segment of registrationSegments) {
+        if (segment.length > 4 && d.participant_id?.includes(segment)) {
+          return true;
+        }
+      }
+      
+      // Check if any part of participant_id appears in registrationId
+      if (d.participant_id) {
+        const participantSegments = d.participant_id.split(/[-_]/);
+        for (const segment of participantSegments) {
+          if (segment.length > 4 && registrationId.includes(segment)) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+    });
+    
+    if (declaration) {
+      console.log("Found health declaration by segment matching:", declaration.id);
+      return declaration;
+    }
+    
+    // Log all available declarations for debugging
     console.log("Declaration not found for registration ID:", registrationId);
-    console.log("Available declaration details:", 
+    console.log("Available declaration IDs:", 
       healthDeclarations.map(d => ({ 
         id: d.id, 
         participant_id: d.participant_id, 

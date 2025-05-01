@@ -6,12 +6,15 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
   if (!notes) return { parentName: '', parentId: '' };
   
   try {
+    console.log("Parsing parent info from notes:", notes);
     // First try to parse as JSON
     const parsedNotes = JSON.parse(notes);
-    return {
+    const result = {
       parentName: parsedNotes.parentName || '',
       parentId: parsedNotes.parentId || ''
     };
+    console.log("Successfully parsed notes as JSON:", result);
+    return result;
   } catch (e) {
     console.log("Failed to parse notes as JSON, trying regex", notes);
     
@@ -36,11 +39,14 @@ export const parseMedicalNotes = (notes: string | null): string => {
   if (!notes) return '';
   
   try {
+    console.log("Parsing medical notes from:", notes);
     // Try to parse as JSON first
     const parsedNotes = JSON.parse(notes);
-    return parsedNotes.notes || parsedNotes.medicalNotes || '';
+    const result = parsedNotes.notes || parsedNotes.medicalNotes || '';
+    console.log("Successfully parsed medical notes as JSON:", result);
+    return result;
   } catch (e) {
-    console.log("Failed to parse medical notes as JSON, trying regex", notes);
+    console.log("Failed to parse medical notes as JSON, trying regex");
     
     // If not valid JSON, try to extract using regex
     const notesMatch = notes.match(/notes"?:\s*"?([^",}]+)"?/i) || 
