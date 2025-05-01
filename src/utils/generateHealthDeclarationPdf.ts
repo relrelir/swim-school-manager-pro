@@ -32,10 +32,12 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
       throw new Error('פרטי המשתתף לא נמצאו');
     }
     
-    // Create the PDF document with RTL support
-    const pdf = createPdf();
+    console.log("Creating PDF with participant data:", participant);
     
     try {
+      // Create the PDF document with RTL support
+      const pdf = createPdf();
+      
       // Build the PDF content
       const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
       

@@ -15,17 +15,17 @@ declare module 'jspdf' {
  * Creates and configures a new PDF document with Hebrew support
  */
 export const createPdf = (): jsPDF => {
+  // Create PDF with right-to-left support
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   });
   
-  // Set default font - using standard fonts instead of trying to load custom fonts
-  // This avoids the font loading errors
+  // Use a standard font that works reliably
   pdf.setFont('helvetica');
   
-  // Enable RTL support for Hebrew
+  // Enable right-to-left mode - critical for Hebrew text
   pdf.setR2L(true);
   
   return pdf;
