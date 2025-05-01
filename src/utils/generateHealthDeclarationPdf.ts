@@ -72,13 +72,15 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
           
           // Parent section (if available)
           parentInfo.parentName || parentInfo.parentId ? 
-          [
-            { text: 'פרטי ההורה/אפוטרופוס', style: 'subheader', margin: [0, 10, 0, 10] },
-            createTableData(
-              ['שם מלא', 'תעודת זהות'],
-              [[parentInfo.parentName || '', parentInfo.parentId || '']]
-            )
-          ] : [],
+          { 
+            stack: [
+              { text: 'פרטי ההורה/אפוטרופוס', style: 'subheader', margin: [0, 10, 0, 10] },
+              createTableData(
+                ['שם מלא', 'תעודת זהות'],
+                [[parentInfo.parentName || '', parentInfo.parentId || '']]
+              )
+            ] 
+          } : {},
           
           // Declaration items
           { text: 'תוכן ההצהרה', style: 'subheader', margin: [0, 10, 0, 10] },
@@ -91,10 +93,12 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
           })),
           
           // Medical notes (if available)
-          medicalNotes ? [
-            { text: 'הערות רפואיות', style: 'subheader', margin: [0, 20, 0, 10] },
-            { text: medicalNotes, margin: [0, 0, 0, 20] }
-          ] : [],
+          medicalNotes ? { 
+            stack: [
+              { text: 'הערות רפואיות', style: 'subheader', margin: [0, 20, 0, 10] },
+              { text: medicalNotes, margin: [0, 0, 0, 20] }
+            ]
+          } : {},
           
           // Confirmation
           { text: 'אישור', style: 'subheader', margin: [0, 20, 0, 10] },

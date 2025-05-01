@@ -103,13 +103,14 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         ),
         
         // Payment details if any exist
-        payments && payments.length > 0 ? [
-          { text: 'פרטי תשלומים:', style: 'subheader', margin: [0, 20, 0, 10] },
-          createTableData(
-            ['תאריך תשלום', 'מספר קבלה', 'סכום'],
-            paymentRows
-          )
-        ] : [],
+        payments && payments.length > 0 ? 
+          { stack: [
+            { text: 'פרטי תשלומים:', style: 'subheader', margin: [0, 20, 0, 10] },
+            createTableData(
+              ['תאריך תשלום', 'מספר קבלה', 'סכום'],
+              paymentRows
+            )
+          ]} : {},
         
         // Footer
         { text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', style: 'footer', alignment: 'center', margin: [0, 30, 0, 0] }
