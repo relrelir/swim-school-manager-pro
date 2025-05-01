@@ -6,21 +6,26 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
   if (!notes) return { parentName: '', parentId: '' };
   
   try {
-    // Try to parse as JSON first
+    // First try to parse as JSON
     const parsedNotes = JSON.parse(notes);
     return {
       parentName: parsedNotes.parentName || '',
       parentId: parsedNotes.parentId || ''
     };
   } catch (e) {
+    console.log("Failed to parse notes as JSON, trying regex", notes);
+    
     // If not valid JSON, try to extract using regex
     const nameMatch = notes.match(/parentName"?:\s*"?([^",}]+)"?/i);
     const idMatch = notes.match(/parentId"?:\s*"?([^",}]+)"?/i);
     
-    return {
+    const result = {
       parentName: nameMatch ? nameMatch[1] : '',
       parentId: idMatch ? idMatch[1] : ''
     };
+    
+    console.log("Extracted parent info using regex:", result);
+    return result;
   }
 };
 
@@ -33,11 +38,17 @@ export const parseMedicalNotes = (notes: string | null): string => {
   try {
     // Try to parse as JSON first
     const parsedNotes = JSON.parse(notes);
-    return parsedNotes.notes || '';
+    return parsedNotes.notes || parsedNotes.medicalNotes || '';
   } catch (e) {
+    console.log("Failed to parse medical notes as JSON, trying regex", notes);
+    
     // If not valid JSON, try to extract using regex
-    const notesMatch = notes.match(/notes"?:\s*"?([^",}]+)"?/i);
-    return notesMatch ? notesMatch[1] : '';
+    const notesMatch = notes.match(/notes"?:\s*"?([^",}]+)"?/i) || 
+                      notes.match(/medicalNotes"?:\s*"?([^",}]+)"?/i);
+    
+    const result = notesMatch ? notesMatch[1] : '';
+    console.log("Extracted medical notes using regex:", result);
+    return result;
   }
 };
 

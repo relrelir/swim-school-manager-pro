@@ -2,10 +2,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle, AlertCircle, Printer, Link } from 'lucide-react';
+import { CheckCircle, AlertCircle, Link } from 'lucide-react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
-import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
 
 interface TableHealthStatusProps {
@@ -23,7 +22,6 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   onUpdateHealthApproval,
   onOpenHealthForm
 }) => {
-  const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
   const [isGeneratingLink, setIsGeneratingLink] = React.useState(false);
   const [isCopied, setIsCopied] = React.useState(false);
 
@@ -39,40 +37,10 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
     registrationId: registration.id,
     participantId: registration.participantId,
     hasDeclaration: Boolean(healthDeclaration),
-    healthDeclarationObj: healthDeclaration,
     formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
     isFormSigned,
     healthDeclarationId: healthDeclaration?.id
   });
-  
-  // Handle print health declaration
-  const handlePrintHealthDeclaration = async () => {
-    if (!healthDeclaration || !healthDeclaration.id) {
-      console.error("Cannot generate PDF: Health declaration is missing or has no ID", healthDeclaration);
-      toast({
-        variant: "destructive",
-        title: "שגיאה",
-        description: "הצהרת הבריאות לא נמצאה או חסר מזהה",
-      });
-      return;
-    }
-    
-    setIsGeneratingPdf(true);
-    try {
-      console.log("Generating PDF for health declaration ID:", healthDeclaration.id);
-      await generateHealthDeclarationPdf(healthDeclaration.id);
-      console.log("PDF generated successfully");
-    } catch (error) {
-      console.error("Error generating health declaration PDF:", error);
-      toast({
-        variant: "destructive",
-        title: "שגיאה",
-        description: "אירעה שגיאה ביצירת קובץ PDF",
-      });
-    } finally {
-      setIsGeneratingPdf(false);
-    }
-  };
   
   // Handle generate health declaration link
   const handleGenerateLink = async () => {
@@ -161,31 +129,6 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
           צור וקבל קישור להצהרת בריאות
         </TooltipContent>
       </Tooltip>
-      
-      {/* Print Button - Always visible when a health declaration exists */}
-      {healthDeclaration && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-green-500 hover:text-green-600 flex items-center border-green-200 hover:border-green-400"
-              onClick={handlePrintHealthDeclaration}
-              disabled={isGeneratingPdf}
-            >
-              {isGeneratingPdf ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent ml-1" />
-              ) : (
-                <Printer className="h-4 w-4 ml-1" />
-              )}
-              הדפס הצהרה
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            הדפס הצהרת בריאות
-          </TooltipContent>
-        </Tooltip>
-      )}
     </div>
   );
 };
