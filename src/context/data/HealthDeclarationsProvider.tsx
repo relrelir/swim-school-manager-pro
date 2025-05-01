@@ -45,8 +45,9 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
   };
 
   // Get health declaration for a specific registration
+  // Fixed: now searches by participant_id which actually stores the registrationId
   const getHealthDeclarationForRegistration = (registrationId: string) => {
-    return healthDeclarations.find(declaration => declaration.registrationId === registrationId);
+    return healthDeclarations.find(declaration => declaration.participant_id === registrationId);
   };
 
   const contextValue: HealthDeclarationsContextType = {

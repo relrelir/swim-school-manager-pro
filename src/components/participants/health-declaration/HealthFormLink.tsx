@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { LinkIcon, CheckIcon, Printer, Download } from "lucide-react";
+import { LinkIcon, CheckIcon, Printer } from "lucide-react";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
 
 interface HealthFormLinkProps {
@@ -55,7 +55,7 @@ const HealthFormLink = ({ registrationId, isDisabled, declarationId }: HealthFor
       return;
     }
     
-    const printUrl = `${window.location.origin}/print/health-declaration?id=${declarationId}`;
+    const printUrl = `/printable-health-declaration?id=${declarationId}`;
     window.open(printUrl, '_blank', 'noopener,noreferrer');
   };
   

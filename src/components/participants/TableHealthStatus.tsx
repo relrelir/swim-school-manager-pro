@@ -31,7 +31,13 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   
   // Open the printable health declaration page in a new tab
   const handleOpenPrintablePage = () => {
+    if (!healthDeclaration) {
+      console.error("Cannot open printable page: Health declaration is missing");
+      return;
+    }
+    
     const url = `/printable-health-declaration?id=${healthDeclaration?.id}`;
+    console.log("Opening printable health declaration:", url, "Health declaration:", healthDeclaration);
     window.open(url, '_blank');
   };
 
@@ -78,6 +84,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         <HealthFormLink 
           registrationId={registration.id} 
           isDisabled={isFormSigned || false} 
+          declarationId={healthDeclaration?.id}
         />
       )}
     </div>

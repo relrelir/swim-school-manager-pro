@@ -36,17 +36,40 @@ const PrintableHealthDeclarationPage: React.FC = () => {
       }
 
       try {
+        console.log("Loading health declaration with ID:", declarationId);
         const healthDeclaration = await getHealthDeclarationById(declarationId);
         
         if (!healthDeclaration) {
           throw new Error('לא נמצאה הצהרת בריאות');
         }
 
-        // Fetch the participant data using participant_id from the declaration
+        console.log("Found health declaration:", healthDeclaration);
+        console.log("Participant ID in health declaration:", healthDeclaration.participant_id);
+
+        // participant_id in health declarations actually contains the registration ID
+        // We need to get the registration to find the correct participant
+        const { data: registrationData, error: registrationError } = await supabase
+          .from('registrations')
+          .select('*')
+          .eq('id', healthDeclaration.participant_id)
+          .maybeSingle();
+
+        if (registrationError) {
+          handleSupabaseError(registrationError, 'fetching registration');
+          throw new Error('שגיאה בטעינת פרטי הרישום');
+        }
+
+        if (!registrationData) {
+          throw new Error('לא נמצאו פרטי רישום');
+        }
+
+        console.log("Found registration:", registrationData);
+        
+        // Get the participant using the participantId from the registration
         const { data: participantData, error: participantError } = await supabase
           .from('participants')
           .select('*')
-          .eq('id', healthDeclaration.participant_id)
+          .eq('id', registrationData.participantid)
           .maybeSingle();
 
         if (participantError) {
@@ -57,6 +80,8 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         if (!participantData) {
           throw new Error('לא נמצאו פרטי המשתתף');
         }
+        
+        console.log("Found participant:", participantData);
 
         // Parse parent information from notes if available
         let parentName = '';
