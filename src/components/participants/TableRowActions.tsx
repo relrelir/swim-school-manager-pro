@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Registration, HealthDeclaration } from '@/types';
-import { Trash2Icon, FileDownIcon, CreditCardIcon, FilePdf } from 'lucide-react';
+import { Trash2Icon, FileDownIcon, CreditCardIcon, FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { generateRegistrationPdf } from '@/utils/generateRegistrationPdf';
 import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
@@ -96,7 +96,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
               {isGeneratingHealthPdf ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
               ) : (
-                <FilePdf className="h-4 w-4" />
+                <FileText className="h-4 w-4" />
               )}
             </Button>
           </TooltipTrigger>
@@ -110,7 +110,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
               size="icon"
               onClick={() => onOpenHealthForm(registration.id)}
             >
-              <FilePdf className="h-4 w-4" />
+              <FileText className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>הצהרת בריאות</TooltipContent>
