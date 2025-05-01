@@ -4,7 +4,6 @@ import { Registration, Participant, Payment } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { addPdfTitle, addPdfDate, addSectionTitle, createDataTable, createPlainTextTable } from './pdfHelpers';
-import { encodeHebrewText } from './hebrewTextHelper';
 
 /**
  * Builds a registration PDF with participant and payment information
@@ -23,41 +22,41 @@ export function buildRegistrationPDF(
   const fileName = `registration_${participant.firstName}_${participant.lastName}_${registration.id.substring(0, 8)}.pdf`;
   
   // Add PDF title
-  addPdfTitle(pdf, encodeHebrewText('אישור רישום למוצר'));
+  addPdfTitle(pdf, 'אישור רישום למוצר');
   
   // Add date to document
-  addPdfDate(pdf, encodeHebrewText(currentDate));
+  addPdfDate(pdf, currentDate);
   
   // Add product name
   pdf.setFontSize(16);
-  pdf.text(encodeHebrewText(`מוצר: ${productName}`), pdf.internal.pageSize.width / 2, 35, { align: 'center' });
+  pdf.text(`מוצר: ${productName}`, pdf.internal.pageSize.width / 2, 35, { align: 'center' });
   
   // Participant information section
-  addSectionTitle(pdf, encodeHebrewText('פרטי משתתף:'), 50);
+  addSectionTitle(pdf, 'פרטי משתתף:', 50);
   
   // Create participant data
   const participantData = [
-    [encodeHebrewText('שם מלא:'), encodeHebrewText(`${participant.firstName} ${participant.lastName}`)],
-    [encodeHebrewText('תעודת זהות:'), participant.idNumber],
-    [encodeHebrewText('טלפון:'), participant.phone],
+    ['שם מלא:', `${participant.firstName} ${participant.lastName}`],
+    ['תעודת זהות:', participant.idNumber],
+    ['טלפון:', participant.phone],
   ];
   
   // Create table with participant data
   let yPosition = createDataTable(pdf, participantData, 55);
   
   // Registration information
-  addSectionTitle(pdf, encodeHebrewText('פרטי רישום:'), yPosition + 15);
+  addSectionTitle(pdf, 'פרטי רישום:', yPosition + 15);
   
   // Calculate effective required amount (after discount)
   const discountAmount = registration.discountAmount || 0;
   const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
   
   const registrationData = [
-    [encodeHebrewText('תאריך רישום:'), format(new Date(registration.registrationDate), 'dd/MM/yyyy')],
-    [encodeHebrewText('סכום מקורי:'), formatCurrency(registration.requiredAmount)],
-    [encodeHebrewText('הנחה:'), registration.discountApproved ? formatCurrency(discountAmount) : encodeHebrewText('לא')],
-    [encodeHebrewText('סכום לתשלום:'), formatCurrency(effectiveRequiredAmount)],
-    [encodeHebrewText('סכום ששולם:'), formatCurrency(registration.paidAmount)],
+    ['תאריך רישום:', format(new Date(registration.registrationDate), 'dd/MM/yyyy')],
+    ['סכום מקורי:', formatCurrency(registration.requiredAmount)],
+    ['הנחה:', registration.discountApproved ? formatCurrency(discountAmount) : 'לא'],
+    ['סכום לתשלום:', formatCurrency(effectiveRequiredAmount)],
+    ['סכום ששולם:', formatCurrency(registration.paidAmount)],
   ];
   
   // Create table with registration data
@@ -65,13 +64,13 @@ export function buildRegistrationPDF(
   
   // Payment details section
   if (payments.length > 0) {
-    addSectionTitle(pdf, encodeHebrewText('פרטי תשלומים:'), yPosition + 15);
+    addSectionTitle(pdf, 'פרטי תשלומים:', yPosition + 15);
     
     // Create payment details table header
     const paymentHeaders = [[
-      encodeHebrewText('תאריך תשלום'), 
-      encodeHebrewText('מספר קבלה'), 
-      encodeHebrewText('סכום')
+      'תאריך תשלום', 
+      'מספר קבלה', 
+      'סכום'
     ]];
     
     // Create payment details rows
@@ -86,7 +85,7 @@ export function buildRegistrationPDF(
   }
   
   // Add footer
-  const footerText = encodeHebrewText('מסמך זה מהווה אישור רשמי על רישום ותשלום.');
+  const footerText = 'מסמך זה מהווה אישור רשמי על רישום ותשלום.';
   pdf.setFontSize(10);
   pdf.text(footerText, pdf.internal.pageSize.width / 2, pdf.internal.pageSize.height - 20, { align: 'center' });
   

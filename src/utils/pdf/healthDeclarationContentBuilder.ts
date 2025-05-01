@@ -9,7 +9,6 @@ import {
   createPlainTextTable
 } from './pdfHelpers';
 import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './healthDeclarationParser';
-import { encodeHebrewText } from './hebrewTextHelper';
 
 interface ParticipantData {
   firstname: string;
@@ -35,7 +34,7 @@ export const buildHealthDeclarationPDF = (
   participant: ParticipantData
 ): string => {
   try {
-    // Add title - no need to encode since we're using built-in RTL
+    // Add title
     addPdfTitle(pdf, 'הצהרת בריאות');
     
     // Add date
@@ -79,7 +78,7 @@ export const buildHealthDeclarationPDF = (
       item
     ]);
     
-    // Fix: Remove the fourth parameter that's causing the error
+    // Fixed: Removed the fourth parameter
     lastY = createPlainTextTable(pdf, declarationData, lastY + 20);
     
     // Add medical notes if any

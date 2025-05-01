@@ -14,9 +14,6 @@ export const createPdf = (): jsPDF => {
     format: 'a4',
   });
   
-  // Add the font for Hebrew support
-  pdf.addFont('Alef-Regular.ttf', 'Alef', 'normal');
-  
   // Set document to RTL
   pdf.setR2L(true);
   
@@ -30,6 +27,7 @@ export const createPdf = (): jsPDF => {
  * Adds a title to the PDF document
  */
 export const addPdfTitle = (pdf: jsPDF, title: string): void => {
+  configureDocumentStyle(pdf);
   pdf.setFontSize(20);
   pdf.text(title, pdf.internal.pageSize.width / 2, 20, { align: 'center' });
 };
@@ -38,6 +36,7 @@ export const addPdfTitle = (pdf: jsPDF, title: string): void => {
  * Adds the current date to the PDF document
  */
 export const addPdfDate = (pdf: jsPDF, date: string): void => {
+  configureDocumentStyle(pdf);
   pdf.setFontSize(10);
   pdf.text(date, pdf.internal.pageSize.width - 20, 10, { align: 'right' });
 };
@@ -46,8 +45,8 @@ export const addPdfDate = (pdf: jsPDF, date: string): void => {
  * Adds a section title to the PDF document
  */
 export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
+  configureDocumentStyle(pdf);
   pdf.setFontSize(14);
-  pdf.setFont('Alef', 'normal');
   pdf.text(title, pdf.internal.pageSize.width - 20, y, { align: 'right' });
 };
 

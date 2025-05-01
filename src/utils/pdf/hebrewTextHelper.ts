@@ -15,9 +15,7 @@ export const encodeHebrewText = (text: string): string => {
  * No longer needed with proper RTL support
  */
 export const reverseText = (text: string): string => {
-  if (!text) return '';
-  // With proper RTL support, text reversal is no longer needed
-  return text;
+  return text || '';
 };
 
 /**
@@ -25,7 +23,5 @@ export const reverseText = (text: string): string => {
  * With proper RTL support, this function is simplified
  */
 export const prepareRtlText = (text: string): string => {
-  if (!text) return '';
-  // With proper RTL support, text preparation is no longer needed
-  return text;
+  return text || '';
 };
