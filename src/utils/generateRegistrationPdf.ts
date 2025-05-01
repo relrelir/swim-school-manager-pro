@@ -74,7 +74,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     // Generate filename
     const fileName = `registration_${participant.firstname}_${participant.lastname}_${registration.id.substring(0, 8)}.pdf`;
     
-    // Create PDF document definition
+    // Create PDF document definition with proper content structure
     const docDefinition = {
       content: [
         // Title with product name
@@ -104,17 +104,17 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         
         // Payment details if any exist
         payments && payments.length > 0 ? 
-          { stack: [
-            { text: 'פרטי תשלומים:', style: 'subheader', margin: [0, 20, 0, 10] },
-            createTableData(
-              ['תאריך תשלום', 'מספר קבלה', 'סכום'],
-              paymentRows
-            )
-          ]} : {},
+          { text: 'פרטי תשלומים:', style: 'subheader', margin: [0, 20, 0, 10] } : null,
+          
+        payments && payments.length > 0 ? 
+          createTableData(
+            ['תאריך תשלום', 'מספר קבלה', 'סכום'],
+            paymentRows
+          ) : null,
         
         // Footer
         { text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', style: 'footer', alignment: 'center', margin: [0, 30, 0, 0] }
-      ],
+      ].filter(Boolean), // Filter out null items
       styles: {
         header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
         productName: { fontSize: 16, bold: true },

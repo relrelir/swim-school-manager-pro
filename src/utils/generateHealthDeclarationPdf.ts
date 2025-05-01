@@ -56,7 +56,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       // Generate the filename
       const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
       
-      // Create PDF document definition
+      // Create PDF document definition with fixed content structure
       const docDefinition = {
         content: [
           // Title
@@ -73,32 +73,34 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
           // Parent section (if available)
           parentInfo.parentName || parentInfo.parentId ? 
           { 
-            stack: [
-              { text: 'פרטי ההורה/אפוטרופוס', style: 'subheader', margin: [0, 10, 0, 10] },
-              createTableData(
-                ['שם מלא', 'תעודת זהות'],
-                [[parentInfo.parentName || '', parentInfo.parentId || '']]
-              )
-            ] 
-          } : {},
+            text: 'פרטי ההורה/אפוטרופוס', 
+            style: 'subheader', 
+            margin: [0, 10, 0, 10] 
+          } : null,
+          
+          parentInfo.parentName || parentInfo.parentId ? 
+          createTableData(
+            ['שם מלא', 'תעודת זהות'],
+            [[parentInfo.parentName || '', parentInfo.parentId || '']]
+          ) : null,
           
           // Declaration items
           { text: 'תוכן ההצהרה', style: 'subheader', margin: [0, 10, 0, 10] },
-          ...declarationItems.map(item => ({
-            margin: [10, 5, 0, 0],
-            columns: [
-              { width: 10, text: '•' },
-              { width: 'auto', text: item }
-            ]
-          })),
+          
+          // Declaration items as simple text
+          { text: declarationItems.map(item => `• ${item}`).join('\n\n'), margin: [10, 5, 0, 10] },
           
           // Medical notes (if available)
           medicalNotes ? { 
-            stack: [
-              { text: 'הערות רפואיות', style: 'subheader', margin: [0, 20, 0, 10] },
-              { text: medicalNotes, margin: [0, 0, 0, 20] }
-            ]
-          } : {},
+            text: 'הערות רפואיות', 
+            style: 'subheader', 
+            margin: [0, 20, 0, 10] 
+          } : null,
+          
+          medicalNotes ? { 
+            text: medicalNotes, 
+            margin: [0, 0, 0, 20] 
+          } : null,
           
           // Confirmation
           { text: 'אישור', style: 'subheader', margin: [0, 20, 0, 10] },
@@ -106,7 +108,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
           
           // Signature line
           { text: 'חתימת ההורה/אפוטרופוס: ________________', margin: [0, 30, 0, 0] },
-        ],
+        ].filter(Boolean), // Filter out null items
         styles: {
           header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
           subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },
