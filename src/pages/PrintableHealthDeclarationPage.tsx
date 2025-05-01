@@ -5,6 +5,8 @@ import PrintableHealthDeclaration from '@/components/health-form/PrintableHealth
 import { getHealthDeclarationById } from '@/context/data/healthDeclarations/service';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
+import { handleSupabaseError } from '@/context/data/utils';
 
 const PrintableHealthDeclarationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -34,16 +36,32 @@ const PrintableHealthDeclarationPage: React.FC = () => {
       }
 
       try {
-        const result = await getHealthDeclarationById(declarationId);
+        const healthDeclaration = await getHealthDeclarationById(declarationId);
         
-        if (!result || !result.participant) {
+        if (!healthDeclaration) {
           throw new Error('לא נמצאה הצהרת בריאות');
+        }
+
+        // Fetch the participant data using participant_id from the declaration
+        const { data: participantData, error: participantError } = await supabase
+          .from('participants')
+          .select('*')
+          .eq('id', healthDeclaration.participant_id)
+          .single();
+
+        if (participantError) {
+          handleSupabaseError(participantError, 'fetching participant');
+          throw new Error('שגיאה בטעינת פרטי המשתתף');
+        }
+
+        if (!participantData) {
+          throw new Error('לא נמצאו פרטי המשתתף');
         }
 
         // Parse parent information from notes if available
         let parentName = '';
         let parentId = '';
-        let notes = result.notes || '';
+        let notes = healthDeclaration.notes || '';
 
         const parentMatch = notes.match(/הורה\/אפוטרופוס: ([^,]+), ת\.ז\.: ([^\n]+)/);
         if (parentMatch) {
@@ -53,20 +71,20 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         }
 
         setHealthData({
-          participantName: `${result.participant.firstname} ${result.participant.lastname}`,
-          participantId: result.participant.idnumber,
-          participantPhone: result.participant.phone,
+          participantName: `${participantData.firstname} ${participantData.lastname}`,
+          participantId: participantData.idnumber,
+          participantPhone: participantData.phone,
           formState: {
             agreement: true,
             notes: notes,
             parentName: parentName,
             parentId: parentId
           },
-          submissionDate: result.submission_date ? new Date(result.submission_date) : new Date()
+          submissionDate: healthDeclaration.submission_date ? new Date(healthDeclaration.submission_date) : new Date()
         });
       } catch (error) {
         console.error('Error loading health declaration:', error);
-        setError('אירעה שגיאה בטעינת הצהרת הבריאות');
+        setError(error instanceof Error ? error.message : 'אירעה שגיאה בטעינת הצהרת הבריאות');
       } finally {
         setIsLoading(false);
       }
