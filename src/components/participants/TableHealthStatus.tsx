@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { CheckCircle, AlertCircle, Printer } from 'lucide-react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
+import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -40,6 +41,33 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
     isFormSigned,
     healthDeclarationId: healthDeclaration?.id
   });
+  
+  // Handle print health declaration
+  const handlePrintHealthDeclaration = async () => {
+    if (!healthDeclaration) {
+      console.error("Cannot generate PDF: Health declaration is missing");
+      toast({
+        variant: "destructive",
+        title: "שגיאה",
+        description: "הצהרת הבריאות לא נמצאה",
+      });
+      return;
+    }
+    
+    setIsGeneratingPdf(true);
+    try {
+      await generateHealthDeclarationPdf(healthDeclaration.id);
+    } catch (error) {
+      console.error("Error generating health declaration PDF:", error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה",
+        description: "אירעה שגיאה ביצירת קובץ PDF",
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
   
   // Open the printable health declaration page in a new tab
   const handleOpenPrintablePage = () => {
@@ -88,10 +116,14 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
               variant="outline"
               size="sm"
               className="text-blue-500 hover:text-blue-600 flex items-center border-blue-200 hover:border-blue-400"
-              onClick={handleOpenPrintablePage}
+              onClick={handlePrintHealthDeclaration}
               disabled={isGeneratingPdf}
             >
-              <Printer className="h-4 w-4 ml-1" />
+              {isGeneratingPdf ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent ml-1" />
+              ) : (
+                <Printer className="h-4 w-4 ml-1" />
+              )}
               הדפס
             </Button>
           </TooltipTrigger>

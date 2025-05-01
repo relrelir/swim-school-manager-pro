@@ -4,73 +4,20 @@ import { createRtlPdf } from './pdf/pdfConfig';
 import { buildHealthDeclarationPDF } from './pdf/healthDeclarationContentBuilder';
 import { toast } from "@/components/ui/use-toast";
 
-export const generateHealthDeclarationPdf = async (registrationId: string) => {
+export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
   try {
-    console.log("Starting health declaration PDF generation for registration ID:", registrationId);
+    console.log("Starting health declaration PDF generation for declaration ID:", healthDeclarationId);
     
-    // First, try to get the health declaration with participant_id equal to registrationId
+    // Get the health declaration directly by ID - this should be more reliable than searching by registration ID
     let { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
       .select('id, participant_id, submission_date, notes, form_status')
-      .eq('participant_id', registrationId)
+      .eq('id', healthDeclarationId)
       .single();
     
-    // If not found by direct match, we need to find the correct participant ID from the registration
     if (healthDeclarationError || !healthDeclaration) {
-      console.log("No direct match found for registration ID:", registrationId);
-      console.log("Looking up registration to find participant ID...");
-      
-      // Get the registration to find the participant ID
-      const { data: registration, error: registrationError } = await supabase
-        .from('registrations')
-        .select('participantid')
-        .eq('id', registrationId)
-        .single();
-      
-      if (registrationError || !registration) {
-        console.error("Registration not found:", registrationError);
-        
-        // If registrationId contains an underscore, try to extract participantId
-        if (registrationId.includes('_')) {
-          const participantId = registrationId.split('_').pop();
-          
-          if (participantId) {
-            console.log("Trying to find health declaration with extracted participant ID:", participantId);
-            const { data: participantHealthDeclaration, error } = await supabase
-              .from('health_declarations')
-              .select('id, participant_id, submission_date, notes, form_status')
-              .eq('participant_id', participantId)
-              .single();
-              
-            if (!error && participantHealthDeclaration) {
-              healthDeclaration = participantHealthDeclaration;
-              console.log("Found health declaration with extracted participant ID:", healthDeclaration);
-            } else {
-              console.log("No health declaration found with extracted participant ID");
-            }
-          }
-        }
-        
-        if (!healthDeclaration) {
-          throw new Error('פרטי הרישום לא נמצאו');
-        }
-      } else {
-        console.log("Found registration with participant ID:", registration.participantid);
-        
-        // Now look for health declaration with this participant ID
-        const { data: participantHealthDeclaration, error: participantHealthDeclarationError } = await supabase
-          .from('health_declarations')
-          .select('id, participant_id, submission_date, notes, form_status')
-          .eq('participant_id', registration.participantid)
-          .single();
-        
-        if (participantHealthDeclarationError || !participantHealthDeclaration) {
-          console.error("Health declaration not found for participant:", participantHealthDeclarationError);
-          throw new Error('הצהרת בריאות לא נמצאה');
-        }
-        
-        healthDeclaration = participantHealthDeclaration;
-      }
+      console.error("Health declaration not found by ID:", healthDeclarationError);
+      throw new Error('הצהרת בריאות לא נמצאה');
     }
     
     // Verify the form is signed

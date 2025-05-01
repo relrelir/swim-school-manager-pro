@@ -99,8 +99,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
         declaration = healthDeclarations.find(d => {
           // Check multiple fields for the participant ID
           return d.participant_id === participantId || 
-                 d.registrationId === participantId ||
-                 (d.participantId && d.participantId === participantId);
+                 d.registrationId === participantId;
         });
         
         if (declaration) {
@@ -117,7 +116,6 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
           id: d.id, 
           participant_id: d.participant_id, 
           registrationId: d.registrationId,
-          participantId: d.participantId,
           form_status: d.form_status || d.formStatus
         }))
       );

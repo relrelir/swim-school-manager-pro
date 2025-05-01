@@ -5,6 +5,7 @@ import { Registration, HealthDeclaration } from '@/types';
 import { Trash2Icon, FileDownIcon, CreditCardIcon, FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { generateRegistrationPdf } from '@/utils/generateRegistrationPdf';
+import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 import { toast } from "@/components/ui/use-toast";
 
 interface TableRowActionsProps {
@@ -25,6 +26,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   healthDeclaration,
 }) => {
   const [isGeneratingRegPdf, setIsGeneratingRegPdf] = React.useState(false);
+  const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = React.useState(false);
 
   // Check if health declaration is signed
   const isHealthFormSigned = Boolean(healthDeclaration && 
@@ -50,6 +52,33 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     }
   };
 
+  // Handle health declaration PDF generation
+  const handleGenerateHealthPdf = async () => {
+    if (!healthDeclaration) {
+      console.error("Cannot generate PDF: Health declaration is missing");
+      toast({
+        variant: "destructive",
+        title: "שגיאה",
+        description: "הצהרת הבריאות לא נמצאה",
+      });
+      return;
+    }
+    
+    setIsGeneratingHealthPdf(true);
+    try {
+      await generateHealthDeclarationPdf(healthDeclaration.id);
+    } catch (error) {
+      console.error("Error generating health declaration PDF:", error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה",
+        description: "אירעה שגיאה ביצירת קובץ PDF",
+      });
+    } finally {
+      setIsGeneratingHealthPdf(false);
+    }
+  };
+
   // Handle health form action
   const handleHealthAction = () => {
     if (!isHealthFormSigned) {
@@ -58,10 +87,8 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
         onOpenHealthForm(registration.id);
       }
     } else if (healthDeclaration) {
-      // If signed, open the printable page
-      const url = `/printable-health-declaration?id=${healthDeclaration.id}`;
-      console.log("Opening printable health declaration from TableRowActions:", url);
-      window.open(url, '_blank');
+      // If signed, generate PDF
+      handleGenerateHealthPdf();
     } else {
       toast({
         variant: "destructive",
@@ -110,10 +137,17 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
             variant={isHealthFormSigned ? "ghost" : "outline"} 
             size={isHealthFormSigned ? "icon" : "sm"}
             onClick={handleHealthAction}
+            disabled={isGeneratingHealthPdf}
             className={isHealthFormSigned ? "" : "text-amber-500 border-amber-200"}
           >
-            <FileText className="h-4 w-4" />
-            {!isHealthFormSigned && <span className="mr-1">הצהרת בריאות</span>}
+            {isGeneratingHealthPdf ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            ) : (
+              <>
+                <FileText className="h-4 w-4" />
+                {!isHealthFormSigned && <span className="mr-1">הצהרת בריאות</span>}
+              </>
+            )}
           </Button>
         </TooltipTrigger>
         <TooltipContent>
