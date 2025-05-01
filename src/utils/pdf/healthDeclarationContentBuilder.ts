@@ -9,6 +9,7 @@ import {
   createPlainTextTable
 } from './pdfHelpers';
 import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './healthDeclarationParser';
+import { encodeHebrewText } from './hebrewTextHelper';
 
 interface ParticipantData {
   firstname: string;
@@ -26,7 +27,7 @@ interface HealthDeclarationData {
 }
 
 /**
- * Builds the content of a health declaration PDF
+ * Builds the content of a health declaration PDF with Hebrew support
  */
 export const buildHealthDeclarationPDF = (
   pdf: jsPDF, 
@@ -34,22 +35,22 @@ export const buildHealthDeclarationPDF = (
   participant: ParticipantData
 ): string => {
   // Add title
-  addPdfTitle(pdf, 'הצהרת בריאות');
+  addPdfTitle(pdf, encodeHebrewText('הצהרת בריאות'));
   
   // Add date
   const formattedDate = healthDeclaration.submission_date 
     ? format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy HH:mm') 
     : format(new Date(), 'dd/MM/yyyy HH:mm');
   
-  addPdfDate(pdf, formattedDate);
+  addPdfDate(pdf, encodeHebrewText(formattedDate));
   
   // Add participant details
-  addSectionTitle(pdf, 'פרטי המשתתף', 45);
+  addSectionTitle(pdf, encodeHebrewText('פרטי המשתתף'), 45);
   
   const participantData = [
-    ['שם מלא', `${participant.firstname} ${participant.lastname}`],
-    ['תעודת זהות', participant.idnumber],
-    ['טלפון', participant.phone],
+    [encodeHebrewText('שם מלא'), encodeHebrewText(`${participant.firstname} ${participant.lastname}`)],
+    [encodeHebrewText('תעודת זהות'), participant.idnumber],
+    [encodeHebrewText('טלפון'), participant.phone],
   ];
   
   let lastY = createDataTable(pdf, participantData, 50);
@@ -58,21 +59,24 @@ export const buildHealthDeclarationPDF = (
   const parentInfo = parseParentInfo(healthDeclaration.notes);
   
   if (parentInfo.parentName || parentInfo.parentId) {
-    addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
+    addSectionTitle(pdf, encodeHebrewText('פרטי ההורה/אפוטרופוס'), lastY + 15);
     
     const parentData = [
-      ['שם מלא', parentInfo.parentName || ''],
-      ['תעודת זהות', parentInfo.parentId || ''],
+      [encodeHebrewText('שם מלא'), encodeHebrewText(parentInfo.parentName || '')],
+      [encodeHebrewText('תעודת זהות'), parentInfo.parentId || ''],
     ];
     
     lastY = createDataTable(pdf, parentData, lastY + 20);
   }
   
   // Add declaration text
-  addSectionTitle(pdf, 'תוכן ההצהרה', lastY + 15);
+  addSectionTitle(pdf, encodeHebrewText('תוכן ההצהרה'), lastY + 15);
   
   const declarationItems = getDeclarationItems();
-  const declarationData = declarationItems.map(item => ['•', item]);
+  const declarationData = declarationItems.map(item => [
+    encodeHebrewText('•'), 
+    encodeHebrewText(item)
+  ]);
   
   lastY = createPlainTextTable(pdf, declarationData, lastY + 20, {
     0: { cellWidth: 5 },
@@ -84,19 +88,19 @@ export const buildHealthDeclarationPDF = (
     const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
     
     if (medicalNotes) {
-      addSectionTitle(pdf, 'הערות רפואיות', lastY + 15);
+      addSectionTitle(pdf, encodeHebrewText('הערות רפואיות'), lastY + 15);
       
-      lastY = createPlainTextTable(pdf, [[medicalNotes]], lastY + 20);
+      lastY = createPlainTextTable(pdf, [[encodeHebrewText(medicalNotes)]], lastY + 20);
     }
   }
   
   // Add confirmation
-  addSectionTitle(pdf, 'אישור', lastY + 15);
+  addSectionTitle(pdf, encodeHebrewText('אישור'), lastY + 15);
   
-  lastY = createPlainTextTable(pdf, [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], lastY + 20);
+  lastY = createPlainTextTable(pdf, [[encodeHebrewText('אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.')]], lastY + 20);
   
   // Add signature line
-  pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, lastY + 20);
+  pdf.text(encodeHebrewText('חתימת ההורה/אפוטרופוס: ________________'), 30, lastY + 20);
   
   // Generate filename
   const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;

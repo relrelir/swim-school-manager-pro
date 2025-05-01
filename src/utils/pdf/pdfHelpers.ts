@@ -1,6 +1,8 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import 'src/assets/fonts/Roboto-Regular-normal';
+import 'src/assets/fonts/Roboto-Bold-bold';
 
 // Extend the jsPDF type to include the lastAutoTable property added by autotable plugin
 declare module 'jspdf' {
@@ -12,7 +14,7 @@ declare module 'jspdf' {
 }
 
 /**
- * Creates and configures a new PDF document
+ * Creates and configures a new PDF document with Hebrew support
  */
 export const createPdf = (): jsPDF => {
   const pdf = new jsPDF({
@@ -20,6 +22,13 @@ export const createPdf = (): jsPDF => {
     unit: 'mm',
     format: 'a4',
   });
+  
+  // Add Hebrew font support
+  pdf.addFont('src/assets/fonts/David-Regular.ttf', 'David', 'normal');
+  pdf.addFont('src/assets/fonts/David-Bold.ttf', 'David', 'bold');
+  
+  // Set default font to David for Hebrew support
+  pdf.setFont('David');
   
   // Enable RTL support for Hebrew
   pdf.setR2L(true);
@@ -32,7 +41,9 @@ export const createPdf = (): jsPDF => {
  */
 export const addPdfTitle = (pdf: jsPDF, title: string): void => {
   pdf.setFontSize(20);
+  pdf.setFont('David', 'bold');
   pdf.text(title, pdf.internal.pageSize.width / 2, 20, { align: 'center' });
+  pdf.setFont('David', 'normal');
 };
 
 /**
@@ -48,7 +59,9 @@ export const addPdfDate = (pdf: jsPDF, dateString: string): void => {
  */
 export const addSectionTitle = (pdf: jsPDF, title: string, yPosition: number): void => {
   pdf.setFontSize(14);
+  pdf.setFont('David', 'bold');
   pdf.text(title, 20, yPosition);
+  pdf.setFont('David', 'normal');
 };
 
 /**
@@ -66,12 +79,15 @@ export const createDataTable = (
     body: data,
     theme: 'grid',
     styles: {
-      font: 'helvetica',
+      font: 'David',
       fontSize: 10,
       halign: 'right',
+      direction: 'rtl',
     },
     headStyles: {
       fillColor: [220, 220, 220],
+      font: 'David',
+      fontStyle: 'bold',
     }
   });
   
@@ -93,9 +109,10 @@ export const createPlainTextTable = (
     body: data,
     theme: 'plain',
     styles: {
-      font: 'helvetica',
+      font: 'David',
       fontSize: 10,
       halign: 'right',
+      direction: 'rtl',
     },
     columnStyles: columnWidths || {}
   });

@@ -31,7 +31,7 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
       throw new Error('פרטי המשתתף לא נמצאו');
     }
     
-    // Create the PDF document
+    // Create the PDF document with Hebrew support
     const pdf = createPdf();
     
     // Build the PDF content
