@@ -32,21 +32,26 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
       throw new Error('פרטי המשתתף לא נמצאו');
     }
     
-    // Create the PDF document with Hebrew support
+    // Create the PDF document with RTL support
     const pdf = createPdf();
     
-    // Build the PDF content
-    const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
-    
-    // Save the PDF
-    pdf.save(fileName);
-    
-    toast({
-      title: "PDF נוצר בהצלחה",
-      description: "הצהרת הבריאות נשמרה במכשיר שלך",
-    });
-    
-    return fileName;
+    try {
+      // Build the PDF content
+      const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
+      
+      // Save the PDF
+      pdf.save(fileName);
+      
+      toast({
+        title: "PDF נוצר בהצלחה",
+        description: "הצהרת הבריאות נשמרה במכשיר שלך",
+      });
+      
+      return fileName;
+    } catch (error) {
+      console.error('Error building health declaration PDF:', error);
+      throw new Error('אירעה שגיאה ביצירת מסמך ה-PDF');
+    }
   } catch (error) {
     console.error('Error generating health declaration PDF:', error);
     toast({

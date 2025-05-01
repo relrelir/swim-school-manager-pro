@@ -21,12 +21,9 @@ export const createPdf = (): jsPDF => {
     format: 'a4',
   });
   
-  // Add Hebrew font support
-  pdf.addFont('src/assets/fonts/David-Regular.ttf', 'David', 'normal');
-  pdf.addFont('src/assets/fonts/David-Bold.ttf', 'David', 'bold');
-  
-  // Set default font to David for Hebrew support
-  pdf.setFont('David');
+  // Set default font - using standard fonts instead of trying to load custom fonts
+  // This avoids the font loading errors
+  pdf.setFont('helvetica');
   
   // Enable RTL support for Hebrew
   pdf.setR2L(true);
@@ -39,9 +36,9 @@ export const createPdf = (): jsPDF => {
  */
 export const addPdfTitle = (pdf: jsPDF, title: string): void => {
   pdf.setFontSize(20);
-  pdf.setFont('David', 'bold');
+  pdf.setFont('helvetica', 'bold');
   pdf.text(title, pdf.internal.pageSize.width / 2, 20, { align: 'center' });
-  pdf.setFont('David', 'normal');
+  pdf.setFont('helvetica', 'normal');
 };
 
 /**
@@ -57,9 +54,9 @@ export const addPdfDate = (pdf: jsPDF, dateString: string): void => {
  */
 export const addSectionTitle = (pdf: jsPDF, title: string, yPosition: number): void => {
   pdf.setFontSize(14);
-  pdf.setFont('David', 'bold');
+  pdf.setFont('helvetica', 'bold');
   pdf.text(title, 20, yPosition);
-  pdf.setFont('David', 'normal');
+  pdf.setFont('helvetica', 'normal');
 };
 
 /**
@@ -77,13 +74,13 @@ export const createDataTable = (
     body: data,
     theme: 'grid',
     styles: {
-      font: 'David',
+      font: 'helvetica',
       fontSize: 10,
-      halign: 'right',
+      halign: 'right'
     },
     headStyles: {
       fillColor: [220, 220, 220],
-      font: 'David',
+      font: 'helvetica',
       fontStyle: 'bold',
     }
   });
@@ -106,9 +103,9 @@ export const createPlainTextTable = (
     body: data,
     theme: 'plain',
     styles: {
-      font: 'David',
+      font: 'helvetica',
       fontSize: 10,
-      halign: 'right',
+      halign: 'right'
     },
     columnStyles: columnWidths || {}
   });
