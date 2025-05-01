@@ -107,7 +107,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     contentItems.push(createTableData(
       ['שם מלא:', 'תעודת זהות:', 'טלפון:'],
       [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
-    ) as Content);
+    ) as any);
     
     // Registration information
     contentItems.push({ 
@@ -125,7 +125,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         formatCurrency(effectiveRequiredAmount),
         formatCurrency(registration.paidamount)
       ]]
-    ) as Content);
+    ) as any);
     
     // Payment details if any exist
     if (payments && payments.length > 0) {
@@ -138,7 +138,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       contentItems.push(createTableData(
         ['תאריך תשלום', 'מספר קבלה', 'סכום'],
         paymentRows
-      ) as Content);
+      ) as any);
     }
     
     // Footer
@@ -149,14 +149,14 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       margin: [0, 30, 0, 0] 
     } as Content);
     
-    // Create PDF document definition with fixed margin format
+    // Create PDF document definition with fixed margin format for TypeScript compatibility
     const docDefinition = {
       content: contentItems,
       styles: {
         header: { 
           fontSize: 18, 
           bold: true, 
-          margin: [0, 0, 0, 10] 
+          margin: [0, 0, 0, 10] as [number, number, number, number]
         },
         productName: { 
           fontSize: 16, 
@@ -165,7 +165,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         subheader: { 
           fontSize: 14, 
           bold: true, 
-          margin: [0, 10, 0, 10] 
+          margin: [0, 10, 0, 10] as [number, number, number, number] 
         },
         tableHeader: { 
           bold: true, 

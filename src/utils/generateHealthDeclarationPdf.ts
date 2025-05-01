@@ -85,7 +85,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       contentItems.push(createTableData(
         ['שם מלא', 'תעודת זהות', 'טלפון'],
         [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
-      ) as Content);
+      ) as any);
       
       // Add parent section if available
       if (parentInfo.parentName || parentInfo.parentId) {
@@ -98,7 +98,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         contentItems.push(createTableData(
           ['שם מלא', 'תעודת זהות'],
           [[parentInfo.parentName || '', parentInfo.parentId || '']]
-        ) as Content);
+        ) as any);
       }
       
       // Add declaration items section
@@ -116,7 +116,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         },
         layout: 'noBorders',
         margin: [10, 5, 0, 10]
-      } as Content);
+      } as any);
       
       // Add medical notes if available
       if (medicalNotes) {
@@ -150,19 +150,19 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         margin: [0, 30, 0, 0] 
       } as Content);
       
-      // Create PDF document definition with fixed margin format
+      // Create PDF document definition with fixed margin format for TypeScript compatibility
       const docDefinition = {
         content: contentItems,
         styles: {
           header: { 
             fontSize: 18, 
             bold: true, 
-            margin: [0, 0, 0, 10] 
+            margin: [0, 0, 0, 10] as [number, number, number, number]
           },
           subheader: { 
             fontSize: 14, 
             bold: true, 
-            margin: [0, 10, 0, 5] 
+            margin: [0, 10, 0, 5] as [number, number, number, number]
           },
           tableHeader: { 
             bold: true, 
