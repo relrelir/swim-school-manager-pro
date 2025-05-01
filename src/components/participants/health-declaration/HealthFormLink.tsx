@@ -2,18 +2,16 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { LinkIcon, CheckIcon, Printer } from "lucide-react";
+import { LinkIcon, CheckIcon } from "lucide-react";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
 
 interface HealthFormLinkProps {
   registrationId: string;
-  isDisabled: boolean;
-  declarationId?: string;
+  isDisabled?: boolean;
   className?: string;
 }
 
-const HealthFormLink = ({ registrationId, isDisabled, declarationId, className }: HealthFormLinkProps) => {
+const HealthFormLink = ({ registrationId, isDisabled, className }: HealthFormLinkProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   
@@ -46,21 +44,6 @@ const HealthFormLink = ({ registrationId, isDisabled, declarationId, className }
     }
   };
   
-  const handlePrintDeclaration = () => {
-    if (!declarationId) {
-      toast({
-        title: "שגיאה",
-        description: "לא נמצא מזהה להצהרת הבריאות",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    const printUrl = `/printable-health-declaration?id=${declarationId}`;
-    console.log("Opening printable form at:", printUrl, "Declaration ID:", declarationId);
-    window.open(printUrl, '_blank', 'noopener,noreferrer');
-  };
-  
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -72,13 +55,12 @@ const HealthFormLink = ({ registrationId, isDisabled, declarationId, className }
   };
   
   // This component is now only used in the HealthDeclarationForm dialog
-  // It will only show the "Generate Link" functionality
   return (
     <Button
       variant="default"
       className={className || "w-full"}
       onClick={handleGenerateLink}
-      disabled={isGenerating}
+      disabled={isGenerating || isDisabled}
     >
       {isGenerating ? (
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />

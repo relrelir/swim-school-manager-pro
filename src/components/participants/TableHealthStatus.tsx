@@ -71,6 +71,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </Tooltip>
       )}
       
+      {/* Only show the printer icon when the form is signed */}
       {isFormSigned && (
         <Tooltip>
           <TooltipTrigger asChild>
