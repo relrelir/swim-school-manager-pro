@@ -25,6 +25,26 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   const [isGeneratingRegPdf, setIsGeneratingRegPdf] = React.useState(false);
   const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = React.useState(false);
   const { getHealthDeclarationForRegistration, healthDeclarations } = useHealthDeclarationsContext();
+  
+  // State to track if this registration has a valid health declaration
+  const [hasHealthDeclaration, setHasHealthDeclaration] = React.useState(false);
+  
+  // Effect to check for health declaration when component mounts or registration/healthDeclarations change
+  React.useEffect(() => {
+    if (!registration.id) return;
+    
+    // Get health declaration and check if it exists
+    const healthDeclaration = getHealthDeclarationForRegistration(registration.id);
+    const declarationExists = Boolean(healthDeclaration && healthDeclaration.id);
+    
+    console.log(`Registration ${registration.id} health declaration check:`, 
+      declarationExists ? `Found (ID: ${healthDeclaration?.id})` : "Not found", 
+      `Total available declarations: ${healthDeclarations.length}`
+    );
+    
+    // Update state
+    setHasHealthDeclaration(declarationExists);
+  }, [registration.id, getHealthDeclarationForRegistration, healthDeclarations]);
 
   // Handle download registration PDF
   const handleGenerateRegPdf = async () => {
@@ -81,24 +101,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       setIsGeneratingHealthPdf(false);
     }
   };
-  
-  // Check if a health declaration exists for this registration
-  // This function runs after component mount to provide better debugging
-  const [hasHealthDeclaration, setHasHealthDeclaration] = React.useState(false);
-  
-  React.useEffect(() => {
-    // This separate check in useEffect provides better debug info
-    const healthDeclaration = getHealthDeclarationForRegistration(registration.id);
-    const hasDeclaration = Boolean(healthDeclaration && healthDeclaration.id);
-    
-    console.log(
-      `Registration ${registration.id} health declaration check:`, 
-      hasDeclaration ? `Found (ID: ${healthDeclaration?.id})` : "Not found", 
-      `Total available declarations: ${healthDeclarations.length}`
-    );
-    
-    setHasHealthDeclaration(hasDeclaration);
-  }, [registration.id, getHealthDeclarationForRegistration, healthDeclarations]);
   
   return (
     <div className="flex gap-2 justify-end">

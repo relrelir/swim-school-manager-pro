@@ -19,14 +19,17 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
       creator: 'מערכת ניהול'
     });
     
-    // Increase font size slightly for better readability
-    pdf.setFontSize(12);
+    // Increase font size slightly for better readability with Hebrew text
+    pdf.setFontSize(14);
     
     // Set line height for better spacing with Hebrew text
     // @ts-ignore - property exists but might not be in types
     if (pdf.setLineHeightFactor) {
-      pdf.setLineHeightFactor(1.25);
+      pdf.setLineHeightFactor(1.5);
     }
+    
+    // Set text color to ensure better contrast
+    pdf.setTextColor(0, 0, 0);
     
     console.log("Hebrew font configuration applied with RTL support");
   } catch (error) {

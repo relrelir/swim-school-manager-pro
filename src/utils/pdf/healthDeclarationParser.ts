@@ -23,8 +23,8 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
     const idMatch = notes.match(/parentId"?:\s*"?([^",}]+)"?/i);
     
     const result = {
-      parentName: nameMatch ? nameMatch[1] : '',
-      parentId: idMatch ? idMatch[1] : ''
+      parentName: nameMatch ? nameMatch[1].trim() : '',
+      parentId: idMatch ? idMatch[1].trim() : ''
     };
     
     console.log("Extracted parent info using regex:", result);
@@ -52,7 +52,7 @@ export const parseMedicalNotes = (notes: string | null): string => {
     const notesMatch = notes.match(/notes"?:\s*"?([^",}]+)"?/i) || 
                       notes.match(/medicalNotes"?:\s*"?([^",}]+)"?/i);
     
-    const result = notesMatch ? notesMatch[1] : '';
+    const result = notesMatch ? notesMatch[1].trim() : '';
     console.log("Extracted medical notes using regex:", result);
     return result;
   }
