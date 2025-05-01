@@ -39,6 +39,7 @@ const ParticipantsPage: React.FC = () => {
     handleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
+    handleOpenHealthForm,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
@@ -150,6 +151,7 @@ const ParticipantsPage: React.FC = () => {
         onAddPayment={handleOpenAddPayment}
         onDeleteRegistration={handleDeleteRegistration}
         onUpdateHealthApproval={updateHealthApprovalById}
+        onOpenHealthForm={handleOpenHealthForm}
         onExport={handleExportToCSV}
       />
 
