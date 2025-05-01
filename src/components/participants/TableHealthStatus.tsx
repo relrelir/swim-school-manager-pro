@@ -36,7 +36,8 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
     participantId: registration.participantId,
     hasDeclaration: Boolean(healthDeclaration),
     formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
-    isFormSigned
+    isFormSigned,
+    healthDeclarationId: healthDeclaration?.id
   });
   
   // Open the printable health declaration page in a new tab
@@ -78,14 +79,14 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </Tooltip>
       )}
       
-      {/* Only show the printer icon when the form is signed */}
-      {isFormSigned && (
+      {/* Show action button based on health declaration status */}
+      {isFormSigned ? (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
               size="sm"
-              className="text-blue-500 hover:text-blue-600 flex items-center"
+              className="text-blue-500 hover:text-blue-600 flex items-center border-blue-200 hover:border-blue-400"
               onClick={handleOpenPrintablePage}
               disabled={isGeneratingPdf}
             >
@@ -94,13 +95,22 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
               ) : (
                 <Printer className="h-4 w-4 mr-1" />
               )}
-              הדפס הצהרה
+              הדפס
             </Button>
           </TooltipTrigger>
           <TooltipContent>
             הדפס הצהרת בריאות
           </TooltipContent>
         </Tooltip>
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenHealthForm}
+          className="text-amber-500 hover:text-amber-600 border-amber-200 hover:border-amber-400"
+        >
+          מלא הצהרה
+        </Button>
       )}
     </div>
   );

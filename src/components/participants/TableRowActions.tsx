@@ -5,7 +5,6 @@ import { Registration, HealthDeclaration } from '@/types';
 import { Trash2Icon, FileDownIcon, CreditCardIcon, FileText } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { generateRegistrationPdf } from '@/utils/generateRegistrationPdf';
-import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 import { toast } from "@/components/ui/use-toast";
 
 interface TableRowActionsProps {
@@ -26,7 +25,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   healthDeclaration,
 }) => {
   const [isGeneratingRegPdf, setIsGeneratingRegPdf] = React.useState(false);
-  const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = React.useState(false);
 
   // Check if health declaration is signed
   const isHealthFormSigned = Boolean(healthDeclaration && 
@@ -51,40 +49,23 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     }
   };
 
-  // Handle download health declaration PDF
-  const handleGenerateHealthPdf = async () => {
-    if (!healthDeclaration) {
-      console.error("Cannot generate health PDF: Health declaration is missing");
+  // Handle health form action
+  const handleHealthAction = () => {
+    if (!isHealthFormSigned) {
+      // Open health form if not signed
+      if (onOpenHealthForm) {
+        onOpenHealthForm(registration.id);
+      }
+    } else if (healthDeclaration) {
+      // If signed, open the printable page
+      const url = `/printable-health-declaration?id=${healthDeclaration.id}`;
+      window.open(url, '_blank');
+    } else {
       toast({
         variant: "destructive",
         title: "שגיאה",
         description: "הצהרת בריאות לא נמצאה",
       });
-      return;
-    }
-    
-    // Check if health declaration is directly for this registration or for its participant
-    if (healthDeclaration.participant_id !== registration.id && 
-        healthDeclaration.participant_id !== registration.participantId) {
-      console.warn(`Health declaration participant_id mismatch: ${healthDeclaration.participant_id} vs registration.id ${registration.id} or participantId ${registration.participantId}`);
-    }
-    
-    setIsGeneratingHealthPdf(true);
-    try {
-      console.log("Generating health PDF using direct health declaration ID:", healthDeclaration.id);
-      // Instead of using registration.id, use the declaration's ID directly
-      // This avoids the need to lookup the declaration again in the PDF generation process
-      const url = `/printable-health-declaration?id=${healthDeclaration.id}`;
-      window.open(url, '_blank');
-    } catch (error) {
-      console.error("Error generating health PDF:", error);
-      toast({
-        variant: "destructive",
-        title: "שגיאה ביצירת PDF",
-        description: error instanceof Error ? error.message : "אירעה שגיאה בהפקת הצהרת הבריאות",
-      });
-    } finally {
-      setIsGeneratingHealthPdf(false);
     }
   };
   
@@ -124,20 +105,17 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant="ghost"
-            size="icon"
-            onClick={isHealthFormSigned ? handleGenerateHealthPdf : () => onOpenHealthForm && onOpenHealthForm(registration.id)}
-            disabled={isHealthFormSigned && isGeneratingHealthPdf}
+            variant={isHealthFormSigned ? "ghost" : "outline"} 
+            size={isHealthFormSigned ? "icon" : "sm"}
+            onClick={handleHealthAction}
+            className={isHealthFormSigned ? "" : "text-amber-500 border-amber-200"}
           >
-            {isHealthFormSigned && isGeneratingHealthPdf ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              <FileText className="h-4 w-4" />
-            )}
+            <FileText className="h-4 w-4" />
+            {!isHealthFormSigned && <span className="ml-1">הצהרת בריאות</span>}
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          {isHealthFormSigned ? 'הורד הצהרת בריאות' : 'הצהרת בריאות'}
+          {isHealthFormSigned ? 'הורד הצהרת בריאות' : 'מלא הצהרת בריאות'}
         </TooltipContent>
       </Tooltip>
       

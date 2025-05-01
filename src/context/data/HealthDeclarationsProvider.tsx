@@ -52,48 +52,54 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
     
     let declaration;
     
-    // First, try to find a health declaration that has participant_id equal to registrationId
-    // This handles cases where the registration ID was saved as participant_id in the database
+    // First, try to find a health declaration that has registrationId field
     declaration = healthDeclarations.find(declaration => 
-      declaration.participant_id === registrationId
+      declaration.registrationId === registrationId
     );
     
-    // If not found by participant_id field, try the registrationId field (added for backward compatibility)
+    // If not found by registrationId field, try participant_id field 
     if (!declaration) {
       declaration = healthDeclarations.find(declaration => 
-        declaration.registrationId === registrationId
+        declaration.participant_id === registrationId
       );
-      
-      // If still not found, look for any health declaration that might be associated with this participant
-      // by checking any registration that has the same participant ID
-      if (!declaration) {
-        // Look through each health declaration to find a matching participant_id
-        // This is useful if we have the health declaration stored by participant ID instead of registration ID
-        for (const decl of healthDeclarations) {
-          // If we find a match on participant_id that is not the registration ID itself
-          if (decl.participant_id && decl.participant_id !== registrationId) {
-            console.log(`Found declaration with participant_id ${decl.participant_id}, checking if it matches this registration's participant`);
-            // Now we need to confirm if this participant_id corresponds to the registration's participant
-            // This would require additional checking from outside this provider
-            // For now, we'll add improved debugging
-            console.log(`Health declaration found with participant_id: ${decl.participant_id}, this might match the participant for registration: ${registrationId}`);
-          }
-        }
+    }
+    
+    // If still not found, try to match by participantId from the registrations
+    if (!declaration && registrationId) {
+      // This requires the registration object, which we don't have directly here
+      // We need to rely on the participantId being passed in from outside this provider
+      // Or fetch the registration from Supabase, but we'd need to inject that dependency
+      const parts = registrationId.split('_');
+      if (parts.length > 1) {
+        const possibleParticipantId = parts[parts.length - 1];
+        declaration = healthDeclarations.find(d => 
+          d.participant_id === possibleParticipantId || d.registrationId === possibleParticipantId
+        );
       }
     }
     
     // If still not found, log more details for debugging
     if (!declaration) {
-      console.log("Declaration not found by direct match, available IDs:", 
+      console.log("Declaration not found for registration ID:", registrationId);
+      console.log("Available declaration IDs:", 
         healthDeclarations.map(d => ({ 
           id: d.id, 
           participant_id: d.participant_id, 
           registrationId: d.registrationId,
-          form_status: d.form_status
+          form_status: d.form_status || d.formStatus
         }))
       );
     } else {
       console.log("Found declaration:", declaration);
+    }
+    
+    // IMPORTANT: If you have a participant ID, try to find declarations for that participant
+    // This is a fallback to find by participant ID
+    if (!declaration) {
+      console.log("Checking all available health declarations for a possible match:");
+      healthDeclarations.forEach(decl => {
+        console.log(`Declaration: ${decl.id}, participant_id: ${decl.participant_id}, registrationId: ${decl.registrationId}, status: ${decl.form_status || decl.formStatus}`);
+      });
     }
     
     return declaration;
