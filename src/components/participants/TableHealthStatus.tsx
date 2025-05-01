@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle, AlertCircle, FileDownIcon } from 'lucide-react';
+import { CheckCircle, AlertCircle, FilePdf, Link as LinkIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import HealthFormLink from './health-declaration/HealthFormLink';
@@ -20,7 +20,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   registration,
   participant,
   healthDeclaration,
-  onUpdateHealthApproval
+  onOpenHealthForm
 }) => {
   const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
 
@@ -74,7 +74,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
               {isGeneratingPdf ? (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-1" />
               ) : (
-                <FileDownIcon className="h-4 w-4 mr-1" />
+                <FilePdf className="h-4 w-4 mr-1" />
               )}
               הורד PDF
             </Button>
@@ -89,17 +89,6 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
           isDisabled={isFormSigned || false} 
         />
       )}
-
-      <Button
-        variant="ghost"
-        size="sm"
-        className={cn(
-          participant.healthApproval ? "text-red-500 hover:text-red-600" : "text-green-500 hover:text-green-600"
-        )}
-        onClick={() => onUpdateHealthApproval(!participant.healthApproval)}
-      >
-        {participant.healthApproval ? 'בטל אישור' : 'סמן כמאושר'}
-      </Button>
     </div>
   );
 };

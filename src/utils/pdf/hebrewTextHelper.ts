@@ -6,9 +6,8 @@
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // This is a crucial step for proper Hebrew rendering in jsPDF
-  // We need to reverse the string after jsPDF's RTL handling to get correct display
-  return text;
+  // For jsPDF with setR2L(true), we need to reverse the text to ensure correct display
+  return reverseText(text);
 };
 
 /**
@@ -25,6 +24,6 @@ export const reverseText = (text: string): string => {
  */
 export const prepareRtlText = (text: string): string => {
   if (!text) return '';
-  // For Hebrew text in tables, we sometimes need special handling
-  return text;
+  // For Hebrew text in tables, we need to reverse the characters
+  return reverseText(text);
 };
