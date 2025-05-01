@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
 import { Registration, Participant } from '@/types';
@@ -9,6 +8,9 @@ import { useRegistrationManagement } from './useRegistrationManagement';
 import { useParticipantHealth } from './useParticipantHealth';
 import { useParticipantData } from './useParticipantData';
 import { useParticipantHandlers } from './useParticipantHandlers';
+import { useParticipantState } from './useParticipantState';
+import { useParticipantAdapters } from './useParticipantAdapters';
+import { useParticipantEffects } from './useParticipantEffects';
 
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -30,9 +32,7 @@ export const useParticipants = () => {
     updateHealthDeclaration: baseUpdateHealthDeclaration,
     getHealthDeclarationForRegistration
   } = useData();
-  
-  const [product, setProduct] = useState(undefined);
-  
+
   // Import participant utilities
   const {
     getParticipantForRegistration,
@@ -40,37 +40,36 @@ export const useParticipants = () => {
     getStatusClassName
   } = useParticipantUtils(participants, payments);
 
-  // Create an adapter for updateHealthDeclaration to match expected signature
-  const updateHealthDeclaration = (declaration: any) => {
-    return baseUpdateHealthDeclaration(declaration.id, declaration);
-  };
-
-  // Load product data
-  useEffect(() => {
-    if (productId) {
-      const currentProduct = products.find(p => p.id === productId);
-      setProduct(currentProduct);
-    }
-  }, [productId, products]);
-
-  // Import participant data hook - now passing the getPaymentsForRegistration function
-  const {
-    registrations,
-    setRegistrations,
-    refreshTrigger,
-    setRefreshTrigger,
-    totalParticipants,
-    registrationsFilled,
-    totalExpected,
-    totalPaid
-  } = useParticipantData(product, productId, getRegistrationsByProduct, getPaymentsForRegistration);
-
-  // Import participant form hook
+  // Import participant state management
   const {
     isAddParticipantOpen,
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
+    isLinkDialogOpen,
+    setIsLinkDialogOpen,
+    currentRegistration,
+    setCurrentRegistration,
+    currentHealthDeclaration,
+    setCurrentHealthDeclaration
+  } = useParticipantState();
+
+  // Load product and registration data via effects
+  const {
+    product,
+    registrations,
+    setRegistrations,
+    refreshTrigger,
+    setRefreshTrigger
+  } = useParticipantEffects(productId, products, undefined, getRegistrationsByProduct);
+
+  // Create an adapter for updateHealthDeclaration to match expected signature
+  const updateHealthDeclaration = (declaration: any) => {
+    return baseUpdateHealthDeclaration(declaration.id, declaration);
+  };
+
+  // Import participant form hook
+  const {
     newParticipant,
     setNewParticipant,
     registrationData,
@@ -80,39 +79,23 @@ export const useParticipants = () => {
     resetForm
   } = useParticipantForm(product);
 
-  // Update registration data when product changes
-  useEffect(() => {
-    if (product) {
-      setRegistrationData(prev => ({
-        ...prev,
-        requiredAmount: product.price,
-      }));
-    }
-  }, [product]);
-
-  // Create an adapter for updateParticipant to match the expected signature
-  const adaptedUpdateParticipant = async (id: string, data: Partial<Participant>): Promise<Participant> => {
-    // Create a participant object that satisfies the Participant type
-    const participantToUpdate = {
-      id,
-      firstName: data.firstName || '',
-      lastName: data.lastName || '',
-      phone: data.phone || '',
-      healthApproval: data.healthApproval !== undefined ? data.healthApproval : false,
-      idNumber: data.idNumber || '',
-      ...data
-    } as Participant;
-    
-    await updateParticipant(participantToUpdate);
-    return participantToUpdate;
-  };
-
-  // Import participant health hook - now passing registrations and the adapted updateParticipant
+  // Create adapters for various function signatures
   const {
-    isLinkDialogOpen,
-    setIsLinkDialogOpen,
-    currentHealthDeclaration,
-    setCurrentHealthDeclaration,
+    adaptedUpdateParticipant,
+    adaptedHandleOpenHealthForm,
+    handleAddParticipantWrapper,
+    handleAddPaymentWrapper,
+    handleApplyDiscountAdapter
+  } = useParticipantAdapters(
+    updateParticipant,
+    (registrationId: string) => {},  // placeholder to be overridden
+    () => {}, // placeholder for baseHandleAddParticipant
+    () => {}, // placeholder for baseHandleAddPayment
+    () => {}  // placeholder for baseHandleApplyDiscount
+  );
+
+  // Import participant health hook with adapted update function
+  const {
     handleOpenHealthForm: baseHandleOpenHealthForm,
     handleUpdateHealthApproval
   } = useParticipantHealth(
@@ -123,10 +106,16 @@ export const useParticipants = () => {
     registrations
   );
 
+  // Import participant data hook
+  const {
+    totalParticipants,
+    registrationsFilled,
+    totalExpected,
+    totalPaid
+  } = useParticipantData(product, productId, getRegistrationsByProduct, getPaymentsForRegistration);
+
   // Import registration management hook
   const {
-    currentRegistration,
-    setCurrentRegistration,
     handleAddParticipant: baseHandleAddParticipant,
     handleAddPayment: baseHandleAddPayment,
     handleApplyDiscount: baseHandleApplyDiscount,
@@ -146,19 +135,14 @@ export const useParticipants = () => {
     addHealthDeclaration
   );
 
-  // Create an adapter for handleOpenHealthForm
-  const adaptedHandleOpenHealthForm = (registrationId: string) => {
-    return baseHandleOpenHealthForm(registrationId);
-  };
-
-  // Import participant handlers
+  // Import participant handlers with actual implementations
   const {
     handleOpenHealthForm,
     handleAddParticipant: wrapperHandleAddParticipant,
     handleAddPayment: wrapperHandleAddPayment,
-    handleApplyDiscount: handleApplyDiscountAdapter
+    handleApplyDiscount
   } = useParticipantHandlers(
-    adaptedHandleOpenHealthForm,
+    adaptedHandleOpenHealthForm || baseHandleOpenHealthForm,
     baseHandleAddParticipant,
     baseHandleAddPayment,
     baseHandleApplyDiscount,
@@ -204,7 +188,7 @@ export const useParticipants = () => {
     participants,
     handleAddParticipant,
     handleAddPayment,
-    handleApplyDiscount: handleApplyDiscountAdapter,
+    handleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
     handleOpenHealthForm,
