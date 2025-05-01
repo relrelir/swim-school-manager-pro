@@ -2,10 +2,7 @@
 import { Registration, Participant } from '@/types';
 
 export const useParticipantHandlers = (
-  baseHandleOpenHealthForm: (
-    registrationId: string, 
-    getParticipantForRegistration: (registration: Registration) => Participant | undefined
-  ) => Promise<void>,
+  baseHandleOpenHealthForm: (registrationId: string) => void,
   baseHandleAddParticipant: (
     e: React.FormEvent, 
     newParticipant: any, 
@@ -28,7 +25,7 @@ export const useParticipantHandlers = (
 ) => {
   // Handler for opening health form - wrapper to pass required parameters
   const handleOpenHealthForm = (registrationId: string) => {
-    return baseHandleOpenHealthForm(registrationId, getParticipantForRegistration);
+    return baseHandleOpenHealthForm(registrationId);
   };
 
   // Wrapper for handleAddParticipant

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
@@ -89,7 +90,12 @@ export const useParticipants = () => {
     }
   }, [product]);
 
-  // Import participant health hook - now passing registrations
+  // Create an adapter for updateParticipant to match the expected signature
+  const adaptedUpdateParticipant = (id: string, data: Partial<any>) => {
+    return updateParticipant({ ...data, id });
+  };
+
+  // Import participant health hook - now passing registrations and the adapted updateParticipant
   const {
     isLinkDialogOpen,
     setIsLinkDialogOpen,
@@ -100,7 +106,7 @@ export const useParticipants = () => {
   } = useParticipantHealth(
     getHealthDeclarationForRegistration,
     addHealthDeclaration,
-    updateParticipant,
+    adaptedUpdateParticipant,
     participants,
     registrations
   );
@@ -128,6 +134,11 @@ export const useParticipants = () => {
     addHealthDeclaration
   );
 
+  // Create an adapter for handleOpenHealthForm
+  const adaptedHandleOpenHealthForm = (registrationId: string) => {
+    return baseHandleOpenHealthForm(registrationId);
+  };
+
   // Import participant handlers
   const {
     handleOpenHealthForm,
@@ -135,7 +146,7 @@ export const useParticipants = () => {
     handleAddPayment: wrapperHandleAddPayment,
     handleApplyDiscount: handleApplyDiscountAdapter
   } = useParticipantHandlers(
-    baseHandleOpenHealthForm,
+    adaptedHandleOpenHealthForm,
     baseHandleAddParticipant,
     baseHandleAddPayment,
     baseHandleApplyDiscount,
