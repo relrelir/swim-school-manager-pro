@@ -16,7 +16,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       .single();
     
     if (healthDeclarationError || !healthDeclaration) {
-      console.error("Health declaration not found by ID:", healthDeclarationError);
+      console.error("Health declaration not found by ID:", healthDeclarationError, healthDeclarationId);
       throw new Error('הצהרת בריאות לא נמצאה');
     }
     

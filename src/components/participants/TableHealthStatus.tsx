@@ -59,7 +59,9 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
     
     setIsGeneratingPdf(true);
     try {
+      console.log("Generating PDF for health declaration ID:", healthDeclaration.id);
       await generateHealthDeclarationPdf(healthDeclaration.id);
+      console.log("PDF generated successfully");
     } catch (error) {
       console.error("Error generating health declaration PDF:", error);
       toast({
@@ -176,7 +178,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
               ) : (
                 <Printer className="h-4 w-4 ml-1" />
               )}
-              הדפס
+              הדפס הצהרה
             </Button>
           </TooltipTrigger>
           <TooltipContent>
