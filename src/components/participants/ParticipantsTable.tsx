@@ -18,7 +18,6 @@ interface ParticipantsTableProps {
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
   onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
-  onOpenHealthForm?: (registrationId: string) => void;
   onExport?: () => void;
 }
 
@@ -32,7 +31,6 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onAddPayment,
   onDeleteRegistration,
   onUpdateHealthApproval,
-  onOpenHealthForm,
   onExport,
 }) => {
   // Helper to calculate discount amount
@@ -113,7 +111,6 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     participant={participant}
                     healthDeclaration={healthDeclaration}
                     onUpdateHealthApproval={(isApproved) => onUpdateHealthApproval(registration.id, isApproved)}
-                    onOpenHealthForm={() => onOpenHealthForm && onOpenHealthForm(registration.id)}
                   />
                 </TableCell>
                 <TableCell className={`font-semibold ${getStatusClassName(status)}`}>
@@ -125,8 +122,6 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     hasPayments={hasPayments}
                     onAddPayment={onAddPayment}
                     onDeleteRegistration={onDeleteRegistration}
-                    onOpenHealthForm={onOpenHealthForm && (() => onOpenHealthForm(registration.id))}
-                    healthDeclaration={healthDeclaration}
                   />
                 </TableCell>
               </TableRow>

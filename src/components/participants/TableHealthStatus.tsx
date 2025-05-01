@@ -2,10 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle, AlertCircle, Printer } from 'lucide-react';
+import { CheckCircle, AlertCircle, Printer, Link } from 'lucide-react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
+import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -23,6 +24,8 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   onOpenHealthForm
 }) => {
   const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
+  const [isGeneratingLink, setIsGeneratingLink] = React.useState(false);
+  const [isCopied, setIsCopied] = React.useState(false);
 
   if (!participant) return null;
 
@@ -69,25 +72,49 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
     }
   };
   
-  // Open the printable health declaration page in a new tab
-  const handleOpenPrintablePage = () => {
-    if (!healthDeclaration) {
-      console.error("Cannot open printable page: Health declaration is missing");
+  // Handle generate health declaration link
+  const handleGenerateLink = async () => {
+    setIsGeneratingLink(true);
+    try {
+      const link = await createHealthDeclarationLink(registration.id);
+      if (link) {
+        await copyToClipboard(link);
+        setIsCopied(true);
+        toast({
+          title: "הקישור הועתק",
+          description: "הקישור להצהרת הבריאות הועתק ללוח",
+        });
+        
+        // Reset copied state after 3 seconds
+        setTimeout(() => {
+          setIsCopied(false);
+        }, 3000);
+      }
+    } catch (error) {
+      console.error('Error generating health form link:', error);
       toast({
-        variant: "destructive",
         title: "שגיאה",
-        description: "הצהרת הבריאות לא נמצאה",
+        description: "אירעה שגיאה ביצירת הקישור",
+        variant: "destructive",
       });
-      return;
+    } finally {
+      setIsGeneratingLink(false);
     }
-    
-    const url = `/printable-health-declaration?id=${healthDeclaration.id}`;
-    console.log("Opening printable health declaration:", url, "Health declaration:", healthDeclaration);
-    window.open(url, '_blank');
+  };
+
+  // Helper function to copy text to clipboard
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      return false;
+    }
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 flex-wrap">
       {participant.healthApproval ? (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -108,14 +135,39 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </Tooltip>
       )}
       
-      {/* Show action button based on health declaration status */}
-      {isFormSigned ? (
+      {/* Link Button - Always visible */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-blue-500 hover:text-blue-600 flex items-center border-blue-200 hover:border-blue-400"
+            onClick={handleGenerateLink}
+            disabled={isGeneratingLink}
+          >
+            {isGeneratingLink ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent ml-1" />
+            ) : isCopied ? (
+              <CheckCircle className="h-4 w-4 ml-1 text-green-500" />
+            ) : (
+              <Link className="h-4 w-4 ml-1" />
+            )}
+            צור לינק
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          צור וקבל קישור להצהרת בריאות
+        </TooltipContent>
+      </Tooltip>
+      
+      {/* Print Button - Only visible when form is signed */}
+      {isFormSigned && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
               size="sm"
-              className="text-blue-500 hover:text-blue-600 flex items-center border-blue-200 hover:border-blue-400"
+              className="text-green-500 hover:text-green-600 flex items-center border-green-200 hover:border-green-400"
               onClick={handlePrintHealthDeclaration}
               disabled={isGeneratingPdf}
             >
@@ -131,15 +183,6 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
             הדפס הצהרת בריאות
           </TooltipContent>
         </Tooltip>
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onOpenHealthForm}
-          className="text-amber-500 hover:text-amber-600 border-amber-200 hover:border-amber-400"
-        >
-          מלא הצהרה
-        </Button>
       )}
     </div>
   );

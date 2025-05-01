@@ -1,20 +1,16 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Registration, HealthDeclaration } from '@/types';
-import { Trash2Icon, FileDownIcon, CreditCardIcon, FileText } from 'lucide-react';
+import { Registration } from '@/types';
+import { Trash2Icon, FileDownIcon, CreditCardIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { generateRegistrationPdf } from '@/utils/generateRegistrationPdf';
-import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
-import { toast } from "@/components/ui/use-toast";
 
 interface TableRowActionsProps {
   registration: Registration;
   hasPayments: boolean;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
-  onOpenHealthForm?: (registrationId: string) => void;
-  healthDeclaration?: HealthDeclaration;
 }
 
 const TableRowActions: React.FC<TableRowActionsProps> = ({
@@ -22,25 +18,8 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   hasPayments,
   onAddPayment,
   onDeleteRegistration,
-  onOpenHealthForm,
-  healthDeclaration,
 }) => {
   const [isGeneratingRegPdf, setIsGeneratingRegPdf] = React.useState(false);
-  const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = React.useState(false);
-
-  // Check if health declaration is signed
-  const isHealthFormSigned = Boolean(healthDeclaration && 
-    (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed'));
-
-  console.log("TableRowActions health info:", {
-    registrationId: registration.id,
-    participantId: registration.participantId,
-    hasDeclaration: Boolean(healthDeclaration),
-    healthDeclarationObj: healthDeclaration,
-    formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
-    isHealthFormSigned,
-    healthDeclarationId: healthDeclaration?.id
-  });
 
   // Handle download registration PDF
   const handleGenerateRegPdf = async () => {
@@ -49,52 +28,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       await generateRegistrationPdf(registration.id);
     } finally {
       setIsGeneratingRegPdf(false);
-    }
-  };
-
-  // Handle health declaration PDF generation
-  const handleGenerateHealthPdf = async () => {
-    if (!healthDeclaration) {
-      console.error("Cannot generate PDF: Health declaration is missing");
-      toast({
-        variant: "destructive",
-        title: "שגיאה",
-        description: "הצהרת הבריאות לא נמצאה",
-      });
-      return;
-    }
-    
-    setIsGeneratingHealthPdf(true);
-    try {
-      await generateHealthDeclarationPdf(healthDeclaration.id);
-    } catch (error) {
-      console.error("Error generating health declaration PDF:", error);
-      toast({
-        variant: "destructive",
-        title: "שגיאה",
-        description: "אירעה שגיאה ביצירת קובץ PDF",
-      });
-    } finally {
-      setIsGeneratingHealthPdf(false);
-    }
-  };
-
-  // Handle health form action
-  const handleHealthAction = () => {
-    if (!isHealthFormSigned) {
-      // Open health form if not signed
-      if (onOpenHealthForm) {
-        onOpenHealthForm(registration.id);
-      }
-    } else if (healthDeclaration) {
-      // If signed, generate PDF
-      handleGenerateHealthPdf();
-    } else {
-      toast({
-        variant: "destructive",
-        title: "שגיאה",
-        description: "הצהרת בריאות לא נמצאה",
-      });
     }
   };
   
@@ -129,30 +62,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
           </Button>
         </TooltipTrigger>
         <TooltipContent>הורד אישור רישום</TooltipContent>
-      </Tooltip>
-      
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant={isHealthFormSigned ? "ghost" : "outline"} 
-            size={isHealthFormSigned ? "icon" : "sm"}
-            onClick={handleHealthAction}
-            disabled={isGeneratingHealthPdf}
-            className={isHealthFormSigned ? "" : "text-amber-500 border-amber-200"}
-          >
-            {isGeneratingHealthPdf ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-            ) : (
-              <>
-                <FileText className="h-4 w-4" />
-                {!isHealthFormSigned && <span className="mr-1">הצהרת בריאות</span>}
-              </>
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          {isHealthFormSigned ? 'הדפס הצהרת בריאות' : 'מלא הצהרת בריאות'}
-        </TooltipContent>
       </Tooltip>
       
       <Tooltip>

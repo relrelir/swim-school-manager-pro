@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
-import { LinkIcon, CheckIcon } from "lucide-react";
+import { Link, CheckCircle } from "lucide-react";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
 
 interface HealthFormLinkProps {
@@ -64,9 +64,9 @@ const HealthFormLink = ({ registrationId, isDisabled, className }: HealthFormLin
       {isGenerating ? (
         <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-2" />
       ) : isCopied ? (
-        <CheckIcon className="h-4 w-4 mr-2 text-green-500" />
+        <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
       ) : (
-        <LinkIcon className="h-4 w-4 mr-2" />
+        <Link className="h-4 w-4 mr-2" />
       )}
       צור קישור להצהרת בריאות
     </Button>
