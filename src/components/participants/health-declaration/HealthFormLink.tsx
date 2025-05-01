@@ -54,7 +54,6 @@ const HealthFormLink = ({ registrationId, isDisabled, className }: HealthFormLin
     }
   };
   
-  // This component is now only used in the HealthDeclarationForm dialog
   return (
     <Button
       variant="default"

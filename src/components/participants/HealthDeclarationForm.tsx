@@ -124,7 +124,6 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
             <HealthFormLink 
               registrationId={registrationId}
               isDisabled={false}
-              declarationId={healthDeclaration?.id}
               className="w-full"
             />
           )}
