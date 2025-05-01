@@ -1,6 +1,5 @@
 
 import { jsPDF } from 'jspdf';
-import { addFont } from 'jspdf';
 
 // Function to configure jsPDF for Hebrew text support
 export const configureHebrewFont = (pdf: jsPDF): void => {

@@ -1,8 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createRtlPdf } from './pdf/pdfConfig';
-import { buildHealthDeclarationPDF } from './pdf/healthDeclarationContentBuilder';
 import { toast } from "@/components/ui/use-toast";
+import { makePdf } from '@/pdf/pdfService';
+import { format } from 'date-fns';
+import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './pdf/healthDeclarationParser';
 
 export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
   try {
@@ -13,7 +14,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       throw new Error('מזהה הצהרת הבריאות חסר או לא תקין');
     }
     
-    // Get the health declaration directly by ID - this should be more reliable than searching by registration ID
+    // Get the health declaration directly by ID
     let { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
       .select('id, participant_id, submission_date, notes, form_status')
@@ -27,7 +28,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     
     console.log("Found health declaration:", healthDeclaration);
     
-    // Get participant details - use participant_id from the health declaration
+    // Get participant details
     const { data: participant, error: participantError } = await supabase
       .from('participants')
       .select('firstname, lastname, idnumber, phone')
@@ -42,20 +43,94 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     console.log("Data fetched successfully. Participant:", participant);
     
     try {
-      // Create the PDF document with RTL and font support
-      console.log("Creating PDF with RTL support");
-      const pdf = createRtlPdf();
-      console.log("PDF object created successfully");
+      // Parse parent info and medical notes
+      const parentInfo = parseParentInfo(healthDeclaration.notes);
+      const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
+      const declarationItems = getDeclarationItems();
       
-      // Build the PDF content
-      console.log("Building PDF content");
-      const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
-      console.log("PDF content built successfully, filename:", fileName);
+      // Format date
+      const formattedDate = healthDeclaration.submission_date 
+        ? format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy HH:mm') 
+        : format(new Date(), 'dd/MM/yyyy HH:mm');
       
-      // Save the PDF
-      pdf.save(fileName);
-      console.log("PDF saved successfully");
+      // Generate the filename
+      const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
       
+      // Create PDF document definition
+      const docDefinition = {
+        content: [
+          // Title
+          { text: 'הצהרת בריאות', style: 'header', alignment: 'center' },
+          { text: `תאריך: ${formattedDate}`, alignment: 'left', margin: [0, 0, 0, 20] },
+          
+          // Participant section
+          { text: 'פרטי המשתתף', style: 'subheader', margin: [0, 10, 0, 10] },
+          {
+            table: {
+              widths: ['30%', '70%'],
+              headerRows: 0,
+              body: [
+                [{ text: 'שם מלא', style: 'tableHeader' }, `${participant.firstname} ${participant.lastname}`],
+                [{ text: 'תעודת זהות', style: 'tableHeader' }, participant.idnumber],
+                [{ text: 'טלפון', style: 'tableHeader' }, participant.phone],
+              ]
+            },
+            layout: 'lightHorizontalLines',
+            margin: [0, 0, 0, 20]
+          },
+          
+          // Parent section (if available)
+          parentInfo.parentName || parentInfo.parentId ? [
+            { text: 'פרטי ההורה/אפוטרופוס', style: 'subheader', margin: [0, 10, 0, 10] },
+            {
+              table: {
+                widths: ['30%', '70%'],
+                headerRows: 0,
+                body: [
+                  [{ text: 'שם מלא', style: 'tableHeader' }, parentInfo.parentName || ''],
+                  [{ text: 'תעודת זהות', style: 'tableHeader' }, parentInfo.parentId || ''],
+                ]
+              },
+              layout: 'lightHorizontalLines',
+              margin: [0, 0, 0, 20]
+            }
+          ] : [],
+          
+          // Declaration items
+          { text: 'תוכן ההצהרה', style: 'subheader', margin: [0, 10, 0, 10] },
+          ...declarationItems.map(item => ({
+            margin: [10, 5, 0, 0],
+            columns: [
+              { width: 10, text: '•' },
+              { width: 'auto', text: item }
+            ]
+          })),
+          
+          // Medical notes (if available)
+          medicalNotes ? [
+            { text: 'הערות רפואיות', style: 'subheader', margin: [0, 20, 0, 10] },
+            { text: medicalNotes, margin: [0, 0, 0, 20] }
+          ] : [],
+          
+          // Confirmation
+          { text: 'אישור', style: 'subheader', margin: [0, 20, 0, 10] },
+          { text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.', margin: [0, 0, 0, 20] },
+          
+          // Signature line
+          { text: 'חתימת ההורה/אפוטרופוס: ________________', margin: [0, 30, 0, 0] },
+        ],
+        styles: {
+          header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+          subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },
+          tableHeader: { bold: true, fillColor: '#f5f5f5' }
+        }
+      };
+      
+      // Generate and download the PDF
+      console.log("Generating health declaration PDF");
+      await makePdf(docDefinition, fileName);
+      
+      console.log("PDF generated successfully");
       toast({
         title: "PDF נוצר בהצלחה",
         description: "הצהרת הבריאות נשמרה במכשיר שלך",

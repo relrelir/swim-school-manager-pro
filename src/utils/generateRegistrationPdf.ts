@@ -1,8 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createRtlPdf } from './pdf/pdfConfig';
-import { buildRegistrationPDF } from './pdf/registrationPdfContentBuilder';
 import { toast } from "@/components/ui/use-toast";
+import { makePdf } from '@/pdf/pdfService';
+import { format } from 'date-fns';
+import { formatCurrency } from '@/utils/formatters';
 import { Registration, Participant, Payment } from '@/types';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
@@ -59,68 +60,107 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     
     console.log("Data fetched successfully, creating PDF...");
     
-    // Adapt database fields to our Registration type
-    const registrationData: Registration = {
-      id: registration.id,
-      productId: registration.productid,
-      participantId: registration.participantid,
-      registrationDate: registration.registrationdate,
-      requiredAmount: registration.requiredamount,
-      paidAmount: registration.paidamount,
-      discountApproved: registration.discountapproved,
-      discountAmount: registration.discountamount,
-      receiptNumber: registration.receiptnumber
+    // Format data for PDF
+    const currentDate = format(new Date(), 'dd/MM/yyyy');
+    const registrationDate = format(new Date(registration.registrationdate), 'dd/MM/yyyy');
+    const effectiveRequiredAmount = Math.max(0, registration.requiredamount - (registration.discountapproved ? registration.discountamount || 0 : 0));
+    
+    // Format payment data for table
+    const paymentRows = payments ? payments.map(payment => [
+      format(new Date(payment.paymentdate), 'dd/MM/yyyy'),
+      payment.receiptnumber || '-',
+      formatCurrency(payment.amount)
+    ]) : [];
+    
+    // Generate filename
+    const fileName = `registration_${participant.firstname}_${participant.lastname}_${registration.id.substring(0, 8)}.pdf`;
+    
+    // Create PDF document definition
+    const docDefinition = {
+      content: [
+        // Title with product name
+        { text: 'אישור רישום למוצר', style: 'header', alignment: 'center' },
+        { text: `מוצר: ${product.name}`, style: 'productName', alignment: 'center', margin: [0, 0, 0, 20] },
+        { text: `תאריך: ${currentDate}`, alignment: 'left', margin: [0, 0, 0, 20] },
+        
+        // Participant information
+        { text: 'פרטי משתתף:', style: 'subheader' },
+        {
+          table: {
+            widths: ['30%', '70%'],
+            headerRows: 0,
+            body: [
+              [{ text: 'שם מלא:', style: 'tableHeader' }, `${participant.firstname} ${participant.lastname}`],
+              [{ text: 'תעודת זהות:', style: 'tableHeader' }, participant.idnumber],
+              [{ text: 'טלפון:', style: 'tableHeader' }, participant.phone],
+            ]
+          },
+          layout: 'lightHorizontalLines',
+          margin: [0, 0, 0, 20]
+        },
+        
+        // Registration information
+        { text: 'פרטי רישום:', style: 'subheader' },
+        {
+          table: {
+            widths: ['30%', '70%'],
+            headerRows: 0,
+            body: [
+              [{ text: 'תאריך רישום:', style: 'tableHeader' }, registrationDate],
+              [{ text: 'סכום מקורי:', style: 'tableHeader' }, formatCurrency(registration.requiredamount)],
+              [{ text: 'הנחה:', style: 'tableHeader' }, registration.discountapproved ? formatCurrency(registration.discountamount || 0) : 'לא'],
+              [{ text: 'סכום לתשלום:', style: 'tableHeader' }, formatCurrency(effectiveRequiredAmount)],
+              [{ text: 'סכום ששולם:', style: 'tableHeader' }, formatCurrency(registration.paidamount)],
+            ]
+          },
+          layout: 'lightHorizontalLines',
+          margin: [0, 0, 0, 20]
+        },
+        
+        // Payment details if any exist
+        payments && payments.length > 0 ? [
+          { text: 'פרטי תשלומים:', style: 'subheader' },
+          {
+            table: {
+              widths: ['*', '*', '*'],
+              headerRows: 1,
+              body: [
+                [
+                  { text: 'תאריך תשלום', style: 'tableHeader', alignment: 'right' },
+                  { text: 'מספר קבלה', style: 'tableHeader', alignment: 'right' },
+                  { text: 'סכום', style: 'tableHeader', alignment: 'right' }
+                ],
+                ...paymentRows
+              ]
+            },
+            layout: 'lightHorizontalLines',
+            margin: [0, 0, 0, 20]
+          }
+        ] : [],
+        
+        // Footer
+        { text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', style: 'footer', alignment: 'center', margin: [0, 30, 0, 0] }
+      ],
+      styles: {
+        header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+        productName: { fontSize: 16, bold: true },
+        subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 10] },
+        tableHeader: { bold: true, fillColor: '#f5f5f5' },
+        footer: { fontSize: 10, italics: true }
+      }
     };
     
-    // Adapt database fields to our Participant type
-    const participantData: Participant = {
-      id: participant.id,
-      firstName: participant.firstname,
-      lastName: participant.lastname,
-      idNumber: participant.idnumber,
-      phone: participant.phone,
-      healthApproval: participant.healthapproval
-    };
+    // Generate and download the PDF
+    console.log("Generating registration PDF");
+    await makePdf(docDefinition, fileName);
     
-    // Adapt database fields to our Payment type
-    const paymentsData: Payment[] = payments ? payments.map(payment => ({
-      id: payment.id,
-      registrationId: payment.registrationid,
-      paymentDate: payment.paymentdate,
-      amount: payment.amount,
-      receiptNumber: payment.receiptnumber
-    })) : [];
+    console.log("PDF generated successfully");
+    toast({
+      title: "PDF נוצר בהצלחה",
+      description: "אישור הרישום נשמר במכשיר שלך",
+    });
     
-    try {
-      // Create the PDF document with RTL and font support
-      console.log("Creating PDF with RTL support");
-      const pdf = createRtlPdf();
-      console.log("PDF object created successfully");
-      
-      // Build the PDF content
-      console.log("Building PDF content with product name:", product.name);
-      const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
-      console.log("PDF content built successfully, filename:", fileName);
-      
-      // Save the PDF
-      pdf.save(fileName);
-      console.log("PDF saved successfully");
-      
-      toast({
-        title: "PDF נוצר בהצלחה",
-        description: "אישור הרישום נשמר במכשיר שלך",
-      });
-      
-      return fileName;
-    } catch (error) {
-      console.error('Error building registration PDF:', error);
-      toast({
-        variant: "destructive",
-        title: "שגיאה ביצירת PDF",
-        description: "נא לנסות שוב מאוחר יותר",
-      });
-      throw new Error('אירעה שגיאה ביצירת מסמך ה-PDF');
-    }
+    return fileName;
   } catch (error) {
     console.error('Error generating registration PDF:', error);
     toast({
