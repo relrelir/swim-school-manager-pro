@@ -37,7 +37,8 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     participantId: registration.participantId,
     hasDeclaration: Boolean(healthDeclaration),
     formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
-    isHealthFormSigned
+    isHealthFormSigned,
+    healthDeclarationId: healthDeclaration?.id
   });
 
   // Handle download registration PDF
@@ -62,10 +63,19 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       return;
     }
     
+    // Check if health declaration is directly for this registration or for its participant
+    if (healthDeclaration.participant_id !== registration.id && 
+        healthDeclaration.participant_id !== registration.participantId) {
+      console.warn(`Health declaration participant_id mismatch: ${healthDeclaration.participant_id} vs registration.id ${registration.id} or participantId ${registration.participantId}`);
+    }
+    
     setIsGeneratingHealthPdf(true);
     try {
-      console.log("Generating health PDF for registration:", registration.id);
-      await generateHealthDeclarationPdf(registration.id);
+      console.log("Generating health PDF using direct health declaration ID:", healthDeclaration.id);
+      // Instead of using registration.id, use the declaration's ID directly
+      // This avoids the need to lookup the declaration again in the PDF generation process
+      const url = `/printable-health-declaration?id=${healthDeclaration.id}`;
+      window.open(url, '_blank');
     } catch (error) {
       console.error("Error generating health PDF:", error);
       toast({

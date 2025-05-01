@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CheckCircle, AlertCircle, Printer } from 'lucide-react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
+import { toast } from "@/components/ui/use-toast";
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -17,6 +18,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   registration,
   participant,
   healthDeclaration,
+  onUpdateHealthApproval,
   onOpenHealthForm
 }) => {
   const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
@@ -41,6 +43,11 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   const handleOpenPrintablePage = () => {
     if (!healthDeclaration) {
       console.error("Cannot open printable page: Health declaration is missing");
+      toast({
+        variant: "destructive",
+        title: "שגיאה",
+        description: "הצהרת הבריאות לא נמצאה",
+      });
       return;
     }
     
@@ -76,13 +83,17 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="text-blue-500 hover:text-blue-600"
+              className="text-blue-500 hover:text-blue-600 flex items-center"
               onClick={handleOpenPrintablePage}
               disabled={isGeneratingPdf}
             >
-              <Printer className="h-4 w-4 mr-1" />
+              {isGeneratingPdf ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-1" />
+              ) : (
+                <Printer className="h-4 w-4 mr-1" />
+              )}
               הדפס הצהרה
             </Button>
           </TooltipTrigger>
