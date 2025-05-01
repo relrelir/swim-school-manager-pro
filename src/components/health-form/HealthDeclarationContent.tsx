@@ -45,20 +45,20 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
 
       {/* Parent Information */}
       <div className="space-y-3">
-        <h3 className="font-medium">פרטי ההורה/אפוטרופוס:</h3>
+        <h3 className="font-medium">פרטי המצהיר:</h3>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="parentName">שם מלא של ההורה</Label>
+            <Label htmlFor="parentName">שם מלא </Label>
             <Input 
               id="parentName" 
-              placeholder="שם ההורה/אפוטרופוס"
+              placeholder="ישראל ישראלי"
               value={formState.parentName}
               onChange={handleParentNameChange}
               required
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="parentId">ת.ז. של ההורה</Label>
+            <Label htmlFor="parentId">ת.ז.</Label>
             <Input 
               id="parentId" 
               placeholder="מספר תעודת זהות"
@@ -81,10 +81,10 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
         </div>
         
         <div className="text-sm space-y-2 rounded-md border p-4">
-          <p>• בני/בתי נמצא/ת בכושר ובמצב בריאותי תקין המאפשר השתתפות בפעילות.</p>
-          <p>• לא ידוע לי על מגבלות רפואיות המונעות מבני/בתי להשתתף בפעילות.</p>
-          <p>• לא ידוע לי על רגישויות, מחלות או בעיות רפואיות אחרות שעלולות להשפיע על השתתפותו/ה בפעילות.</p>
-          <p>• אני מתחייב/ת להודיע למדריכים על כל שינוי במצב הבריאותי של בני/בתי.</p>
+          <p>• המשתתף נמצא/ת בכושר ובמצב בריאותי תקין המאפשר השתתפות בפעילות.</p>
+          <p>• לא ידוע לי על מגבלות רפואיות המונעות להשתתף בפעילות.</p>
+          <p>• לא ידוע לי על רגישויות, מחלות או בעיות רפואיות אחרות שעלולות להשפיע על ההשתתפות בפעילות.</p>
+          <p>• אני מתחייב/ת להודיע למדריכים על כל שינוי במצבו הבריאותי.</p>
         </div>
         
         <div className="flex items-center space-x-2 space-y-0 pt-2">
