@@ -20,11 +20,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       throw new Error('הצהרת בריאות לא נמצאה');
     }
     
-    // Verify the form is signed
-    if (healthDeclaration.form_status !== 'signed') {
-      console.error("Health declaration not signed yet");
-      throw new Error('הצהרת הבריאות לא מולאה ונחתמה עדיין');
-    }
+    console.log("Found health declaration:", healthDeclaration);
     
     // Get participant details - use participant_id from the health declaration
     const { data: participant, error: participantError } = await supabase

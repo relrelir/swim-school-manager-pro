@@ -160,8 +160,8 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </TooltipContent>
       </Tooltip>
       
-      {/* Print Button - Only visible when form is signed */}
-      {isFormSigned && (
+      {/* Print Button - Always visible when a health declaration exists */}
+      {healthDeclaration && (
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
