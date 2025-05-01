@@ -1,9 +1,8 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { LinkIcon, CheckIcon, FileIcon, Download } from "lucide-react";
+import { LinkIcon, CheckIcon, FileIcon } from "lucide-react";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
 import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 
@@ -113,7 +112,7 @@ const HealthFormLink = ({ registrationId, isDisabled }: HealthFormLinkProps) => 
         )}
       </TooltipTrigger>
       <TooltipContent>
-        {isDisabled ? "הצג והורד הצהרת בריאות" : "יצירת קישור למילוי הצהרת בריאות"}
+        {isDisabled ? "הצג והורד הצהרת בריאות" : "יצ��רת קישור למילוי הצהרת בריאות"}
       </TooltipContent>
     </Tooltip>
   );
