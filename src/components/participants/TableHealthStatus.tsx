@@ -48,7 +48,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   // Handle print health declaration
   const handlePrintHealthDeclaration = async () => {
     if (!healthDeclaration || !healthDeclaration.id) {
-      console.error("Cannot generate PDF: Health declaration is missing or has no ID");
+      console.error("Cannot generate PDF: Health declaration is missing or has no ID", healthDeclaration);
       toast({
         variant: "destructive",
         title: "שגיאה",

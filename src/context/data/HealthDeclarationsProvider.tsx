@@ -17,10 +17,15 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
   // Load health declarations from Supabase
   useEffect(() => {
     const loadDeclarations = async () => {
-      const declarations = await fetchHealthDeclarations();
-      console.log("Loaded health declarations:", declarations);
-      setHealthDeclarations(declarations);
-      setLoading(false);
+      try {
+        const declarations = await fetchHealthDeclarations();
+        console.log("Loaded health declarations:", declarations);
+        setHealthDeclarations(declarations);
+      } catch (error) {
+        console.error("Error loading health declarations:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadDeclarations();
@@ -28,21 +33,33 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
 
   // Add a health declaration
   const addHealthDeclaration = async (healthDeclaration: Omit<HealthDeclaration, 'id'>) => {
-    const newHealthDeclaration = await addHealthDeclarationService(healthDeclaration);
-    if (newHealthDeclaration) {
-      setHealthDeclarations([...healthDeclarations, newHealthDeclaration]);
+    try {
+      const newHealthDeclaration = await addHealthDeclarationService(healthDeclaration);
+      if (newHealthDeclaration) {
+        setHealthDeclarations(prev => [...prev, newHealthDeclaration]);
+        console.log("Added new health declaration:", newHealthDeclaration);
+      }
+      return newHealthDeclaration;
+    } catch (error) {
+      console.error("Error adding health declaration:", error);
+      throw error;
     }
-    return newHealthDeclaration;
   };
 
   // Update a health declaration
   const updateHealthDeclaration = async (id: string, updates: Partial<HealthDeclaration>) => {
-    await updateHealthDeclarationService(id, updates);
-    setHealthDeclarations(declarations => 
-      declarations.map(declaration => 
-        declaration.id === id ? { ...declaration, ...updates } : declaration
-      )
-    );
+    try {
+      await updateHealthDeclarationService(id, updates);
+      setHealthDeclarations(declarations => 
+        declarations.map(declaration => 
+          declaration.id === id ? { ...declaration, ...updates } : declaration
+        )
+      );
+      console.log("Updated health declaration:", id, updates);
+    } catch (error) {
+      console.error("Error updating health declaration:", error);
+      throw error;
+    }
   };
 
   // Get health declaration for a specific registration
@@ -124,6 +141,23 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
       
       if (declaration) {
         console.log("Found health declaration by partial ID match:", declaration);
+        return declaration;
+      }
+    }
+    
+    // 6. Try matching by numerical part if participant_id contains numbers
+    const numericMatch = registrationId.match(/\d+/);
+    if (numericMatch) {
+      const numericPart = numericMatch[0];
+      declaration = healthDeclarations.find(d => {
+        const participantIdNumericMatch = d.participant_id?.match(/\d+/);
+        const registrationIdNumericMatch = d.registrationId?.match(/\d+/);
+        return (participantIdNumericMatch && participantIdNumericMatch[0] === numericPart) || 
+               (registrationIdNumericMatch && registrationIdNumericMatch[0] === numericPart);
+      });
+      
+      if (declaration) {
+        console.log("Found health declaration by numeric part match:", declaration);
         return declaration;
       }
     }

@@ -1,39 +1,55 @@
 
 /**
- * Extracts parent information from the notes field
+ * Parse parent information from the notes field
  */
-export function parseParentInfo(notes: string | null): { parentName: string; parentId: string } {
+export const parseParentInfo = (notes: string | null): { parentName: string; parentId: string } => {
   if (!notes) return { parentName: '', parentId: '' };
   
-  const parentNameMatch = notes.match(/הורה\/אפוטרופוס: ([^,]+)/);
-  const parentIdMatch = notes.match(/ת\.ז\.: ([^\n]+)/);
-  
-  return {
-    parentName: parentNameMatch ? parentNameMatch[1].trim() : '',
-    parentId: parentIdMatch ? parentIdMatch[1].trim() : '',
-  };
-}
+  try {
+    // Try to parse as JSON first
+    const parsedNotes = JSON.parse(notes);
+    return {
+      parentName: parsedNotes.parentName || '',
+      parentId: parsedNotes.parentId || ''
+    };
+  } catch (e) {
+    // If not valid JSON, try to extract using regex
+    const nameMatch = notes.match(/parentName"?:\s*"?([^",}]+)"?/i);
+    const idMatch = notes.match(/parentId"?:\s*"?([^",}]+)"?/i);
+    
+    return {
+      parentName: nameMatch ? nameMatch[1] : '',
+      parentId: idMatch ? idMatch[1] : ''
+    };
+  }
+};
 
 /**
- * Extracts medical notes from the notes field
+ * Parse medical notes from the notes field
  */
-export function parseMedicalNotes(notes: string | null): string {
+export const parseMedicalNotes = (notes: string | null): string => {
   if (!notes) return '';
   
-  // Remove parent info part from notes
-  const cleanNotes = notes.replace(/הורה\/אפוטרופוס: [^,]+, ת\.ז\.: [^\n]+\n\n/g, '').trim();
-  
-  return cleanNotes;
-}
+  try {
+    // Try to parse as JSON first
+    const parsedNotes = JSON.parse(notes);
+    return parsedNotes.notes || '';
+  } catch (e) {
+    // If not valid JSON, try to extract using regex
+    const notesMatch = notes.match(/notes"?:\s*"?([^",}]+)"?/i);
+    return notesMatch ? notesMatch[1] : '';
+  }
+};
 
 /**
- * Gets health declaration content items
+ * Get declaration items for the health form
  */
-export function getDeclarationItems(): string[] {
+export const getDeclarationItems = (): string[] => {
   return [
-    'בני/בתי נמצא/ת בכושר ובמצב בריאותי תקין המאפשר השתתפות בפעילות.',
-    'לא ידוע לי על מגבלות רפואיות המונעות מבני/בתי להשתתף בפעילות.',
-    'לא ידוע לי על רגישויות, מחלות או בעיות רפואיות אחרות שעלולות להשפיע על השתתפותו/ה בפעילות.',
-    'אני מתחייב/ת להודיע למדריכים על כל שינוי במצב הבריאותי של בני/בתי.',
+    'אני מצהיר/ה כי בני/בתי בריא/ה ואין לו/לה מגבלות בריאותיות המונעות ממנו/ממנה להשתתף בפעילות.',
+    'במידה ויש מגבלה רפואית, יש לציין אותה בהערות למעלה ולצרף אישור רפואי המאשר השתתפות.',
+    'אני מתחייב/ת לעדכן על כל שינוי במצב הבריאותי.',
+    'אני מאשר/ת לצוות הרפואי לתת טיפול ראשוני במקרה הצורך.',
+    'ידוע לי שללא הצהרת בריאות חתומה לא יוכל בני/בתי להשתתף בפעילות.'
   ];
-}
+};

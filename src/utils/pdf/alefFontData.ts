@@ -10,6 +10,13 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Use standard font
     pdf.setFont('helvetica');
     
+    // Add PDF metadata
+    pdf.setProperties({
+      title: 'הצהרת בריאות',
+      subject: 'הצהרת בריאות',
+      creator: 'מערכת ניהול'
+    });
+    
     console.log("Hebrew font configuration applied with RTL support");
   } catch (error) {
     console.error("Error configuring Hebrew font:", error);
