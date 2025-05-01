@@ -32,7 +32,7 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
   handleParentIdChange
 }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-right" dir="rtl">
       {/* Participant Information */}
       <div className="space-y-2 rounded-md border p-4">
         <h3 className="font-medium">פרטי המשתתף:</h3>
@@ -55,6 +55,7 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
               value={formState.parentName}
               onChange={handleParentNameChange}
               required
+              dir="rtl"
             />
           </div>
           <div className="space-y-2">
@@ -65,6 +66,7 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
               value={formState.parentId}
               onChange={handleParentIdChange}
               required
+              dir="rtl"
             />
           </div>
         </div>
@@ -110,6 +112,7 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
           placeholder="אם יש מידע רפואי נוסף שעלינו לדעת, אנא ציין כאן"
           value={formState.notes}
           onChange={handleNotesChange}
+          dir="rtl"
         />
       </div>
     </div>

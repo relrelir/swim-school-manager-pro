@@ -47,7 +47,7 @@ const PrintableHealthDeclarationPage: React.FC = () => {
           .from('participants')
           .select('*')
           .eq('id', healthDeclaration.participant_id)
-          .single();
+          .maybeSingle();
 
         if (participantError) {
           handleSupabaseError(participantError, 'fetching participant');
@@ -95,7 +95,7 @@ const PrintableHealthDeclarationPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container py-10">
+      <div className="container py-10" dir="rtl">
         <Card className="max-w-3xl mx-auto">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center p-8">
@@ -110,7 +110,7 @@ const PrintableHealthDeclarationPage: React.FC = () => {
 
   if (error || !healthData) {
     return (
-      <div className="container py-10">
+      <div className="container py-10" dir="rtl">
         <Alert variant="destructive" className="max-w-3xl mx-auto">
           <AlertDescription>{error || 'אירעה שגיאה בטעינת הצהרת הבריאות'}</AlertDescription>
         </Alert>

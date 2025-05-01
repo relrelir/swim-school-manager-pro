@@ -2,11 +2,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle, AlertCircle, FileText, Link as LinkIcon } from 'lucide-react';
+import { CheckCircle, AlertCircle, FileText, Link as LinkIcon, Printer } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import HealthFormLink from './health-declaration/HealthFormLink';
-import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -30,13 +29,10 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   const isFormSigned = healthDeclaration && 
     (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed');
   
-  const handleDownloadPdf = async () => {
-    setIsGeneratingPdf(true);
-    try {
-      await generateHealthDeclarationPdf(registration.id);
-    } finally {
-      setIsGeneratingPdf(false);
-    }
+  // Open the printable health declaration page in a new tab
+  const handleOpenPrintablePage = () => {
+    const url = `/printable-health-declaration?id=${healthDeclaration?.id}`;
+    window.open(url, '_blank');
   };
 
   return (
@@ -68,19 +64,14 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
               variant="ghost"
               size="sm"
               className="text-blue-500 hover:text-blue-600"
-              onClick={handleDownloadPdf}
-              disabled={isGeneratingPdf}
+              onClick={handleOpenPrintablePage}
             >
-              {isGeneratingPdf ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-1" />
-              ) : (
-                <FileText className="h-4 w-4 mr-1" />
-              )}
-              הורד PDF
+              <Printer className="h-4 w-4 mr-1" />
+              הדפס הצהרה
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            הורד הצהרת בריאות
+            הדפס הצהרת בריאות
           </TooltipContent>
         </Tooltip>
       ) : (

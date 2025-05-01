@@ -68,7 +68,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
+    <div className="p-4 max-w-3xl mx-auto" dir="rtl">
       {/* Control buttons - hidden when printing */}
       <div className="flex justify-between mb-6 print:hidden">
         <h1 className="text-2xl font-bold">הצהרת בריאות</h1>
@@ -88,6 +88,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
       <div 
         ref={printRef} 
         className="bg-white p-6 border rounded-md shadow-sm print:shadow-none print:border-none print:p-0"
+        dir="rtl"
       >
         {/* Header with logo and title - visible when printing */}
         <div className="mb-6 text-center border-b pb-4">
