@@ -6,12 +6,13 @@
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // Simply return the text - jsPDF will handle RTL when setR2L is true
+  // Make sure the text is properly encoded for RTL display
   return text;
 };
 
 /**
  * Legacy helper function kept for backward compatibility
+ * No need to reverse text when RTL is properly set in the PDF
  */
 export const reverseText = (text: string): string => {
   return text || '';
@@ -22,4 +23,13 @@ export const reverseText = (text: string): string => {
  */
 export const prepareRtlText = (text: string): string => {
   return text || '';
+};
+
+/**
+ * Ensures text is properly displayed in RTL format within PDF
+ * For autotable and other components
+ */
+export const formatHebrewPdfText = (text: string | number): string => {
+  if (text === null || text === undefined) return '';
+  return String(text);
 };

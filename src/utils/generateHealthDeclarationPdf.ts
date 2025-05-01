@@ -42,6 +42,9 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       const pdf = createRtlPdf();
       console.log("PDF object created successfully");
       
+      // Set enhanced RTL configuration for better Hebrew support
+      pdf.setR2L(true);
+      
       // Build the PDF content
       console.log("Building PDF content");
       const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
