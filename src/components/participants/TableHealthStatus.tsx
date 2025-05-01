@@ -23,7 +23,9 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
 }) => {
   if (!participant) return null;
 
-  const isFormSigned = healthDeclaration && healthDeclaration.formStatus === 'signed';
+  // Check if the form is signed (completed)
+  const isFormSigned = healthDeclaration && 
+    (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed');
 
   return (
     <div className="flex items-center gap-2">

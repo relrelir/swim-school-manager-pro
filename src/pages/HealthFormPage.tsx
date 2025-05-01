@@ -11,10 +11,14 @@ const HealthFormPage: React.FC = () => {
     isLoading,
     isLoadingData,
     participantName,
+    participantId,
+    participantPhone,
     error,
     formState,
     handleAgreementChange,
     handleNotesChange,
+    handleParentNameChange,
+    handleParentIdChange,
     handleSubmit
   } = useHealthForm();
 
@@ -41,9 +45,13 @@ const HealthFormPage: React.FC = () => {
           <CardContent>
             <HealthDeclarationContent 
               participantName={participantName}
+              participantId={participantId}
+              participantPhone={participantPhone}
               formState={formState}
               handleAgreementChange={handleAgreementChange}
               handleNotesChange={handleNotesChange}
+              handleParentNameChange={handleParentNameChange}
+              handleParentIdChange={handleParentIdChange}
             />
           </CardContent>
           

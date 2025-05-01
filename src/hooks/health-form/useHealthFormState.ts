@@ -7,6 +7,8 @@ import { toast } from "@/components/ui/use-toast";
 interface FormState {
   agreement: boolean;
   notes: string;
+  parentName: string;
+  parentId: string;
 }
 
 export const useHealthFormState = (healthDeclarationId: string | null) => {
@@ -14,7 +16,9 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formState, setFormState] = useState<FormState>({
     agreement: false,
-    notes: ''
+    notes: '',
+    parentName: '',
+    parentId: ''
   });
   
   const handleAgreementChange = (value: boolean) => {
@@ -23,6 +27,14 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
   
   const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormState(prev => ({ ...prev, notes: e.target.value }));
+  };
+  
+  const handleParentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ ...prev, parentName: e.target.value }));
+  };
+  
+  const handleParentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormState(prev => ({ ...prev, parentId: e.target.value }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,13 +58,25 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
       return;
     }
     
+    if (!formState.parentName || !formState.parentId) {
+      toast({
+        title: "שגיאה",
+        description: "יש למלא את פרטי ההורה/אפוטרופוס",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     
     try {
+      // Add parent information to the notes field
+      const notesWithParentInfo = `הורה/אפוטרופוס: ${formState.parentName}, ת.ז.: ${formState.parentId}\n\n${formState.notes || ''}`;
+      
       await submitHealthFormService(
         healthDeclarationId,
         formState.agreement,
-        formState.notes || undefined
+        notesWithParentInfo
       );
       
       toast({
@@ -78,6 +102,8 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     formState,
     handleAgreementChange,
     handleNotesChange,
+    handleParentNameChange,
+    handleParentIdChange,
     handleSubmit
   };
 };

@@ -6,6 +6,8 @@ export const useHealthForm = () => {
   const {
     isLoadingData,
     participantName,
+    participantId,
+    participantPhone,
     error,
     healthDeclarationId
   } = useHealthDeclarationLoader();
@@ -15,6 +17,8 @@ export const useHealthForm = () => {
     formState,
     handleAgreementChange,
     handleNotesChange,
+    handleParentNameChange,
+    handleParentIdChange,
     handleSubmit
   } = useHealthFormState(healthDeclarationId);
   
@@ -22,10 +26,14 @@ export const useHealthForm = () => {
     isLoading,
     isLoadingData,
     participantName,
+    participantId,
+    participantPhone,
     error,
     formState,
     handleAgreementChange,
     handleNotesChange,
+    handleParentNameChange,
+    handleParentIdChange,
     handleSubmit
   };
 };

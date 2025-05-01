@@ -3,25 +3,73 @@ import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 
 interface HealthDeclarationContentProps {
   participantName: string;
+  participantId?: string;
+  participantPhone?: string;
   formState: {
     agreement: boolean;
     notes: string;
+    parentName: string;
+    parentId: string;
   };
   handleAgreementChange: (checked: boolean) => void;
   handleNotesChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  handleParentNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleParentIdChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
   participantName,
+  participantId,
+  participantPhone,
   formState,
   handleAgreementChange,
-  handleNotesChange
+  handleNotesChange,
+  handleParentNameChange,
+  handleParentIdChange
 }) => {
   return (
     <div className="space-y-6">
+      {/* Participant Information */}
+      <div className="space-y-2 rounded-md border p-4">
+        <h3 className="font-medium">פרטי המשתתף:</h3>
+        <div className="grid grid-cols-2 gap-2 text-sm">
+          <div><span className="font-semibold">שם מלא:</span> {participantName}</div>
+          {participantId && <div><span className="font-semibold">ת.ז.:</span> {participantId}</div>}
+          {participantPhone && <div><span className="font-semibold">טלפון:</span> {participantPhone}</div>}
+        </div>
+      </div>
+
+      {/* Parent Information */}
+      <div className="space-y-3">
+        <h3 className="font-medium">פרטי ההורה/אפוטרופוס:</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="parentName">שם מלא של ההורה</Label>
+            <Input 
+              id="parentName" 
+              placeholder="שם ההורה/אפוטרופוס"
+              value={formState.parentName}
+              onChange={handleParentNameChange}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="parentId">ת.ז. של ההורה</Label>
+            <Input 
+              id="parentId" 
+              placeholder="מספר תעודת זהות"
+              value={formState.parentId}
+              onChange={handleParentIdChange}
+              required
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-4">
         <div className="flex items-start space-x-2 space-y-0">
           <Label 

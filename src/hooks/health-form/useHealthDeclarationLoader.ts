@@ -1,74 +1,76 @@
 
 import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
-import { getHealthDeclarationByToken } from '@/context/data/healthDeclarations/service';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useHealthDeclarationLoader = () => {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [participantName, setParticipantName] = useState('');
+  const [participantId, setParticipantId] = useState('');
+  const [participantPhone, setParticipantPhone] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [healthDeclarationId, setHealthDeclarationId] = useState<string | null>(null);
   
-  const location = useLocation();
-  
   useEffect(() => {
-    const pathParts = location.pathname.split('/');
-    const token = pathParts[pathParts.length - 1];
-    
-    if (!token) {
-      setError('הקישור אינו תקין. חסר מזהה הצהרת בריאות.');
-      setIsLoadingData(false);
-      return;
-    }
-    
     const loadHealthDeclaration = async () => {
+      if (!token) {
+        setError('מזהה הצהרת בריאות חסר בקישור');
+        setIsLoadingData(false);
+        return;
+      }
+      
       try {
-        const declaration = await getHealthDeclarationByToken(token);
+        // Get the health declaration by token
+        const { data: healthDeclarationData, error: healthDeclarationError } = await supabase
+          .from('health_declarations')
+          .select('id, participant_id')
+          .eq('token', token)
+          .single();
         
-        if (!declaration) {
-          setError('לא נמצאה הצהרת בריאות תואמת.');
+        if (healthDeclarationError || !healthDeclarationData) {
+          setError('הצהרת בריאות לא נמצאה או שפג תוקפה');
           setIsLoadingData(false);
           return;
         }
         
-        // Check if the form is already completed
-        if (declaration.formStatus === 'signed') {
-          setError('הצהרת בריאות זו כבר מולאה. תודה!');
-          setIsLoadingData(false);
-          return;
-        }
+        setHealthDeclarationId(healthDeclarationData.id);
         
-        setHealthDeclarationId(declaration.id);
-        
-        // Get participant name
+        // Get the participant details
         const { data: participantData, error: participantError } = await supabase
-          .from('registrations')
-          .select('participants(firstname, lastname)')
-          .eq('id', declaration.registrationId)
+          .from('participants')
+          .select('firstname, lastname, idnumber, phone')
+          .eq('id', healthDeclarationData.participant_id)
           .single();
         
         if (participantError || !participantData) {
-          console.error('Error fetching participant data:', participantError);
-        } else if (participantData.participants) {
-          const participant = participantData.participants;
-          setParticipantName(`${participant.firstname} ${participant.lastname}`);
+          setError('לא נמצאו פרטי משתתף תקינים');
+          setIsLoadingData(false);
+          return;
         }
         
-        setIsLoadingData(false);
+        setParticipantName(`${participantData.firstname} ${participantData.lastname}`);
+        setParticipantId(participantData.idnumber);
+        setParticipantPhone(participantData.phone);
+        
       } catch (error) {
         console.error('Error loading health declaration:', error);
-        setError('אירעה שגיאה בטעינת הצהרת הבריאות.');
+        setError('אירעה שגיאה בטעינת הצהרת הבריאות');
+      } finally {
         setIsLoadingData(false);
       }
     };
     
     loadHealthDeclaration();
-  }, [location.pathname]);
+  }, [token]);
   
   return {
     isLoadingData,
     participantName,
+    participantId,
+    participantPhone,
     error,
     healthDeclarationId
   };
