@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Registration } from '@/types';
-import { Trash2Icon, FileDownIcon, CreditCardIcon } from 'lucide-react';
+import { Trash2Icon, FileDownIcon, CreditCardIcon, FileTextIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { generateRegistrationPdf } from '@/utils/generateRegistrationPdf';
 
@@ -11,6 +11,7 @@ interface TableRowActionsProps {
   hasPayments: boolean;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
+  onOpenHealthForm?: (registrationId: string) => void;
 }
 
 const TableRowActions: React.FC<TableRowActionsProps> = ({
@@ -18,6 +19,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   hasPayments,
   onAddPayment,
   onDeleteRegistration,
+  onOpenHealthForm,
 }) => {
   const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
 
@@ -63,6 +65,21 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
         </TooltipTrigger>
         <TooltipContent>הורד אישור רישום</TooltipContent>
       </Tooltip>
+      
+      {onOpenHealthForm && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onOpenHealthForm(registration.id)}
+            >
+              <FileTextIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>הצהרת בריאות</TooltipContent>
+        </Tooltip>
+      )}
       
       <Tooltip>
         <TooltipTrigger asChild>

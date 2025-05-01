@@ -97,7 +97,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
       declarationId = insertResult.data[0].id;
     }
     
-    // Return the full URL
+    // Return the full URL with token in the path, not as a query parameter
     const baseUrl = window.location.origin;
     return `${baseUrl}/health-form/${token}`;
   } catch (error) {

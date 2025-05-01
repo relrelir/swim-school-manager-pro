@@ -1,11 +1,14 @@
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useHealthDeclarationLoader = () => {
   const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
+  const params = useParams();
+  
+  // Look for token in both URL params and query params
+  const token = params.token || searchParams.get('token');
   
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [participantName, setParticipantName] = useState('');

@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -112,7 +113,7 @@ const HealthFormLink = ({ registrationId, isDisabled }: HealthFormLinkProps) => 
         )}
       </TooltipTrigger>
       <TooltipContent>
-        {isDisabled ? "הצג והורד הצהרת בריאות" : "יצ��רת קישור למילוי הצהרת בריאות"}
+        {isDisabled ? "הצג והורד הצהרת בריאות" : "יצירת קישור למילוי הצהרת בריאות"}
       </TooltipContent>
     </Tooltip>
   );
