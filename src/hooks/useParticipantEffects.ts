@@ -31,11 +31,23 @@ export const useParticipantEffects = (
     }
   }, [productId, getRegistrationsByProduct, refreshTrigger]);
 
+  // Calculate summary data
+  const totalParticipants = registrations.length;
+  const registrationsFilled = loadedProduct?.maxParticipants ? 
+    Math.min(totalParticipants / loadedProduct.maxParticipants, 1) * 100 : 0;
+  
+  const totalExpected = registrations.reduce((sum, reg) => sum + reg.requiredAmount, 0);
+  const totalPaid = registrations.reduce((sum, reg) => sum + reg.paidAmount, 0);
+
   return {
     product: loadedProduct, 
     registrations,
     setRegistrations,
     refreshTrigger,
-    setRefreshTrigger
+    setRefreshTrigger,
+    totalParticipants,
+    registrationsFilled,
+    totalExpected,
+    totalPaid
   };
 };

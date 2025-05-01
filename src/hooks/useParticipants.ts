@@ -2,11 +2,9 @@
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
 import { Registration, Participant } from '@/types';
-import { useParticipantForm } from './useParticipantForm';
 import { useParticipantUtils } from './useParticipantUtils';
 import { useRegistrationManagement } from './useRegistrationManagement';
 import { useParticipantHealth } from './useParticipantHealth';
-import { useParticipantData } from './useParticipantData';
 import { useParticipantHandlers } from './useParticipantHandlers';
 import { useParticipantState } from './useParticipantState';
 import { useParticipantAdapters } from './useParticipantAdapters';
@@ -40,6 +38,19 @@ export const useParticipants = () => {
     getStatusClassName
   } = useParticipantUtils(participants, payments);
 
+  // Load product and registration data via effects
+  const {
+    product,
+    registrations,
+    setRegistrations,
+    refreshTrigger,
+    setRefreshTrigger,
+    totalParticipants,
+    registrationsFilled,
+    totalExpected,
+    totalPaid
+  } = useParticipantEffects(productId, products, undefined, getRegistrationsByProduct);
+
   // Import participant state management
   const {
     isAddParticipantOpen,
@@ -51,25 +62,7 @@ export const useParticipants = () => {
     currentRegistration,
     setCurrentRegistration,
     currentHealthDeclaration,
-    setCurrentHealthDeclaration
-  } = useParticipantState();
-
-  // Load product and registration data via effects
-  const {
-    product,
-    registrations,
-    setRegistrations,
-    refreshTrigger,
-    setRefreshTrigger
-  } = useParticipantEffects(productId, products, undefined, getRegistrationsByProduct);
-
-  // Create an adapter for updateHealthDeclaration to match expected signature
-  const updateHealthDeclaration = (declaration: any) => {
-    return baseUpdateHealthDeclaration(declaration.id, declaration);
-  };
-
-  // Import participant form hook
-  const {
+    setCurrentHealthDeclaration,
     newParticipant,
     setNewParticipant,
     registrationData,
@@ -77,22 +70,12 @@ export const useParticipants = () => {
     newPayment,
     setNewPayment,
     resetForm
-  } = useParticipantForm(product);
+  } = useParticipantState(product);
 
-  // Create adapters for various function signatures
-  const {
-    adaptedUpdateParticipant,
-    adaptedHandleOpenHealthForm,
-    handleAddParticipantWrapper,
-    handleAddPaymentWrapper,
-    handleApplyDiscountAdapter
-  } = useParticipantAdapters(
-    updateParticipant,
-    (registrationId: string) => {},  // placeholder to be overridden
-    () => {}, // placeholder for baseHandleAddParticipant
-    () => {}, // placeholder for baseHandleAddPayment
-    () => {}  // placeholder for baseHandleApplyDiscount
-  );
+  // Create an adapter for updateHealthDeclaration to match expected signature
+  const updateHealthDeclaration = (declaration: any) => {
+    return baseUpdateHealthDeclaration(declaration.id, declaration);
+  };
 
   // Import participant health hook with adapted update function
   const {
@@ -101,18 +84,23 @@ export const useParticipants = () => {
   } = useParticipantHealth(
     getHealthDeclarationForRegistration,
     addHealthDeclaration,
-    adaptedUpdateParticipant,
+    async (id: string, data: Partial<Participant>): Promise<Participant> => {
+      const participantToUpdate = {
+        id,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        phone: data.phone || '',
+        healthApproval: data.healthApproval !== undefined ? data.healthApproval : false,
+        idNumber: data.idNumber || '',
+        ...data
+      } as Participant;
+      
+      await updateParticipant(participantToUpdate);
+      return participantToUpdate;
+    },
     participants,
     registrations
   );
-
-  // Import participant data hook
-  const {
-    totalParticipants,
-    registrationsFilled,
-    totalExpected,
-    totalPaid
-  } = useParticipantData(product, productId, getRegistrationsByProduct, getPaymentsForRegistration);
 
   // Import registration management hook
   const {
@@ -133,6 +121,20 @@ export const useParticipants = () => {
     getRegistrationsByProduct,
     updateParticipant,
     addHealthDeclaration
+  );
+
+  // Create adapters for various function signatures
+  const {
+    adaptedHandleOpenHealthForm,
+    handleAddParticipantWrapper,
+    handleAddPaymentWrapper,
+    handleApplyDiscountAdapter
+  } = useParticipantAdapters(
+    updateParticipant,
+    baseHandleOpenHealthForm,
+    baseHandleAddParticipant,
+    baseHandleAddPayment,
+    baseHandleApplyDiscount
   );
 
   // Import participant handlers with actual implementations

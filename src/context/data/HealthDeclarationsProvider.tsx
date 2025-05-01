@@ -46,16 +46,14 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
   };
 
   // Get health declaration for a specific registration
-  // Fixed: now searches by participantId from registration
   const getHealthDeclarationForRegistration = (registrationId: string) => {
-    // Find registration's participant in the database
+    // Fixed: search using the participant_id field which is linked to the registration's participantId
     console.log("Looking for health declaration for registration:", registrationId);
     console.log("Available declarations:", healthDeclarations);
     
-    // Search for a declaration where participant_id matches the registration.participantId
-    // NOT the registrationId itself
+    // Search for a health declaration for this registration ID
     const declaration = healthDeclarations.find(declaration => 
-      declaration.participant_id === registrationId
+      declaration.participant_id === registrationId || declaration.registrationId === registrationId
     );
     
     console.log("Found declaration:", declaration);
