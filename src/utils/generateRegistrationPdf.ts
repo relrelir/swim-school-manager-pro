@@ -4,6 +4,7 @@ import { toast } from "@/components/ui/use-toast";
 import { makePdf, createTableData } from '@/pdf/pdfService';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatters';
+import type { Content } from 'pdfmake/interfaces';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
@@ -75,21 +76,21 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     const fileName = `registration_${participant.firstname}_${participant.lastname}_${registration.id.substring(0, 8)}.pdf`;
     
     // Prepare content items array, filtering out null items later
-    const contentItems = [
+    const contentItems: Array<any> = [
       // Title with product name
-      { text: 'אישור רישום למוצר', style: 'header', alignment: 'center' },
-      { text: `מוצר: ${product.name}`, style: 'productName', alignment: 'center', margin: [0, 0, 0, 20] },
-      { text: `תאריך: ${currentDate}`, alignment: 'left', margin: [0, 0, 0, 20] },
+      { text: 'אישור רישום למוצר', style: 'header', alignment: 'center' } as any,
+      { text: `מוצר: ${product.name}`, style: 'productName', alignment: 'center', margin: [0, 0, 0, 20] } as any,
+      { text: `תאריך: ${currentDate}`, alignment: 'left', margin: [0, 0, 0, 20] } as any,
       
       // Participant information
-      { text: 'פרטי משתתף:', style: 'subheader' },
+      { text: 'פרטי משתתף:', style: 'subheader' } as any,
       createTableData(
         ['שם מלא:', 'תעודת זהות:', 'טלפון:'],
         [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
       ),
       
       // Registration information
-      { text: 'פרטי רישום:', style: 'subheader', margin: [0, 20, 0, 10] },
+      { text: 'פרטי רישום:', style: 'subheader', margin: [0, 20, 0, 10] } as any,
       createTableData(
         ['תאריך רישום:', 'סכום מקורי:', 'הנחה:', 'סכום לתשלום:', 'סכום ששולם:'],
         [[
@@ -103,7 +104,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       
       // Payment details if any exist
       payments && payments.length > 0 ? 
-        { text: 'פרטי תשלומים:', style: 'subheader', margin: [0, 20, 0, 10] } : null,
+        { text: 'פרטי תשלומים:', style: 'subheader', margin: [0, 20, 0, 10] } as any : null,
         
       payments && payments.length > 0 ? 
         createTableData(
@@ -112,12 +113,12 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         ) : null,
       
       // Footer
-      { text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', style: 'footer', alignment: 'center', margin: [0, 30, 0, 0] }
+      { text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', style: 'footer', alignment: 'center', margin: [0, 30, 0, 0] } as any
     ].filter(Boolean); // Filter out null items
     
     // Create PDF document definition
     const docDefinition = {
-      content: contentItems,
+      content: contentItems as Content[],
       styles: {
         header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
         productName: { fontSize: 16, bold: true },

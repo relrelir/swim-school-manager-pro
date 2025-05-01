@@ -4,6 +4,7 @@ import { toast } from "@/components/ui/use-toast";
 import { makePdf, createTableData } from '@/pdf/pdfService';
 import { format } from 'date-fns';
 import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './pdf/healthDeclarationParser';
+import type { Content } from 'pdfmake/interfaces';
 
 export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
   try {
@@ -57,13 +58,13 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
       
       // Prepare the content array, filtering out null items later
-      const contentItems = [
+      const contentItems: Array<any> = [
         // Title
-        { text: 'הצהרת בריאות', style: 'header', alignment: 'center' },
-        { text: `תאריך: ${formattedDate}`, alignment: 'left', margin: [0, 0, 0, 20] },
+        { text: 'הצהרת בריאות', style: 'header', alignment: 'center' } as any,
+        { text: `תאריך: ${formattedDate}`, alignment: 'left', margin: [0, 0, 0, 20] } as any,
         
         // Participant section
-        { text: 'פרטי המשתתף', style: 'subheader', margin: [0, 10, 0, 10] },
+        { text: 'פרטי המשתתף', style: 'subheader', margin: [0, 10, 0, 10] } as any,
         createTableData(
           ['שם מלא', 'תעודת זהות', 'טלפון'],
           [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
@@ -71,7 +72,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         
         // Parent section (if available)
         parentInfo.parentName || parentInfo.parentId ? 
-          { text: 'פרטי ההורה/אפוטרופוס', style: 'subheader', margin: [0, 10, 0, 10] } : null,
+          { text: 'פרטי ההורה/אפוטרופוס', style: 'subheader', margin: [0, 10, 0, 10] } as any : null,
         
         parentInfo.parentName || parentInfo.parentId ? 
           createTableData(
@@ -80,7 +81,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
           ) : null,
         
         // Declaration items
-        { text: 'תוכן ההצהרה', style: 'subheader', margin: [0, 10, 0, 10] },
+        { text: 'תוכן ההצהרה', style: 'subheader', margin: [0, 10, 0, 10] } as any,
         
         // Declaration items as a table
         {
@@ -90,23 +91,23 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
           },
           layout: 'noBorders',
           margin: [10, 5, 0, 10]
-        },
+        } as any,
         
         // Medical notes (if available)
-        medicalNotes ? { text: 'הערות רפואיות', style: 'subheader', margin: [0, 20, 0, 10] } : null,
-        medicalNotes ? { text: medicalNotes, margin: [0, 0, 0, 20] } : null,
+        medicalNotes ? { text: 'הערות רפואיות', style: 'subheader', margin: [0, 20, 0, 10] } as any : null,
+        medicalNotes ? { text: medicalNotes, margin: [0, 0, 0, 20] } as any : null,
         
         // Confirmation
-        { text: 'אישור', style: 'subheader', margin: [0, 20, 0, 10] },
-        { text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.', margin: [0, 0, 0, 20] },
+        { text: 'אישור', style: 'subheader', margin: [0, 20, 0, 10] } as any,
+        { text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.', margin: [0, 0, 0, 20] } as any,
         
         // Signature line
-        { text: 'חתימת ההורה/אפוטרופוס: ________________', margin: [0, 30, 0, 0] },
+        { text: 'חתימת ההורה/אפוטרופוס: ________________', margin: [0, 30, 0, 0] } as any,
       ].filter(Boolean); // Filter out null items
       
       // Create PDF document definition
       const docDefinition = {
-        content: contentItems,
+        content: contentItems as Content[],
         styles: {
           header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
           subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },
