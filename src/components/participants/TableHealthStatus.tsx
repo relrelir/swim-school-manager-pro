@@ -26,8 +26,17 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   if (!participant) return null;
 
   // Check if the form is signed (completed)
-  const isFormSigned = healthDeclaration && 
-    (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed');
+  const isFormSigned = Boolean(
+    healthDeclaration && 
+    (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed')
+  );
+  
+  console.log("Health declaration status:", {
+    registrationId: registration.id,
+    hasDeclaration: Boolean(healthDeclaration),
+    formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
+    isFormSigned
+  });
   
   // Open the printable health declaration page in a new tab
   const handleOpenPrintablePage = () => {
@@ -36,7 +45,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
       return;
     }
     
-    const url = `/printable-health-declaration?id=${healthDeclaration?.id}`;
+    const url = `/printable-health-declaration?id=${healthDeclaration.id}`;
     console.log("Opening printable health declaration:", url, "Health declaration:", healthDeclaration);
     window.open(url, '_blank');
   };
@@ -71,6 +80,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
               size="sm"
               className="text-blue-500 hover:text-blue-600"
               onClick={handleOpenPrintablePage}
+              disabled={isGeneratingPdf}
             >
               <Printer className="h-4 w-4 mr-1" />
               הדפס הצהרה
@@ -83,7 +93,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
       ) : (
         <HealthFormLink 
           registrationId={registration.id} 
-          isDisabled={isFormSigned || false} 
+          isDisabled={isFormSigned} 
           declarationId={healthDeclaration?.id}
         />
       )}

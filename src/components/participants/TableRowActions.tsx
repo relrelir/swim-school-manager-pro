@@ -28,8 +28,15 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = React.useState(false);
 
   // Check if health declaration is signed
-  const isHealthFormSigned = healthDeclaration && 
-    (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed');
+  const isHealthFormSigned = Boolean(healthDeclaration && 
+    (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed'));
+
+  console.log("Table row actions:", {
+    registrationId: registration.id,
+    hasDeclaration: Boolean(healthDeclaration),
+    formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
+    isHealthFormSigned
+  });
 
   // Handle download registration PDF
   const handleGenerateRegPdf = async () => {
@@ -43,6 +50,11 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
 
   // Handle download health declaration PDF
   const handleGenerateHealthPdf = async () => {
+    if (!healthDeclaration) {
+      console.error("Cannot generate health PDF: Health declaration is missing");
+      return;
+    }
+    
     setIsGeneratingHealthPdf(true);
     try {
       await generateHealthDeclarationPdf(registration.id);

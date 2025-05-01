@@ -77,6 +77,8 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             const healthDeclaration = getHealthDeclarationForRegistration && 
               getHealthDeclarationForRegistration(registration.id);
             
+            console.log(`Registration ${registration.id} health declaration:`, healthDeclaration);
+            
             if (!participant) return null;
             
             return (
@@ -123,6 +125,8 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     hasPayments={hasPayments}
                     onAddPayment={onAddPayment}
                     onDeleteRegistration={onDeleteRegistration}
+                    onOpenHealthForm={onOpenHealthForm && (() => onOpenHealthForm(registration.id))}
+                    healthDeclaration={healthDeclaration}
                   />
                 </TableCell>
               </TableRow>

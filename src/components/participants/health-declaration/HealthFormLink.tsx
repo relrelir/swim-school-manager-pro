@@ -56,6 +56,7 @@ const HealthFormLink = ({ registrationId, isDisabled, declarationId }: HealthFor
     }
     
     const printUrl = `/printable-health-declaration?id=${declarationId}`;
+    console.log("Opening printable form at:", printUrl, "Declaration ID:", declarationId);
     window.open(printUrl, '_blank', 'noopener,noreferrer');
   };
   
@@ -73,20 +74,16 @@ const HealthFormLink = ({ registrationId, isDisabled, declarationId }: HealthFor
     <div className="flex gap-2">
       <Tooltip>
         <TooltipTrigger asChild>
-          {isDisabled ? (
+          {isDisabled && declarationId ? (
             <Button
               variant="ghost"
               size="sm"
-              className="flex items-center"
+              className="flex items-center text-blue-500 hover:text-blue-600"
               onClick={handlePrintDeclaration}
-              disabled={isGenerating || !declarationId}
+              disabled={isGenerating}
             >
-              {isGenerating ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : (
-                <Printer className="h-4 w-4 mr-1" />
-              )}
-              הדפסה
+              <Printer className="h-4 w-4 mr-1" />
+              הדפס הצהרה
             </Button>
           ) : (
             <Button
@@ -108,7 +105,7 @@ const HealthFormLink = ({ registrationId, isDisabled, declarationId }: HealthFor
           )}
         </TooltipTrigger>
         <TooltipContent>
-          {isDisabled ? "הדפסת הצהרת בריאות" : "יצירת קישור למילוי הצהרת בריאות"}
+          {isDisabled && declarationId ? "הדפסת הצהרת בריאות" : "יצירת קישור למילוי הצהרת בריאות"}
         </TooltipContent>
       </Tooltip>
     </div>

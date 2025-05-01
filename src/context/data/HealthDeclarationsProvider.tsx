@@ -18,6 +18,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
   useEffect(() => {
     const loadDeclarations = async () => {
       const declarations = await fetchHealthDeclarations();
+      console.log("Loaded health declarations:", declarations);
       setHealthDeclarations(declarations);
       setLoading(false);
     };
@@ -47,7 +48,13 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
   // Get health declaration for a specific registration
   // Fixed: now searches by participant_id which actually stores the registrationId
   const getHealthDeclarationForRegistration = (registrationId: string) => {
-    return healthDeclarations.find(declaration => declaration.participant_id === registrationId);
+    console.log("Looking for health declaration for registration:", registrationId);
+    console.log("Available declarations:", healthDeclarations);
+    
+    const declaration = healthDeclarations.find(declaration => declaration.participant_id === registrationId);
+    console.log("Found declaration:", declaration);
+    
+    return declaration;
   };
 
   const contextValue: HealthDeclarationsContextType = {
