@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CopyIcon, CheckIcon, LinkIcon } from "lucide-react";
-import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
+import { LinkIcon, CheckIcon } from "lucide-react";
+import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/service';
 
 interface HealthFormLinkProps {
   registrationId: string;
