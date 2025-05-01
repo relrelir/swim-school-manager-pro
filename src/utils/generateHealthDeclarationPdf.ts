@@ -29,24 +29,48 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
       
       if (registrationError || !registration) {
         console.error("Registration not found:", registrationError);
-        throw new Error('פרטי הרישום לא נמצאו');
+        
+        // If registrationId contains an underscore, try to extract participantId
+        if (registrationId.includes('_')) {
+          const participantId = registrationId.split('_').pop();
+          
+          if (participantId) {
+            console.log("Trying to find health declaration with extracted participant ID:", participantId);
+            const { data: participantHealthDeclaration, error } = await supabase
+              .from('health_declarations')
+              .select('id, participant_id, submission_date, notes, form_status')
+              .eq('participant_id', participantId)
+              .single();
+              
+            if (!error && participantHealthDeclaration) {
+              healthDeclaration = participantHealthDeclaration;
+              console.log("Found health declaration with extracted participant ID:", healthDeclaration);
+            } else {
+              console.log("No health declaration found with extracted participant ID");
+            }
+          }
+        }
+        
+        if (!healthDeclaration) {
+          throw new Error('פרטי הרישום לא נמצאו');
+        }
+      } else {
+        console.log("Found registration with participant ID:", registration.participantid);
+        
+        // Now look for health declaration with this participant ID
+        const { data: participantHealthDeclaration, error: participantHealthDeclarationError } = await supabase
+          .from('health_declarations')
+          .select('id, participant_id, submission_date, notes, form_status')
+          .eq('participant_id', registration.participantid)
+          .single();
+        
+        if (participantHealthDeclarationError || !participantHealthDeclaration) {
+          console.error("Health declaration not found for participant:", participantHealthDeclarationError);
+          throw new Error('הצהרת בריאות לא נמצאה');
+        }
+        
+        healthDeclaration = participantHealthDeclaration;
       }
-      
-      console.log("Found registration with participant ID:", registration.participantid);
-      
-      // Now look for health declaration with this participant ID
-      const { data: participantHealthDeclaration, error: participantHealthDeclarationError } = await supabase
-        .from('health_declarations')
-        .select('id, participant_id, submission_date, notes, form_status')
-        .eq('participant_id', registration.participantid)
-        .single();
-      
-      if (participantHealthDeclarationError || !participantHealthDeclaration) {
-        console.error("Health declaration not found for participant:", participantHealthDeclarationError);
-        throw new Error('הצהרת בריאות לא נמצאה');
-      }
-      
-      healthDeclaration = participantHealthDeclaration;
     }
     
     // Verify the form is signed

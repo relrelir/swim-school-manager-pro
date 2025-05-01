@@ -30,10 +30,11 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   const isHealthFormSigned = Boolean(healthDeclaration && 
     (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed'));
 
-  console.log("Table row actions:", {
+  console.log("TableRowActions health info:", {
     registrationId: registration.id,
     participantId: registration.participantId,
     hasDeclaration: Boolean(healthDeclaration),
+    healthDeclarationObj: healthDeclaration,
     formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
     isHealthFormSigned,
     healthDeclarationId: healthDeclaration?.id
@@ -59,6 +60,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     } else if (healthDeclaration) {
       // If signed, open the printable page
       const url = `/printable-health-declaration?id=${healthDeclaration.id}`;
+      console.log("Opening printable health declaration from TableRowActions:", url);
       window.open(url, '_blank');
     } else {
       toast({
@@ -111,11 +113,11 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
             className={isHealthFormSigned ? "" : "text-amber-500 border-amber-200"}
           >
             <FileText className="h-4 w-4" />
-            {!isHealthFormSigned && <span className="ml-1">הצהרת בריאות</span>}
+            {!isHealthFormSigned && <span className="mr-1">הצהרת בריאות</span>}
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          {isHealthFormSigned ? 'הורד הצהרת בריאות' : 'מלא הצהרת בריאות'}
+          {isHealthFormSigned ? 'הדפס הצהרת בריאות' : 'מלא הצהרת בריאות'}
         </TooltipContent>
       </Tooltip>
       

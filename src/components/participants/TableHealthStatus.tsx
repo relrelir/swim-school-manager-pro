@@ -31,10 +31,11 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
     (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed')
   );
   
-  console.log("Health declaration status:", {
+  console.log("Health declaration status in TableHealthStatus:", {
     registrationId: registration.id,
     participantId: registration.participantId,
     hasDeclaration: Boolean(healthDeclaration),
+    healthDeclarationObj: healthDeclaration,
     formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
     isFormSigned,
     healthDeclarationId: healthDeclaration?.id
@@ -90,11 +91,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
               onClick={handleOpenPrintablePage}
               disabled={isGeneratingPdf}
             >
-              {isGeneratingPdf ? (
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent mr-1" />
-              ) : (
-                <Printer className="h-4 w-4 mr-1" />
-              )}
+              <Printer className="h-4 w-4 ml-1" />
               הדפס
             </Button>
           </TooltipTrigger>
