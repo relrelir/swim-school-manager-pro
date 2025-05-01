@@ -56,59 +56,57 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       // Generate the filename
       const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
       
-      // Create PDF document definition with fixed content structure
-      const docDefinition = {
-        content: [
-          // Title
-          { text: 'הצהרת בריאות', style: 'header', alignment: 'center' },
-          { text: `תאריך: ${formattedDate}`, alignment: 'left', margin: [0, 0, 0, 20] },
-          
-          // Participant section
-          { text: 'פרטי המשתתף', style: 'subheader', margin: [0, 10, 0, 10] },
-          createTableData(
-            ['שם מלא', 'תעודת זהות', 'טלפון'],
-            [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
-          ),
-          
-          // Parent section (if available)
-          parentInfo.parentName || parentInfo.parentId ? 
-          { 
-            text: 'פרטי ההורה/אפוטרופוס', 
-            style: 'subheader', 
-            margin: [0, 10, 0, 10] 
-          } : null,
-          
-          parentInfo.parentName || parentInfo.parentId ? 
+      // Prepare the content array, filtering out null items later
+      const contentItems = [
+        // Title
+        { text: 'הצהרת בריאות', style: 'header', alignment: 'center' },
+        { text: `תאריך: ${formattedDate}`, alignment: 'left', margin: [0, 0, 0, 20] },
+        
+        // Participant section
+        { text: 'פרטי המשתתף', style: 'subheader', margin: [0, 10, 0, 10] },
+        createTableData(
+          ['שם מלא', 'תעודת זהות', 'טלפון'],
+          [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
+        ),
+        
+        // Parent section (if available)
+        parentInfo.parentName || parentInfo.parentId ? 
+          { text: 'פרטי ההורה/אפוטרופוס', style: 'subheader', margin: [0, 10, 0, 10] } : null,
+        
+        parentInfo.parentName || parentInfo.parentId ? 
           createTableData(
             ['שם מלא', 'תעודת זהות'],
             [[parentInfo.parentName || '', parentInfo.parentId || '']]
           ) : null,
-          
-          // Declaration items
-          { text: 'תוכן ההצהרה', style: 'subheader', margin: [0, 10, 0, 10] },
-          
-          // Declaration items as simple text
-          { text: declarationItems.map(item => `• ${item}`).join('\n\n'), margin: [10, 5, 0, 10] },
-          
-          // Medical notes (if available)
-          medicalNotes ? { 
-            text: 'הערות רפואיות', 
-            style: 'subheader', 
-            margin: [0, 20, 0, 10] 
-          } : null,
-          
-          medicalNotes ? { 
-            text: medicalNotes, 
-            margin: [0, 0, 0, 20] 
-          } : null,
-          
-          // Confirmation
-          { text: 'אישור', style: 'subheader', margin: [0, 20, 0, 10] },
-          { text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.', margin: [0, 0, 0, 20] },
-          
-          // Signature line
-          { text: 'חתימת ההורה/אפוטרופוס: ________________', margin: [0, 30, 0, 0] },
-        ].filter(Boolean), // Filter out null items
+        
+        // Declaration items
+        { text: 'תוכן ההצהרה', style: 'subheader', margin: [0, 10, 0, 10] },
+        
+        // Declaration items as a table
+        {
+          table: {
+            widths: ['auto', '*'],
+            body: declarationItems.map(item => ['•', { text: item, alignment: 'right' }])
+          },
+          layout: 'noBorders',
+          margin: [10, 5, 0, 10]
+        },
+        
+        // Medical notes (if available)
+        medicalNotes ? { text: 'הערות רפואיות', style: 'subheader', margin: [0, 20, 0, 10] } : null,
+        medicalNotes ? { text: medicalNotes, margin: [0, 0, 0, 20] } : null,
+        
+        // Confirmation
+        { text: 'אישור', style: 'subheader', margin: [0, 20, 0, 10] },
+        { text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.', margin: [0, 0, 0, 20] },
+        
+        // Signature line
+        { text: 'חתימת ההורה/אפוטרופוס: ________________', margin: [0, 30, 0, 0] },
+      ].filter(Boolean); // Filter out null items
+      
+      // Create PDF document definition
+      const docDefinition = {
+        content: contentItems,
         styles: {
           header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
           subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },

@@ -1,9 +1,9 @@
 
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
-import type { TDocumentDefinitions } from "pdfmake/interfaces";
+import type { TDocumentDefinitions, Content } from "pdfmake/interfaces";
 
-// Initialize with the default fonts
+// Initialize pdfMake with the default fonts
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 /**
@@ -17,14 +17,15 @@ export async function makePdf(
   fileName: string,
   download = true
 ): Promise<void | Blob> {
-  // Set default RTL
+  // Set default styles and orientation
   const definition: TDocumentDefinitions = {
     ...docDef,
     defaultStyle: { 
       ...docDef.defaultStyle
     },
     pageOrientation: 'portrait',
-    rtl: true // Use rtl instead of rightToLeft
+    // Use rightToLeft instead of rtl
+    rightToLeft: true
   };
 
   // Create the PDF
