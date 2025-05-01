@@ -13,11 +13,29 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     // Generate a unique token
     const token = uuidv4();
     
+    // First get the registration to find the participant_id
+    const registrationResult = await supabase
+      .from('registrations')
+      .select('participantid')
+      .eq('id', registrationId)
+      .single();
+    
+    if (registrationResult.error) {
+      console.error('Error fetching registration:', registrationResult.error);
+      throw registrationResult.error;
+    }
+    
+    if (!registrationResult.data || !registrationResult.data.participantid) {
+      throw new Error('Registration not found or missing participant ID');
+    }
+    
+    const participantId = registrationResult.data.participantid;
+    
     // Check if a declaration already exists for this registration
     const existingResult = await supabase
       .from('health_declarations')
       .select('id, form_status')
-      .eq('participant_id', registrationId);
+      .eq('participant_id', participantId);
     
     if (existingResult.error) {
       console.error('Error checking existing declaration:', existingResult.error);
@@ -53,7 +71,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
     } else {
       // Create new declaration
       const newDeclaration = {
-        participant_id: registrationId,
+        participant_id: participantId, // Use participant_id from the registration
         token,
         form_status: 'pending',
         created_at: new Date().toISOString(),
