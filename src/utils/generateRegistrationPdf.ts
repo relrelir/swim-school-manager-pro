@@ -7,6 +7,8 @@ import { Registration, Participant, Payment } from '@/types';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
+    console.log("Starting registration PDF generation for ID:", registrationId);
+    
     // Get the registration details
     const { data: registration, error: registrationError } = await supabase
       .from('registrations')
@@ -15,6 +17,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       .single();
     
     if (registrationError || !registration) {
+      console.error("Registration details not found:", registrationError);
       throw new Error('פרטי הרישום לא נמצאו');
     }
     
@@ -26,6 +29,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       .single();
     
     if (participantError || !participant) {
+      console.error("Participant details not found:", participantError);
       throw new Error('פרטי המשתתף לא נמצאו');
     }
     
@@ -37,6 +41,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       .order('paymentdate', { ascending: false });
     
     if (paymentsError) {
+      console.error("Error loading payments:", paymentsError);
       throw new Error('אירעה שגיאה בטעינת פרטי התשלומים');
     }
     
@@ -48,6 +53,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       .single();
     
     if (productError || !product) {
+      console.error("Product details not found:", productError);
       throw new Error('פרטי המוצר לא נמצאו');
     }
     
@@ -85,24 +91,36 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       receiptNumber: payment.receiptnumber
     })) : [];
     
-    // Create the PDF document with RTL and font support
-    const pdf = createRtlPdf();
-    console.log("PDF object created successfully");
-    
-    // Build the PDF content
-    const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
-    console.log("PDF content built successfully");
-    
-    // Save the PDF
-    pdf.save(fileName);
-    console.log("PDF saved successfully");
-    
-    toast({
-      title: "PDF נוצר בהצלחה",
-      description: "אישור הרישום נשמר במכשיר שלך",
-    });
-    
-    return fileName;
+    try {
+      // Create the PDF document with RTL and font support
+      console.log("Creating PDF with RTL support");
+      const pdf = createRtlPdf();
+      console.log("PDF object created successfully");
+      
+      // Build the PDF content
+      console.log("Building PDF content with product name:", product.name);
+      const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
+      console.log("PDF content built successfully, filename:", fileName);
+      
+      // Save the PDF
+      pdf.save(fileName);
+      console.log("PDF saved successfully");
+      
+      toast({
+        title: "PDF נוצר בהצלחה",
+        description: "אישור הרישום נשמר במכשיר שלך",
+      });
+      
+      return fileName;
+    } catch (error) {
+      console.error('Error building registration PDF:', error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה ביצירת PDF",
+        description: "נא לנסות שוב מאוחר יותר",
+      });
+      throw new Error('אירעה שגיאה ביצירת מסמך ה-PDF');
+    }
   } catch (error) {
     console.error('Error generating registration PDF:', error);
     toast({

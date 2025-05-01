@@ -34,6 +34,8 @@ export const buildHealthDeclarationPDF = (
   participant: ParticipantData
 ): string => {
   try {
+    console.log("Starting PDF generation with data:", { participant });
+    
     // Add title
     addPdfTitle(pdf, 'הצהרת בריאות');
     
@@ -53,6 +55,7 @@ export const buildHealthDeclarationPDF = (
       ['טלפון', participant.phone],
     ];
     
+    console.log("Creating participant data table");
     let lastY = createDataTable(pdf, participantData, 50);
     
     // Add parent details if available
@@ -78,7 +81,7 @@ export const buildHealthDeclarationPDF = (
       item
     ]);
     
-    // Fixed: Removed the fourth parameter to match function signature
+    console.log("Creating declaration items table");
     lastY = createPlainTextTable(pdf, declarationData, lastY + 20);
     
     // Add medical notes if any
@@ -103,6 +106,7 @@ export const buildHealthDeclarationPDF = (
     // Generate filename
     const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
     
+    console.log("PDF generation completed successfully");
     return fileName;
   } catch (error) {
     console.error('Error building PDF content:', error);

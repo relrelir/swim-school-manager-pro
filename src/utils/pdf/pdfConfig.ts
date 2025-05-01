@@ -1,9 +1,9 @@
 
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
-import { addAlefFont } from './alefFontData';
+import { configureHebrewFont } from './alefFontData';
 
-// Function to set up RTL document with Hebrew font
+// Function to set up RTL document with proper Hebrew support
 export const createRtlPdf = (): jsPDF => {
   // Create PDF with standard settings
   const pdf = new jsPDF({
@@ -12,11 +12,8 @@ export const createRtlPdf = (): jsPDF => {
     format: 'a4',
   });
 
-  // Set document to RTL
-  pdf.setR2L(true);
-  
-  // Add the font with fallback
-  addAlefFont(pdf);
+  // Configure for Hebrew text support
+  configureHebrewFont(pdf);
   
   return pdf;
 };

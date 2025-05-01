@@ -60,7 +60,7 @@ export const createDataTable = (
   hasHeader: boolean = false
 ): number => {
   // Configure autotable with RTL support
-  const tableConfig = {
+  const tableConfig: any = {
     startY,
     styles: { 
       font: 'helvetica',
@@ -81,14 +81,12 @@ export const createDataTable = (
     const headers = data[0];
     const body = data.slice(1);
     
-    // @ts-ignore - the types for autoTable are not complete
     autoTable(pdf, {
       ...tableConfig,
       head: [headers],
       body: body,
     });
   } else {
-    // @ts-ignore - the types for autoTable are not complete
     autoTable(pdf, {
       ...tableConfig,
       body: data,
@@ -108,7 +106,6 @@ export const createPlainTextTable = (
   startY: number
 ): number => {
   // Configure autotable with RTL support for plain text
-  // @ts-ignore - the types for autoTable are not complete
   autoTable(pdf, {
     startY,
     body: data,

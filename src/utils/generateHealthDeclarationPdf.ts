@@ -6,6 +6,8 @@ import { toast } from "@/components/ui/use-toast";
 
 export const generateHealthDeclarationPdf = async (registrationId: string) => {
   try {
+    console.log("Starting health declaration PDF generation for registration ID:", registrationId);
+    
     // First, get the health declaration for this registration
     const { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
@@ -14,10 +16,12 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
       .single();
     
     if (healthDeclarationError || !healthDeclaration) {
+      console.error("Health declaration not found:", healthDeclarationError);
       throw new Error('הצהרת בריאות לא נמצאה');
     }
     
     if (healthDeclaration.form_status !== 'signed') {
+      console.error("Health declaration not signed yet");
       throw new Error('הצהרת הבריאות לא מולאה עדיין');
     }
     
@@ -29,19 +33,22 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
       .single();
     
     if (participantError || !participant) {
+      console.error("Participant details not found:", participantError);
       throw new Error('פרטי המשתתף לא נמצאו');
     }
     
-    console.log("Creating PDF with participant data:", participant);
+    console.log("Data fetched successfully. Participant:", participant);
     
     try {
       // Create the PDF document with RTL and font support
+      console.log("Creating PDF with RTL support");
       const pdf = createRtlPdf();
       console.log("PDF object created successfully");
       
       // Build the PDF content
+      console.log("Building PDF content");
       const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
-      console.log("PDF content built successfully");
+      console.log("PDF content built successfully, filename:", fileName);
       
       // Save the PDF
       pdf.save(fileName);
@@ -54,7 +61,7 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
       
       return fileName;
     } catch (error) {
-      console.error('Error building health declaration PDF:', error);
+      console.error('Error during PDF generation:', error);
       toast({
         variant: "destructive",
         title: "שגיאה ביצירת PDF",
@@ -63,7 +70,7 @@ export const generateHealthDeclarationPdf = async (registrationId: string) => {
       throw new Error('אירעה שגיאה ביצירת מסמך ה-PDF');
     }
   } catch (error) {
-    console.error('Error generating health declaration PDF:', error);
+    console.error('Error in generateHealthDeclarationPdf:', error);
     toast({
       title: "שגיאה",
       description: error instanceof Error ? error.message : 'אירעה שגיאה ביצירת ה-PDF',
