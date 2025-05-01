@@ -5,7 +5,7 @@ import { HealthDeclaration, Participant, Registration } from '@/types';
 export const useParticipantHealth = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
   addHealthDeclaration: (declaration: Partial<HealthDeclaration>) => Promise<HealthDeclaration | undefined>,
-  updateParticipant: (id: string, data: Partial<Participant>) => Promise<Participant | undefined>,
+  updateParticipant: (id: string, data: Partial<Participant>) => Promise<Participant>,
   participants: Participant[],
   registrations: Registration[]
 ) => {
@@ -51,7 +51,6 @@ export const useParticipantHealth = (
 
     try {
       await updateParticipant(participant.id, {
-        ...participant,
         healthApproval: isApproved
       });
     } catch (error) {

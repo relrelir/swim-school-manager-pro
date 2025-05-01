@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
-import { Registration } from '@/types';
+import { Registration, Participant } from '@/types';
 import { useParticipantForm } from './useParticipantForm';
 import { useParticipantUtils } from './useParticipantUtils';
 import { useRegistrationManagement } from './useRegistrationManagement';
@@ -91,8 +91,20 @@ export const useParticipants = () => {
   }, [product]);
 
   // Create an adapter for updateParticipant to match the expected signature
-  const adaptedUpdateParticipant = (id: string, data: Partial<any>) => {
-    return updateParticipant({ ...data, id });
+  const adaptedUpdateParticipant = async (id: string, data: Partial<Participant>): Promise<Participant> => {
+    // Create a participant object that satisfies the Participant type
+    const participantToUpdate = {
+      id,
+      firstName: data.firstName || '',
+      lastName: data.lastName || '',
+      phone: data.phone || '',
+      healthApproval: data.healthApproval !== undefined ? data.healthApproval : false,
+      idNumber: data.idNumber || '',
+      ...data
+    } as Participant;
+    
+    await updateParticipant(participantToUpdate);
+    return participantToUpdate;
   };
 
   // Import participant health hook - now passing registrations and the adapted updateParticipant
