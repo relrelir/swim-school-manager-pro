@@ -6,12 +6,23 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 
 // Setup the default fonts - with proper error handling
-if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
-  pdfMake.vfs = pdfFonts.pdfMake.vfs;
-} else if (pdfFonts.vfs) {
-  pdfMake.vfs = pdfFonts.vfs;
-} else {
-  console.error('Could not initialize pdfMake fonts. VFS object is missing.');
+try {
+  if (pdfFonts && typeof pdfFonts === 'object') {
+    if ('pdfMake' in pdfFonts && pdfFonts.pdfMake && 'vfs' in pdfFonts.pdfMake) {
+      pdfMake.vfs = pdfFonts.pdfMake.vfs;
+    } else if ('vfs' in pdfFonts) {
+      pdfMake.vfs = pdfFonts.vfs;
+    } else if ('default' in pdfFonts && pdfFonts.default && 'vfs' in pdfFonts.default) {
+      pdfMake.vfs = pdfFonts.default.vfs;
+    } else {
+      console.error('Could not initialize pdfMake fonts. VFS object structure unexpected:', 
+        Object.keys(pdfFonts).join(', '));
+    }
+  } else {
+    console.error('Could not initialize pdfMake fonts. pdfFonts import is invalid.');
+  }
+} catch (error) {
+  console.error('Error initializing pdfMake fonts:', error);
 }
 
 // Function to register additional fonts when needed

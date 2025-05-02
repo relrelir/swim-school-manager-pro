@@ -48,11 +48,12 @@ export const logFontDiagnostics = (): void => {
       console.log('- pdfMake loaded:', pdfMakeExists);
       
       // Try to import pdfMake dynamically to check if it's available
-      import('pdfmake/build/pdfmake').then(pdfMake => {
+      import('pdfmake/build/pdfmake').then(pdfMakeModule => {
         console.log('- pdfMake imported successfully');
         
-        // Check if vfs exists
-        if (pdfMake.vfs) {
+        // Check if vfs exists on the imported module
+        const importedPdfMake = pdfMakeModule.default || pdfMakeModule;
+        if (importedPdfMake && importedPdfMake.vfs) {
           console.log('- Virtual file system available');
         } else {
           console.log('- Virtual file system NOT available');
@@ -62,11 +63,17 @@ export const logFontDiagnostics = (): void => {
       });
       
       // Check for vfs_fonts
-      import('pdfmake/build/vfs_fonts').then(vfsFonts => {
-        if (vfsFonts.pdfMake && vfsFonts.pdfMake.vfs) {
-          console.log('- VFS fonts available through pdfMake property');
-        } else if (vfsFonts.vfs) {
-          console.log('- VFS fonts available through direct vfs property');
+      import('pdfmake/build/vfs_fonts').then(vfsFontsModule => {
+        const vfsFonts = vfsFontsModule.default || vfsFontsModule;
+        
+        if (vfsFonts && typeof vfsFonts === 'object') {
+          if ('vfs' in vfsFonts) {
+            console.log('- VFS fonts available through direct vfs property');
+          } else if ('default' in vfsFonts && vfsFonts.default && 'vfs' in vfsFonts.default) {
+            console.log('- VFS fonts available through default.vfs property');
+          } else {
+            console.log('- VFS fonts structure in unexpected format:', Object.keys(vfsFonts));
+          }
         } else {
           console.log('- VFS fonts structure MISSING');
         }

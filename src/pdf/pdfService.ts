@@ -5,8 +5,23 @@ import type { TDocumentDefinitions, Content, StyleDictionary } from "pdfmake/int
 import { logFontDiagnostics } from '../utils/pdf/fontHelpers';
 
 // Initialize pdfMake with the fonts
-// This is the correct way to set the virtual file system for pdfMake
-pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
+// Handle different pdfFonts structures for better compatibility
+try {
+  if (pdfFonts && typeof pdfFonts === 'object') {
+    // Handle the different ways pdfFonts might expose the VFS
+    if ('pdfMake' in pdfFonts && pdfFonts.pdfMake && 'vfs' in pdfFonts.pdfMake) {
+      pdfMake.vfs = pdfFonts.pdfMake.vfs;
+    } else if ('vfs' in pdfFonts) {
+      pdfMake.vfs = pdfFonts.vfs;
+    } else {
+      console.error('VFS not found in expected pdfFonts structure');
+    }
+  } else {
+    console.error('pdfFonts import is not in expected format');
+  }
+} catch (e) {
+  console.error('Error initializing pdfMake fonts:', e);
+}
 
 // Run font diagnostics in development
 if (process.env.NODE_ENV !== 'production') {
@@ -43,11 +58,16 @@ export async function makePdf(
     
     // Set RTL direction for Hebrew language support using the correct property
     // The rtl property needs to be set differently based on pdfMake version
-    if ('rightToLeft' in definition) {
-      // @ts-ignore - Using rightToLeft for newer versions
+    if ('pageDirection' in definition) {
+      // Modern pdfMake versions use pageDirection
+      // @ts-ignore - Using pageDirection for newer versions  
+      definition.pageDirection = 'rtl';
+    } else if ('rightToLeft' in definition) {
+      // Some versions use rightToLeft
+      // @ts-ignore - Using rightToLeft for some versions
       definition.rightToLeft = true;
     } else {
-      // For older versions we use the standard way (this will be ignored if not supported)
+      // For older versions we use the standard way
       // @ts-ignore - Using rtl for backwards compatibility
       definition.rtl = true;
     }
