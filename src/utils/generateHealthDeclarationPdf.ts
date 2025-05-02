@@ -44,7 +44,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     try {
       // Create the PDF document with RTL and font support
       console.log("Creating PDF with RTL support");
-      const pdf = await createRtlPdf();
+      const pdf = createRtlPdf();
       console.log("PDF object created successfully");
       
       // Build the PDF content
@@ -52,9 +52,18 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
       console.log("PDF content built successfully, filename:", fileName);
       
-      // Save the PDF
-      pdf.save(fileName);
-      console.log("PDF saved successfully");
+      // Get PDF as blob and create download link
+      const blob = pdf.output('blob');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      console.log("PDF downloaded successfully");
       
       toast({
         title: "PDF נוצר בהצלחה",

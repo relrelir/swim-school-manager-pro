@@ -1,10 +1,10 @@
 
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
-import { configureHebrewFont } from './alefFontData';
+import { alefFontBase64 } from './alefFontData';
 
 // Function to set up RTL document with proper Hebrew support
-export const createRtlPdf = async (): Promise<jsPDF> => {
+export const createRtlPdf = (): jsPDF => {
   console.log("Creating RTL PDF with Hebrew support");
   
   try {
@@ -15,8 +15,24 @@ export const createRtlPdf = async (): Promise<jsPDF> => {
       format: 'a4',
     });
 
-    // Configure for Hebrew text support with Alef font
-    await configureHebrewFont(pdf);
+    // Embed the Alef font directly without fetching
+    pdf.addFileToVFS('Alef-Regular.ttf', alefFontBase64);
+    pdf.addFont('Alef-Regular.ttf', 'Alef', 'normal');
+    
+    // Configure RTL and font
+    pdf.setR2L(true);
+    pdf.setFont('Alef');
+    
+    // Add PDF metadata with Hebrew titles
+    pdf.setProperties({
+      title: 'הצהרת בריאות',
+      subject: 'הצהרת בריאות',
+      creator: 'מערכת ניהול'
+    });
+    
+    // Set text properties
+    pdf.setFontSize(14);
+    pdf.setTextColor(0, 0, 0);
     
     console.log("RTL PDF created successfully with Alef font");
     return pdf;

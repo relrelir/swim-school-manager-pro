@@ -63,8 +63,10 @@ export const createDataTable = (
   const tableConfig: any = {
     startY,
     styles: { 
-      font: 'helvetica',
+      font: 'Alef',
       halign: 'right',
+      direction: 'rtl',
+      textDirection: 'rtl'
     },
     headStyles: {
       fillColor: [200, 200, 200],
@@ -75,6 +77,13 @@ export const createDataTable = (
       fontStyle: 'normal',
     },
     theme: 'grid',
+    didDrawCell: function(data: any) {
+      // Force RTL text direction for each cell
+      if (data.cell.styles) {
+        data.cell.styles.halign = 'right';
+        data.cell.styles.textDirection = 'rtl';
+      }
+    }
   };
 
   if (hasHeader) {
@@ -127,10 +136,19 @@ export const createPlainTextTable = (
       startY,
       body: data,
       styles: { 
-        font: 'helvetica',
+        font: 'Alef',
         halign: 'right',
+        direction: 'rtl',
+        textDirection: 'rtl'
       },
       theme: 'plain',
+      didDrawCell: function(data: any) {
+        // Force RTL text direction for each cell
+        if (data.cell.styles) {
+          data.cell.styles.halign = 'right';
+          data.cell.styles.textDirection = 'rtl';
+        }
+      }
     });
   } catch (error) {
     console.error("Error creating plain text table:", error);

@@ -13,7 +13,7 @@ export const encodeHebrewText = (text: string): string => {
  */
 export const prepareRtlText = (text: string): string => {
   if (!text) return '';
-  return text;
+  return text; // No special treatment needed when using proper RTL and font support
 };
 
 /**
