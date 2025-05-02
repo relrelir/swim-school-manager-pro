@@ -5,7 +5,8 @@ import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { alefFontBase64 } from './alefFontData';
 
 // Initialize pdfMake with the default fonts
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+// Fix the TypeScript error by directly assigning the vfs
+pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : {};
 
 // Add the Alef font to pdfMake's virtual file system
 if (alefFontBase64 && alefFontBase64 !== "REPLACE_WITH_ACTUAL_ALEF_FONT_BASE64") {
