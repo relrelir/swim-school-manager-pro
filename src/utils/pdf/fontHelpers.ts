@@ -53,7 +53,7 @@ export const logFontDiagnostics = (): void => {
         
         // Check if vfs exists on the imported module
         const importedPdfMake = pdfMakeModule.default || pdfMakeModule;
-        if (importedPdfMake && importedPdfMake.vfs) {
+        if (importedPdfMake && 'vfs' in importedPdfMake) {
           console.log('- Virtual file system available');
         } else {
           console.log('- Virtual file system NOT available');
@@ -69,8 +69,8 @@ export const logFontDiagnostics = (): void => {
         if (vfsFonts && typeof vfsFonts === 'object') {
           if ('vfs' in vfsFonts) {
             console.log('- VFS fonts available through direct vfs property');
-          } else if ('default' in vfsFonts && vfsFonts.default && 'vfs' in vfsFonts.default) {
-            console.log('- VFS fonts available through default.vfs property');
+          } else if ('pdfMake' in vfsFonts && vfsFonts.pdfMake && 'vfs' in vfsFonts.pdfMake) {
+            console.log('- VFS fonts available through pdfMake.vfs property');
           } else {
             console.log('- VFS fonts structure in unexpected format:', Object.keys(vfsFonts));
           }
@@ -86,19 +86,23 @@ export const logFontDiagnostics = (): void => {
   }
   
   // Log browser information
-  console.log('- User agent:', navigator.userAgent);
-  console.log('- Platform:', navigator.platform);
-  console.log('- Language:', navigator.language);
-  
-  // Test system fonts if font API is available
-  if (document.fonts && document.fonts.check) {
-    console.log('- System fonts available:');
-    ['Arial', 'Times New Roman', 'David', 'Noto Sans Hebrew'].forEach(font => {
-      console.log(`  - ${font}: ${document.fonts.check('16px ' + font)}`);
-    });
+  if (typeof navigator !== 'undefined') {
+    console.log('- User agent:', navigator.userAgent);
+    console.log('- Platform:', navigator.platform);
+    console.log('- Language:', navigator.language);
+    
+    // Test system fonts if font API is available
+    if (document.fonts && document.fonts.check) {
+      console.log('- System fonts available:');
+      ['Arial', 'Times New Roman', 'David', 'Noto Sans Hebrew'].forEach(font => {
+        console.log(`  - ${font}: ${document.fonts.check('16px ' + font)}`);
+      });
+    } else {
+      console.log('- Font checking API not available');
+    }
+    
+    console.log('- Hebrew support:', browserSupportsHebrew());
   } else {
-    console.log('- Font checking API not available');
+    console.log('- Running in server environment - browser information unavailable');
   }
-  
-  console.log('- Hebrew support:', browserSupportsHebrew());
 };
