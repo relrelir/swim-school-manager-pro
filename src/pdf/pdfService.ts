@@ -9,10 +9,10 @@ try {
     if ('pdfMake' in vfsFonts) {
       const pdfMakeProp = vfsFonts.pdfMake as Record<string, any>;
       if ('vfs' in pdfMakeProp) {
-        pdfMake.vfs = pdfMakeProp.vfs;
+        (pdfMake as any).vfs = pdfMakeProp.vfs;
       }
     } else if ('vfs' in vfsFonts) {
-      pdfMake.vfs = vfsFonts.vfs;
+      (pdfMake as any).vfs = vfsFonts.vfs;
     } else {
       console.error('VFS not found in expected vfsFonts structure');
     }
@@ -22,7 +22,7 @@ try {
 }
 
 // Set up the font configuration
-pdfMake.fonts = {
+(pdfMake as any).fonts = {
   Roboto: {
     normal: 'Roboto-Regular.ttf',
     bold: 'Roboto-Bold.ttf',
@@ -49,13 +49,17 @@ export async function makePdf(
   try {
     // Set default styles and orientation
     const definition: TDocumentDefinitions = {
-      pageDirection: "rtl", // RTL for Hebrew
+      content: docDef.content || [],
       defaultStyle: { 
         font: "NotoHebrew", // Use Hebrew font by default
         alignment: 'right'  // Right alignment for RTL text
       },
-      content: docDef.content || [],
       ...docDef, // Merge all other properties
+      // Add RTL support as a custom property
+      info: {
+        ...docDef.info,
+        direction: 'rtl' // Use info.direction instead of pageDirection
+      }
     };
     
     console.log("Creating PDF with RTL and Hebrew support");

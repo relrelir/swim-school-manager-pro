@@ -38,10 +38,15 @@ export const fetchHealthDeclarationData = async (healthDeclarationId: string): P
     .from('health_declarations')
     .select('id, participant_id, submission_date, notes, form_status')
     .eq('id', healthDeclarationId)
-    .single();
+    .maybeSingle();
   
-  if (healthDeclarationError || !healthDeclaration) {
-    console.error("Health declaration not found by ID:", healthDeclarationError, healthDeclarationId);
+  if (healthDeclarationError) {
+    console.error("Error fetching health declaration:", healthDeclarationError);
+    throw new Error('שגיאה בטעינת הצהרת הבריאות');
+  }
+  
+  if (!healthDeclaration) {
+    console.error("Health declaration not found by ID:", healthDeclarationId);
     throw new Error('הצהרת בריאות לא נמצאה');
   }
   
@@ -53,10 +58,15 @@ export const fetchHealthDeclarationData = async (healthDeclarationId: string): P
     .from('registrations')
     .select('*')
     .eq('id', healthDeclaration.participant_id)
-    .single();
+    .maybeSingle();
   
-  if (registrationError || !registration) {
-    console.error("Registration not found:", registrationError);
+  if (registrationError) {
+    console.error("Registration fetch error:", registrationError);
+    throw new Error('שגיאה בטעינת פרטי הרישום');
+  }
+  
+  if (!registration) {
+    console.error("Registration not found for health declaration:", healthDeclaration.participant_id);
     throw new Error('פרטי הרישום לא נמצאו');
   }
   
@@ -65,10 +75,15 @@ export const fetchHealthDeclarationData = async (healthDeclarationId: string): P
     .from('participants')
     .select('*')
     .eq('id', registration.participantid)
-    .single();
+    .maybeSingle();
   
-  if (participantError || !participant) {
-    console.error("Participant details not found:", participantError);
+  if (participantError) {
+    console.error("Participant fetch error:", participantError);
+    throw new Error('שגיאה בטעינת פרטי המשתתף');
+  }
+  
+  if (!participant) {
+    console.error("Participant not found for registration:", registration.participantid);
     throw new Error('פרטי המשתתף לא נמצאו');
   }
   

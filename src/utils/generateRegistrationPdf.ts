@@ -11,6 +11,10 @@ export const generateRegistrationPdf = async (registrationId: string) => {
   try {
     console.log("Starting registration PDF generation for ID:", registrationId);
     
+    if (!registrationId) {
+      throw new Error("RegistrationIdMissing");
+    }
+    
     // Step 1: Fetch all required data
     const { registration, participant, payments } = await fetchRegistrationData(registrationId);
     
@@ -36,11 +40,23 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     return fileName;
   } catch (error) {
     console.error('Error generating registration PDF:', error);
+    
+    // Determine error message based on error type
+    let errorMessage = 'אירעה שגיאה ביצירת ה-PDF';
+    if (error instanceof Error) {
+      if (error.message === "RegistrationNotFound") {
+        errorMessage = "הרישום לא נמצא במסד הנתונים";
+      } else if (error.message === "RegistrationIdMissing") {
+        errorMessage = "מזהה הרישום חסר";
+      }
+    }
+    
     toast({
       title: "שגיאה",
-      description: error instanceof Error ? error.message : 'אירעה שגיאה ביצירת ה-PDF',
+      description: errorMessage,
       variant: "destructive",
     });
+    
     throw error;
   }
 };

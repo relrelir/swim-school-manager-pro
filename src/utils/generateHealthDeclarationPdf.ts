@@ -13,6 +13,10 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string):
   try {
     console.log("Starting health declaration PDF generation for declaration ID:", healthDeclarationId);
     
+    if (!healthDeclarationId) {
+      throw new Error("HealthDeclarationIdMissing");
+    }
+    
     // Step 1: Fetch all required data
     const healthDeclarationData = await fetchHealthDeclarationData(healthDeclarationId);
     
@@ -34,11 +38,23 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string):
     return fileName;
   } catch (error) {
     console.error('Error generating health declaration PDF:', error);
+    
+    // Determine error message based on error type
+    let errorMessage = 'אירעה שגיאה ביצירת ה-PDF';
+    if (error instanceof Error) {
+      if (error.message === "הצהרת בריאות לא נמצאה" || error.message.includes("לא נמצא")) {
+        errorMessage = error.message;
+      } else if (error.message === "HealthDeclarationIdMissing") {
+        errorMessage = "מזהה הצהרת הבריאות חסר";
+      }
+    }
+    
     toast({
       title: "שגיאה",
-      description: error instanceof Error ? error.message : 'אירעה שגיאה ביצירת ה-PDF',
+      description: errorMessage,
       variant: "destructive",
     });
+    
     throw error;
   }
 };
