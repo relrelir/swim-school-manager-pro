@@ -1,39 +1,39 @@
 
-import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
+import * as pdfMake from "pdfmake/build/pdfmake";
+import * as vfsFonts from "pdfmake/build/vfs_fonts";
 import type { TDocumentDefinitions, Content, StyleDictionary } from "pdfmake/interfaces";
-import { logFontDiagnostics } from '../utils/pdf/fontHelpers';
 
 // Initialize pdfMake with the fonts
-// Handle different pdfFonts structures for better compatibility
 try {
-  if (pdfFonts && typeof pdfFonts === 'object') {
-    // Handle the different ways pdfFonts might expose the VFS
-    if ('pdfMake' in pdfFonts && pdfFonts.pdfMake) {
-      const pdfMakeProp = pdfFonts.pdfMake as Record<string, unknown>;
-      if ('vfs' in pdfMakeProp && pdfMakeProp.vfs && typeof pdfMakeProp.vfs === 'object') {
-        pdfMake.vfs = pdfMakeProp.vfs as Record<string, string>;
+  if (vfsFonts && typeof vfsFonts === 'object') {
+    if ('pdfMake' in vfsFonts) {
+      const pdfMakeProp = vfsFonts.pdfMake as Record<string, any>;
+      if ('vfs' in pdfMakeProp) {
+        pdfMake.vfs = pdfMakeProp.vfs;
       }
-    } else if ('vfs' in pdfFonts && pdfFonts.vfs && typeof pdfFonts.vfs === 'object') {
-      pdfMake.vfs = pdfFonts.vfs as Record<string, string>;
+    } else if ('vfs' in vfsFonts) {
+      pdfMake.vfs = vfsFonts.vfs;
     } else {
-      console.error('VFS not found in expected pdfFonts structure');
+      console.error('VFS not found in expected vfsFonts structure');
     }
-  } else {
-    console.error('pdfFonts import is not in expected format');
   }
 } catch (e) {
   console.error('Error initializing pdfMake fonts:', e);
 }
 
-// Run font diagnostics in development
-if (process.env.NODE_ENV !== 'production') {
-  try {
-    logFontDiagnostics();
-  } catch (e) {
-    console.error('Font diagnostics error:', e);
+// Set up the font configuration
+pdfMake.fonts = {
+  Roboto: {
+    normal: 'Roboto-Regular.ttf',
+    bold: 'Roboto-Bold.ttf',
+    italics: 'Roboto-Italic.ttf',
+    bolditalics: 'Roboto-BoldItalic.ttf'
+  },
+  // Hebrew support font added
+  NotoHebrew: {
+    normal: 'NotoSansHebrew-Regular.ttf'
   }
-}
+};
 
 /**
  * Create and download/return a PDF
@@ -49,30 +49,16 @@ export async function makePdf(
   try {
     // Set default styles and orientation
     const definition: TDocumentDefinitions = {
-      pageOrientation: 'portrait',
+      pageDirection: "rtl", // RTL for Hebrew
       defaultStyle: { 
-        font: 'Roboto',
-        alignment: 'right', // Default alignment for RTL text
-        ...(docDef.defaultStyle || {})
+        font: "NotoHebrew", // Use Hebrew font by default
+        alignment: 'right'  // Right alignment for RTL text
       },
       content: docDef.content || [],
       ...docDef, // Merge all other properties
     };
     
-    // Set RTL direction for Hebrew language support using the correct property
-    // The rtl property needs to be set differently based on pdfMake version
-    if ('pageDirection' in definition) {
-      // Modern pdfMake versions use pageDirection
-      (definition as any).pageDirection = 'rtl';
-    } else if ('rightToLeft' in definition) {
-      // Some versions use rightToLeft
-      (definition as any).rightToLeft = true;
-    } else {
-      // For older versions we use the standard way
-      (definition as any).rtl = true;
-    }
-    
-    console.log("Creating PDF with RTL support");
+    console.log("Creating PDF with RTL and Hebrew support");
     
     // Create the PDF
     const pdf = pdfMake.createPdf(definition);
@@ -114,11 +100,6 @@ export const createTableData = (
         )
       ]
     },
-    layout: {
-      hLineWidth: (i: number, node: any) => (i === 0 || i === node.table.body.length) ? 1 : 1,
-      vLineWidth: () => 1,
-      hLineColor: () => '#CCCCCC',
-      vLineColor: () => '#CCCCCC',
-    }
+    layout: 'lightHorizontalLines',
   };
 };

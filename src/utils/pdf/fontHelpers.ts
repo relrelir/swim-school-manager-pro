@@ -11,6 +11,9 @@ export const getFontDefinition = () => {
       bold: 'Roboto-Bold.ttf',
       italics: 'Roboto-Italic.ttf',
       bolditalics: 'Roboto-BoldItalic.ttf'
+    },
+    NotoHebrew: {
+      normal: 'NotoSansHebrew-Regular.ttf'
     }
   };
 };
@@ -55,6 +58,14 @@ export const logFontDiagnostics = (): void => {
         const importedPdfMake = pdfMakeModule.default || pdfMakeModule;
         if (importedPdfMake && 'vfs' in importedPdfMake) {
           console.log('- Virtual file system available');
+          
+          // Check for Hebrew font
+          const vfs = (importedPdfMake as any).vfs;
+          if (vfs && 'NotoSansHebrew-Regular.ttf' in vfs) {
+            console.log('- Hebrew font found in VFS');
+          } else {
+            console.log('- Hebrew font NOT found in VFS');
+          }
         } else {
           console.log('- Virtual file system NOT available');
         }
@@ -62,52 +73,12 @@ export const logFontDiagnostics = (): void => {
         console.error('- Error importing pdfMake:', err);
       });
       
-      // Check for vfs_fonts
-      import('pdfmake/build/vfs_fonts').then(vfsFontsModule => {
-        const vfsFonts = vfsFontsModule.default || vfsFontsModule;
-        
-        if (vfsFonts && typeof vfsFonts === 'object') {
-          if ('vfs' in vfsFonts) {
-            console.log('- VFS fonts available through direct vfs property');
-          } else if ('pdfMake' in vfsFonts) {
-            const pdfMakeProp = vfsFonts['pdfMake' as keyof typeof vfsFonts];
-            if (pdfMakeProp && typeof pdfMakeProp === 'object' && 'vfs' in pdfMakeProp) {
-              console.log('- VFS fonts available through pdfMake.vfs property');
-            } else {
-              console.log('- pdfMake property exists but no vfs found inside it');
-            }
-          } else {
-            console.log('- VFS fonts structure in unexpected format:', Object.keys(vfsFonts));
-          }
-        } else {
-          console.log('- VFS fonts structure MISSING');
-        }
-      }).catch(err => {
-        console.error('- Error importing vfs_fonts:', err);
-      });
+      // Log browser Hebrew support
+      console.log('- Hebrew support:', browserSupportsHebrew());
+    } else {
+      console.log('- Running in server environment - browser information unavailable');
     }
   } catch (e) {
     console.error('Font diagnostics error in pdfMake check:', e);
-  }
-  
-  // Log browser information
-  if (typeof navigator !== 'undefined') {
-    console.log('- User agent:', navigator.userAgent);
-    console.log('- Platform:', navigator.platform);
-    console.log('- Language:', navigator.language);
-    
-    // Test system fonts if font API is available
-    if (document.fonts && document.fonts.check) {
-      console.log('- System fonts available:');
-      ['Arial', 'Times New Roman', 'David', 'Noto Sans Hebrew'].forEach(font => {
-        console.log(`  - ${font}: ${document.fonts.check('16px ' + font)}`);
-      });
-    } else {
-      console.log('- Font checking API not available');
-    }
-    
-    console.log('- Hebrew support:', browserSupportsHebrew());
-  } else {
-    console.log('- Running in server environment - browser information unavailable');
   }
 };

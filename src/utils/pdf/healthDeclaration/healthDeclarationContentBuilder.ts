@@ -59,12 +59,7 @@ export const buildHealthDeclarationContent = (data: HealthDeclarationPdfData): P
           ]
         ]
       },
-      layout: {
-        hLineWidth: () => 1,
-        vLineWidth: () => 1,
-        hLineColor: () => '#CCCCCC',
-        vLineColor: () => '#CCCCCC',
-      },
+      layout: 'lightHorizontalLines',
       margin: [0, 0, 0, 20]
     });
     
@@ -91,12 +86,7 @@ export const buildHealthDeclarationContent = (data: HealthDeclarationPdfData): P
             ]
           ]
         },
-        layout: {
-          hLineWidth: () => 1,
-          vLineWidth: () => 1,
-          hLineColor: () => '#CCCCCC',
-          vLineColor: () => '#CCCCCC',
-        },
+        layout: 'lightHorizontalLines',
         margin: [0, 0, 0, 20]
       });
     }
