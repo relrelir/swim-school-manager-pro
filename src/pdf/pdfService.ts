@@ -9,9 +9,12 @@ import { logFontDiagnostics } from '../utils/pdf/fontHelpers';
 try {
   if (pdfFonts && typeof pdfFonts === 'object') {
     // Handle the different ways pdfFonts might expose the VFS
-    if ('pdfMake' in pdfFonts && pdfFonts.pdfMake && 'vfs' in pdfFonts.pdfMake) {
-      pdfMake.vfs = pdfFonts.pdfMake.vfs as Record<string, string>;
-    } else if ('vfs' in pdfFonts) {
+    if ('pdfMake' in pdfFonts && pdfFonts.pdfMake) {
+      const pdfMakeProp = pdfFonts.pdfMake as Record<string, unknown>;
+      if ('vfs' in pdfMakeProp && pdfMakeProp.vfs && typeof pdfMakeProp.vfs === 'object') {
+        pdfMake.vfs = pdfMakeProp.vfs as Record<string, string>;
+      }
+    } else if ('vfs' in pdfFonts && pdfFonts.vfs && typeof pdfFonts.vfs === 'object') {
       pdfMake.vfs = pdfFonts.vfs as Record<string, string>;
     } else {
       console.error('VFS not found in expected pdfFonts structure');
