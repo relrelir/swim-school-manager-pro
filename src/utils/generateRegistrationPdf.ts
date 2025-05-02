@@ -4,7 +4,6 @@ import { toast } from "@/components/ui/use-toast";
 import { makePdf, createTableData } from '@/pdf/pdfService';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatters';
-import type { Content } from 'pdfmake/interfaces';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
@@ -75,46 +74,46 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     // Generate filename
     const fileName = `registration_${participant.firstname}_${participant.lastname}_${registration.id.substring(0, 8)}.pdf`;
     
-    // Prepare content items array with correct typing
-    const contentItems: Content[] = [];
+    // Prepare content items array
+    const contentItems: any[] = [];
     
     // Title with product name
     contentItems.push({ 
       text: 'אישור רישום למוצר', 
       style: 'header', 
       alignment: 'center' 
-    } as Content);
+    });
     
     contentItems.push({ 
       text: `מוצר: ${product.name}`, 
       style: 'productName', 
       alignment: 'center', 
       margin: [0, 0, 0, 20] 
-    } as Content);
+    });
     
     contentItems.push({ 
       text: `תאריך: ${currentDate}`, 
       alignment: 'left', 
       margin: [0, 0, 0, 20] 
-    } as Content);
+    });
     
     // Participant information
     contentItems.push({ 
       text: 'פרטי משתתף:', 
       style: 'subheader' 
-    } as Content);
+    });
     
     contentItems.push(createTableData(
       ['שם מלא:', 'תעודת זהות:', 'טלפון:'],
       [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
-    ) as any);
+    ));
     
     // Registration information
     contentItems.push({ 
       text: 'פרטי רישום:', 
       style: 'subheader', 
       margin: [0, 20, 0, 10] 
-    } as Content);
+    });
     
     contentItems.push(createTableData(
       ['תאריך רישום:', 'סכום מקורי:', 'הנחה:', 'סכום לתשלום:', 'סכום ששולם:'],
@@ -125,7 +124,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         formatCurrency(effectiveRequiredAmount),
         formatCurrency(registration.paidamount)
       ]]
-    ) as any);
+    ));
     
     // Payment details if any exist
     if (payments && payments.length > 0) {
@@ -133,12 +132,12 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         text: 'פרטי תשלומים:', 
         style: 'subheader', 
         margin: [0, 20, 0, 10] 
-      } as Content);
+      });
       
       contentItems.push(createTableData(
         ['תאריך תשלום', 'מספר קבלה', 'סכום'],
         paymentRows
-      ) as any);
+      ));
     }
     
     // Footer
@@ -147,16 +146,16 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       style: 'footer', 
       alignment: 'center', 
       margin: [0, 30, 0, 0] 
-    } as Content);
+    });
     
-    // Create PDF document definition with fixed margin format for TypeScript compatibility
+    // Create PDF document definition
     const docDefinition = {
       content: contentItems,
       styles: {
         header: { 
           fontSize: 18, 
           bold: true, 
-          margin: [0, 0, 0, 10] as [number, number, number, number]
+          margin: [0, 0, 0, 10] 
         },
         productName: { 
           fontSize: 16, 
@@ -165,7 +164,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         subheader: { 
           fontSize: 14, 
           bold: true, 
-          margin: [0, 10, 0, 10] as [number, number, number, number] 
+          margin: [0, 10, 0, 10] 
         },
         tableHeader: { 
           bold: true, 

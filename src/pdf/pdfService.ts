@@ -1,10 +1,10 @@
 
 import pdfMake from "pdfmake/build/pdfmake";
-import * as pdfFonts from "pdfmake/build/vfs_fonts";
+import pdfFonts from "pdfmake/build/vfs_fonts";
 import type { TDocumentDefinitions, Content, StyleDictionary } from "pdfmake/interfaces";
 
 // Initialize pdfMake with the fonts
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+pdfMake.vfs = pdfFonts.vfs;
 
 /**
  * Create and download/return a PDF
@@ -23,10 +23,13 @@ export async function makePdf(
     defaultStyle: { 
       ...docDef.defaultStyle
     },
-    // Use rightToLeft instead of pageDirection for RTL support
-    rightToLeft: true,
     ...docDef, // Merge all other properties
   };
+  
+  // Add RTL support
+  if (!definition.pageDirection) {
+    definition.pageDirection = "rtl";
+  }
 
   // Create the PDF
   const pdf = pdfMake.createPdf(definition);

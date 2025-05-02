@@ -58,34 +58,34 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
       
       // Prepare the content array with proper type casting
-      const contentItems: Content[] = [];
+      const contentItems: any[] = [];
       
       // Add title
       contentItems.push({ 
         text: 'הצהרת בריאות', 
         style: 'header', 
         alignment: 'center' 
-      } as Content);
+      });
       
       // Add date
       contentItems.push({ 
         text: `תאריך: ${formattedDate}`, 
         alignment: 'left', 
         margin: [0, 0, 0, 20] 
-      } as Content);
+      });
       
       // Add participant section
       contentItems.push({ 
         text: 'פרטי המשתתף', 
         style: 'subheader', 
         margin: [0, 10, 0, 10] 
-      } as Content);
+      });
       
       // Add participant table
       contentItems.push(createTableData(
         ['שם מלא', 'תעודת זהות', 'טלפון'],
         [[`${participant.firstname} ${participant.lastname}`, participant.idnumber, participant.phone]]
-      ) as any);
+      ));
       
       // Add parent section if available
       if (parentInfo.parentName || parentInfo.parentId) {
@@ -93,12 +93,12 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
           text: 'פרטי ההורה/אפוטרופוס', 
           style: 'subheader', 
           margin: [0, 10, 0, 10] 
-        } as Content);
+        });
         
         contentItems.push(createTableData(
           ['שם מלא', 'תעודת זהות'],
           [[parentInfo.parentName || '', parentInfo.parentId || '']]
-        ) as any);
+        ));
       }
       
       // Add declaration items section
@@ -106,7 +106,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         text: 'תוכן ההצהרה', 
         style: 'subheader', 
         margin: [0, 10, 0, 10] 
-      } as Content);
+      });
       
       // Add declaration items as a table
       contentItems.push({
@@ -116,7 +116,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         },
         layout: 'noBorders',
         margin: [10, 5, 0, 10]
-      } as any);
+      });
       
       // Add medical notes if available
       if (medicalNotes) {
@@ -124,12 +124,12 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
           text: 'הערות רפואיות', 
           style: 'subheader', 
           margin: [0, 20, 0, 10] 
-        } as Content);
+        });
         
         contentItems.push({ 
           text: medicalNotes, 
           margin: [0, 0, 0, 20] 
-        } as Content);
+        });
       }
       
       // Add confirmation
@@ -137,32 +137,32 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         text: 'אישור', 
         style: 'subheader', 
         margin: [0, 20, 0, 10] 
-      } as Content);
+      });
       
       contentItems.push({ 
         text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.', 
         margin: [0, 0, 0, 20] 
-      } as Content);
+      });
       
       // Add signature line
       contentItems.push({ 
         text: 'חתימת ההורה/אפוטרופוס: ________________', 
         margin: [0, 30, 0, 0] 
-      } as Content);
+      });
       
-      // Create PDF document definition with fixed margin format for TypeScript compatibility
+      // Create PDF document definition
       const docDefinition = {
         content: contentItems,
         styles: {
           header: { 
             fontSize: 18, 
             bold: true, 
-            margin: [0, 0, 0, 10] as [number, number, number, number]
+            margin: [0, 0, 0, 10] 
           },
           subheader: { 
             fontSize: 14, 
             bold: true, 
-            margin: [0, 10, 0, 5] as [number, number, number, number]
+            margin: [0, 10, 0, 5] 
           },
           tableHeader: { 
             bold: true, 
