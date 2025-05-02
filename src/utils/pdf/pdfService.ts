@@ -1,29 +1,28 @@
 
-import * as pdfMake from 'pdfmake/build/pdfmake';
-import * as pdfFonts from 'pdfmake/build/vfs_fonts';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
+import { alefFontBase64 } from './alefFontData';
 
-// Set up pdfMake with the default fonts first
+// Initialize pdfMake with the default fonts
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-// Add Alef font to virtual file system (VFS)
-// This Base64 string needs to be replaced with the actual font data
-// The actual font data can be large, so this is just a placeholder
-const alefFontBase64 = 'REPLACE_WITH_ACTUAL_ALEF_FONT_BASE64';
+// Add the Alef font to pdfMake's virtual file system
+if (alefFontBase64 && alefFontBase64 !== "REPLACE_WITH_ACTUAL_ALEF_FONT_BASE64") {
+  // Only add if we have valid base64 data
+  pdfMake.vfs['Alef-Regular.ttf'] = alefFontBase64;
 
-// Add the font to VFS
-pdfMake.vfs['Alef-Regular.ttf'] = alefFontBase64;
-
-// Register the font
-pdfMake.fonts = {
-  ...pdfMake.fonts,
-  Alef: {
-    normal: 'Alef-Regular.ttf',
-    bold: 'Alef-Regular.ttf',
-    italics: 'Alef-Regular.ttf',
-    bolditalics: 'Alef-Regular.ttf',
-  },
-};
+  // Register the font
+  pdfMake.fonts = {
+    ...pdfMake.fonts,
+    Alef: {
+      normal: 'Alef-Regular.ttf',
+      bold: 'Alef-Regular.ttf',
+      italics: 'Alef-Regular.ttf',
+      bolditalics: 'Alef-Regular.ttf',
+    },
+  };
+}
 
 /**
  * Helper function to create and download a PDF
@@ -41,8 +40,9 @@ export const makePdf = async (
     pageSize: 'A4',
     pageOrientation: 'portrait',
     pageMargins: [40, 60, 40, 60],
-    defaultStyle: { font: 'Alef' },
-    pageDirection: 'rtl', // Enable RTL for the entire document
+    defaultStyle: { font: alefFontBase64 && alefFontBase64 !== "REPLACE_WITH_ACTUAL_ALEF_FONT_BASE64" ? 'Alef' : 'Helvetica' },
+    // Use RTL layout for Hebrew
+    rightToLeft: true,
     ...docDefinition,
   };
 
@@ -108,13 +108,13 @@ export const createRegistrationPdfDefinition = (
         text: `מוצר: ${productName}`,
         style: 'subheader',
         alignment: 'center',
-        margin: [0, 0, 0, 20]
+        margin: [0, 0, 0, 20] as [number, number, number, number]
       },
       // Participant section
       {
         text: 'פרטי משתתף:',
         style: 'sectionHeader',
-        margin: [0, 20, 0, 10]
+        margin: [0, 20, 0, 10] as [number, number, number, number]
       },
       {
         table: {
@@ -131,7 +131,7 @@ export const createRegistrationPdfDefinition = (
       {
         text: 'פרטי רישום:',
         style: 'sectionHeader',
-        margin: [0, 20, 0, 10]
+        margin: [0, 20, 0, 10] as [number, number, number, number]
       },
       {
         table: {
@@ -153,7 +153,7 @@ export const createRegistrationPdfDefinition = (
         {
           text: 'פרטי תשלומים:',
           style: 'sectionHeader',
-          margin: [0, 20, 0, 10]
+          margin: [0, 20, 0, 10] as [number, number, number, number]
         },
         {
           table: {
@@ -172,7 +172,7 @@ export const createRegistrationPdfDefinition = (
       {
         text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.',
         style: 'footer',
-        margin: [0, 30, 0, 0],
+        margin: [0, 30, 0, 0] as [number, number, number, number],
         alignment: 'center'
       }
     ],
@@ -180,11 +180,11 @@ export const createRegistrationPdfDefinition = (
       header: {
         fontSize: 22,
         bold: true,
-        margin: [0, 0, 0, 10]
+        margin: [0, 0, 0, 10] as [number, number, number, number]
       },
       subheader: {
         fontSize: 16,
-        margin: [0, 10, 0, 5]
+        margin: [0, 10, 0, 5] as [number, number, number, number]
       },
       sectionHeader: {
         fontSize: 14,
@@ -251,13 +251,13 @@ export const createHealthDeclarationPdfDefinition = (
       {
         text: `תאריך: ${formattedDate}`,
         alignment: 'left',
-        margin: [0, 0, 0, 20]
+        margin: [0, 0, 0, 20] as [number, number, number, number]
       },
       // Participant details
       {
         text: 'פרטי המשתתף',
         style: 'sectionHeader',
-        margin: [0, 10, 0, 10]
+        margin: [0, 10, 0, 10] as [number, number, number, number]
       },
       {
         table: {
@@ -276,7 +276,7 @@ export const createHealthDeclarationPdfDefinition = (
         {
           text: 'פרטי ההורה/אפוטרופוס',
           style: 'sectionHeader',
-          margin: [0, 20, 0, 10]
+          margin: [0, 20, 0, 10] as [number, number, number, number]
         },
         {
           table: {
@@ -294,7 +294,7 @@ export const createHealthDeclarationPdfDefinition = (
       {
         text: 'תוכן ההצהרה',
         style: 'sectionHeader',
-        margin: [0, 20, 0, 10]
+        margin: [0, 20, 0, 10] as [number, number, number, number]
       },
       {
         ul: declarationItems
@@ -305,7 +305,7 @@ export const createHealthDeclarationPdfDefinition = (
         {
           text: 'הערות רפואיות',
           style: 'sectionHeader',
-          margin: [0, 20, 0, 10]
+          margin: [0, 20, 0, 10] as [number, number, number, number]
         },
         {
           text: medicalNotes
@@ -316,21 +316,21 @@ export const createHealthDeclarationPdfDefinition = (
       {
         text: 'אישור',
         style: 'sectionHeader',
-        margin: [0, 20, 0, 10]
+        margin: [0, 20, 0, 10] as [number, number, number, number]
       },
       {
         text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.'
       },
       {
         text: 'חתימת ההורה/אפוטרופוס: ________________',
-        margin: [0, 30, 0, 0]
+        margin: [0, 30, 0, 0] as [number, number, number, number]
       },
     ],
     styles: {
       header: {
         fontSize: 22,
         bold: true,
-        margin: [0, 0, 0, 10]
+        margin: [0, 0, 0, 10] as [number, number, number, number]
       },
       sectionHeader: {
         fontSize: 14,
