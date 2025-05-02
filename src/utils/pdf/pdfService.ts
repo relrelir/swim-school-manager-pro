@@ -1,15 +1,14 @@
-
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 import { alefFontBase64 } from './alefFontData';
 
 // Initialize pdfMake with the default fonts
-// Fix the TypeScript error by directly assigning the vfs
-pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : {};
+// Fix TypeScript errors by safely accessing vfs
+pdfMake.vfs = pdfFonts.pdfMake?.vfs || {};
 
 // Add the Alef font to pdfMake's virtual file system
-if (alefFontBase64 && alefFontBase64 !== "REPLACE_WITH_ACTUAL_ALEF_FONT_BASE64") {
+if (alefFontBase64) {
   // Only add if we have valid base64 data
   pdfMake.vfs['Alef-Regular.ttf'] = alefFontBase64;
 
@@ -41,7 +40,7 @@ export const makePdf = async (
     pageSize: 'A4',
     pageOrientation: 'portrait',
     pageMargins: [40, 60, 40, 60],
-    defaultStyle: { font: alefFontBase64 && alefFontBase64 !== "REPLACE_WITH_ACTUAL_ALEF_FONT_BASE64" ? 'Alef' : 'Helvetica' },
+    defaultStyle: { font: alefFontBase64 ? 'Alef' : 'Helvetica' },
     // Use RTL layout for Hebrew
     rightToLeft: true,
     ...docDefinition,
