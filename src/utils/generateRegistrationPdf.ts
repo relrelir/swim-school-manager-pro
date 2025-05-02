@@ -102,18 +102,9 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
       console.log("PDF content built successfully, filename:", fileName);
       
-      // Get PDF as blob and create download link
-      const blob = pdf.output('blob');
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      console.log("PDF downloaded successfully");
+      // Save the PDF
+      pdf.save(fileName);
+      console.log("PDF saved successfully");
       
       toast({
         title: "PDF נוצר בהצלחה",

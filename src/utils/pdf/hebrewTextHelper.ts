@@ -1,38 +1,25 @@
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * Since we're using a proper Hebrew font and RTL support, we just return the text as-is
+ * Using standard encoding for better compatibility
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
+  
+  // Simply return the text - jsPDF will handle RTL when setR2L is true
   return text;
 };
 
 /**
- * Helper function for any special text treatments needed
+ * Legacy helper function kept for backward compatibility
+ */
+export const reverseText = (text: string): string => {
+  return text || '';
+};
+
+/**
+ * Helper function specifically for tables to ensure RTL text is displayed correctly
  */
 export const prepareRtlText = (text: string): string => {
-  if (!text) return '';
-  return text; // No special treatment needed when using proper RTL and font support
-};
-
-/**
- * Helper function to check if text contains Hebrew characters
- */
-export const containsHebrew = (text: string): boolean => {
-  if (!text) return false;
-  
-  // Hebrew Unicode range: \u0590-\u05FF
-  const hebrewRegex = /[\u0590-\u05FF]/;
-  return hebrewRegex.test(text);
-};
-
-/**
- * Get proper text alignment based on content
- */
-export const getTextAlignment = (text: string): 'right' | 'left' | 'center' => {
-  if (containsHebrew(text)) {
-    return 'right'; // Hebrew text aligned right
-  }
-  return 'left'; // Default alignment for non-Hebrew
+  return text || '';
 };

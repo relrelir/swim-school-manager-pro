@@ -51,13 +51,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     setIsGeneratingRegPdf(true);
     try {
       await generateRegistrationPdf(registration.id);
-    } catch (error) {
-      console.error("Error generating registration PDF:", error);
-      toast({
-        title: "שגיאה ביצירת PDF",
-        description: "אירעה שגיאה בעת יצירת אישור הרישום",
-        variant: "destructive"
-      });
     } finally {
       setIsGeneratingRegPdf(false);
     }
