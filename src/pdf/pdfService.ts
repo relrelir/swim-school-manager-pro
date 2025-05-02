@@ -48,7 +48,7 @@ export async function makePdf(
   docDef: Partial<TDocumentDefinitions>,
   fileName: string,
   download = true
-): Promise<void | Blob> {
+): Promise<void | Buffer | Blob> {
   try {
     // Set default styles and orientation
     const definition: TDocumentDefinitions = {
@@ -76,20 +76,42 @@ export async function makePdf(
     // Create the PDF
     const pdf = pdfMake.createPdf(pdfDefinition);
     
-    if (download) {
-      // Use download method to trigger the Save As dialog
+    if (download && typeof window !== "undefined") {
+      // Fallback: generate Blob and trigger <a> click
       return new Promise<void>((resolve, reject) => {
         try {
-          pdf.download(fileName);
-          console.log("PDF download triggered:", fileName);
-          resolve();
+          pdf.getBlob((blob: Blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            console.log("PDF downloaded via Blob+anchor:", fileName);
+            resolve();
+          });
         } catch (error) {
-          console.error("Error downloading PDF:", error);
+          console.error("Error downloading PDF via Blob:", error);
+          reject(error);
+        }
+      });
+    } else if (typeof window === "undefined") {
+      // SSR / Node: return Buffer
+      return new Promise<Buffer>((resolve, reject) => {
+        try {
+          pdf.getBuffer((buffer: Buffer) => {
+            console.log("PDF Buffer created successfully");
+            resolve(buffer);
+          });
+        } catch (error) {
+          console.error("Error creating PDF buffer:", error);
           reject(error);
         }
       });
     } else {
-      // For server-side: Return Blob 
+      // Browser but not downloading: return Blob
       return new Promise<Blob>((resolve, reject) => {
         pdf.getBlob((blob) => {
           console.log("PDF blob created successfully");

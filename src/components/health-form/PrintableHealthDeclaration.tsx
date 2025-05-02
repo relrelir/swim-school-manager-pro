@@ -1,10 +1,13 @@
 
+'use client';
+
 import React, { useRef } from 'react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Printer, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import HealthDeclarationContent from './HealthDeclarationContent';
+import { makePdf } from '@/pdf/pdfService';
 
 interface PrintableHealthDeclarationProps {
   participantName: string;
@@ -32,6 +35,114 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
   // Function to handle printing
   const handlePrint = () => {
     window.print();
+  };
+
+  // Function to handle PDF download
+  const handleDownloadPdf = async () => {
+    try {
+      // Create PDF content
+      const content = [
+        // Header
+        { text: 'הצהרת בריאות', style: 'header', alignment: 'center' },
+        { text: `תאריך: ${format(submissionDate, 'dd/MM/yyyy HH:mm')}`, style: 'subheader', alignment: 'center' },
+        
+        // Participant details
+        { text: 'פרטי המשתתף', style: 'sectionHeader', margin: [0, 20, 0, 10] },
+        {
+          columns: [
+            { text: participantName, width: '*', alignment: 'right' },
+            { text: 'שם מלא:', width: 'auto', alignment: 'right', bold: true },
+          ],
+          columnGap: 10,
+        },
+        participantId ? {
+          columns: [
+            { text: participantId, width: '*', alignment: 'right' },
+            { text: 'תעודת זהות:', width: 'auto', alignment: 'right', bold: true },
+          ],
+          columnGap: 10,
+          margin: [0, 5, 0, 0]
+        } : {},
+        participantPhone ? {
+          columns: [
+            { text: participantPhone, width: '*', alignment: 'right' },
+            { text: 'טלפון:', width: 'auto', alignment: 'right', bold: true },
+          ],
+          columnGap: 10,
+          margin: [0, 5, 0, 0]
+        } : {},
+        
+        // Health declaration
+        { text: 'הצהרת בריאות', style: 'sectionHeader', margin: [0, 20, 0, 10] },
+        { text: 'אני מצהיר/ה כי בריאות ילדי תקינה ומאפשרת השתתפות בפעילות.', margin: [0, 0, 0, 10] },
+        { text: 'במידה וקיים מידע רפואי חשוב, אנא פרט:', margin: [0, 0, 0, 5], fontSize: 11 },
+        { text: formState.notes || 'אין הערות מיוחדות', margin: [0, 0, 0, 15] },
+        
+        // Parent details
+        { text: 'פרטי ההורה/אפוטרופוס', style: 'sectionHeader', margin: [0, 20, 0, 10] },
+        {
+          columns: [
+            { text: formState.parentName, width: '*', alignment: 'right' },
+            { text: 'שם מלא:', width: 'auto', alignment: 'right', bold: true },
+          ],
+          columnGap: 10,
+        },
+        {
+          columns: [
+            { text: formState.parentId, width: '*', alignment: 'right' },
+            { text: 'תעודת זהות:', width: 'auto', alignment: 'right', bold: true },
+          ],
+          columnGap: 10,
+          margin: [0, 5, 0, 0]
+        },
+        
+        // Agreement
+        { text: 'אישור', style: 'sectionHeader', margin: [0, 20, 0, 10] },
+        { text: 'אני מאשר/ת כי המידע שמסרתי לעיל הוא נכון ומדויק.', margin: [0, 0, 0, 10] },
+        
+        // Signature section
+        { text: 'חתימה:', margin: [0, 30, 0, 5], bold: true },
+        { text: '__________________________', margin: [0, 0, 0, 10] },
+        { text: 'תאריך:', margin: [0, 10, 0, 5], bold: true },
+        { text: '__________________________', margin: [0, 0, 0, 0] },
+      ];
+      
+      const styles = {
+        header: {
+          fontSize: 20,
+          bold: true,
+          margin: [0, 0, 0, 10]
+        },
+        subheader: {
+          fontSize: 12,
+          margin: [0, 0, 0, 20]
+        },
+        sectionHeader: {
+          fontSize: 14,
+          bold: true,
+          decoration: 'underline'
+        }
+      };
+
+      const fileName = `הצהרת_בריאות_${participantName.replace(/\s+/g, '_')}.pdf`;
+      
+      // Generate and download PDF
+      await makePdf({ content, styles }, fileName, true);
+      
+      toast({
+        title: "PDF נוצר בהצלחה",
+        description: "הצהרת הבריאות הורדה למחשב שלך",
+        duration: 5000
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "שגיאה ביצירת ה-PDF",
+        description: "אירעה שגיאה בעת יצירת המסמך",
+        variant: "destructive",
+        duration: 5000
+      });
+    }
   };
 
   // Function to export as image (fallback solution)
@@ -76,6 +187,10 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           <Button onClick={handlePrint} className="flex items-center gap-2">
             <Printer className="h-4 w-4" />
             הדפסה
+          </Button>
+          <Button onClick={handleDownloadPdf} variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            הורד כ-PDF
           </Button>
           <Button onClick={handleExportImage} variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
