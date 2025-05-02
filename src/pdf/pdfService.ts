@@ -1,10 +1,20 @@
 
 import pdfMake from "pdfmake/build/pdfmake";
-import pdfFonts from "pdfmake/build/vfs_fonts";
+import * as pdfFonts from "pdfmake/build/vfs_fonts";
 import type { TDocumentDefinitions, Content, StyleDictionary } from "pdfmake/interfaces";
+import { logFontDiagnostics } from '../utils/pdf/fontHelpers';
 
 // Initialize pdfMake with the fonts
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
+
+// Run font diagnostics in development
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    logFontDiagnostics();
+  } catch (e) {
+    console.error('Font diagnostics error:', e);
+  }
+}
 
 /**
  * Create and download/return a PDF
@@ -17,35 +27,38 @@ export async function makePdf(
   fileName: string,
   download = true
 ): Promise<void | Blob> {
-  // Set default styles and orientation
-  const definition: TDocumentDefinitions = {
-    pageOrientation: 'portrait',
-    defaultStyle: { 
-      font: 'Roboto',
-      ...(docDef.defaultStyle || {})
-    },
-    content: docDef.content || [],
-    ...docDef, // Merge all other properties
-  };
-  
-  // Add RTL support
-  if (definition.defaultStyle) {
-    definition.defaultStyle.alignment = 'right';
-  }
-
-  // Set page direction for RTL languages
-  definition.rightToLeft = true;
-  
-  // Create the PDF
-  const pdf = pdfMake.createPdf(definition);
-  
-  if (download) {
-    pdf.download(fileName);
-    return;
-  } else {
-    return new Promise<Blob>((resolve) => {
-      pdf.getBlob((blob) => resolve(blob));
-    });
+  try {
+    // Set default styles and orientation
+    const definition: TDocumentDefinitions = {
+      pageOrientation: 'portrait',
+      defaultStyle: { 
+        font: 'Roboto',
+        alignment: 'right', // Default alignment for RTL text
+        ...(docDef.defaultStyle || {})
+      },
+      content: docDef.content || [],
+      ...docDef, // Merge all other properties
+    };
+    
+    // Set RTL direction for Hebrew language support using the correct property
+    definition.rtl = true;
+    
+    console.log("Creating PDF with RTL support");
+    
+    // Create the PDF
+    const pdf = pdfMake.createPdf(definition);
+    
+    if (download) {
+      pdf.download(fileName);
+      return;
+    } else {
+      return new Promise<Blob>((resolve) => {
+        pdf.getBlob((blob) => resolve(blob));
+      });
+    }
+  } catch (error) {
+    console.error("Error creating PDF:", error);
+    throw new Error(`Failed to create PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 

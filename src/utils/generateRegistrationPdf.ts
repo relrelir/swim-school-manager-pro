@@ -89,13 +89,13 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       text: `מוצר: ${product.name}`, 
       style: 'productName', 
       alignment: 'center', 
-      margin: [0, 0, 0, 20] as [number, number, number, number]
+      margin: [0, 0, 0, 20] 
     });
     
     contentItems.push({ 
       text: `תאריך: ${currentDate}`, 
       alignment: 'left', 
-      margin: [0, 0, 0, 20] as [number, number, number, number]
+      margin: [0, 0, 0, 20] 
     });
     
     // Participant information
@@ -113,7 +113,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     contentItems.push({ 
       text: 'פרטי רישום:', 
       style: 'subheader', 
-      margin: [0, 20, 0, 10] as [number, number, number, number]
+      margin: [0, 20, 0, 10] 
     });
     
     contentItems.push(createTableData(
@@ -132,7 +132,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       contentItems.push({ 
         text: 'פרטי תשלומים:', 
         style: 'subheader', 
-        margin: [0, 20, 0, 10] as [number, number, number, number]
+        margin: [0, 20, 0, 10] 
       });
       
       contentItems.push(createTableData(
@@ -146,7 +146,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', 
       style: 'footer', 
       alignment: 'center', 
-      margin: [0, 30, 0, 0] as [number, number, number, number]
+      margin: [0, 30, 0, 0] 
     });
     
     // Create PDF document definition with properly typed styles
@@ -154,7 +154,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       header: { 
         fontSize: 18, 
         bold: true, 
-        margin: [0, 0, 0, 10] as [number, number, number, number]
+        margin: [0, 0, 0, 10] 
       },
       productName: { 
         fontSize: 16, 
@@ -163,7 +163,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       subheader: { 
         fontSize: 14, 
         bold: true, 
-        margin: [0, 10, 0, 10] as [number, number, number, number]
+        margin: [0, 10, 0, 10] 
       },
       tableHeader: { 
         bold: true, 

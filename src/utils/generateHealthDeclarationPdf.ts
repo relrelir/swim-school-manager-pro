@@ -137,7 +137,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         text: 'אישור', 
         style: 'subheader', 
         margin: [0, 20, 0, 10] 
-      });
+        });
       
       contentItems.push({ 
         text: 'אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.', 
@@ -155,12 +155,12 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         header: { 
           fontSize: 18, 
           bold: true, 
-          margin: [0, 0, 0, 10] as [number, number, number, number]
+          margin: [0, 0, 0, 10] 
         },
         subheader: { 
           fontSize: 14, 
           bold: true, 
-          margin: [0, 10, 0, 5] as [number, number, number, number]
+          margin: [0, 10, 0, 5] 
         },
         tableHeader: { 
           bold: true, 
