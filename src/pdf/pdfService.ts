@@ -58,11 +58,9 @@ export async function makePdf(
       ...docDef, // Merge all other properties
       // Add RTL support
       pageOrientation: 'portrait',
-      pageSize: {
-        // Remove pageOrientation from pageSize object as it's not a valid property
-        // of CustomPageSize type in TDocumentDefinitions
-        direction: 'rtl'
-      },
+      // Remove the pageSize object with direction property as it's not valid
+      // and use rtl property instead at the document level
+      rtl: true, // Enable RTL for the whole document
       // Ensure document info is properly typed
       info: {
         ...(docDef.info || {})

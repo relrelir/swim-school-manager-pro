@@ -52,54 +52,42 @@ export async function fetchHealthDeclarationData(declarationId: string): Promise
     // Extract parent info from notes
     const { parentName, parentId } = parseParentInfo(healthDeclaration.notes);
     
-    // Try to find registration by health declaration's registration_id if it exists
-    let registrationId = healthDeclaration.registration_id;
+    // First try to find registration directly by participant_id
+    // Note: participant_id in health_declarations sometimes refers to registration ID
+    let registrationId = healthDeclaration.participant_id;
     
-    // If registration_id doesn't exist, try using participant_id as fallback
-    if (!registrationId && healthDeclaration.participant_id) {
-      registrationId = healthDeclaration.participant_id;
-    }
-
-    // Now fetch participant details
-    const { data: participant, error: participantError } = await supabase
-      .from('participants')
+    // Now fetch participant details - try two approaches to be safe
+    
+    // First, try to find registration and participant through querying registrations table
+    const { data: registration, error: regError } = await supabase
+      .from('registrations')
       .select('*')
-      .eq('id', healthDeclaration.participant_id)
+      .eq('id', registrationId)
       .maybeSingle();
-
-    if (participantError || !participant) {
-      console.error("Participant not found for health declaration:", healthDeclaration.participant_id);
+    
+    // If found the registration, use it to get the participant
+    if (registration && !regError) {
+      console.log("Found registration via direct ID match:", registration);
       
-      // Try to find registration by health declaration id as fallback
-      const { data: registrations, error: regError } = await supabase
-        .from('registrations')
-        .select('*')
-        .eq('id', registrationId)
-        .maybeSingle();
-        
-      if (regError || !registrations) {
-        console.error("Registration not found for health declaration:", registrationId);
-        throw new Error("פרטי הרישום לא נמצאו");
-      }
-      
-      // Now fetch the participant using the registration's participantid
-      const { data: participantFromReg, error: partRegError } = await supabase
+      const { data: participant, error: partError } = await supabase
         .from('participants')
         .select('*')
-        .eq('id', registrations.participantid)
+        .eq('id', registration.participantid)
         .maybeSingle();
-        
-      if (partRegError || !participantFromReg) {
-        console.error("Cannot find participant information:", partRegError);
+      
+      if (partError || !participant) {
+        console.error("Error finding participant via registration:", partError);
         throw new Error("פרטי המשתתף לא נמצאו");
       }
       
-      // Use the participant data we found
+      console.log("Found participant via registration:", participant);
+      
+      // Format the data for PDF generation
       return {
         participant: {
-          fullName: `${participantFromReg.firstname || ''} ${participantFromReg.lastname || ''}`.trim(),
-          idNumber: participantFromReg.idnumber || '',
-          phone: participantFromReg.phone || '',
+          fullName: `${participant.firstname || ''} ${participant.lastname || ''}`.trim(),
+          idNumber: participant.idnumber || '',
+          phone: participant.phone || '',
         },
         parentInfo: {
           parentName: parentName || '',
@@ -111,13 +99,27 @@ export async function fetchHealthDeclarationData(declarationId: string): Promise
         medicalNotes: healthDeclaration.notes || '',
       };
     }
-
-    // Format the data for PDF generation
+    
+    // Second approach: Try to find participant directly
+    const { data: directParticipant, error: directPartError } = await supabase
+      .from('participants')
+      .select('*')
+      .eq('id', healthDeclaration.participant_id)
+      .maybeSingle();
+    
+    if (directPartError || !directParticipant) {
+      console.error("Participant not found directly or via registration:", healthDeclaration.participant_id);
+      throw new Error("פרטי המשתתף לא נמצאו");
+    }
+    
+    console.log("Found participant directly:", directParticipant);
+    
+    // Format the data for PDF generation using directly found participant
     return {
       participant: {
-        fullName: `${participant.firstname || ''} ${participant.lastname || ''}`.trim(),
-        idNumber: participant.idnumber || '',
-        phone: participant.phone || '',
+        fullName: `${directParticipant.firstname || ''} ${directParticipant.lastname || ''}`.trim(),
+        idNumber: directParticipant.idnumber || '',
+        phone: directParticipant.phone || '',
       },
       parentInfo: {
         parentName: parentName || '',
