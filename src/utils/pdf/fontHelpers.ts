@@ -43,8 +43,8 @@ export const logFontDiagnostics = (): void => {
   try {
     // Check for pdfMake global
     if (typeof window !== 'undefined') {
-      // @ts-ignore - pdfMake might be on window
-      const pdfMakeExists = !!window.pdfMake;
+      // Check if pdfMake exists on window
+      const pdfMakeExists = typeof (window as any).pdfMake !== 'undefined';
       console.log('- pdfMake loaded:', pdfMakeExists);
       
       // Try to import pdfMake dynamically to check if it's available
@@ -69,7 +69,7 @@ export const logFontDiagnostics = (): void => {
         if (vfsFonts && typeof vfsFonts === 'object') {
           if ('vfs' in vfsFonts) {
             console.log('- VFS fonts available through direct vfs property');
-          } else if (vfsFonts.pdfMake && vfsFonts.pdfMake.vfs) {
+          } else if ('pdfMake' in vfsFonts && vfsFonts.pdfMake && 'vfs' in (vfsFonts.pdfMake as any)) {
             console.log('- VFS fonts available through pdfMake.vfs property');
           } else {
             console.log('- VFS fonts structure in unexpected format:', Object.keys(vfsFonts));
