@@ -32,7 +32,6 @@ try {
   // Hebrew support font added
   NotoHebrew: {
     normal: 'NotoSansHebrew-Regular.ttf',
-    // Using the same font for all styles to prevent errors
     bold: 'NotoSansHebrew-Regular.ttf',
     italics: 'NotoSansHebrew-Regular.ttf',
     bolditalics: 'NotoSansHebrew-Regular.ttf'
@@ -68,11 +67,9 @@ export async function makePdf(
     };
     
     // For Hebrew support, we need to correctly handle RTL
-    // Create a plain object to add the rtl property which isn't in the TypeScript definitions
-    const pdfDefinition = { ...definition };
-    
-    // Add RTL support by casting to any to avoid TypeScript errors
-    (pdfDefinition as any).rtl = true;
+    const pdfDefinition = definition as any;
+    // Add RTL support explicitly
+    pdfDefinition.rtl = true;
     
     console.log("Creating PDF with RTL and Hebrew support", fileName);
     
@@ -80,19 +77,19 @@ export async function makePdf(
     const pdf = pdfMake.createPdf(pdfDefinition);
     
     if (download) {
-      // Use the open method instead of download for more reliable functionality
+      // Use download method to trigger the Save As dialog
       return new Promise<void>((resolve, reject) => {
         try {
-          // Force immediate download by opening in new window with download attribute
-          pdf.open({}, window);
-          console.log("PDF opened for download:", fileName);
+          pdf.download(fileName);
+          console.log("PDF download triggered:", fileName);
           resolve();
         } catch (error) {
-          console.error("Error opening PDF:", error);
+          console.error("Error downloading PDF:", error);
           reject(error);
         }
       });
     } else {
+      // For server-side: Return Blob 
       return new Promise<Blob>((resolve, reject) => {
         pdf.getBlob((blob) => {
           console.log("PDF blob created successfully");
