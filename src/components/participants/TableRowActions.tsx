@@ -1,6 +1,4 @@
 
-'use client';
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Registration } from '@/types';
@@ -46,22 +44,13 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     
     // Update state
     setHasHealthDeclaration(declarationExists);
-  }, [registration.id, registration.participantId, getHealthDeclarationForRegistration, healthDeclarations]);
+  }, [registration.id, getHealthDeclarationForRegistration, healthDeclarations]);
 
   // Handle download registration PDF
   const handleGenerateRegPdf = async () => {
     setIsGeneratingRegPdf(true);
     try {
       await generateRegistrationPdf(registration.id);
-    } catch (error) {
-      console.error("Error generating registration PDF:", error);
-      toast({
-        title: "שגיאה",
-        description: error instanceof Error && error.message === "RegistrationNotFound" 
-          ? "הרישום לא נמצא במסד הנתונים" 
-          : "שגיאה בהפקת אישור רישום",
-        variant: "destructive"
-      });
     } finally {
       setIsGeneratingRegPdf(false);
     }
@@ -96,13 +85,16 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       
       console.log("Generating PDF for health declaration ID:", healthDeclaration.id);
       await generateHealthDeclarationPdf(healthDeclaration.id);
+      
+      toast({
+        title: "הצהרת הבריאות נוצרה בהצלחה",
+        description: "המסמך נשמר למכשיר שלך"
+      });
     } catch (error) {
       console.error("Error generating health declaration PDF:", error);
       toast({
         title: "שגיאה ביצירת הצהרת בריאות",
-        description: error instanceof Error && error.message === "RegistrationNotFound" 
-          ? "הרישום לא נמצא במסד הנתונים" 
-          : "אירעה שגיאה בעת יצירת המסמך",
+        description: "אירעה שגיאה בעת יצירת המסמך",
         variant: "destructive"
       });
     } finally {

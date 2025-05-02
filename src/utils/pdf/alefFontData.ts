@@ -1,7 +1,7 @@
 
 import { jsPDF } from 'jspdf';
 
-// Function to configure jsPDF for Hebrew text support
+// Function to configure jsPDF for Hebrew text support with standard fonts
 export const configureHebrewFont = (pdf: jsPDF): void => {
   try {
     console.log("Configuring PDF for Hebrew text support");
@@ -9,21 +9,20 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Set RTL mode for Hebrew text direction
     pdf.setR2L(true);
     
-    // Use standard font that better supports Hebrew
+    // Use standard font that supports Hebrew characters better
     pdf.setFont('helvetica');
     
-    // Set font size for better readability
-    pdf.setFontSize(12); 
-    
     // Add PDF metadata with Hebrew titles
-    // Using basic Latin characters for metadata to avoid encoding issues
     pdf.setProperties({
-      title: 'Health Declaration',
-      subject: 'Health Declaration Form',
-      creator: 'Management System'
+      title: 'הצהרת בריאות',
+      subject: 'הצהרת בריאות',
+      creator: 'מערכת ניהול'
     });
     
-    // Configure line height for better spacing with Hebrew text
+    // Increase font size slightly for better readability with Hebrew text
+    pdf.setFontSize(14);
+    
+    // Set line height for better spacing with Hebrew text
     // @ts-ignore - property exists but might not be in types
     if (pdf.setLineHeightFactor) {
       pdf.setLineHeightFactor(1.5);
@@ -32,7 +31,7 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Set text color to ensure better contrast
     pdf.setTextColor(0, 0, 0);
     
-    console.log("Hebrew font configuration completed with RTL support");
+    console.log("Hebrew font configuration applied with RTL support");
   } catch (error) {
     console.error("Error configuring Hebrew font:", error);
     // Fallback to basic configuration

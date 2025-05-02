@@ -1,66 +1,133 @@
 
+import { supabase } from '@/integrations/supabase/client';
+import { createRtlPdf } from './pdf/pdfConfig';
+import { buildRegistrationPDF } from './pdf/registrationPdfContentBuilder';
 import { toast } from "@/components/ui/use-toast";
-import { makePdf } from '@/pdf/pdfService';
-import { fetchRegistrationData } from './pdf/registration/registrationDataFetcher';
-import { buildRegistrationContent } from './pdf/registration/registrationContentBuilder';
+import { Registration, Participant, Payment } from '@/types';
 
-/**
- * Generates a registration PDF from registration ID
- */
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
     console.log("Starting registration PDF generation for ID:", registrationId);
     
-    if (!registrationId) {
-      throw new Error("RegistrationIdMissing");
+    // Get the registration details
+    const { data: registration, error: registrationError } = await supabase
+      .from('registrations')
+      .select('*')
+      .eq('id', registrationId)
+      .single();
+    
+    if (registrationError || !registration) {
+      console.error("Registration details not found:", registrationError);
+      throw new Error('פרטי הרישום לא נמצאו');
     }
     
-    // Step 1: Fetch all required data
-    const { registration, participant, payments } = await fetchRegistrationData(registrationId);
+    // Get participant details
+    const { data: participant, error: participantError } = await supabase
+      .from('participants')
+      .select('*')
+      .eq('id', registration.participantid)
+      .single();
     
-    console.log("Data fetched successfully, creating PDF content...");
+    if (participantError || !participant) {
+      console.error("Participant details not found:", participantError);
+      throw new Error('פרטי המשתתף לא נמצאו');
+    }
     
-    // Step 2: Build PDF content structure
-    const { content, styles, fileName } = buildRegistrationContent(
-      registration,
-      participant, 
-      payments
-    );
+    // Get payment details
+    const { data: payments, error: paymentsError } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('registrationid', registrationId)
+      .order('paymentdate', { ascending: false });
     
-    // Step 3: Generate and download the PDF
-    console.log("Generating registration PDF with file name:", fileName);
-    await makePdf({ content, styles }, fileName, true);
+    if (paymentsError) {
+      console.error("Error loading payments:", paymentsError);
+      throw new Error('אירעה שגיאה בטעינת פרטי התשלומים');
+    }
     
-    console.log("PDF generated successfully");
-    toast({
-      title: "PDF נוצר בהצלחה",
-      description: "אישור הרישום נשמר במכשיר שלך",
-      duration: 5000, // Show the toast for a longer time
-    });
+    // Get product name
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('name')
+      .eq('id', registration.productid)
+      .single();
     
-    return fileName;
+    if (productError || !product) {
+      console.error("Product details not found:", productError);
+      throw new Error('פרטי המוצר לא נמצאו');
+    }
+    
+    console.log("Data fetched successfully, creating PDF...");
+    
+    // Adapt database fields to our Registration type
+    const registrationData: Registration = {
+      id: registration.id,
+      productId: registration.productid,
+      participantId: registration.participantid,
+      registrationDate: registration.registrationdate,
+      requiredAmount: registration.requiredamount,
+      paidAmount: registration.paidamount,
+      discountApproved: registration.discountapproved,
+      discountAmount: registration.discountamount,
+      receiptNumber: registration.receiptnumber
+    };
+    
+    // Adapt database fields to our Participant type
+    const participantData: Participant = {
+      id: participant.id,
+      firstName: participant.firstname,
+      lastName: participant.lastname,
+      idNumber: participant.idnumber,
+      phone: participant.phone,
+      healthApproval: participant.healthapproval
+    };
+    
+    // Adapt database fields to our Payment type
+    const paymentsData: Payment[] = payments ? payments.map(payment => ({
+      id: payment.id,
+      registrationId: payment.registrationid,
+      paymentDate: payment.paymentdate,
+      amount: payment.amount,
+      receiptNumber: payment.receiptnumber
+    })) : [];
+    
+    try {
+      // Create the PDF document with RTL and font support
+      console.log("Creating PDF with RTL support");
+      const pdf = createRtlPdf();
+      console.log("PDF object created successfully");
+      
+      // Build the PDF content
+      console.log("Building PDF content with product name:", product.name);
+      const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
+      console.log("PDF content built successfully, filename:", fileName);
+      
+      // Save the PDF
+      pdf.save(fileName);
+      console.log("PDF saved successfully");
+      
+      toast({
+        title: "PDF נוצר בהצלחה",
+        description: "אישור הרישום נשמר במכשיר שלך",
+      });
+      
+      return fileName;
+    } catch (error) {
+      console.error('Error building registration PDF:', error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה ביצירת PDF",
+        description: "נא לנסות שוב מאוחר יותר",
+      });
+      throw new Error('אירעה שגיאה ביצירת מסמך ה-PDF');
+    }
   } catch (error) {
     console.error('Error generating registration PDF:', error);
-    
-    // Determine error message based on error type
-    let errorMessage = 'אירעה שגיאה ביצירת ה-PDF';
-    if (error instanceof Error) {
-      if (error.message === "RegistrationNotFound") {
-        errorMessage = "הרישום לא נמצא במסד הנתונים";
-      } else if (error.message === "RegistrationIdMissing") {
-        errorMessage = "מזהה הרישום חסר";
-      } else {
-        errorMessage = `שגיאה: ${error.message}`;
-      }
-    }
-    
     toast({
       title: "שגיאה",
-      description: errorMessage,
+      description: error instanceof Error ? error.message : 'אירעה שגיאה ביצירת ה-PDF',
       variant: "destructive",
-      duration: 5000, // Show the toast for a longer time
     });
-    
     throw error;
   }
 };

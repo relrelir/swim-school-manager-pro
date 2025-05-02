@@ -1,11 +1,10 @@
 
-'use client';
-
 import React, { useRef } from 'react';
+import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Printer, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import HealthPrintControls from './HealthPrintControls';
-import PrintableContent from './PrintableContent';
-import { generateHealthDeclarationPdf } from '@/services/healthDeclarationPdfService';
+import HealthDeclarationContent from './HealthDeclarationContent';
 
 interface PrintableHealthDeclarationProps {
   participantName: string;
@@ -33,33 +32,6 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
   // Function to handle printing
   const handlePrint = () => {
     window.print();
-  };
-
-  // Function to handle PDF download
-  const handleDownloadPdf = async () => {
-    try {
-      await generateHealthDeclarationPdf(
-        participantName,
-        participantId,
-        participantPhone,
-        formState,
-        submissionDate
-      );
-      
-      toast({
-        title: "PDF נוצר בהצלחה",
-        description: "הצהרת הבריאות הורדה למחשב שלך",
-        duration: 5000
-      });
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      toast({
-        title: "שגיאה ביצירת ה-PDF",
-        description: "אירעה שגיאה בעת יצירת המסמך",
-        variant: "destructive",
-        duration: 5000
-      });
-    }
   };
 
   // Function to export as image (fallback solution)
@@ -95,33 +67,65 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
     }
   };
 
-  // Dummy handlers for HealthDeclarationContent component
-  // These are needed since we're reusing HealthDeclarationContent component
-  // but don't actually need the handlers in the printable version
-  const dummyHandler = () => {};
-
   return (
     <div className="p-4 max-w-3xl mx-auto" dir="rtl">
       {/* Control buttons - hidden when printing */}
-      <HealthPrintControls 
-        onPrint={handlePrint}
-        onDownloadPdf={handleDownloadPdf}
-        onExportImage={handleExportImage}
-      />
+      <div className="flex justify-between mb-6 print:hidden">
+        <h1 className="text-2xl font-bold">הצהרת בריאות</h1>
+        <div className="flex gap-2">
+          <Button onClick={handlePrint} className="flex items-center gap-2">
+            <Printer className="h-4 w-4" />
+            הדפסה
+          </Button>
+          <Button onClick={handleExportImage} variant="outline" className="flex items-center gap-2">
+            <Download className="h-4 w-4" />
+            שמירה כתמונה
+          </Button>
+        </div>
+      </div>
 
       {/* Printable content */}
-      <PrintableContent
-        participantName={participantName}
-        participantId={participantId}
-        participantPhone={participantPhone}
-        formState={formState}
-        submissionDate={submissionDate}
-        contentRef={printRef}
-        handleAgreementChange={dummyHandler}
-        handleNotesChange={dummyHandler}
-        handleParentNameChange={dummyHandler}
-        handleParentIdChange={dummyHandler}
-      />
+      <div 
+        ref={printRef} 
+        className="bg-white p-6 border rounded-md shadow-sm print:shadow-none print:border-none print:p-0"
+        dir="rtl"
+      >
+        {/* Header with logo and title - visible when printing */}
+        <div className="mb-6 text-center border-b pb-4">
+          <h1 className="text-2xl font-bold mb-2">הצהרת בריאות</h1>
+          <p className="text-sm text-gray-500">
+            {`תאריך: ${format(submissionDate, 'dd/MM/yyyy HH:mm')}`}
+          </p>
+        </div>
+
+        {/* Health declaration content */}
+        <div className="print-content">
+          <HealthDeclarationContent
+            participantName={participantName}
+            participantId={participantId}
+            participantPhone={participantPhone}
+            formState={formState}
+            handleAgreementChange={() => {}}
+            handleNotesChange={() => {}}
+            handleParentNameChange={() => {}}
+            handleParentIdChange={() => {}}
+          />
+        </div>
+
+        {/* Signature section - only visible when printing */}
+        <div className="mt-8 pt-4 border-t">
+          <div className="flex flex-col gap-8">
+            <div>
+              <p className="font-semibold mb-1">חתימת ההורה/אפוטרופוס:</p>
+              <div className="h-10 border-b border-dashed border-gray-400 w-64"></div>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">תאריך:</p>
+              <div className="h-10 border-b border-dashed border-gray-400 w-32"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

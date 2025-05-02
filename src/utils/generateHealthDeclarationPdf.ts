@@ -1,66 +1,83 @@
 
+import { supabase } from '@/integrations/supabase/client';
+import { createRtlPdf } from './pdf/pdfConfig';
+import { buildHealthDeclarationPDF } from './pdf/healthDeclarationContentBuilder';
 import { toast } from "@/components/ui/use-toast";
-import { makePdf } from '@/pdf/pdfService';
-import { fetchHealthDeclarationData } from './pdf/healthDeclaration/healthDeclarationDataFetcher';
-import { buildHealthDeclarationContent } from './pdf/healthDeclaration/healthDeclarationContentBuilder';
 
-/**
- * Generates a health declaration PDF from a declaration ID
- * @param healthDeclarationId The ID of the health declaration
- * @returns The filename of the generated PDF
- */
-export const generateHealthDeclarationPdf = async (healthDeclarationId: string): Promise<string> => {
+export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
   try {
     console.log("Starting health declaration PDF generation for declaration ID:", healthDeclarationId);
     
     if (!healthDeclarationId) {
-      throw new Error("HealthDeclarationIdMissing");
+      console.error("Health declaration ID is missing or invalid");
+      throw new Error('מזהה הצהרת הבריאות חסר או לא תקין');
     }
     
-    // Step 1: Fetch all required data
-    const healthDeclarationData = await fetchHealthDeclarationData(healthDeclarationId);
+    // Get the health declaration directly by ID - this should be more reliable than searching by registration ID
+    let { data: healthDeclaration, error: healthDeclarationError } = await supabase
+      .from('health_declarations')
+      .select('id, participant_id, submission_date, notes, form_status')
+      .eq('id', healthDeclarationId)
+      .single();
     
-    console.log("Data fetched successfully, creating PDF content...");
+    if (healthDeclarationError || !healthDeclaration) {
+      console.error("Health declaration not found by ID:", healthDeclarationError, healthDeclarationId);
+      throw new Error('הצהרת בריאות לא נמצאה');
+    }
     
-    // Step 2: Build PDF content structure
-    const { content, styles, fileName } = buildHealthDeclarationContent(healthDeclarationData);
+    console.log("Found health declaration:", healthDeclaration);
     
-    // Step 3: Generate and download the PDF
-    console.log("Generating health declaration PDF with file name:", fileName);
+    // Get participant details - use participant_id from the health declaration
+    const { data: participant, error: participantError } = await supabase
+      .from('participants')
+      .select('firstname, lastname, idnumber, phone')
+      .eq('id', healthDeclaration.participant_id)
+      .single();
     
-    // Force download with a boolean parameter
-    await makePdf({ content, styles }, fileName, true);
+    if (participantError || !participant) {
+      console.error("Participant details not found:", participantError);
+      throw new Error('פרטי המשתתף לא נמצאו');
+    }
     
-    console.log("PDF generated successfully");
-    toast({
-      title: "PDF נוצר בהצלחה",
-      description: "הצהרת הבריאות נשמרה במכשיר שלך",
-      duration: 5000, // Show the toast for a longer time
-    });
+    console.log("Data fetched successfully. Participant:", participant);
     
-    return fileName;
+    try {
+      // Create the PDF document with RTL and font support
+      console.log("Creating PDF with RTL support");
+      const pdf = createRtlPdf();
+      console.log("PDF object created successfully");
+      
+      // Build the PDF content
+      console.log("Building PDF content");
+      const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
+      console.log("PDF content built successfully, filename:", fileName);
+      
+      // Save the PDF
+      pdf.save(fileName);
+      console.log("PDF saved successfully");
+      
+      toast({
+        title: "PDF נוצר בהצלחה",
+        description: "הצהרת הבריאות נשמרה במכשיר שלך",
+      });
+      
+      return fileName;
+    } catch (error) {
+      console.error('Error during PDF generation:', error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה ביצירת PDF",
+        description: "נא לנסות שוב מאוחר יותר",
+      });
+      throw new Error('אירעה שגיאה ביצירת מסמך ה-PDF');
+    }
   } catch (error) {
-    console.error('Error generating health declaration PDF:', error);
-    
-    // Determine error message based on error type
-    let errorMessage = 'אירעה שגיאה ביצירת ה-PDF';
-    if (error instanceof Error) {
-      if (error.message === "הצהרת בריאות לא נמצאה" || error.message.includes("לא נמצא")) {
-        errorMessage = error.message;
-      } else if (error.message === "HealthDeclarationIdMissing") {
-        errorMessage = "מזהה הצהרת הבריאות חסר";
-      } else {
-        errorMessage = `שגיאה: ${error.message}`;
-      }
-    }
-    
+    console.error('Error in generateHealthDeclarationPdf:', error);
     toast({
       title: "שגיאה",
-      description: errorMessage,
+      description: error instanceof Error ? error.message : 'אירעה שגיאה ביצירת ה-PDF',
       variant: "destructive",
-      duration: 5000, // Show the toast for a longer time
     });
-    
     throw error;
   }
 };

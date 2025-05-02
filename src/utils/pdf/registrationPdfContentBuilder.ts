@@ -1,25 +1,22 @@
 
-import type { Registration, Participant, Payment } from '@/types';
+import { jsPDF } from 'jspdf';
+import { Registration, Participant, Payment } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
-import type { Content, StyleDictionary } from 'pdfmake/interfaces';
-
-interface PdfContentResult {
-  content: Content[];
-  styles: StyleDictionary;
-  fileName: string;
-}
+import { addPdfTitle, addPdfDate, addSectionTitle, createDataTable, createPlainTextTable } from './pdfHelpers';
 
 /**
- * Builds the content for a registration PDF
+ * Builds a registration PDF with participant and payment information
  */
-export const buildRegistrationContent = (
+export function buildRegistrationPDF(
+  pdf: jsPDF,
   registration: Registration,
   participant: Participant,
-  payments: Payment[]
-): PdfContentResult => {
+  payments: Payment[],
+  productName: string
+): string {
   try {
-    console.log("Building registration PDF content...");
+    console.log("Building registration PDF...");
     
     // Format current date for display
     const currentDate = format(new Date(), 'dd/MM/yyyy');
@@ -27,147 +24,82 @@ export const buildRegistrationContent = (
     // Create a filename
     const fileName = `registration_${participant.firstName}_${participant.lastName}_${registration.id.substring(0, 8)}.pdf`;
     
-    // Prepare the content array
-    const contentItems: Content[] = [];
+    // Add PDF title
+    addPdfTitle(pdf, 'אישור רישום למוצר');
+    console.log("Title added to PDF");
     
-    // Add title
-    contentItems.push({ 
-      text: 'אישור רישום', 
-      style: 'header', 
-      alignment: 'center' 
-    });
+    // Add date to document
+    addPdfDate(pdf, currentDate);
     
-    // Add date
-    contentItems.push({ 
-      text: `תאריך: ${currentDate}`, 
-      alignment: 'left', 
-      margin: [0, 0, 0, 20] 
-    });
+    // Add product name
+    pdf.setFontSize(16);
+    pdf.text(`מוצר: ${productName}`, pdf.internal.pageSize.width / 2, 35, { align: 'center' });
     
-    // Add participant section
-    contentItems.push({ 
-      text: 'פרטי משתתף', 
-      style: 'subheader', 
-      margin: [0, 10, 0, 10] 
-    });
+    // Participant information section
+    addSectionTitle(pdf, 'פרטי משתתף:', 50);
     
-    // Add participant table
-    contentItems.push({
-      table: {
-        headerRows: 1,
-        widths: ['*', '*', '*'],
-        body: [
-          [
-            { text: 'שם מלא', style: 'tableHeader', alignment: 'right' },
-            { text: 'תעודת זהות', style: 'tableHeader', alignment: 'right' },
-            { text: 'טלפון', style: 'tableHeader', alignment: 'right' }
-          ],
-          [
-            { text: `${participant.firstName} ${participant.lastName}`, alignment: 'right' },
-            { text: participant.idNumber, alignment: 'right' },
-            { text: participant.phone, alignment: 'right' }
-          ]
-        ]
-      },
-      layout: 'lightHorizontalLines',
-      margin: [0, 0, 0, 20]
-    });
+    // Create participant data
+    const participantData = [
+      ['שם מלא:', `${participant.firstName} ${participant.lastName}`],
+      ['תעודת זהות:', participant.idNumber],
+      ['טלפון:', participant.phone],
+    ];
     
-    // Registration information section
-    contentItems.push({ 
-      text: 'פרטי רישום', 
-      style: 'subheader', 
-      margin: [0, 10, 0, 10] 
-    });
+    // Create table with participant data
+    let yPosition = createDataTable(pdf, participantData, 55);
+    console.log("Added participant data");
+    
+    // Registration information
+    addSectionTitle(pdf, 'פרטי רישום:', yPosition + 15);
     
     // Calculate effective required amount (after discount)
     const discountAmount = registration.discountAmount || 0;
     const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
     
     const registrationData = [
-      ['תאריך רישום', format(new Date(registration.registrationDate), 'dd/MM/yyyy')],
-      ['סכום מקורי', formatCurrency(registration.requiredAmount)],
-      ['הנחה', registration.discountApproved ? formatCurrency(discountAmount) : 'לא'],
-      ['סכום לתשלום', formatCurrency(effectiveRequiredAmount)],
-      ['סכום ששולם', formatCurrency(registration.paidAmount)],
+      ['תאריך רישום:', format(new Date(registration.registrationDate), 'dd/MM/yyyy')],
+      ['סכום מקורי:', formatCurrency(registration.requiredAmount)],
+      ['הנחה:', registration.discountApproved ? formatCurrency(discountAmount) : 'לא'],
+      ['סכום לתשלום:', formatCurrency(effectiveRequiredAmount)],
+      ['סכום ששולם:', formatCurrency(registration.paidAmount)],
     ];
     
-    contentItems.push({
-      table: {
-        widths: ['auto', '*'],
-        body: registrationData.map(row => [
-          { text: row[0], alignment: 'right', bold: true },
-          { text: row[1], alignment: 'right' }
-        ])
-      },
-      layout: 'lightHorizontalLines',
-      margin: [0, 0, 0, 20]
-    });
+    // Create table with registration data
+    yPosition = createDataTable(pdf, registrationData, yPosition + 20);
+    console.log("Added registration data");
     
     // Payment details section
     if (payments.length > 0) {
-      contentItems.push({ 
-        text: 'פרטי תשלומים', 
-        style: 'subheader', 
-        margin: [0, 10, 0, 10] 
-      });
+      addSectionTitle(pdf, 'פרטי תשלומים:', yPosition + 15);
       
-      const paymentTableBody = [
-        [
-          { text: 'תאריך תשלום', style: 'tableHeader', alignment: 'right' },
-          { text: 'מספר קבלה', style: 'tableHeader', alignment: 'right' },
-          { text: 'סכום', style: 'tableHeader', alignment: 'right' }
-        ],
-        ...payments.map(payment => [
-          { text: format(new Date(payment.paymentDate), 'dd/MM/yyyy'), alignment: 'right' },
-          { text: payment.receiptNumber, alignment: 'right' },
-          { text: formatCurrency(payment.amount), alignment: 'right' }
-        ])
-      ];
+      // Create payment details table header
+      const paymentHeaders = [[
+        'תאריך תשלום', 
+        'מספר קבלה', 
+        'סכום'
+      ]];
       
-      contentItems.push({
-        table: {
-          headerRows: 1,
-          widths: ['*', '*', '*'],
-          body: paymentTableBody
-        },
-        layout: 'lightHorizontalLines',
-        margin: [0, 0, 0, 20]
-      });
+      // Create payment details rows
+      const paymentData = payments.map(payment => [
+        format(new Date(payment.paymentDate), 'dd/MM/yyyy'),
+        payment.receiptNumber,
+        formatCurrency(payment.amount)
+      ]);
+      
+      // Create table with payment data and headers
+      yPosition = createDataTable(pdf, [...paymentHeaders, ...paymentData], yPosition + 20, true);
+      console.log("Added payments data");
     }
     
     // Add footer
-    contentItems.push({ 
-      text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', 
-      alignment: 'center',
-      margin: [0, 30, 0, 0] 
-    });
+    const footerText = 'מסמך זה מהווה אישור רשמי על רישום ותשלום.';
+    pdf.setFontSize(10);
+    pdf.text(footerText, pdf.internal.pageSize.width / 2, pdf.internal.pageSize.height - 20, { align: 'center' });
+    console.log("Added footer");
     
-    // Define styles
-    const styles: StyleDictionary = {
-      header: { 
-        fontSize: 18, 
-        bold: true, 
-        margin: [0, 0, 0, 10] 
-      },
-      subheader: { 
-        fontSize: 14, 
-        bold: true, 
-        margin: [0, 10, 0, 5] 
-      },
-      tableHeader: { 
-        bold: true, 
-        fillColor: '#f5f5f5' 
-      }
-    };
-    
-    return {
-      content: contentItems,
-      styles,
-      fileName
-    };
+    return fileName;
   } catch (error) {
-    console.error('Error building registration PDF content:', error);
-    throw new Error('אירעה שגיאה בבניית תוכן ה-PDF');
+    console.error('Error in buildRegistrationPDF:', error);
+    throw error;
   }
-};
+}
