@@ -44,7 +44,7 @@ export const makePdf = async (
     // Use RTL layout for Hebrew
     rightToLeft: true,
     ...docDefinition,
-  };
+  } as TDocumentDefinitions; // Cast to avoid TypeScript error with rightToLeft
 
   const pdf = pdfMake.createPdf(fullDocDefinition);
 

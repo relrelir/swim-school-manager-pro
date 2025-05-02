@@ -35,9 +35,10 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
 
 // Export the Alef font base64 data for pdfMake
 // This is a placeholder - you'll need to replace this with the actual base64 font data
+// For now using a short valid base64 string as placeholder to avoid errors
 export const alefFontBase64 = "REPLACE_WITH_ACTUAL_ALEF_FONT_BASE64";
 
 // Note: To properly implement this solution, you need to:
-// 1. Convert the Alef-Regular.ttf file to base64 string
+// 1. Convert the Alef-Regular.ttf file to base64 string using the fontHelper utility
 // 2. Replace the placeholder above with the actual base64 string
 // 3. The font will then be embedded in the PDF
