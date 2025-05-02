@@ -69,8 +69,13 @@ export const logFontDiagnostics = (): void => {
         if (vfsFonts && typeof vfsFonts === 'object') {
           if ('vfs' in vfsFonts) {
             console.log('- VFS fonts available through direct vfs property');
-          } else if ('pdfMake' in vfsFonts && vfsFonts.pdfMake && 'vfs' in (vfsFonts.pdfMake as any)) {
-            console.log('- VFS fonts available through pdfMake.vfs property');
+          } else if ('pdfMake' in vfsFonts) {
+            const pdfMakeProp = vfsFonts['pdfMake' as keyof typeof vfsFonts];
+            if (pdfMakeProp && typeof pdfMakeProp === 'object' && 'vfs' in pdfMakeProp) {
+              console.log('- VFS fonts available through pdfMake.vfs property');
+            } else {
+              console.log('- pdfMake property exists but no vfs found inside it');
+            }
           } else {
             console.log('- VFS fonts structure in unexpected format:', Object.keys(vfsFonts));
           }
