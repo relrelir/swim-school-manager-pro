@@ -8,6 +8,7 @@ import { Printer, Download } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import HealthDeclarationContent from './HealthDeclarationContent';
 import { makePdf } from '@/pdf/pdfService';
+import type { Content, StyleDictionary } from 'pdfmake/interfaces';
 
 interface PrintableHealthDeclarationProps {
   participantName: string;
@@ -41,7 +42,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
   const handleDownloadPdf = async () => {
     try {
       // Create PDF content
-      const content = [
+      const content: Content[] = [
         // Header
         { text: 'הצהרת בריאות', style: 'header', alignment: 'center' },
         { text: `תאריך: ${format(submissionDate, 'dd/MM/yyyy HH:mm')}`, style: 'subheader', alignment: 'center' },
@@ -55,24 +56,34 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           ],
           columnGap: 10,
         },
-        participantId ? {
+      ];
+      
+      // Add participant ID if available
+      if (participantId) {
+        content.push({
           columns: [
             { text: participantId, width: '*', alignment: 'right' },
             { text: 'תעודת זהות:', width: 'auto', alignment: 'right', bold: true },
           ],
           columnGap: 10,
           margin: [0, 5, 0, 0]
-        } : {},
-        participantPhone ? {
+        });
+      }
+      
+      // Add participant phone if available
+      if (participantPhone) {
+        content.push({
           columns: [
             { text: participantPhone, width: '*', alignment: 'right' },
             { text: 'טלפון:', width: 'auto', alignment: 'right', bold: true },
           ],
           columnGap: 10,
           margin: [0, 5, 0, 0]
-        } : {},
-        
-        // Health declaration
+        });
+      }
+      
+      // Health declaration
+      content.push(
         { text: 'הצהרת בריאות', style: 'sectionHeader', margin: [0, 20, 0, 10] },
         { text: 'אני מצהיר/ה כי בריאות ילדי תקינה ומאפשרת השתתפות בפעילות.', margin: [0, 0, 0, 10] },
         { text: 'במידה וקיים מידע רפואי חשוב, אנא פרט:', margin: [0, 0, 0, 5], fontSize: 11 },
@@ -104,18 +115,19 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
         { text: 'חתימה:', margin: [0, 30, 0, 5], bold: true },
         { text: '__________________________', margin: [0, 0, 0, 10] },
         { text: 'תאריך:', margin: [0, 10, 0, 5], bold: true },
-        { text: '__________________________', margin: [0, 0, 0, 0] },
-      ];
+        { text: '__________________________', margin: [0, 0, 0, 0] }
+      );
       
-      const styles = {
+      // Define styles with proper type
+      const styles: StyleDictionary = {
         header: {
           fontSize: 20,
           bold: true,
-          margin: [0, 0, 0, 10]
+          margin: [0, 0, 0, 10] as [number, number, number, number]
         },
         subheader: {
           fontSize: 12,
-          margin: [0, 0, 0, 20]
+          margin: [0, 0, 0, 20] as [number, number, number, number]
         },
         sectionHeader: {
           fontSize: 14,
