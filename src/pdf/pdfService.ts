@@ -10,9 +10,9 @@ try {
   if (pdfFonts && typeof pdfFonts === 'object') {
     // Handle the different ways pdfFonts might expose the VFS
     if ('pdfMake' in pdfFonts && pdfFonts.pdfMake && 'vfs' in pdfFonts.pdfMake) {
-      pdfMake.vfs = pdfFonts.pdfMake.vfs as Record<string, string>;
+      pdfMake.vfs = pdfFonts.pdfMake.vfs;
     } else if ('vfs' in pdfFonts) {
-      pdfMake.vfs = (pdfFonts.vfs as Record<string, string>);
+      pdfMake.vfs = pdfFonts.vfs;
     } else {
       console.error('VFS not found in expected pdfFonts structure');
     }
