@@ -54,7 +54,7 @@ export async function fetchHealthDeclarationData(declarationId: string): Promise
     
     // First try to find registration directly by participant_id
     // Note: participant_id in health_declarations sometimes refers to registration ID
-    let registrationId = healthDeclaration.participant_id;
+    const registrationId = healthDeclaration.participant_id;
     
     // Now fetch participant details - try two approaches to be safe
     

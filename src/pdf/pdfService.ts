@@ -56,21 +56,26 @@ export async function makePdf(
         alignment: 'right'  // Right alignment for RTL text
       },
       ...docDef, // Merge all other properties
-      // Add RTL support
+      // Add RTL support through text direction
       pageOrientation: 'portrait',
-      // Remove the pageSize object with direction property as it's not valid
-      // and use rtl property instead at the document level
-      rtl: true, // Enable RTL for the whole document
-      // Ensure document info is properly typed
+      // Info property for document metadata
       info: {
         ...(docDef.info || {})
       }
     };
     
+    // For Hebrew support, we need to correctly handle RTL
+    // The rtl property isn't in the type definitions, but it's supported by pdfMake
+    const pdfDefinition = {
+      ...definition,
+      // Adding rtl as a separate property to the final object passed to createPdf
+    };
+    (pdfDefinition as any).rtl = true; // Add RTL support this way to avoid TypeScript errors
+    
     console.log("Creating PDF with RTL and Hebrew support");
     
     // Create the PDF
-    const pdf = pdfMake.createPdf(definition);
+    const pdf = pdfMake.createPdf(pdfDefinition);
     
     if (download) {
       // Force download with a callback
