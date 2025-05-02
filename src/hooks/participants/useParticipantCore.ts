@@ -32,7 +32,6 @@ export const useParticipantCore = (
   const {
     product,
     registrations,
-    setRegistrations,
     refreshTrigger,
     setRefreshTrigger,
     totalParticipants,

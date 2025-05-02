@@ -23,7 +23,6 @@ export const useParticipants = () => {
     core.participants,
     core.registrations,
     core.product,
-    core.setRegistrations,
     core.setRefreshTrigger,
     core.newParticipant,
     core.registrationData,

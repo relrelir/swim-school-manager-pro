@@ -14,7 +14,6 @@ export const useParticipantActions = (
   participants: Participant[],
   registrations: Registration[],
   product: any,
-  setRegistrations: (regs: Registration[]) => void,
   setRefreshTrigger: (value: React.SetStateAction<number>) => void,
   newParticipant: any,
   registrationData: any,
