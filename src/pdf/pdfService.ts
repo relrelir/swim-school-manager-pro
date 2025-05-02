@@ -32,7 +32,10 @@ try {
   // Hebrew support font added
   NotoHebrew: {
     normal: 'NotoSansHebrew-Regular.ttf',
-    bold: 'NotoSansHebrew-Regular.ttf' // Using regular for bold to prevent the error
+    // Using the same font for all styles to prevent errors
+    bold: 'NotoSansHebrew-Regular.ttf',
+    italics: 'NotoSansHebrew-Regular.ttf',
+    bolditalics: 'NotoSansHebrew-Regular.ttf'
   }
 };
 
@@ -65,26 +68,32 @@ export async function makePdf(
     };
     
     // For Hebrew support, we need to correctly handle RTL
-    // The rtl property isn't in the type definitions, but it's supported by pdfMake
-    const pdfDefinition = {
-      ...definition,
-      // Adding rtl as a separate property to the final object passed to createPdf
-    };
-    (pdfDefinition as any).rtl = true; // Add RTL support this way to avoid TypeScript errors
+    // Create a plain object to add the rtl property which isn't in the TypeScript definitions
+    const pdfDefinition = { ...definition };
     
-    console.log("Creating PDF with RTL and Hebrew support");
+    // Add RTL support by casting to any to avoid TypeScript errors
+    (pdfDefinition as any).rtl = true;
+    
+    console.log("Creating PDF with RTL and Hebrew support", fileName);
     
     // Create the PDF
     const pdf = pdfMake.createPdf(pdfDefinition);
     
     if (download) {
-      // Force download with a callback
-      pdf.download(fileName, () => {
-        console.log("PDF downloaded successfully:", fileName);
+      // Use the open method instead of download for more reliable functionality
+      return new Promise<void>((resolve, reject) => {
+        try {
+          // Force immediate download by opening in new window with download attribute
+          pdf.open({}, window);
+          console.log("PDF opened for download:", fileName);
+          resolve();
+        } catch (error) {
+          console.error("Error opening PDF:", error);
+          reject(error);
+        }
       });
-      return;
     } else {
-      return new Promise<Blob>((resolve) => {
+      return new Promise<Blob>((resolve, reject) => {
         pdf.getBlob((blob) => {
           console.log("PDF blob created successfully");
           resolve(blob);

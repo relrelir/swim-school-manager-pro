@@ -29,12 +29,13 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     
     // Step 3: Generate and download the PDF
     console.log("Generating registration PDF with file name:", fileName);
-    await makePdf({ content, styles }, fileName);
+    await makePdf({ content, styles }, fileName, true);
     
     console.log("PDF generated successfully");
     toast({
       title: "PDF נוצר בהצלחה",
       description: "אישור הרישום נשמר במכשיר שלך",
+      duration: 5000, // Show the toast for a longer time
     });
     
     return fileName;
@@ -48,6 +49,8 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         errorMessage = "הרישום לא נמצא במסד הנתונים";
       } else if (error.message === "RegistrationIdMissing") {
         errorMessage = "מזהה הרישום חסר";
+      } else {
+        errorMessage = `שגיאה: ${error.message}`;
       }
     }
     
@@ -55,6 +58,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       title: "שגיאה",
       description: errorMessage,
       variant: "destructive",
+      duration: 5000, // Show the toast for a longer time
     });
     
     throw error;

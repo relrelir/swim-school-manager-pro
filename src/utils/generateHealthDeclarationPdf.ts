@@ -35,6 +35,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string):
     toast({
       title: "PDF נוצר בהצלחה",
       description: "הצהרת הבריאות נשמרה במכשיר שלך",
+      duration: 5000, // Show the toast for a longer time
     });
     
     return fileName;
@@ -57,6 +58,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string):
       title: "שגיאה",
       description: errorMessage,
       variant: "destructive",
+      duration: 5000, // Show the toast for a longer time
     });
     
     throw error;
