@@ -4,7 +4,7 @@ import { toast } from "@/components/ui/use-toast";
 import { makePdf, createTableData } from '@/pdf/pdfService';
 import { format } from 'date-fns';
 import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './pdf/healthDeclarationParser';
-import type { Content } from 'pdfmake/interfaces';
+import type { Content, StyleDictionary } from 'pdfmake/interfaces';
 
 export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
   try {
@@ -58,7 +58,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
       
       // Prepare the content array with proper type casting
-      const contentItems: any[] = [];
+      const contentItems: Content[] = [];
       
       // Add title
       contentItems.push({ 
@@ -150,25 +150,27 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         margin: [0, 30, 0, 0] 
       });
       
-      // Create PDF document definition
+      // Create PDF document definition with properly typed styles
+      const styles: StyleDictionary = {
+        header: { 
+          fontSize: 18, 
+          bold: true, 
+          margin: [0, 0, 0, 10] as [number, number, number, number]
+        },
+        subheader: { 
+          fontSize: 14, 
+          bold: true, 
+          margin: [0, 10, 0, 5] as [number, number, number, number]
+        },
+        tableHeader: { 
+          bold: true, 
+          fillColor: '#f5f5f5' 
+        }
+      };
+      
       const docDefinition = {
         content: contentItems,
-        styles: {
-          header: { 
-            fontSize: 18, 
-            bold: true, 
-            margin: [0, 0, 0, 10] 
-          },
-          subheader: { 
-            fontSize: 14, 
-            bold: true, 
-            margin: [0, 10, 0, 5] 
-          },
-          tableHeader: { 
-            bold: true, 
-            fillColor: '#f5f5f5' 
-          }
-        }
+        styles: styles,
       };
       
       // Generate and download the PDF

@@ -4,6 +4,7 @@ import { toast } from "@/components/ui/use-toast";
 import { makePdf, createTableData } from '@/pdf/pdfService';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/utils/formatters';
+import type { Content, StyleDictionary } from 'pdfmake/interfaces';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
@@ -75,7 +76,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     const fileName = `registration_${participant.firstname}_${participant.lastname}_${registration.id.substring(0, 8)}.pdf`;
     
     // Prepare content items array
-    const contentItems: any[] = [];
+    const contentItems: Content[] = [];
     
     // Title with product name
     contentItems.push({ 
@@ -88,13 +89,13 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       text: `מוצר: ${product.name}`, 
       style: 'productName', 
       alignment: 'center', 
-      margin: [0, 0, 0, 20] 
+      margin: [0, 0, 0, 20] as [number, number, number, number]
     });
     
     contentItems.push({ 
       text: `תאריך: ${currentDate}`, 
       alignment: 'left', 
-      margin: [0, 0, 0, 20] 
+      margin: [0, 0, 0, 20] as [number, number, number, number]
     });
     
     // Participant information
@@ -112,7 +113,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     contentItems.push({ 
       text: 'פרטי רישום:', 
       style: 'subheader', 
-      margin: [0, 20, 0, 10] 
+      margin: [0, 20, 0, 10] as [number, number, number, number]
     });
     
     contentItems.push(createTableData(
@@ -131,7 +132,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       contentItems.push({ 
         text: 'פרטי תשלומים:', 
         style: 'subheader', 
-        margin: [0, 20, 0, 10] 
+        margin: [0, 20, 0, 10] as [number, number, number, number]
       });
       
       contentItems.push(createTableData(
@@ -145,36 +146,38 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.', 
       style: 'footer', 
       alignment: 'center', 
-      margin: [0, 30, 0, 0] 
+      margin: [0, 30, 0, 0] as [number, number, number, number]
     });
     
-    // Create PDF document definition
+    // Create PDF document definition with properly typed styles
+    const styles: StyleDictionary = {
+      header: { 
+        fontSize: 18, 
+        bold: true, 
+        margin: [0, 0, 0, 10] as [number, number, number, number]
+      },
+      productName: { 
+        fontSize: 16, 
+        bold: true 
+      },
+      subheader: { 
+        fontSize: 14, 
+        bold: true, 
+        margin: [0, 10, 0, 10] as [number, number, number, number]
+      },
+      tableHeader: { 
+        bold: true, 
+        fillColor: '#f5f5f5' 
+      },
+      footer: { 
+        fontSize: 10, 
+        italics: true 
+      }
+    };
+    
     const docDefinition = {
       content: contentItems,
-      styles: {
-        header: { 
-          fontSize: 18, 
-          bold: true, 
-          margin: [0, 0, 0, 10] 
-        },
-        productName: { 
-          fontSize: 16, 
-          bold: true 
-        },
-        subheader: { 
-          fontSize: 14, 
-          bold: true, 
-          margin: [0, 10, 0, 10] 
-        },
-        tableHeader: { 
-          bold: true, 
-          fillColor: '#f5f5f5' 
-        },
-        footer: { 
-          fontSize: 10, 
-          italics: true 
-        }
-      }
+      styles: styles
     };
     
     // Generate and download the PDF

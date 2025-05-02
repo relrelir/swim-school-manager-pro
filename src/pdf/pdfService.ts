@@ -4,7 +4,7 @@ import pdfFonts from "pdfmake/build/vfs_fonts";
 import type { TDocumentDefinitions, Content, StyleDictionary } from "pdfmake/interfaces";
 
 // Initialize pdfMake with the fonts
-pdfMake.vfs = pdfFonts.vfs;
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 /**
  * Create and download/return a PDF
@@ -21,16 +21,21 @@ export async function makePdf(
   const definition: TDocumentDefinitions = {
     pageOrientation: 'portrait',
     defaultStyle: { 
-      ...docDef.defaultStyle
+      font: 'Roboto',
+      ...(docDef.defaultStyle || {})
     },
+    content: docDef.content || [],
     ...docDef, // Merge all other properties
   };
   
   // Add RTL support
-  if (!definition.pageDirection) {
-    definition.pageDirection = "rtl";
+  if (definition.defaultStyle) {
+    definition.defaultStyle.alignment = 'right';
   }
 
+  // Set page direction for RTL languages
+  definition.rightToLeft = true;
+  
   // Create the PDF
   const pdf = pdfMake.createPdf(definition);
   
