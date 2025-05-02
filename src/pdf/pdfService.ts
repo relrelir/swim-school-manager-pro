@@ -55,10 +55,14 @@ export async function makePdf(
         alignment: 'right'  // Right alignment for RTL text
       },
       ...docDef, // Merge all other properties
-      // Add RTL support as a custom property
+      // Add RTL support
+      pageOrientation: 'portrait',
+      // Use pageDirection (supported by pdfmake) instead of 'direction'
+      // which is not in the TDocumentInformation type
+      pageDirection: 'rtl',
       info: {
-        ...docDef.info,
-        direction: 'rtl' // Use info.direction instead of pageDirection
+        ...docDef.info
+        // Removing 'direction' property which caused the TS2353 error
       }
     };
     
