@@ -32,8 +32,7 @@ try {
   // Hebrew support font added
   NotoHebrew: {
     normal: 'NotoSansHebrew-Regular.ttf',
-    // Add bold style to prevent the error with bold text
-    bold: 'NotoSansHebrew-Regular.ttf'
+    bold: 'NotoSansHebrew-Regular.ttf' // Using regular for bold to prevent the error
   }
 };
 
@@ -57,11 +56,11 @@ export async function makePdf(
         alignment: 'right'  // Right alignment for RTL text
       },
       ...docDef, // Merge all other properties
-      // Add RTL support - use pageSize.pageDirection which is supported
+      // Add RTL support
       pageOrientation: 'portrait',
       pageSize: {
-        // Add support for RTL page direction
-        pageOrientation: 'portrait',
+        // Remove pageOrientation from pageSize object as it's not a valid property
+        // of CustomPageSize type in TDocumentDefinitions
         direction: 'rtl'
       },
       // Ensure document info is properly typed

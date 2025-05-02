@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { parseParentInfo } from '../../healthDeclarationParser';
 
 export interface HealthDeclarationPdfData {
   participant: {
@@ -48,6 +49,17 @@ export async function fetchHealthDeclarationData(declarationId: string): Promise
 
     console.log("Found health declaration:", healthDeclaration);
 
+    // Extract parent info from notes
+    const { parentName, parentId } = parseParentInfo(healthDeclaration.notes);
+    
+    // Try to find registration by health declaration's registration_id if it exists
+    let registrationId = healthDeclaration.registration_id;
+    
+    // If registration_id doesn't exist, try using participant_id as fallback
+    if (!registrationId && healthDeclaration.participant_id) {
+      registrationId = healthDeclaration.participant_id;
+    }
+
     // Now fetch participant details
     const { data: participant, error: participantError } = await supabase
       .from('participants')
@@ -62,19 +74,19 @@ export async function fetchHealthDeclarationData(declarationId: string): Promise
       const { data: registrations, error: regError } = await supabase
         .from('registrations')
         .select('*')
-        .eq('id', healthDeclaration.registration_id)
+        .eq('id', registrationId)
         .maybeSingle();
         
       if (regError || !registrations) {
-        console.error("Registration not found for health declaration:", healthDeclaration.registration_id);
+        console.error("Registration not found for health declaration:", registrationId);
         throw new Error("פרטי הרישום לא נמצאו");
       }
       
-      // Now fetch the participant using the registration's participant_id
+      // Now fetch the participant using the registration's participantid
       const { data: participantFromReg, error: partRegError } = await supabase
         .from('participants')
         .select('*')
-        .eq('id', registrations.participant_id)
+        .eq('id', registrations.participantid)
         .maybeSingle();
         
       if (partRegError || !participantFromReg) {
@@ -85,13 +97,13 @@ export async function fetchHealthDeclarationData(declarationId: string): Promise
       // Use the participant data we found
       return {
         participant: {
-          fullName: `${participantFromReg.first_name || ''} ${participantFromReg.last_name || ''}`.trim(),
-          idNumber: participantFromReg.id_number || '',
+          fullName: `${participantFromReg.firstname || ''} ${participantFromReg.lastname || ''}`.trim(),
+          idNumber: participantFromReg.idnumber || '',
           phone: participantFromReg.phone || '',
         },
         parentInfo: {
-          parentName: healthDeclaration.parent_name || '',
-          parentId: healthDeclaration.parent_id || '',
+          parentName: parentName || '',
+          parentId: parentId || '',
         },
         declaration: {
           submissionDate: format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy'),
@@ -103,13 +115,13 @@ export async function fetchHealthDeclarationData(declarationId: string): Promise
     // Format the data for PDF generation
     return {
       participant: {
-        fullName: `${participant.first_name || ''} ${participant.last_name || ''}`.trim(),
-        idNumber: participant.id_number || '',
+        fullName: `${participant.firstname || ''} ${participant.lastname || ''}`.trim(),
+        idNumber: participant.idnumber || '',
         phone: participant.phone || '',
       },
       parentInfo: {
-        parentName: healthDeclaration.parent_name || '',
-        parentId: healthDeclaration.parent_id || '',
+        parentName: parentName || '',
+        parentId: parentId || '',
       },
       declaration: {
         submissionDate: format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy'),
