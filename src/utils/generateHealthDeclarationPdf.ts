@@ -1,8 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createRtlPdf } from './pdf/pdfConfig';
-import { buildHealthDeclarationPDF } from './pdf/healthDeclarationContentBuilder';
 import { toast } from "@/components/ui/use-toast";
+import { makePdf, createHealthDeclarationPdfDefinition } from './pdf/pdfService';
 
 export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
   try {
@@ -13,7 +12,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       throw new Error('מזהה הצהרת הבריאות חסר או לא תקין');
     }
     
-    // Get the health declaration directly by ID - this should be more reliable than searching by registration ID
+    // Get the health declaration directly by ID
     let { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
       .select('id, participant_id, submission_date, notes, form_status')
@@ -42,19 +41,19 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     console.log("Data fetched successfully. Participant:", participant);
     
     try {
-      // Create the PDF document with RTL and font support
-      console.log("Creating PDF with RTL support");
-      const pdf = createRtlPdf();
-      console.log("PDF object created successfully");
+      // Generate PDF filename
+      const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
       
-      // Build the PDF content
-      console.log("Building PDF content");
-      const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
-      console.log("PDF content built successfully, filename:", fileName);
+      // Create PDF document definition
+      const pdfDefinition = createHealthDeclarationPdfDefinition(
+        healthDeclaration,
+        participant
+      );
       
-      // Save the PDF
-      pdf.save(fileName);
-      console.log("PDF saved successfully");
+      // Generate and download the PDF
+      await makePdf(pdfDefinition, fileName, true);
+      
+      console.log("PDF created and downloaded successfully");
       
       toast({
         title: "PDF נוצר בהצלחה",

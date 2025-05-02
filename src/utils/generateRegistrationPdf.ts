@@ -1,9 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createRtlPdf } from './pdf/pdfConfig';
-import { buildRegistrationPDF } from './pdf/registrationPdfContentBuilder';
 import { toast } from "@/components/ui/use-toast";
 import { Registration, Participant, Payment } from '@/types';
+import { makePdf, createRegistrationPdfDefinition } from './pdf/pdfService';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
@@ -92,19 +91,21 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     })) : [];
     
     try {
-      // Create the PDF document with RTL and font support
-      console.log("Creating PDF with RTL support");
-      const pdf = createRtlPdf();
-      console.log("PDF object created successfully");
+      // Generate the PDF filename
+      const fileName = `registration_${participant.firstname}_${participant.lastname}_${registration.id.substring(0, 8)}.pdf`;
       
-      // Build the PDF content
-      console.log("Building PDF content with product name:", product.name);
-      const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
-      console.log("PDF content built successfully, filename:", fileName);
+      // Create PDF document definition
+      const pdfDefinition = createRegistrationPdfDefinition(
+        registrationData,
+        participantData,
+        paymentsData,
+        product.name
+      );
       
-      // Save the PDF
-      pdf.save(fileName);
-      console.log("PDF saved successfully");
+      // Generate and download the PDF
+      await makePdf(pdfDefinition, fileName, true);
+      
+      console.log("PDF created and downloaded successfully");
       
       toast({
         title: "PDF נוצר בהצלחה",

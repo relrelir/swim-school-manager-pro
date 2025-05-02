@@ -7,6 +7,7 @@ export const useHealthFormAdapters = (
 ) => {
   // Create an adapter for handleOpenHealthForm
   const adaptedHandleOpenHealthForm = (registrationId: string) => {
+    console.log("Adapting health form open for registration:", registrationId);
     return baseHandleOpenHealthForm(registrationId);
   };
 
