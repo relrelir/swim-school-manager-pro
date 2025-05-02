@@ -29,14 +29,12 @@ export const createRegistrationPdfDefinition = (
       // Title
       { 
         text: 'אישור רישום למוצר', 
-        style: 'header',
-        alignment: 'center'
+        style: 'header'
       },
       // Product name
       {
         text: `מוצר: ${productName}`,
         style: 'subheader',
-        alignment: 'center',
         margin: [0, 0, 0, 20] as [number, number, number, number]
       },
       // Participant section
@@ -101,18 +99,19 @@ export const createRegistrationPdfDefinition = (
       {
         text: 'מסמך זה מהווה אישור רשמי על רישום ותשלום.',
         style: 'footer',
-        margin: [0, 30, 0, 0] as [number, number, number, number],
-        alignment: 'center'
+        margin: [0, 30, 0, 0] as [number, number, number, number]
       }
     ],
     styles: {
       header: {
         fontSize: 22,
         bold: true,
+        alignment: 'center',
         margin: [0, 0, 0, 10] as [number, number, number, number]
       },
       subheader: {
         fontSize: 16,
+        alignment: 'center',
         margin: [0, 10, 0, 5] as [number, number, number, number]
       },
       sectionHeader: {
@@ -121,7 +120,8 @@ export const createRegistrationPdfDefinition = (
       },
       footer: {
         fontSize: 10,
-        italics: true
+        italics: true,
+        alignment: 'center'
       }
     }
   };

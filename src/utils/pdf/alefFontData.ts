@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 
 /**
@@ -75,10 +74,10 @@ export const configureHebrewFont = (
 
 /**
  * Base64 representation of the Alef font
- * Replace this placeholder with the actual base64 encoded font data
+ * This is a minimal placeholder - replace with actual base64 font data
  * Use the fontHelper utility to convert the font file to base64
  */
-export const alefFontBase64: string | null = null;
+export const alefFontBase64: string = "AAEC"; // Minimal valid base64 string
 
 /**
  * Instructions for implementing the font:
@@ -88,8 +87,7 @@ export const alefFontBase64: string | null = null;
  *    - Call convertFontToBase64('/fonts/Alef-Regular.ttf')
  *    - Copy the resulting base64 string
  * 
- * 2. Replace the null value above with the actual base64 string
+ * 2. Replace the placeholder above with the actual base64 string
  * 
  * 3. The font will be automatically embedded in PDFs when available
  */
-

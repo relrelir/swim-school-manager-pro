@@ -2,6 +2,8 @@
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { configureHebrewFont } from './alefFontData';
+import pdfMake from 'pdfmake/build/pdfmake';
+import { pdfDocumentDefaults } from './core/pdfCore';
 
 // Function to set up RTL document with proper Hebrew support
 export const createRtlPdf = (): jsPDF => {
@@ -33,3 +35,6 @@ export const configureDocumentStyle = (pdf: jsPDF): void => {
   // Set default font
   pdf.setFont('helvetica');
 }
+
+// Export the standardized PDF document defaults
+export { pdfDocumentDefaults };

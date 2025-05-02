@@ -34,7 +34,8 @@ export const createHealthDeclarationPdfDefinition = (
     'אני מצהיר/ה כי בני/בתי בריא/ה ואין לי התנגדות לכך שישתתף/תשתתף בפעילות השחייה.',
     'אני מצהיר/ה כי לבני/בתי לא ידוע לי על מחלות או מגבלות רפואיות העלולות למנוע את השתתפותו/ה בפעילות השחייה.',
     'אני מתחייב/ת להודיע על כל שינוי במצבו/ה הרפואי של בני/בתי.',
-    'ידוע לי כי האחריות למסירת מידע מלא על מצבו/ה הבריאותי של בני/בתי חלה עליי בלבד.'
+    'אני מאשר/ת לצוות הרפואי לתת טיפול ראשוני במקרה הצורך.',
+    'ידוע לי שללא הצהרת בריאות חתומה לא יוכל בני/בתי להשתתף בפעילות.'
   ];
   
   // Format the submission date if available
@@ -47,8 +48,7 @@ export const createHealthDeclarationPdfDefinition = (
       // Title
       { 
         text: 'הצהרת בריאות', 
-        style: 'header', 
-        alignment: 'center'
+        style: 'header'
       },
       // Date
       {
@@ -133,6 +133,7 @@ export const createHealthDeclarationPdfDefinition = (
       header: {
         fontSize: 22,
         bold: true,
+        alignment: 'center',
         margin: [0, 0, 0, 10] as [number, number, number, number]
       },
       sectionHeader: {

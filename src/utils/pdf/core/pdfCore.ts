@@ -10,7 +10,7 @@ import { alefFontBase64 } from '../alefFontData';
 
 // Add the Alef font to pdfMake's virtual file system
 if (alefFontBase64) {
-  // Only add if we have valid base64 data
+  // Add Alef font to virtual file system
   (pdfMake as any).vfs['Alef-Regular.ttf'] = alefFontBase64;
 
   // Register the font
@@ -24,6 +24,15 @@ if (alefFontBase64) {
     },
   };
 }
+
+// Define global document defaults
+export const pdfDocumentDefaults = {
+  defaultStyle: {
+    font: 'Alef',
+    rtl: true,
+    alignment: 'right',
+  },
+};
 
 /**
  * Helper function to create and download a PDF
@@ -41,9 +50,7 @@ export const makePdf = async (
     pageSize: 'A4',
     pageOrientation: 'portrait',
     pageMargins: [40, 60, 40, 60],
-    defaultStyle: { font: alefFontBase64 ? 'Alef' : 'Helvetica' },
-    // Use RTL layout for Hebrew
-    rightToLeft: true,
+    ...pdfDocumentDefaults,
     ...docDefinition,
   } as TDocumentDefinitions; // Cast to avoid TypeScript error with rightToLeft
 
