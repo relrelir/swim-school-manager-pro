@@ -1,11 +1,12 @@
 
 import pdfMake from "pdfmake/build/pdfmake";
-import * as pdfFonts from "pdfmake/build/vfs_fonts";
+import pdfFonts from "pdfmake/build/vfs_fonts";
 import type { TDocumentDefinitions, Content, StyleDictionary } from "pdfmake/interfaces";
 import { logFontDiagnostics } from '../utils/pdf/fontHelpers';
 
 // Initialize pdfMake with the fonts
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+// This is the correct way to set the virtual file system for pdfMake
+pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
 // Run font diagnostics in development
 if (process.env.NODE_ENV !== 'production') {
@@ -41,7 +42,15 @@ export async function makePdf(
     };
     
     // Set RTL direction for Hebrew language support using the correct property
-    definition.rtl = true;
+    // The rtl property needs to be set differently based on pdfMake version
+    if ('rightToLeft' in definition) {
+      // @ts-ignore - Using rightToLeft for newer versions
+      definition.rightToLeft = true;
+    } else {
+      // For older versions we use the standard way (this will be ignored if not supported)
+      // @ts-ignore - Using rtl for backwards compatibility
+      definition.rtl = true;
+    }
     
     console.log("Creating PDF with RTL support");
     

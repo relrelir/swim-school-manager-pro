@@ -36,13 +36,54 @@ export const browserSupportsHebrew = (): boolean => {
   }
 };
 
-// Function to log font diagnostic information
+// Function to log PDF font information
 export const logFontDiagnostics = (): void => {
-  console.log('Font diagnostic information:');
+  console.log('PDF font diagnostic information:');
+  
+  try {
+    // Check for pdfMake global
+    if (typeof window !== 'undefined') {
+      // @ts-ignore - pdfMake might be on window
+      const pdfMakeExists = !!window.pdfMake;
+      console.log('- pdfMake loaded:', pdfMakeExists);
+      
+      // Try to import pdfMake dynamically to check if it's available
+      import('pdfmake/build/pdfmake').then(pdfMake => {
+        console.log('- pdfMake imported successfully');
+        
+        // Check if vfs exists
+        if (pdfMake.vfs) {
+          console.log('- Virtual file system available');
+        } else {
+          console.log('- Virtual file system NOT available');
+        }
+      }).catch(err => {
+        console.error('- Error importing pdfMake:', err);
+      });
+      
+      // Check for vfs_fonts
+      import('pdfmake/build/vfs_fonts').then(vfsFonts => {
+        if (vfsFonts.pdfMake && vfsFonts.pdfMake.vfs) {
+          console.log('- VFS fonts available through pdfMake property');
+        } else if (vfsFonts.vfs) {
+          console.log('- VFS fonts available through direct vfs property');
+        } else {
+          console.log('- VFS fonts structure MISSING');
+        }
+      }).catch(err => {
+        console.error('- Error importing vfs_fonts:', err);
+      });
+    }
+  } catch (e) {
+    console.error('Font diagnostics error in pdfMake check:', e);
+  }
+  
+  // Log browser information
   console.log('- User agent:', navigator.userAgent);
   console.log('- Platform:', navigator.platform);
   console.log('- Language:', navigator.language);
   
+  // Test system fonts if font API is available
   if (document.fonts && document.fonts.check) {
     console.log('- System fonts available:');
     ['Arial', 'Times New Roman', 'David', 'Noto Sans Hebrew'].forEach(font => {

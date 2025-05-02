@@ -5,8 +5,14 @@
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 
-// Setup the default fonts
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+// Setup the default fonts - with proper error handling
+if (pdfFonts.pdfMake && pdfFonts.pdfMake.vfs) {
+  pdfMake.vfs = pdfFonts.pdfMake.vfs;
+} else if (pdfFonts.vfs) {
+  pdfMake.vfs = pdfFonts.vfs;
+} else {
+  console.error('Could not initialize pdfMake fonts. VFS object is missing.');
+}
 
 // Function to register additional fonts when needed
 export const registerHebrewFonts = () => {
