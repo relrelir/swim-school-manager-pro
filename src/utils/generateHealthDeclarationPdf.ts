@@ -27,7 +27,9 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string):
     
     // Step 3: Generate and download the PDF
     console.log("Generating health declaration PDF with file name:", fileName);
-    await makePdf({ content, styles }, fileName);
+    
+    // Force download with a boolean parameter
+    await makePdf({ content, styles }, fileName, true);
     
     console.log("PDF generated successfully");
     toast({
@@ -46,6 +48,8 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string):
         errorMessage = error.message;
       } else if (error.message === "HealthDeclarationIdMissing") {
         errorMessage = "מזהה הצהרת הבריאות חסר";
+      } else {
+        errorMessage = `שגיאה: ${error.message}`;
       }
     }
     

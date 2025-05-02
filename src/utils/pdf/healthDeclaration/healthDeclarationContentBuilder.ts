@@ -1,6 +1,6 @@
 
 import { format } from 'date-fns';
-import { getDeclarationItems } from '../../pdf/healthDeclarationParser';
+import { getDeclarationItems } from '../../healthDeclarationParser';
 import type { Content, StyleDictionary } from 'pdfmake/interfaces';
 import { HealthDeclarationPdfData } from './healthDeclarationDataFetcher';
 

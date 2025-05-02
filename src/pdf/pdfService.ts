@@ -31,7 +31,9 @@ try {
   },
   // Hebrew support font added
   NotoHebrew: {
-    normal: 'NotoSansHebrew-Regular.ttf'
+    normal: 'NotoSansHebrew-Regular.ttf',
+    // Add bold style to prevent the error with bold text
+    bold: 'NotoSansHebrew-Regular.ttf'
   }
 };
 
@@ -55,14 +57,16 @@ export async function makePdf(
         alignment: 'right'  // Right alignment for RTL text
       },
       ...docDef, // Merge all other properties
-      // Add RTL support
+      // Add RTL support - use pageSize.pageDirection which is supported
       pageOrientation: 'portrait',
-      // Use pageDirection (supported by pdfmake) instead of 'direction'
-      // which is not in the TDocumentInformation type
-      pageDirection: 'rtl',
+      pageSize: {
+        // Add support for RTL page direction
+        pageOrientation: 'portrait',
+        direction: 'rtl'
+      },
+      // Ensure document info is properly typed
       info: {
-        ...docDef.info
-        // Removing 'direction' property which caused the TS2353 error
+        ...(docDef.info || {})
       }
     };
     
@@ -72,11 +76,17 @@ export async function makePdf(
     const pdf = pdfMake.createPdf(definition);
     
     if (download) {
-      pdf.download(fileName);
+      // Force download with a callback
+      pdf.download(fileName, () => {
+        console.log("PDF downloaded successfully:", fileName);
+      });
       return;
     } else {
       return new Promise<Blob>((resolve) => {
-        pdf.getBlob((blob) => resolve(blob));
+        pdf.getBlob((blob) => {
+          console.log("PDF blob created successfully");
+          resolve(blob);
+        });
       });
     }
   } catch (error) {
