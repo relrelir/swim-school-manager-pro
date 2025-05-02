@@ -60,16 +60,13 @@ export async function makePdf(
     // The rtl property needs to be set differently based on pdfMake version
     if ('pageDirection' in definition) {
       // Modern pdfMake versions use pageDirection
-      // @ts-ignore - Using pageDirection for newer versions  
-      definition.pageDirection = 'rtl';
+      (definition as any).pageDirection = 'rtl';
     } else if ('rightToLeft' in definition) {
       // Some versions use rightToLeft
-      // @ts-ignore - Using rightToLeft for some versions
-      definition.rightToLeft = true;
+      (definition as any).rightToLeft = true;
     } else {
       // For older versions we use the standard way
-      // @ts-ignore - Using rtl for backwards compatibility
-      definition.rtl = true;
+      (definition as any).rtl = true;
     }
     
     console.log("Creating PDF with RTL support");
