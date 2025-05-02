@@ -29,10 +29,10 @@ try {
     italics: 'Roboto-Italic.ttf',
     bolditalics: 'Roboto-BoldItalic.ttf'
   },
-  // Hebrew support font added
+  // Hebrew support font added - define all styles with the same font to fix the bold error
   NotoHebrew: {
     normal: 'NotoSansHebrew-Regular.ttf',
-    bold: 'NotoSansHebrew-Regular.ttf',
+    bold: 'NotoSansHebrew-Regular.ttf', // Use regular font for bold style too
     italics: 'NotoSansHebrew-Regular.ttf',
     bolditalics: 'NotoSansHebrew-Regular.ttf'
   }
