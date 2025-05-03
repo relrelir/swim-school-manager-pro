@@ -18,7 +18,7 @@ export function buildRegistrationPDF(
   try {
     console.log("Building registration PDF...");
     
-    // Format current date for display
+    // Format current date for display - use explicit format with day first
     const currentDate = format(new Date(), 'dd/MM/yyyy');
     
     // Create a filename
@@ -38,11 +38,12 @@ export function buildRegistrationPDF(
     // Participant information section
     addSectionTitle(pdf, 'פרטי משתתף:', 50);
     
-    // Create participant data
+    // Create participant data - swap column order for correct RTL display
+    // Value first, then label (opposite of what's visually expected for RTL)
     const participantData = [
-      ['שם מלא:', `${participant.firstName} ${participant.lastName}`],
-      ['תעודת זהות:', participant.idNumber],
-      ['טלפון:', participant.phone],
+      [`${participant.firstName} ${participant.lastName}`, 'שם מלא:'],
+      [participant.idNumber, 'תעודת זהות:'],
+      [participant.phone, 'טלפון:'],
     ];
     
     // Create table with participant data
@@ -56,12 +57,17 @@ export function buildRegistrationPDF(
     const discountAmount = registration.discountAmount || 0;
     const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
     
+    // Explicitly format the registration date with day first
+    const formattedRegistrationDate = format(new Date(registration.registrationDate), 'dd/MM/yyyy');
+    
+    // Registration data - swap column order for correct RTL display
+    // Value first, then label (opposite of what's visually expected for RTL)
     const registrationData = [
-      ['תאריך רישום:', format(new Date(registration.registrationDate), 'dd/MM/yyyy')],
-      ['סכום מקורי:', formatCurrency(registration.requiredAmount)],
-      ['הנחה:', registration.discountApproved ? formatCurrency(discountAmount) : 'לא'],
-      ['סכום לתשלום:', formatCurrency(effectiveRequiredAmount)],
-      ['סכום ששולם:', formatCurrency(registration.paidAmount)],
+      [formattedRegistrationDate, 'תאריך רישום:'],
+      [formatCurrency(registration.requiredAmount), 'סכום מקורי:'],
+      [registration.discountApproved ? formatCurrency(discountAmount) : 'לא', 'הנחה:'],
+      [formatCurrency(effectiveRequiredAmount), 'סכום לתשלום:'],
+      [formatCurrency(registration.paidAmount), 'סכום ששולם:'],
     ];
     
     // Create table with registration data
@@ -72,18 +78,18 @@ export function buildRegistrationPDF(
     if (payments.length > 0) {
       addSectionTitle(pdf, 'פרטי תשלומים:', yPosition + 15);
       
-      // Create payment details table header
+      // Create payment details table header - also swap for RTL
       const paymentHeaders = [[
-        'תאריך תשלום', 
+        'סכום',
         'מספר קבלה', 
-        'סכום'
+        'תאריך תשלום'
       ]];
       
-      // Create payment details rows
+      // Create payment details rows - swap order and ensure correct date format
       const paymentData = payments.map(payment => [
-        format(new Date(payment.paymentDate), 'dd/MM/yyyy'),
+        formatCurrency(payment.amount),
         payment.receiptNumber,
-        formatCurrency(payment.amount)
+        format(new Date(payment.paymentDate), 'dd/MM/yyyy')
       ]);
       
       // Create table with payment data and headers
