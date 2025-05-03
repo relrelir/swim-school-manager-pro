@@ -6,15 +6,19 @@ export const configureHebrewFont = async (pdf: jsPDF): Promise<void> => {
   try {
     console.log("Configuring PDF for Hebrew text support with Alef font");
     
-    // Load the font definition files dynamically
-    // This prevents Vite from trying to statically analyze these files
-    await Promise.all([
-      import('../../assets/fonts/Alef-Regular-normal.js'),
-      import('../../assets/fonts/Alef-Bold-bold.js')
-    ]);
-    
     // Set RTL mode for Hebrew text direction
     pdf.setR2L(true);
+    
+    // Load TTF fonts directly from public directory
+    const fontBaseUrl = '/fonts/'; // This points to the public/fonts directory
+    
+    // Register Alef Regular font
+    console.log("Adding Alef Regular font from", `${fontBaseUrl}Alef-Regular.ttf`);
+    await pdf.addFont(`${fontBaseUrl}Alef-Regular.ttf`, 'Alef', 'normal');
+    
+    // Register Alef Bold font
+    console.log("Adding Alef Bold font from", `${fontBaseUrl}Alef-Bold.ttf`);
+    await pdf.addFont(`${fontBaseUrl}Alef-Bold.ttf`, 'Alef', 'bold');
     
     // Use Alef font that properly supports Hebrew characters
     pdf.setFont('Alef');
@@ -45,5 +49,8 @@ export const configureHebrewFont = async (pdf: jsPDF): Promise<void> => {
     pdf.setR2L(true);
     pdf.setFont('helvetica');
     console.warn("Falling back to helvetica font due to error");
+    
+    // Re-throw for debugging
+    throw new Error(`Failed to configure Hebrew font: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }

@@ -17,8 +17,15 @@ export const createPdf = (): jsPDF => {
   // Set document to RTL
   pdf.setR2L(true);
   
-  // Use Alef font
-  pdf.setFont('Alef');
+  try {
+    // Use Alef font
+    pdf.setFont('Alef');
+    console.log("Font set to Alef in createPdf");
+  } catch (error) {
+    console.error("Error setting Alef font in createPdf:", error);
+    // Fallback to standard font
+    pdf.setFont('helvetica');
+  }
   
   return pdf;
 };
@@ -27,6 +34,7 @@ export const createPdf = (): jsPDF => {
  * Adds a title to the PDF document
  */
 export const addPdfTitle = (pdf: jsPDF, title: string): void => {
+  console.log(`Adding PDF title: "${title}"`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(20);
   pdf.text(title, pdf.internal.pageSize.width / 2, 20, { align: 'center' });
@@ -36,6 +44,7 @@ export const addPdfTitle = (pdf: jsPDF, title: string): void => {
  * Adds the current date to the PDF document
  */
 export const addPdfDate = (pdf: jsPDF, date: string): void => {
+  console.log(`Adding PDF date: "${date}"`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(10);
   pdf.text(date, pdf.internal.pageSize.width - 20, 10, { align: 'right' });
@@ -45,6 +54,7 @@ export const addPdfDate = (pdf: jsPDF, date: string): void => {
  * Adds a section title to the PDF document
  */
 export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
+  console.log(`Adding section title: "${title}" at y=${y}`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(14);
   pdf.text(title, pdf.internal.pageSize.width - 20, y, { align: 'right' });
@@ -59,6 +69,9 @@ export const createDataTable = (
   startY: number, 
   hasHeader: boolean = false
 ): number => {
+  console.log(`Creating data table at y=${startY} with ${data.length} rows`);
+  console.log("First row sample:", JSON.stringify(data[0]));
+  
   // Configure autotable with RTL support and Alef font
   const tableConfig: any = {
     startY,
@@ -82,6 +95,7 @@ export const createDataTable = (
     const body = data.slice(1);
     
     try {
+      console.log("Creating table with header");
       autoTable(pdf, {
         ...tableConfig,
         head: [headers],
@@ -89,15 +103,29 @@ export const createDataTable = (
       });
     } catch (error) {
       console.error("Error creating table with header:", error);
+      // Try with default font as fallback
+      tableConfig.styles.font = 'helvetica';
+      autoTable(pdf, {
+        ...tableConfig,
+        head: [headers],
+        body: body,
+      });
     }
   } else {
     try {
+      console.log("Creating table without header");
       autoTable(pdf, {
         ...tableConfig,
         body: data,
       });
     } catch (error) {
       console.error("Error creating table without header:", error);
+      // Try with default font as fallback
+      tableConfig.styles.font = 'helvetica';
+      autoTable(pdf, {
+        ...tableConfig,
+        body: data,
+      });
     }
   }
 
@@ -105,6 +133,7 @@ export const createDataTable = (
   let finalY = 0;
   try {
     finalY = (pdf as any).lastAutoTable.finalY + 5;
+    console.log(`Table created, new Y position: ${finalY}`);
   } catch (error) {
     console.error("Error getting finalY, using default value:", error);
     finalY = startY + 50; // Default fallback value
@@ -121,6 +150,8 @@ export const createPlainTextTable = (
   data: (string | number)[][], 
   startY: number
 ): number => {
+  console.log(`Creating plain text table at y=${startY} with ${data.length} rows`);
+  
   // Configure autotable with RTL support for plain text with Alef font
   try {
     autoTable(pdf, {
@@ -134,12 +165,23 @@ export const createPlainTextTable = (
     });
   } catch (error) {
     console.error("Error creating plain text table:", error);
+    // Try with default font as fallback
+    autoTable(pdf, {
+      startY,
+      body: data,
+      styles: { 
+        font: 'helvetica',
+        halign: 'right',
+      },
+      theme: 'plain',
+    });
   }
 
   // Return the new y position after the table
   let finalY = 0;
   try {
     finalY = (pdf as any).lastAutoTable.finalY + 5;
+    console.log(`Plain text table created, new Y position: ${finalY}`);
   } catch (error) {
     console.error("Error getting finalY for plain table, using default value:", error);
     finalY = startY + 30; // Default fallback value

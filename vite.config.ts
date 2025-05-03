@@ -32,6 +32,7 @@ export default defineConfig(({ mode }) => ({
       include: [/node_modules/],
     },
   },
-  assetsInclude: ['**/*.ttf'],
-  // Exclude font JS files from ESM processing
+  assetsInclude: ['**/*.ttf', '**/*.woff', '**/*.woff2'],
+  // Improved public directory handling for fonts
+  publicDir: 'public',
 }));
