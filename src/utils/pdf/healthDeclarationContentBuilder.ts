@@ -53,11 +53,11 @@ export const buildHealthDeclarationPDF = (
     // Process participant data with appropriate direction control
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
-    // Apply strongest LTR control to numeric data
+    // IMPORTANT CHANGE: Swap the columns - put data in first column and labels in second column
     const participantData = [
-      ['שם מלא', fullName],
-      ['תעודת זהות', forceLtrDirection(participant.idnumber)],
-      ['טלפון', forceLtrDirection(participant.phone)],
+      [fullName, 'שם מלא'],
+      [forceLtrDirection(participant.idnumber), 'תעודת זהות'],
+      [forceLtrDirection(participant.phone), 'טלפון'],
     ];
     
     console.log("Creating participant data table");
@@ -69,9 +69,10 @@ export const buildHealthDeclarationPDF = (
     if (parentInfo.parentName || parentInfo.parentId) {
       addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
       
+      // IMPORTANT CHANGE: Swap the columns here as well - put data in first column and labels in second column
       const parentData = [
-        ['שם מלא', parentInfo.parentName || ''],
-        ['תעודת זהות', parentInfo.parentId ? forceLtrDirection(parentInfo.parentId) : ''],
+        [parentInfo.parentName || '', 'שם מלא'],
+        [parentInfo.parentId ? forceLtrDirection(parentInfo.parentId) : '', 'תעודת זהות'],
       ];
       
       lastY = createDataTable(pdf, parentData, lastY + 20);
