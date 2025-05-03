@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { createRtlPdf } from './pdf/pdfConfig';
 import { buildRegistrationPDF } from './pdf/registrationPdfContentBuilder';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import { Registration, Participant, Payment } from '@/types';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
@@ -14,7 +14,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       .from('registrations')
       .select('*')
       .eq('id', registrationId)
-      .maybeSingle();
+      .single();
     
     if (registrationError || !registration) {
       console.error("Registration details not found:", registrationError);
@@ -26,7 +26,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       .from('participants')
       .select('*')
       .eq('id', registration.participantid)
-      .maybeSingle();
+      .single();
     
     if (participantError || !participant) {
       console.error("Participant details not found:", participantError);
@@ -50,7 +50,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       .from('products')
       .select('name')
       .eq('id', registration.productid)
-      .maybeSingle();
+      .single();
     
     if (productError || !product) {
       console.error("Product details not found:", productError);

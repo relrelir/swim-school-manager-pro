@@ -1,7 +1,7 @@
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * Using David font for better Hebrew rendering
+ * Using standard encoding for better compatibility
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
