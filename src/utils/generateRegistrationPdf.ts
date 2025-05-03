@@ -6,7 +6,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
-import { configureHebrewFont, ensureAssistantFontLoaded } from './pdf/hebrewPdfConfig';
+import { configureHebrewFont, ensureAssistantFontLoaded, testFontRendering } from './pdf/hebrewPdfConfig';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
@@ -95,38 +95,63 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     })) : [];
     
     try {
-      // Ensure Assistant font is loaded
-      await document.fonts.ready;
+      // Ensure Assistant font is loaded with improved loading mechanism
+      console.log("Starting font loading process...");
       await ensureAssistantFontLoaded();
+      await document.fonts.ready;
       
-      console.log("Available fonts:", Array.from(document.fonts).map(f => f.family));
+      console.log("Available fonts:", Array.from(document.fonts).map(f => `${f.family} (${f.status})`));
       
-      // Create a virtual registration certificate in the DOM
+      // Create a test element to force font rendering
+      const testElement = testFontRendering();
+      
+      // Create a visible (in DOM) but hidden virtual registration certificate
+      console.log("Creating virtual registration element");
       const virtualRegistration = document.createElement('div');
+      virtualRegistration.id = 'virtual-registration';
       virtualRegistration.style.width = '800px';
       virtualRegistration.style.height = '1100px';
       virtualRegistration.style.padding = '40px';
+      virtualRegistration.style.position = 'fixed';
+      virtualRegistration.style.top = '0';
+      virtualRegistration.style.left = '0';
+      virtualRegistration.style.zIndex = '-9999';
+      virtualRegistration.style.visibility = 'hidden'; // Hidden but still rendered
+      virtualRegistration.style.overflow = 'visible';
+      virtualRegistration.style.backgroundColor = 'white';
       virtualRegistration.style.fontFamily = 'Assistant, Arial, sans-serif';
       virtualRegistration.style.direction = 'rtl';
-      virtualRegistration.style.backgroundColor = 'white';
-      virtualRegistration.style.position = 'absolute';
-      virtualRegistration.style.top = '0';
-      virtualRegistration.style.left = '-2000px'; // Off-screen but not too far
-      virtualRegistration.style.zIndex = '-1000';
-      virtualRegistration.style.overflow = 'visible';
       
       // Explicitly set font style to ensure it loads
       const style = document.createElement('style');
       style.textContent = `
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
-        * {
-          font-family: 'Assistant', Arial, sans-serif !important;
+        
+        /* Direct font embedding */
+        @font-face {
+          font-family: 'Assistant';
+          src: url('https://fonts.gstatic.com/s/assistant/v18/2sDPZGJYnIjSi6H75xkZZE1I0yCmYzzQtuZnIGSV35Gu.woff2') format('woff2');
+          font-weight: normal;
+          font-style: normal;
+          font-display: swap;
+          unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
         }
-        p, h1, h2, h3 {
+        
+        #virtual-registration * {
           font-family: 'Assistant', Arial, sans-serif !important;
+          direction: rtl;
         }
-        table, th, td {
+        
+        #virtual-registration h1, 
+        #virtual-registration h2, 
+        #virtual-registration h3, 
+        #virtual-registration p,
+        #virtual-registration div,
+        #virtual-registration table,
+        #virtual-registration th,
+        #virtual-registration td {
           font-family: 'Assistant', Arial, sans-serif !important;
+          direction: rtl;
         }
       `;
       virtualRegistration.appendChild(style);
@@ -138,55 +163,55 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       // Format current date for display
       const currentDate = format(new Date(), 'dd/MM/yyyy');
       
-      // Build registration certificate HTML
+      // Build registration certificate HTML with embedded font styles
       virtualRegistration.innerHTML += `
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="font-size: 28px; margin-bottom: 10px; font-family: Assistant, Arial, sans-serif;">אישור רישום למוצר</h1>
-          <p style="font-size: 14px; color: #666;">${currentDate}</p>
+          <h1 style="font-size: 28px; margin-bottom: 10px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">אישור רישום למוצר</h1>
+          <p style="font-size: 14px; color: #666; font-family: Assistant, Arial, sans-serif !important;">${currentDate}</p>
         </div>
         
         <div style="text-align: center; margin-bottom: 30px;">
-          <h2 style="font-size: 22px; font-family: Assistant, Arial, sans-serif;">מוצר: ${product.name}</h2>
+          <h2 style="font-size: 22px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">מוצר: ${product.name}</h2>
         </div>
         
         <div style="margin-bottom: 30px;">
-          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif;">פרטי משתתף:</h3>
+          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">פרטי משתתף:</h3>
           <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
-            <p><span style="font-weight: bold;">שם מלא:</span> ${participantData.firstName} ${participantData.lastName}</p>
-            <p><span style="font-weight: bold;">תעודת זהות:</span> ${participantData.idNumber || ''}</p>
-            <p><span style="font-weight: bold;">טלפון:</span> ${participantData.phone || ''}</p>
+            <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">שם מלא:</span> ${participantData.firstName} ${participantData.lastName}</p>
+            <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">תעודת זהות:</span> ${participantData.idNumber || ''}</p>
+            <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">טלפון:</span> ${participantData.phone || ''}</p>
           </div>
         </div>
         
         <div style="margin-bottom: 30px;">
-          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif;">פרטי רישום:</h3>
+          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">פרטי רישום:</h3>
           <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
-            <p><span style="font-weight: bold;">תאריך רישום:</span> ${format(new Date(registrationData.registrationDate), 'dd/MM/yyyy')}</p>
-            <p><span style="font-weight: bold;">סכום מקורי:</span> ${formatCurrency(registrationData.requiredAmount)}</p>
-            <p><span style="font-weight: bold;">הנחה:</span> ${registrationData.discountApproved ? formatCurrency(discountAmount) : 'לא'}</p>
-            <p><span style="font-weight: bold;">סכום לתשלום:</span> ${formatCurrency(effectiveRequiredAmount)}</p>
-            <p><span style="font-weight: bold;">סכום ששולם:</span> ${formatCurrency(registrationData.paidAmount)}</p>
+            <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">תאריך רישום:</span> ${format(new Date(registrationData.registrationDate), 'dd/MM/yyyy')}</p>
+            <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">סכום מקורי:</span> ${formatCurrency(registrationData.requiredAmount)}</p>
+            <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">הנחה:</span> ${registrationData.discountApproved ? formatCurrency(discountAmount) : 'לא'}</p>
+            <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">סכום לתשלום:</span> ${formatCurrency(effectiveRequiredAmount)}</p>
+            <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">סכום ששולם:</span> ${formatCurrency(registrationData.paidAmount)}</p>
           </div>
         </div>
         
         ${paymentsData.length > 0 ? `
           <div style="margin-bottom: 30px;">
-            <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif;">פרטי תשלומים:</h3>
+            <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">פרטי תשלומים:</h3>
             <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
-              <table style="width: 100%; border-collapse: collapse;">
+              <table style="width: 100%; border-collapse: collapse; direction: rtl;">
                 <thead>
                   <tr style="background-color: #f5f5f5;">
-                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">תאריך תשלום</th>
-                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">מספר קבלה</th>
-                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">סכום</th>
+                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd; font-family: Assistant, Arial, sans-serif !important;">תאריך תשלום</th>
+                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd; font-family: Assistant, Arial, sans-serif !important;">מספר קבלה</th>
+                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd; font-family: Assistant, Arial, sans-serif !important;">סכום</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${paymentsData.map(payment => `
                     <tr>
-                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">${format(new Date(payment.paymentDate), 'dd/MM/yyyy')}</td>
-                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">${payment.receiptNumber}</td>
-                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">${formatCurrency(payment.amount)}</td>
+                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee; font-family: Assistant, Arial, sans-serif !important;">${format(new Date(payment.paymentDate), 'dd/MM/yyyy')}</td>
+                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee; font-family: Assistant, Arial, sans-serif !important;">${payment.receiptNumber}</td>
+                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee; font-family: Assistant, Arial, sans-serif !important;">${formatCurrency(payment.amount)}</td>
                     </tr>
                   `).join('')}
                 </tbody>
@@ -196,19 +221,25 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         ` : ''}
         
         <div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; text-align: center;">
-          <p>מסמך זה מהווה אישור רשמי על רישום ותשלום.</p>
+          <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;">מסמך זה מהווה אישור רשמי על רישום ותשלום.</p>
         </div>
       `;
       
-      // Append to the document body to render properly
+      // Append to the document body
       document.body.appendChild(virtualRegistration);
       
-      // Wait longer for the fonts to load properly before generating image
-      console.log("HTML element created and appended, waiting for fonts to load...");
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log("Font loading wait complete, proceeding to image conversion");
+      // Wait longer for the fonts to load and the element to render
+      console.log("Waiting for rendering to complete (4000ms)...");
+      await new Promise(resolve => setTimeout(resolve, 4000));
+      console.log("Render wait complete, proceeding to image conversion");
       
-      // Convert the HTML to an image with better error handling
+      // Verify the font is loaded again just before conversion
+      const assistantFontLoaded = Array.from(document.fonts).some(font => 
+        font.family.includes('Assistant') && font.status === 'loaded'
+      );
+      console.log("Final Assistant font loaded check:", assistantFontLoaded);
+      
+      // Convert the HTML to image with improved settings
       let dataUrl;
       try {
         console.log("Starting HTML to image conversion...");
@@ -218,24 +249,43 @@ export const generateRegistrationPdf = async (registrationId: string) => {
           height: 1100,
           backgroundColor: 'white',
           skipAutoScale: true,
-          pixelRatio: 3, // Higher resolution
+          pixelRatio: 5, // Higher resolution
           cacheBust: true, // Avoid caching issues
-          canvasWidth: 2400, // 3x the width for higher resolution
-          canvasHeight: 3300, // 3x the height for higher resolution
+          canvasWidth: 4000, // 5x the width for higher resolution
+          canvasHeight: 5500, // 5x the height for higher resolution
+          fontEmbedCSS: document.querySelector('style')?.textContent || '',
           style: {
-            margin: '0',
-            padding: '40px',
             fontFamily: 'Assistant, Arial, sans-serif',
+            direction: 'rtl',
           },
+          // Additional settings to help with rendering issues
+          allowTaint: true, // Allow cross-origin images
+          useCORS: true, // Try to use CORS for external resources
+          imagePlaceholder: undefined, // No placeholder for missing images
         });
         console.log("HTML converted to image successfully, dataUrl length:", dataUrl?.length || 0);
+        
+        // For debugging: save the image separately
+        try {
+          const debugLink = document.createElement('a');
+          debugLink.download = `debug_registration_${registrationId.substring(0, 8)}.png`;
+          debugLink.href = dataUrl;
+          debugLink.style.display = 'none';
+          document.body.appendChild(debugLink);
+          debugLink.click();
+          document.body.removeChild(debugLink);
+          console.log("Debug image saved");
+        } catch (debugError) {
+          console.error("Could not save debug image:", debugError);
+        }
       } catch (imageError) {
         console.error("Error during HTML to image conversion:", imageError);
         throw new Error(`שגיאה בהמרת HTML לתמונה: ${imageError}`);
+      } finally {
+        // Remove the temporary elements
+        document.body.removeChild(virtualRegistration);
+        document.body.removeChild(testElement);
       }
-      
-      // Remove the temporary element
-      document.body.removeChild(virtualRegistration);
       
       if (!dataUrl || dataUrl.length < 1000) {
         console.error("Generated image is invalid or too small");

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
-import { configureHebrewFont } from './pdf/hebrewPdfConfig';
+import { configureHebrewFont, ensureAssistantFontLoaded, testFontRendering } from './pdf/hebrewPdfConfig';
 
 export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
   try {
@@ -43,123 +43,169 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     console.log("Data fetched successfully. Participant:", participant);
     
     try {
-      // Load the Assistant font
+      // Ensure the Assistant font is loaded with improved loading mechanism
+      console.log("Starting font loading process...");
+      await ensureAssistantFontLoaded();
       await document.fonts.ready;
-      console.log("Available fonts:", Array.from(document.fonts).map(f => f.family));
       
-      // Create a virtual health declaration in the DOM - ensure it's visible while rendering
+      console.log("Available fonts:", Array.from(document.fonts).map(f => `${f.family} (${f.status})`));
+      
+      // Create a test element to force font rendering
+      const testElement = testFontRendering();
+      
+      // Create a hidden but visible (in DOM) virtual declaration
+      console.log("Creating virtual declaration element");
       const virtualDeclaration = document.createElement('div');
+      virtualDeclaration.id = 'virtual-health-declaration';
       virtualDeclaration.style.width = '800px';
       virtualDeclaration.style.height = '1200px';
       virtualDeclaration.style.padding = '40px';
+      virtualDeclaration.style.position = 'fixed';
+      virtualDeclaration.style.top = '0';
+      virtualDeclaration.style.left = '0';
+      virtualDeclaration.style.zIndex = '-9999';
+      virtualDeclaration.style.visibility = 'hidden'; // Hidden but still rendered
+      virtualDeclaration.style.overflow = 'visible';
+      virtualDeclaration.style.backgroundColor = 'white';
       virtualDeclaration.style.fontFamily = 'Assistant, Arial, sans-serif';
       virtualDeclaration.style.direction = 'rtl';
-      virtualDeclaration.style.backgroundColor = 'white';
-      virtualDeclaration.style.position = 'absolute';
-      virtualDeclaration.style.top = '0';
-      virtualDeclaration.style.left = '-2000px'; // Still off-screen but not too far
-      virtualDeclaration.style.zIndex = '-1000';
-      virtualDeclaration.style.overflow = 'visible';
       
       // Explicitly set font style to ensure it loads
       const style = document.createElement('style');
       style.textContent = `
         @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
-        * {
-          font-family: 'Assistant', Arial, sans-serif !important;
+        
+        /* Direct font embedding */
+        @font-face {
+          font-family: 'Assistant';
+          src: url('https://fonts.gstatic.com/s/assistant/v18/2sDPZGJYnIjSi6H75xkZZE1I0yCmYzzQtuZnIGSV35Gu.woff2') format('woff2');
+          font-weight: normal;
+          font-style: normal;
+          font-display: swap;
+          unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
         }
-        p, h1, h2, h3 {
+        
+        #virtual-health-declaration * {
           font-family: 'Assistant', Arial, sans-serif !important;
+          direction: rtl;
+        }
+        
+        #virtual-health-declaration h1, 
+        #virtual-health-declaration h2, 
+        #virtual-health-declaration h3, 
+        #virtual-health-declaration p,
+        #virtual-health-declaration div {
+          font-family: 'Assistant', Arial, sans-serif !important;
+          direction: rtl;
         }
       `;
       virtualDeclaration.appendChild(style);
       
-      // Build declaration HTML with more reliable styling
+      // Build declaration HTML with improved styling
       virtualDeclaration.innerHTML += `
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="font-size: 28px; margin-bottom: 10px; font-family: Assistant, Arial, sans-serif;">הצהרת בריאות</h1>
-          <p style="font-size: 14px; color: #666;">${new Date().toLocaleDateString('he-IL')}</p>
+          <h1 style="font-size: 28px; margin-bottom: 10px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">הצהרת בריאות</h1>
+          <p style="font-size: 14px; color: #666; font-family: Assistant, Arial, sans-serif !important;">${new Date().toLocaleDateString('he-IL')}</p>
         </div>
         
         <div style="margin-bottom: 30px; border: 1px solid #eee; padding: 15px; border-radius: 5px;">
-          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif;">פרטי המשתתף:</h3>
-          <p><span style="font-weight: bold;">שם מלא:</span> ${participant.firstname} ${participant.lastname}</p>
-          <p><span style="font-weight: bold;">ת.ז.:</span> ${participant.idnumber || ''}</p>
-          <p><span style="font-weight: bold;">טלפון:</span> ${participant.phone || ''}</p>
+          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">פרטי המשתתף:</h3>
+          <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">שם מלא:</span> ${participant.firstname} ${participant.lastname}</p>
+          <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">ת.ז.:</span> ${participant.idnumber || ''}</p>
+          <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;"><span style="font-weight: bold;">טלפון:</span> ${participant.phone || ''}</p>
         </div>
         
         <div style="margin-bottom: 30px;">
-          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif;">הצהרה:</h3>
+          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">הצהרה:</h3>
           <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
-            <p style="margin-bottom: 8px;">• המשתתף נמצא/ת בכושר ובמצב בריאותי תקין המאפשר השתתפות בפעילות.</p>
-            <p style="margin-bottom: 8px;">• לא ידוע לי על מגבלות רפואיות המונעות להשתתף בפעילות.</p>
-            <p style="margin-bottom: 8px;">• לא ידוע לי על רגישויות, מחלות או בעיות רפואיות אחרות שעלולות להשפיע על ההשתתפות בפעילות.</p>
-            <p style="margin-bottom: 8px;">• אני מתחייב/ת להודיע למדריכים על כל שינוי במצבו הבריאותי.</p>
+            <p style="margin-bottom: 8px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">• המשתתף נמצא/ת בכושר ובמצב בריאותי תקין המאפשר השתתפות בפעילות.</p>
+            <p style="margin-bottom: 8px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">• לא ידוע לי על מגבלות רפואיות המונעות להשתתף בפעילות.</p>
+            <p style="margin-bottom: 8px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">• לא ידוע לי על רגישויות, מחלות או בעיות רפואיות אחרות שעלולות להשפיע על ההשתתפות בפעילות.</p>
+            <p style="margin-bottom: 8px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">• אני מתחייב/ת להודיע למדריכים על כל שינוי במצבו הבריאותי.</p>
           </div>
         </div>
         
         ${healthDeclaration.notes ? `
         <div style="margin-bottom: 30px;">
-          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif;">הערות רפואיות:</h3>
-          <p>${healthDeclaration.notes}</p>
+          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">הערות רפואיות:</h3>
+          <p style="font-family: Assistant, Arial, sans-serif !important; direction: rtl;">${healthDeclaration.notes}</p>
         </div>
         ` : ''}
         
         <div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px;">
           <div style="margin-bottom: 30px;">
-            <p style="font-weight: bold; margin-bottom: 5px;">חתימת ההורה/אפוטרופוס:</p>
+            <p style="font-weight: bold; margin-bottom: 5px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">חתימת ההורה/אפוטרופוס:</p>
             <div style="height: 40px; border-bottom: 1px dashed #999; width: 250px;"></div>
           </div>
           
           <div>
-            <p style="font-weight: bold; margin-bottom: 5px;">תאריך:</p>
+            <p style="font-weight: bold; margin-bottom: 5px; font-family: Assistant, Arial, sans-serif !important; direction: rtl;">תאריך:</p>
             <div style="height: 40px; border-bottom: 1px dashed #999; width: 120px;"></div>
           </div>
         </div>
       `;
       
-      // Append to the document body to render properly
+      // Append to the document body
       document.body.appendChild(virtualDeclaration);
       
-      // Wait longer for the fonts to load properly before generating image
-      console.log("HTML element created and appended, waiting for font loading...");
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log("Font loading wait complete, proceeding to image conversion");
+      // Wait longer for the fonts to load and the element to render
+      console.log("Waiting for rendering to complete (4000ms)...");
+      await new Promise(resolve => setTimeout(resolve, 4000));
+      console.log("Render wait complete, proceeding to image conversion");
       
-      // Add a specific check for the Assistant font
+      // Verify the font is loaded again just before conversion
       const assistantFontLoaded = Array.from(document.fonts).some(font => 
         font.family.includes('Assistant') && font.status === 'loaded'
       );
-      console.log("Assistant font loaded:", assistantFontLoaded);
+      console.log("Final Assistant font loaded check:", assistantFontLoaded);
       
-      // Convert the HTML to image with better error handling and higher quality settings
+      // Convert the HTML to image with improved settings
+      console.log("Starting HTML to image conversion...");
       let dataUrl;
       try {
-        console.log("Starting HTML to image conversion...");
         dataUrl = await toPng(virtualDeclaration, { 
           quality: 0.95,
           width: 800,
           height: 1200,
           backgroundColor: 'white',
           skipAutoScale: true,
-          pixelRatio: 3, // Higher resolution for better quality
+          pixelRatio: 5, // Higher resolution for better quality
           cacheBust: true, // Avoid caching issues
-          canvasWidth: 2400, // 3x the width for higher resolution
-          canvasHeight: 3600, // 3x the height for higher resolution
+          canvasWidth: 4000, // 5x the width for higher resolution
+          canvasHeight: 6000, // 5x the height for higher resolution
+          fontEmbedCSS: document.querySelector('style')?.textContent || '',
           style: {
-            margin: '0',
-            padding: '40px',
             fontFamily: 'Assistant, Arial, sans-serif',
+            direction: 'rtl',
           },
+          // Additional settings to help with rendering issues
+          allowTaint: true, // Allow cross-origin images
+          useCORS: true, // Try to use CORS for external resources
+          imagePlaceholder: undefined, // No placeholder for missing images
         });
         console.log("HTML converted to image successfully, dataUrl length:", dataUrl?.length || 0);
+        
+        // For debugging: save the image separately
+        try {
+          const debugLink = document.createElement('a');
+          debugLink.download = `debug_health_declaration_${healthDeclarationId.substring(0, 8)}.png`;
+          debugLink.href = dataUrl;
+          debugLink.style.display = 'none';
+          document.body.appendChild(debugLink);
+          debugLink.click();
+          document.body.removeChild(debugLink);
+          console.log("Debug image saved");
+        } catch (debugError) {
+          console.error("Could not save debug image:", debugError);
+        }
       } catch (imageError) {
         console.error("Error during HTML to image conversion:", imageError);
         throw new Error(`שגיאה בהמרת HTML לתמונה: ${imageError}`);
+      } finally {
+        // Remove the temporary elements
+        document.body.removeChild(virtualDeclaration);
+        document.body.removeChild(testElement);
       }
-      
-      // Remove the temporary element
-      document.body.removeChild(virtualDeclaration);
       
       if (!dataUrl || dataUrl.length < 1000) {
         console.error("Generated image is invalid or too small");

@@ -36,7 +36,7 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
   }
 }
 
-// Helper function to prepare HTML content with Hebrew font support
+// Helper function to prepare HTML content with Hebrew font support - enhanced with @font-face
 export const prepareHebrewHtmlContent = (): string => {
   return `
     @font-face {
@@ -64,38 +64,108 @@ export const checkAssistantFontLoaded = async (): Promise<boolean> => {
   await document.fonts.ready;
   
   // Check if Assistant is in the list of loaded fonts
-  return Array.from(document.fonts).some(font => 
+  const assistantLoaded = Array.from(document.fonts).some(font => 
     font.family.toLowerCase().includes('assistant') && font.status === 'loaded'
   );
+  
+  console.log("Assistant font loaded check:", assistantLoaded);
+  return assistantLoaded;
 }
 
-// Function to load Assistant font if needed
+// Function to load Assistant font if needed - with direct embedding
 export const ensureAssistantFontLoaded = async (): Promise<void> => {
   const isFontLoaded = await checkAssistantFontLoaded();
   
   if (!isFontLoaded) {
-    console.log("Assistant font not detected, loading manually...");
+    console.log("Assistant font not detected, loading in multiple ways...");
     
-    // Create a link element to load the font
+    // 1. Create a link element to load the font
     const fontLink = document.createElement('link');
     fontLink.rel = 'stylesheet';
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap';
     document.head.appendChild(fontLink);
     
-    // Wait for the font to load
+    // 2. Add direct @font-face styling as a fallback
+    const fontStyle = document.createElement('style');
+    fontStyle.textContent = `
+      /* Direct font embedding */
+      @font-face {
+        font-family: 'Assistant';
+        src: url('https://fonts.gstatic.com/s/assistant/v18/2sDPZGJYnIjSi6H75xkZZE1I0yCmYzzQtuZnIGSV35Gu.woff2') format('woff2');
+        font-weight: normal;
+        font-style: normal;
+        font-display: swap;
+        unicode-range: U+0590-05FF, U+200C-2010, U+20AA, U+25CC, U+FB1D-FB4F;
+      }
+      
+      /* Force all elements to use Assistant */
+      * {
+        font-family: 'Assistant', Arial, sans-serif !important;
+      }
+    `;
+    document.head.appendChild(fontStyle);
+    
+    // 3. Create a test element with Hebrew text to force font loading
+    const testElement = document.createElement('div');
+    testElement.style.fontFamily = 'Assistant, Arial, sans-serif';
+    testElement.style.position = 'absolute';
+    testElement.style.top = '-9999px';
+    testElement.style.fontSize = '20px';
+    testElement.textContent = 'שלום עולם - טקסט עברי לטעינת הגופן';
+    document.body.appendChild(testElement);
+    
+    // Wait for the font to load with a longer timeout
+    console.log("Waiting for Assistant font to load...");
     await new Promise<void>(resolve => {
-      fontLink.onload = () => {
-        console.log("Assistant font loaded via link tag");
-        resolve();
+      // Use a font loading detector
+      const checkFont = () => {
+        if (Array.from(document.fonts).some(font => font.family.toLowerCase().includes('assistant') && font.status === 'loaded')) {
+          console.log("Assistant font loaded successfully");
+          resolve();
+        } else {
+          const remainingAttempts = 30;
+          if (remainingAttempts > 0) {
+            setTimeout(checkFont, 200); // Check every 200ms
+          } else {
+            console.log("Font load attempts exhausted, continuing anyway");
+            resolve();
+          }
+        }
       };
       
-      // Timeout in case the font doesn't load
+      // Start checking
+      setTimeout(checkFont, 200);
+      
+      // Safety timeout in case the font detection fails
       setTimeout(() => {
-        console.log("Font load timeout reached, continuing anyway");
+        console.log("Font load max timeout (6s) reached, continuing anyway");
         resolve();
-      }, 2000);
+      }, 6000);
     });
+    
+    // Clean up the test element
+    document.body.removeChild(testElement);
+    
+    console.log("Font loading process completed");
   } else {
     console.log("Assistant font already loaded");
   }
+}
+
+// Function to create a test element to verify font rendering
+export const testFontRendering = (): HTMLElement => {
+  console.log("Creating font test element");
+  const testElement = document.createElement('div');
+  testElement.style.fontFamily = 'Assistant, Arial, sans-serif';
+  testElement.style.position = 'absolute';
+  testElement.style.top = '10px';
+  testElement.style.right = '10px';
+  testElement.style.zIndex = '-1';
+  testElement.style.opacity = '0.01'; // Almost invisible but still rendered
+  testElement.style.fontSize = '20px';
+  testElement.style.direction = 'rtl';
+  testElement.textContent = 'טקסט בדיקה עברי';
+  
+  document.body.appendChild(testElement);
+  return testElement;
 }
