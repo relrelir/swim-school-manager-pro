@@ -1,12 +1,18 @@
 
+import { processTextDirection } from './pdf/hebrewTextHelper';
+
 /**
  * Format a number as currency in ILS (New Israeli Shekel)
  */
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('he-IL', { 
+  // Create the formatted currency string
+  const formatted = new Intl.NumberFormat('he-IL', { 
     style: 'currency', 
     currency: 'ILS' 
   }).format(amount);
+  
+  // Ensure the currency is treated as LTR content when used in RTL context
+  return processTextDirection(formatted, true);
 };
 
 /**
@@ -14,7 +20,10 @@ export const formatCurrency = (amount: number): string => {
  */
 export const formatDate = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return dateObj.toLocaleDateString('he-IL');
+  const formatted = dateObj.toLocaleDateString('he-IL');
+  
+  // Ensure the date is treated as LTR content when used in RTL context
+  return processTextDirection(formatted, true);
 };
 
 /**
@@ -40,7 +49,10 @@ export const formatTime = (time: string): string => {
     date.setMinutes(minutes);
     
     // Format time according to locale (without seconds)
-    return date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    const formatted = date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+    
+    // Ensure the time is treated as LTR content when used in RTL context
+    return processTextDirection(formatted, true);
   } catch (e) {
     console.error('Error formatting time:', e);
     return time; // Return original if there's an error
@@ -52,15 +64,14 @@ export const formatTime = (time: string): string => {
  */
 export const formatParticipantsCount = (current: number, max: number | undefined): string => {
   if (max === undefined || max === null) {
-    return `${current}`;
+    return processTextDirection(`${current}`, true);
   }
-  return `${current}/${max}`;
+  return processTextDirection(`${current}/${max}`, true);
 };
 
 /**
  * Format meeting count as "X/Y"
  */
 export const formatMeetingCount = (current: number, total: number): string => {
-  return `${current}/${total}`;
+  return processTextDirection(`${current}/${total}`, true);
 };
-
