@@ -2,6 +2,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { configureDocumentStyle } from './pdfConfig';
+import { processTextDirection } from './hebrewTextHelper';
 
 /**
  * Creates a new PDF document with RTL support for Hebrew
@@ -47,7 +48,8 @@ export const addPdfDate = (pdf: jsPDF, date: string): void => {
   console.log(`Adding PDF date: "${date}"`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(10);
-  pdf.text(date, pdf.internal.pageSize.width - 20, 10, { align: 'right' });
+  // Process date to ensure correct display of numbers
+  pdf.text(processTextDirection(date), pdf.internal.pageSize.width - 20, 10, { align: 'right' });
 };
 
 /**
@@ -62,6 +64,7 @@ export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
 
 /**
  * Creates a data table in the PDF document with RTL support
+ * Now with improved direction handling for mixed content
  */
 export const createDataTable = (
   pdf: jsPDF, 
@@ -71,6 +74,11 @@ export const createDataTable = (
 ): number => {
   console.log(`Creating data table at y=${startY} with ${data.length} rows`);
   console.log("First row sample:", JSON.stringify(data[0]));
+  
+  // Process text in each cell for correct direction
+  const processedData = data.map(row => 
+    row.map(cell => typeof cell === 'string' ? processTextDirection(cell) : cell)
+  );
   
   // Configure autotable with RTL support and Alef font
   const tableConfig: any = {
@@ -91,8 +99,8 @@ export const createDataTable = (
   };
 
   if (hasHeader) {
-    const headers = data[0];
-    const body = data.slice(1);
+    const headers = processedData[0];
+    const body = processedData.slice(1);
     
     try {
       console.log("Creating table with header");
@@ -116,7 +124,7 @@ export const createDataTable = (
       console.log("Creating table without header");
       autoTable(pdf, {
         ...tableConfig,
-        body: data,
+        body: processedData,
       });
     } catch (error) {
       console.error("Error creating table without header:", error);
@@ -124,7 +132,7 @@ export const createDataTable = (
       tableConfig.styles.font = 'helvetica';
       autoTable(pdf, {
         ...tableConfig,
-        body: data,
+        body: processedData,
       });
     }
   }
@@ -152,11 +160,16 @@ export const createPlainTextTable = (
 ): number => {
   console.log(`Creating plain text table at y=${startY} with ${data.length} rows`);
   
+  // Process text in each cell for correct direction
+  const processedData = data.map(row => 
+    row.map(cell => typeof cell === 'string' ? processTextDirection(cell) : cell)
+  );
+  
   // Configure autotable with RTL support for plain text with Alef font
   try {
     autoTable(pdf, {
       startY,
-      body: data,
+      body: processedData,
       styles: { 
         font: 'Alef',
         halign: 'right',
@@ -168,7 +181,7 @@ export const createPlainTextTable = (
     // Try with default font as fallback
     autoTable(pdf, {
       startY,
-      body: data,
+      body: processedData,
       styles: { 
         font: 'helvetica',
         halign: 'right',

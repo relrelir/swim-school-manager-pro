@@ -1,5 +1,56 @@
 
 /**
+ * Helper functions for handling Hebrew text and mixed content in PDFs
+ */
+
+// Detect if text contains English characters or numbers only
+const isEnglishOrNumber = (text: string): boolean => {
+  if (!text) return false;
+  // Match English letters, numbers, and common punctuation only
+  return /^[a-zA-Z0-9\s\-\.\/\(\)\+\:]+$/.test(text);
+};
+
+// Detect if text contains numbers only (for phone numbers, ID numbers)
+const isNumberOnly = (text: string): boolean => {
+  if (!text) return false;
+  // Match only digits and common number formatting characters
+  return /^[0-9\s\-\.\/]+$/.test(text);
+};
+
+// Detect if text is a date in common formats
+const isDateFormat = (text: string): boolean => {
+  if (!text) return false;
+  // Match common date formats (dd/mm/yyyy, etc.)
+  return /^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(text);
+};
+
+// Detect if text is a phone number format
+const isPhoneFormat = (text: string): boolean => {
+  if (!text) return false;
+  // Match common Israeli phone formats
+  return /^0\d{1,2}[\-\s]?\d{7,8}$/.test(text);
+};
+
+/**
+ * Process text to ensure correct display direction in PDF
+ * - Apply special handling for English/numbers in RTL context
+ * - Mark specific content types for directional handling
+ */
+export const processTextDirection = (text: string): string => {
+  if (!text) return '';
+  
+  // For numbers, dates, and phone numbers, we need LTR direction
+  if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text) || isEnglishOrNumber(text)) {
+    // Add special markers for LTR text in RTL context using unicode control characters
+    // LRM = Left-to-Right Mark (U+200E)
+    return `\u200E${text}\u200E`;
+  }
+
+  // For Hebrew or mixed content, maintain RTL by default
+  return text;
+};
+
+/**
  * Helper function to ensure Hebrew text is properly displayed in PDF
  * Now optimized for Alef font
  */
@@ -22,5 +73,5 @@ export const reverseText = (text: string): string => {
  * with Alef font integration
  */
 export const prepareRtlText = (text: string): string => {
-  return text || '';
+  return processTextDirection(text);
 };
