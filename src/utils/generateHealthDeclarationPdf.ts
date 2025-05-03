@@ -39,6 +39,11 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       throw new Error('פרטי המשתתף לא נמצאו');
     }
     
+    // Validate participant data
+    if (!participant.firstname || !participant.lastname) {
+      console.error("Participant name is missing");
+    }
+    
     console.log("Data fetched successfully. Participant:", participant);
     
     try {

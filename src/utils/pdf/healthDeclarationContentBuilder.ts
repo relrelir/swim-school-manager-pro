@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { 
@@ -27,6 +26,27 @@ interface HealthDeclarationData {
 }
 
 /**
+ * Validates if a string contains only digits or is a valid ID number format
+ */
+const isValidIdNumber = (id: string | null | undefined): boolean => {
+  if (!id) return false;
+  // Allow only digits, possibly with dashes or spaces as separators
+  return /^[\d\s\-]+$/.test(id);
+};
+
+/**
+ * Format phone number for display
+ */
+const formatPhoneNumber = (phone: string | null | undefined): string => {
+  if (!phone) return '';
+  // Clean up any formatting and keep only digits
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length < 9) return phone; // Return original if too short
+  
+  return digits;
+};
+
+/**
  * Builds the content of a health declaration PDF with enhanced bidirectional text support
  */
 export const buildHealthDeclarationPDF = (
@@ -50,14 +70,24 @@ export const buildHealthDeclarationPDF = (
     // Add participant details - Hebrew section title
     addSectionTitle(pdf, 'פרטי המשתתף', 45);
     
-    // Process participant data with appropriate direction control
+    // Process participant data with appropriate direction control and validation
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
-    // IMPORTANT CHANGE: Swap the columns - put data in first column and labels in second column
+    // Validate ID number
+    const idNumber = isValidIdNumber(participant.idnumber) 
+      ? forceLtrDirection(participant.idnumber) 
+      : 'לא צוין';
+    
+    // Format phone number
+    const phoneNumber = participant.phone 
+      ? forceLtrDirection(formatPhoneNumber(participant.phone)) 
+      : 'לא צוין';
+    
+    // IMPORTANT: Data in right column (first element), labels in left column (second element)
     const participantData = [
       [fullName, 'שם מלא'],
-      [forceLtrDirection(participant.idnumber), 'תעודת זהות'],
-      [forceLtrDirection(participant.phone), 'טלפון'],
+      [idNumber, 'תעודת זהות'],
+      [phoneNumber, 'טלפון'],
     ];
     
     console.log("Creating participant data table");
@@ -69,10 +99,15 @@ export const buildHealthDeclarationPDF = (
     if (parentInfo.parentName || parentInfo.parentId) {
       addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
       
-      // IMPORTANT CHANGE: Swap the columns here as well - put data in first column and labels in second column
+      // Validate parent ID
+      const parentIdDisplay = isValidIdNumber(parentInfo.parentId) 
+        ? forceLtrDirection(parentInfo.parentId) 
+        : 'לא צוין';
+      
+      // IMPORTANT: Data in right column (first), labels in left column (second)
       const parentData = [
-        [parentInfo.parentName || '', 'שם מלא'],
-        [parentInfo.parentId ? forceLtrDirection(parentInfo.parentId) : '', 'תעודת זהות'],
+        [parentInfo.parentName || 'לא צוין', 'שם מלא'],
+        [parentIdDisplay, 'תעודת זהות'],
       ];
       
       lastY = createDataTable(pdf, parentData, lastY + 20);
