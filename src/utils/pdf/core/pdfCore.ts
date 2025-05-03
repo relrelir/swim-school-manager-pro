@@ -4,25 +4,14 @@ import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
 
 // Initialize pdfMake with the default fonts
-// Fix TypeScript errors by correctly typing and accessing the vfs
-(pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs || {};
-
-// Use the built-in Helvetica font for now, which supports basic Hebrew characters
-// We'll switch to proper Hebrew font when available
-(pdfMake as any).fonts = {
-  ...(pdfMake as any).fonts,
-  Helvetica: {
-    normal: 'Helvetica',
-    bold: 'Helvetica-Bold',
-    italics: 'Helvetica',
-    bolditalics: 'Helvetica-Bold',
-  },
-};
+// This connects the built-in virtual file system from pdfFonts
+(pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs;
 
 // Define global document defaults
+// Use only fonts that are guaranteed to be in the virtual file system
 export const pdfDocumentDefaults = {
   defaultStyle: {
-    font: 'Helvetica',
+    font: 'Roboto', // Default font that comes with pdfMake
     rtl: true,
     alignment: 'right',
   },
@@ -49,12 +38,13 @@ export const makePdf = async (
   } as TDocumentDefinitions; // Cast to avoid TypeScript error with rightToLeft
 
   try {
+    console.log("Creating PDF with document definition:", JSON.stringify(fullDocDefinition, null, 2).substring(0, 500) + '...');
+    
     // Create the PDF document
     const pdf = pdfMake.createPdf(fullDocDefinition);
 
     if (download && typeof window !== 'undefined') {
-      // Download or open the PDF directly
-      // This is more reliable than our previous approach
+      // The simplest way to download a PDF - this will automatically handle the blob creation
       return new Promise<void>((resolve, reject) => {
         try {
           pdf.download(fileName);
