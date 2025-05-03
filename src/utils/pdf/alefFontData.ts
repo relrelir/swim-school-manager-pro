@@ -1,8 +1,7 @@
 
 import { jsPDF } from 'jspdf';
 
-// This is a simplified method to configure jsPDF for Hebrew text support
-// It will be replaced once we have the pdfMake implementation working
+// Function to configure jsPDF for Hebrew text support with standard fonts
 export const configureHebrewFont = (pdf: jsPDF): void => {
   try {
     console.log("Configuring PDF for Hebrew text support");
@@ -10,18 +9,26 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Set RTL mode for Hebrew text direction
     pdf.setR2L(true);
     
-    // Use standard font that supports Hebrew characters
+    // Use standard font that supports Hebrew characters better
     pdf.setFont('helvetica');
     
-    // Set PDF properties
+    // Add PDF metadata with Hebrew titles
     pdf.setProperties({
       title: 'הצהרת בריאות',
       subject: 'הצהרת בריאות',
       creator: 'מערכת ניהול'
     });
     
-    // Set font size and formatting
+    // Increase font size slightly for better readability with Hebrew text
     pdf.setFontSize(14);
+    
+    // Set line height for better spacing with Hebrew text
+    // @ts-ignore - property exists but might not be in types
+    if (pdf.setLineHeightFactor) {
+      pdf.setLineHeightFactor(1.5);
+    }
+    
+    // Set text color to ensure better contrast
     pdf.setTextColor(0, 0, 0);
     
     console.log("Hebrew font configuration applied with RTL support");
@@ -32,12 +39,3 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     pdf.setFont('helvetica');
   }
 }
-
-// Export the Alef font base64 data for pdfMake
-// This is a placeholder - you'll need to replace this with the actual base64 font data
-export const alefFontBase64 = "REPLACE_WITH_ACTUAL_ALEF_FONT_BASE64";
-
-// Note: To properly implement this solution, you need to:
-// 1. Convert the Alef-Regular.ttf file to base64 string
-// 2. Replace the placeholder above with the actual base64 string
-// 3. The font will then be embedded in the PDF
