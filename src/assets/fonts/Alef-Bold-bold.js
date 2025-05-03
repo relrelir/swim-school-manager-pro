@@ -11,12 +11,24 @@
 (function (jsPDF) {
   var font = 'Alef-Bold';
   var callAddFont = function () {
-    // Add font to the virtual file system
-    this.addFileToVFS(font + '.ttf', '/fonts/Alef-Bold.ttf');
-    // Register the font for use with bold weight text
-    this.addFont(font + '.ttf', 'Alef', 'bold');
+    try {
+      // Add font to the virtual file system
+      this.addFileToVFS(font + '.ttf', '/fonts/Alef-Bold.ttf');
+      // Register the font for use with bold weight text
+      this.addFont(font + '.ttf', 'Alef', 'bold');
+    } catch (error) {
+      console.error("Error adding Alef Bold font:", error);
+    }
   };
-  jsPDF.API.events.push(['addFonts', callAddFont]);
-})(jsPDF);
+  
+  // Check if jsPDF exists and has the API property
+  if (typeof jsPDF !== 'undefined' && jsPDF.API) {
+    jsPDF.API.events.push(['addFonts', callAddFont]);
+  } else if (typeof window !== 'undefined' && window.jsPDF && window.jsPDF.API) {
+    window.jsPDF.API.events.push(['addFonts', callAddFont]);
+  } else {
+    console.warn("jsPDF not found when loading Alef-Bold font");
+  }
+})(typeof window !== 'undefined' && window.jsPDF ? window.jsPDF : (typeof jsPDF !== 'undefined' ? jsPDF : {}));
 
 })));

@@ -1,5 +1,7 @@
 
 import { jsPDF } from 'jspdf';
+
+// Import the font definition files after importing jsPDF to ensure it's defined
 import '../../assets/fonts/Alef-Regular-normal.js';
 import '../../assets/fonts/Alef-Bold-bold.js';
 
