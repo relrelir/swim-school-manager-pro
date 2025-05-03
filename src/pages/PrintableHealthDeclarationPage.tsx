@@ -37,7 +37,7 @@ const PrintableHealthDeclarationPage: React.FC = () => {
       try {
         console.log("Loading health declaration with ID:", declarationId);
         
-        // Get health declaration directly
+        // Get health declaration by ID
         const { data: healthDeclaration, error: healthDeclarationError } = await supabase
           .from('health_declarations')
           .select('*')
@@ -55,23 +55,52 @@ const PrintableHealthDeclarationPage: React.FC = () => {
 
         console.log("Found health declaration:", healthDeclaration);
 
-        // Get the participant directly using participant_id from the health declaration
-        const { data: participantData, error: participantError } = await supabase
+        // Try to get the participant directly using participant_id from the health declaration
+        let participant;
+        let participantError;
+        
+        // First attempt - try direct participant lookup
+        const participantResult = await supabase
           .from('participants')
           .select('*')
           .eq('id', healthDeclaration.participant_id)
           .maybeSingle();
-
+          
+        participant = participantResult.data;
+        participantError = participantResult.error;
+        
+        // If not found, try to get participant through registration (fallback)
+        if (!participant && !participantError) {
+          console.log("Participant not found directly, trying through registration");
+          
+          const registrationResult = await supabase
+            .from('registrations')
+            .select('participantid')
+            .eq('id', healthDeclaration.participant_id)
+            .maybeSingle();
+            
+          if (!registrationResult.error && registrationResult.data) {
+            const fallbackResult = await supabase
+              .from('participants')
+              .select('*')
+              .eq('id', registrationResult.data.participantid)
+              .maybeSingle();
+              
+            participant = fallbackResult.data;
+            participantError = fallbackResult.error;
+          }
+        }
+        
         if (participantError) {
           handleSupabaseError(participantError, 'fetching participant');
           throw new Error('שגיאה בטעינת פרטי המשתתף');
         }
 
-        if (!participantData) {
+        if (!participant) {
           throw new Error('לא נמצאו פרטי המשתתף');
         }
         
-        console.log("Found participant:", participantData);
+        console.log("Found participant:", participant);
 
         // Parse parent information from notes if available
         let parentName = '';
@@ -86,14 +115,14 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         }
 
         // Validate ID number
-        const validatedId = participantData.idnumber && 
-                           /^[\d\s\-]+$/.test(participantData.idnumber) ? 
-                           participantData.idnumber : '';
+        const validatedId = participant.idnumber && 
+                           /^[\d\s\-]+$/.test(participant.idnumber) ? 
+                           participant.idnumber : undefined;
 
         setHealthData({
-          participantName: `${participantData.firstname} ${participantData.lastname}`,
+          participantName: `${participant.firstname} ${participant.lastname}`,
           participantId: validatedId,
-          participantPhone: participantData.phone,
+          participantPhone: participant.phone,
           formState: {
             agreement: true,
             notes: notes,

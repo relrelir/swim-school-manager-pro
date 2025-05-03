@@ -1,3 +1,4 @@
+
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { 
@@ -30,8 +31,10 @@ interface HealthDeclarationData {
  */
 const isValidIdNumber = (id: string | null | undefined): boolean => {
   if (!id) return false;
-  // Allow only digits, possibly with dashes or spaces as separators
-  return /^[\d\s\-]+$/.test(id);
+  // Clean up any non-digit characters
+  const cleanedId = id.replace(/\D/g, '');
+  // Check if the cleaned ID has a reasonable length for an ID (typically 9 digits in Israel)
+  return cleanedId.length >= 5;
 };
 
 /**
@@ -55,7 +58,10 @@ export const buildHealthDeclarationPDF = (
   participant: ParticipantData
 ): string => {
   try {
-    console.log("Starting PDF generation with enhanced bidirectional text handling");
+    console.log("Starting PDF generation with data:", { 
+      healthDeclaration, 
+      participant 
+    });
     
     // Add title - Hebrew content with RTL
     addPdfTitle(pdf, 'הצהרת בריאות');
@@ -70,27 +76,31 @@ export const buildHealthDeclarationPDF = (
     // Add participant details - Hebrew section title
     addSectionTitle(pdf, 'פרטי המשתתף', 45);
     
-    // Process participant data with appropriate direction control and validation
-    const fullName = `${participant.firstname} ${participant.lastname}`;
+    // Process participant data with appropriate validation
+    const fullName = `${participant.firstname || ''} ${participant.lastname || ''}`.trim() || 'לא צוין';
+    console.log("Full name for PDF:", fullName);
     
     // Validate ID number
     const idNumber = isValidIdNumber(participant.idnumber) 
       ? forceLtrDirection(participant.idnumber) 
       : 'לא צוין';
+    console.log("ID number for PDF:", idNumber);
     
     // Format phone number
     const phoneNumber = participant.phone 
       ? forceLtrDirection(formatPhoneNumber(participant.phone)) 
       : 'לא צוין';
+    console.log("Phone number for PDF:", phoneNumber);
     
-    // IMPORTANT: Data in right column (first element), labels in left column (second element)
+    // IMPORTANT: In RTL documents, maintain the label/data order for proper display in PDF
+    // Label on right column (visually), data on left column (visually)
     const participantData = [
-      [fullName, 'שם מלא'],
-      [idNumber, 'תעודת זהות'],
-      [phoneNumber, 'טלפון'],
+      ['שם מלא', fullName],
+      ['תעודת זהות', idNumber],
+      ['טלפון', phoneNumber],
     ];
     
-    console.log("Creating participant data table");
+    console.log("Creating participant data table with data:", participantData);
     let lastY = createDataTable(pdf, participantData, 50);
     
     // Add parent details if available
@@ -104,10 +114,10 @@ export const buildHealthDeclarationPDF = (
         ? forceLtrDirection(parentInfo.parentId) 
         : 'לא צוין';
       
-      // IMPORTANT: Data in right column (first), labels in left column (second)
+      // IMPORTANT: Maintain label/data order for proper RTL display
       const parentData = [
-        [parentInfo.parentName || 'לא צוין', 'שם מלא'],
-        [parentIdDisplay, 'תעודת זהות'],
+        ['שם מלא', parentInfo.parentName || 'לא צוין'],
+        ['תעודת זהות', parentIdDisplay],
       ];
       
       lastY = createDataTable(pdf, parentData, lastY + 20);
@@ -147,7 +157,7 @@ export const buildHealthDeclarationPDF = (
     pdf.setR2L(false); // Reset RTL setting
     
     // Generate filename
-    const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
+    const fileName = `הצהרת_בריאות_${participant.firstname || ''}_${participant.lastname || ''}.pdf`;
     
     console.log("PDF generation completed successfully");
     return fileName;
