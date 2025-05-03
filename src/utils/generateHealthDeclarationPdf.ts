@@ -3,19 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { createRtlPdf } from './pdf/pdfConfig';
 import { buildHealthDeclarationPDF } from './pdf/healthDeclarationContentBuilder';
 import { toast } from "@/components/ui/use-toast";
-import { containsHebrew } from './pdf/hebrewTextHelper';
-
-// Helper function to validate ID numbers
-const isValidIdNumber = (id: string | undefined): boolean => {
-  if (!id) return false;
-  return /\d/.test(id) && !containsHebrew(id);
-};
-
-// Helper function to sanitize ID numbers
-const sanitizeIdNumber = (id: string | undefined): string => {
-  if (!id) return '';
-  return isValidIdNumber(id) ? id : '';
-};
 
 export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
   try {
@@ -40,34 +27,16 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     
     console.log("Found health declaration:", healthDeclaration);
     
-    // Get participant details
-    const { data: registration, error: registrationError } = await supabase
-      .from('registrations')
-      .select('*')
-      .eq('id', healthDeclaration.participant_id)
-      .maybeSingle();
-      
-    if (registrationError || !registration) {
-      console.error("Registration not found:", registrationError);
-      throw new Error('פרטי הרישום לא נמצאו');
-    }
-    
-    // Get the participant data
+    // Get participant details - use participant_id from the health declaration
     const { data: participant, error: participantError } = await supabase
       .from('participants')
       .select('firstname, lastname, idnumber, phone')
-      .eq('id', registration.participantid)
+      .eq('id', healthDeclaration.participant_id)
       .single();
     
     if (participantError || !participant) {
       console.error("Participant details not found:", participantError);
       throw new Error('פרטי המשתתף לא נמצאו');
-    }
-    
-    // Validate and sanitize the participant ID number
-    if (participant.idnumber && !isValidIdNumber(participant.idnumber)) {
-      console.warn("Invalid ID number detected:", participant.idnumber);
-      // We'll sanitize it in the PDF generation
     }
     
     console.log("Data fetched successfully. Participant:", participant);
