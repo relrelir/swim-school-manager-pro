@@ -38,8 +38,8 @@ const isHebrewCurrency = (text: string): boolean => {
   return /[₪]|ILS/.test(text);
 };
 
-// Detect if text contains Hebrew characters
-const containsHebrew = (text: string): boolean => {
+// Detect if text contains Hebrew characters - NOW EXPORTED
+export const containsHebrew = (text: string): boolean => {
   if (!text) return false;
   // Hebrew Unicode range
   return /[\u0590-\u05FF]/.test(text);
@@ -97,6 +97,15 @@ export const forceRtlDirection = (text: string): string => {
 };
 
 /**
+ * Manually reverse a string character by character
+ * This is useful for Hebrew text in tables where bidirectional controls don't work properly
+ */
+export const manuallyReverseString = (text: string): string => {
+  if (!text) return '';
+  return [...text].reverse().join('');
+};
+
+/**
  * Special processor for table cells to handle mixed content
  * More aggressive handling for tables specifically
  */
@@ -117,8 +126,9 @@ export const processTableCellText = (text: string): string => {
       return forceLtrDirection(text);
     }
   } else if (containsHebrew(text)) {
-    // Pure Hebrew text in tables needs RTL enforcement
-    return forceRtlDirection(text);
+    // Pure Hebrew text in tables needs RTL enforcement AND characters manually reversed
+    // This is a specific fix for tables where standard RTL controls don't work properly
+    return manuallyReverseString(text);
   }
   
   // Default for mixed content

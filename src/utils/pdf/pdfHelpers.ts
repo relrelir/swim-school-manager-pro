@@ -6,7 +6,8 @@ import {
   forceLtrDirection, 
   processTableCellText, 
   containsHebrew, 
-  forceRtlDirection
+  forceRtlDirection,
+  manuallyReverseString
 } from './hebrewTextHelper';
 
 /**
@@ -95,7 +96,7 @@ const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurren
   }
   
   const content = String(cell);
-  const isHebrewContent = /[\u0590-\u05FF]/.test(content);
+  const isHebrewContent = containsHebrew(content);
   const isCurrency = isCurrencyCell(content);
   
   console.log(`Processing cell: ${content}, Hebrew: ${isHebrewContent}, Currency: ${isCurrency}`);
@@ -132,12 +133,13 @@ const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurren
       isCurrency: false 
     };
   } else if (isHebrewContent) {
-    // Hebrew text
+    // Pure Hebrew text - needs manual character reversal to display properly in tables
     return { 
-      text: forceRtlDirection(content),
-      isRtl: true,
-      isCurrency: false 
-    };
+        // For Hebrew text in tables, we need to manually reverse the characters
+        text: manuallyReverseString(content),
+        isRtl: true,
+        isCurrency: false 
+      };
   } else {
     // Other content (English, etc)
     return { 
@@ -207,15 +209,11 @@ export const createDataTable = (
         cell.styles.halign = 'right';
       }
       
-      // Set directionality
-      if (processed.isRtl) {
-        cell.styles.direction = 'rtl';
-      } else {
-        cell.styles.direction = 'ltr';
-      }
+      // Note: No longer using 'direction' property as it's not supported in the type definitions
+      // Instead, we're pre-processing the text with manual character reversal where needed
       
       // Log what we're doing with each cell for debugging
-      console.log(`Cell "${cellContent}" processed as: RTL=${processed.isRtl}, Currency=${processed.isCurrency}, Align=${cell.styles.halign}`);
+      console.log(`Cell "${cellContent}" processed with halign=${cell.styles.halign}`);
     },
     
     // Additional hook to handle cell rendering
@@ -321,12 +319,8 @@ export const createPlainTextTable = (
         cell.styles.halign = 'right';
       }
       
-      // Set directionality
-      if (processed.isRtl) {
-        cell.styles.direction = 'rtl';
-      } else {
-        cell.styles.direction = 'ltr';
-      }
+      // Note: No longer using 'direction' property as it's not supported in the type definitions
+      // Instead, we're pre-processing the text with manual character reversal where needed
     },
   };
   

@@ -7,6 +7,7 @@ import TablePaymentInfo from './TablePaymentInfo';
 import TableReceiptNumbers from './TableReceiptNumbers';
 import TableRowActions from './TableRowActions';
 import ParticipantsTableHeader from './ParticipantsTableHeader';
+import { formatCurrencyForTable } from '@/utils/formatters';
 
 interface ParticipantsTableProps {
   registrations: Registration[];
@@ -77,8 +78,6 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             const healthDeclaration = getHealthDeclarationForRegistration && 
               getHealthDeclarationForRegistration(registration.id);
             
-            console.log(`Registration ${registration.id} health declaration:`, healthDeclaration);
-            
             if (!participant) return null;
             
             return (
@@ -87,10 +86,10 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 <TableCell>{participant.idNumber}</TableCell>
                 <TableCell>{participant.phone}</TableCell>
                 <TableCell>
-                  {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(registration.requiredAmount)}
+                  {formatCurrencyForTable(registration.requiredAmount)}
                 </TableCell>
                 <TableCell>
-                  {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(effectiveRequiredAmount)}
+                  {formatCurrencyForTable(effectiveRequiredAmount)}
                 </TableCell>
                 <TableCell>
                   <TablePaymentInfo 
@@ -104,7 +103,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 </TableCell>
                 <TableCell>
                   {registration.discountApproved && discountAmount > 0 ? 
-                    Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount) : 
+                    formatCurrencyForTable(discountAmount) : 
                     'לא'}
                 </TableCell>
                 <TableCell>
