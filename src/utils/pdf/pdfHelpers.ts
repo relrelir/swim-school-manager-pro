@@ -1,7 +1,13 @@
 import { jsPDF } from 'jspdf';
 import autoTable, { UserOptions, CellHookData } from 'jspdf-autotable';
 import { configureDocumentStyle } from './pdfConfig';
-import { processTextDirection, forceLtrDirection } from './hebrewTextHelper';
+import { 
+  processTextDirection, 
+  forceLtrDirection, 
+  processTableCellText, 
+  containsHebrew, 
+  forceRtlDirection
+} from './hebrewTextHelper';
 
 /**
  * Creates a new PDF document with RTL support for Hebrew
@@ -73,42 +79,78 @@ export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
 };
 
 /**
- * Determine if a cell content is likely LTR content (numbers, English, etc.)
+ * Detect if a cell is likely currency by checking for common currency indicators
  */
-const isLtrContent = (content: string | number): boolean => {
-  if (typeof content === 'number') return true;
-  if (!content) return false;
-  
-  const text = String(content);
-  // Check if content is likely English or purely numeric
-  return /^[\w\s\d\-\.\/\(\)\+\:]*$/.test(text) && !/[\u0590-\u05FF]/.test(text);
+const isCurrencyCell = (cellText: string): boolean => {
+  if (!cellText) return false;
+  return /[₪$€£]|ILS/.test(cellText) || /^[\d,\.]+\s*(?:[₪$€£]|ILS)/.test(cellText);
 };
 
 /**
- * Enhanced processing for specific cell types with stronger direction control
+ * Process cell text based on content type for optimal table display
  */
-const processTableCell = (cell: any): string => {
-  if (!cell) return '';
-  const content = String(cell);
+const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean } => {
+  if (cell === null || cell === undefined) {
+    return { text: '', isRtl: false, isCurrency: false };
+  }
   
-  // Special cases with stronger LTR controls
-  if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
+  const content = String(cell);
+  const isHebrewContent = /[\u0590-\u05FF]/.test(content);
+  const isCurrency = isCurrencyCell(content);
+  
+  console.log(`Processing cell: ${content}, Hebrew: ${isHebrewContent}, Currency: ${isCurrency}`);
+  
+  // Process by content type
+  if (isCurrency) {
+    if (isHebrewContent) {
+      // Hebrew currency needs special handling
+      return { 
+        text: processTableCellText(content),
+        isRtl: true,
+        isCurrency: true 
+      };
+    } else {
+      // Non-Hebrew currency
+      return { 
+        text: forceLtrDirection(content),
+        isRtl: false,
+        isCurrency: true 
+      };
+    }
+  } else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     // Date format
-    return forceLtrDirection(content);
+    return { 
+      text: forceLtrDirection(content),
+      isRtl: false,
+      isCurrency: false 
+    };
   } else if (/^[0-9\s\-\.]+$/.test(content)) {
     // Pure number (ID, phone, etc)
-    return forceLtrDirection(content);
-  } else if (isLtrContent(content)) {
-    // Other LTR content
-    return forceLtrDirection(content);
+    return { 
+      text: forceLtrDirection(content),
+      isRtl: false,
+      isCurrency: false 
+    };
+  } else if (isHebrewContent) {
+    // Hebrew text
+    return { 
+      text: forceRtlDirection(content),
+      isRtl: true,
+      isCurrency: false 
+    };
   } else {
-    // Hebrew or mixed content gets standard processing
-    return processTextDirection(content);
+    // Other content (English, etc)
+    return { 
+      text: forceLtrDirection(content),
+      isRtl: false,
+      isCurrency: false 
+    };
   }
 };
 
 /**
  * Creates a data table in the PDF document with enhanced RTL/LTR support
+ * for mixed content environments
  */
 export const createDataTable = (
   pdf: jsPDF, 
@@ -117,21 +159,19 @@ export const createDataTable = (
   hasHeader: boolean = false
 ): number => {
   console.log(`Creating data table at y=${startY} with ${data.length} rows`);
-  console.log("First row sample:", JSON.stringify(data[0]));
+  if (data.length > 0) {
+    console.log("First row sample:", JSON.stringify(data[0]));
+  }
   
-  // Process each cell with enhanced content-aware handling
+  // Process data with advanced content-aware handling
   const processedData = data.map(row => 
-    row.map(cell => processTableCell(cell))
+    row.map(cell => {
+      const processed = processCellContent(cell);
+      return processed.text;
+    })
   );
 
-  // Log a sample of the processed data for debugging
-  console.log("Processed sample cell:", 
-    processedData[0][0] && typeof processedData[0][0] === 'string' 
-      ? processedData[0][0].replace(/[\u0000-\u001F\u007F-\u009F\u200E\u200F\u202A-\u202E]/g, c => `\\u${c.charCodeAt(0).toString(16).padStart(4, '0')}`)
-      : processedData[0][0]
-  );
-  
-  // Enhanced table configuration with cell-specific direction handling
+  // Enhanced table configuration with better direction control
   const tableConfig: UserOptions = {
     startY,
     styles: { 
@@ -139,7 +179,7 @@ export const createDataTable = (
       overflow: 'linebreak',
       cellPadding: 4,
       lineWidth: 0.1,
-      halign: 'right', // default alignment for most cells
+      halign: 'right', // Default alignment for Hebrew context
     },
     headStyles: {
       fillColor: [200, 200, 200],
@@ -149,21 +189,38 @@ export const createDataTable = (
     bodyStyles: {
       fontStyle: 'normal',
     },
-    theme: 'grid' as 'grid', // Explicitly cast to valid ThemeType
-    willDrawCell: function(data: CellHookData) {
-      // Detect cell content type to apply appropriate alignment
+    theme: 'grid' as 'grid',
+    
+    // Process cells before rendering to handle bidirectional text
+    didParseCell: function(data) {
+      // Get the cell's content and detect its type
       const cell = data.cell;
-      if (cell && cell.text) {
-        // Check if the cell content appears to be LTR (English, numbers)
-        const cellText = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
-        if (/\d+/.test(cellText) || /[a-zA-Z]/.test(cellText) && !/[\u0590-\u05FF]/.test(cellText)) {
-          // For LTR content (numbers, English), use left alignment
-          cell.styles.halign = 'left';
-        } else {
-          // For RTL content (Hebrew), use right alignment
-          cell.styles.halign = 'right';
-        }
+      if (!cell || !cell.text) return;
+      
+      const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
+      const processed = processCellContent(cellContent);
+      
+      // Apply appropriate alignment based on content type
+      if (processed.isCurrency || !processed.isRtl) {
+        cell.styles.halign = 'left';
+      } else {
+        cell.styles.halign = 'right';
       }
+      
+      // Set directionality
+      if (processed.isRtl) {
+        cell.styles.direction = 'rtl';
+      } else {
+        cell.styles.direction = 'ltr';
+      }
+      
+      // Log what we're doing with each cell for debugging
+      console.log(`Cell "${cellContent}" processed as: RTL=${processed.isRtl}, Currency=${processed.isCurrency}, Align=${cell.styles.halign}`);
+    },
+    
+    // Additional hook to handle cell rendering
+    willDrawCell: function(data: CellHookData) {
+      // Add any final adjustments to cell drawing if needed
     },
   };
 
@@ -220,7 +277,7 @@ export const createDataTable = (
 };
 
 /**
- * Creates a plain text table (without grid lines) with RTL support
+ * Creates a plain text table (without grid lines) with improved RTL support
  */
 export const createPlainTextTable = (
   pdf: jsPDF, 
@@ -231,32 +288,44 @@ export const createPlainTextTable = (
   
   // Process each cell individually with enhanced content-aware handling
   const processedData = data.map(row => 
-    row.map(cell => processTableCell(cell))
+    row.map(cell => {
+      const processed = processCellContent(cell);
+      return processed.text;
+    })
   );
   
-  // Enhanced table configuration for plain text tables
+  // Enhanced configuration for plain text tables
   const tableConfig: UserOptions = {
     startY,
     styles: { 
       font: 'Alef',
       overflow: 'linebreak',
       cellPadding: 3,
-      halign: 'right', // default for Hebrew
+      halign: 'right',
     },
-    theme: 'plain' as 'plain', // Explicitly cast to valid ThemeType
-    willDrawCell: function(data: CellHookData) {
-      // Detect cell content type to apply appropriate alignment
+    theme: 'plain' as 'plain',
+    
+    // Process cells before rendering
+    didParseCell: function(data) {
+      // Get the cell's content and detect its type
       const cell = data.cell;
-      if (cell && cell.text) {
-        // Check if the cell content appears to be LTR (English, numbers)
-        const cellText = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
-        if (/\d+/.test(cellText) || /[a-zA-Z]/.test(cellText) && !/[\u0590-\u05FF]/.test(cellText)) {
-          // For LTR content (numbers, English), use left alignment
-          cell.styles.halign = 'left';
-        } else {
-          // For RTL content (Hebrew), use right alignment
-          cell.styles.halign = 'right';
-        }
+      if (!cell || !cell.text) return;
+      
+      const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
+      const processed = processCellContent(cellContent);
+      
+      // Apply appropriate alignment based on content type
+      if (processed.isCurrency || !processed.isRtl) {
+        cell.styles.halign = 'left';
+      } else {
+        cell.styles.halign = 'right';
+      }
+      
+      // Set directionality
+      if (processed.isRtl) {
+        cell.styles.direction = 'rtl';
+      } else {
+        cell.styles.direction = 'ltr';
       }
     },
   };

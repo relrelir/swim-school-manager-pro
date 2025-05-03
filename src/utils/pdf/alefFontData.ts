@@ -6,8 +6,9 @@ export const configureHebrewFont = async (pdf: jsPDF): Promise<void> => {
   try {
     console.log("Configuring PDF for Hebrew text support with Alef font");
     
-    // Set RTL mode for Hebrew text direction
-    pdf.setR2L(true);
+    // Don't set global RTL mode - we'll handle per text element
+    // This change is important for correct table handling
+    pdf.setR2L(false);
     
     // Load TTF fonts directly from public directory
     const fontBaseUrl = '/fonts/'; // This points to the public/fonts directory
@@ -42,11 +43,11 @@ export const configureHebrewFont = async (pdf: jsPDF): Promise<void> => {
     // Set text color to ensure better contrast
     pdf.setTextColor(0, 0, 0);
     
-    console.log("Hebrew font configuration applied with Alef font and RTL support");
+    console.log("Hebrew font configuration applied with Alef font support");
   } catch (error) {
     console.error("Error configuring Alef font:", error);
     // Fallback to basic configuration with standard font
-    pdf.setR2L(true);
+    pdf.setR2L(false);
     pdf.setFont('helvetica');
     console.warn("Falling back to helvetica font due to error");
     

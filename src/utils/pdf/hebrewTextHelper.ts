@@ -1,7 +1,7 @@
 
 /**
  * Helper functions for handling Hebrew text and mixed content in PDFs
- * Enhanced with stronger bidirectional controls
+ * Enhanced with stronger bidirectional controls and table-specific handling
  */
 
 // Detect if text contains English characters or numbers only
@@ -30,6 +30,19 @@ const isPhoneFormat = (text: string): boolean => {
   if (!text) return false;
   // Match common Israeli phone formats
   return /^0\d{1,2}[\-\s]?\d{7,8}$/.test(text);
+};
+
+// Detect if text is Hebrew currency (contains ₪ or 'ILS')
+const isHebrewCurrency = (text: string): boolean => {
+  if (!text) return false;
+  return /[₪]|ILS/.test(text);
+};
+
+// Detect if text contains Hebrew characters
+const containsHebrew = (text: string): boolean => {
+  if (!text) return false;
+  // Hebrew Unicode range
+  return /[\u0590-\u05FF]/.test(text);
 };
 
 /**
@@ -65,6 +78,73 @@ export const forceLtrDirection = (text: string): string => {
   
   // Create the strongest possible LTR isolation with multiple nested controls
   return `\u202D\u200E${text}\u200E\u202C`;
+};
+
+/**
+ * Force RTL direction specifically for Hebrew text in tables
+ * This helps ensure Hebrew text renders correctly in table contexts
+ */
+export const forceRtlDirection = (text: string): string => {
+  if (!text) return '';
+  
+  // Apply RTL controls:
+  // \u202E = Right-to-Left Override - forces characters as RTL
+  // \u200F = Right-to-Left Mark - reinforces RTL behavior
+  // \u202B = Right-to-Left Embedding - establishes RTL context
+  // \u202C = Pop Directional Formatting - terminates directional controls
+  
+  return `\u202B\u200F${text}\u200F\u202C`;
+};
+
+/**
+ * Special processor for table cells to handle mixed content
+ * More aggressive handling for tables specifically
+ */
+export const processTableCellText = (text: string): string => {
+  if (!text) return '';
+  
+  // Check content type to apply appropriate direction
+  if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text)) {
+    // Numeric content always gets LTR
+    return forceLtrDirection(text);
+  } else if (isHebrewCurrency(text)) {
+    if (containsHebrew(text)) {
+      // Hebrew currency needs special handling to display correctly in tables
+      // Try to preserve the shekel symbol position while making text RTL
+      return processHebrewCurrencyForTable(text);
+    } else {
+      // Non-Hebrew currency should be LTR
+      return forceLtrDirection(text);
+    }
+  } else if (containsHebrew(text)) {
+    // Pure Hebrew text in tables needs RTL enforcement
+    return forceRtlDirection(text);
+  }
+  
+  // Default for mixed content
+  return processTextDirection(text);
+};
+
+/**
+ * Special formatter for Hebrew currency values in tables
+ * This ensures the currency symbol renders correctly
+ */
+export const processHebrewCurrencyForTable = (text: string): string => {
+  // Handle shekel symbol position - it should appear on the right in Hebrew context
+  // but autoTable may need different handling
+  
+  // Extract numeric part if possible
+  const numericMatch = text.match(/[\d,\.]+/);
+  
+  if (numericMatch) {
+    // Split the currency value into numeric part and symbol
+    const numericPart = forceLtrDirection(numericMatch[0]);
+    // Construct the currency string with explicit bidirectional control
+    return `\u202B\u200F${text.replace(/[\d,\.]+/, numericPart)}\u200F\u202C`;
+  }
+  
+  // If we can't parse it, apply RTL to the whole string
+  return forceRtlDirection(text);
 };
 
 /**

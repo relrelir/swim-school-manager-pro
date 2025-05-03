@@ -1,5 +1,5 @@
 
-import { processTextDirection, forceLtrDirection } from './pdf/hebrewTextHelper';
+import { processTextDirection, forceLtrDirection, processTableCellText, processHebrewCurrencyForTable } from './pdf/hebrewTextHelper';
 
 /**
  * Format a number as currency in ILS (New Israeli Shekel)
@@ -13,6 +13,20 @@ export const formatCurrency = (amount: number): string => {
   
   // Force LTR direction for currency values (they contain numbers)
   return forceLtrDirection(formatted);
+};
+
+/**
+ * Special formatter for currency values in tables
+ * This uses specific handling to ensure proper display in PDF tables
+ */
+export const formatCurrencyForTable = (amount: number): string => {
+  const formatted = new Intl.NumberFormat('he-IL', { 
+    style: 'currency', 
+    currency: 'ILS' 
+  }).format(amount);
+  
+  // Use special table cell processing for currency values
+  return processHebrewCurrencyForTable(formatted);
 };
 
 /**
