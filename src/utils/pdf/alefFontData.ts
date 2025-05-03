@@ -1,7 +1,7 @@
 
 import { jsPDF } from 'jspdf';
 
-// Function to configure jsPDF for Hebrew text support
+// Function to configure jsPDF for Hebrew text support with standard fonts
 export const configureHebrewFont = (pdf: jsPDF): void => {
   try {
     console.log("Configuring PDF for Hebrew text support");
@@ -9,7 +9,7 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Set RTL mode for Hebrew text direction
     pdf.setR2L(true);
     
-    // Use standard font that supports Hebrew characters
+    // Use standard font that supports Hebrew characters better
     pdf.setFont('helvetica');
     
     // Add PDF metadata with Hebrew titles
