@@ -93,7 +93,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     
     try {
       // Create the PDF document with RTL and font support
-      console.log("Creating PDF with RTL and Hebrew font support");
+      console.log("Creating PDF with RTL support");
       const pdf = createRtlPdf();
       console.log("PDF object created successfully");
       
@@ -102,8 +102,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
       console.log("PDF content built successfully, filename:", fileName);
       
-      // Save the PDF - directly trigger download
-      console.log("Saving PDF...");
+      // Save the PDF
       pdf.save(fileName);
       console.log("PDF saved successfully");
       

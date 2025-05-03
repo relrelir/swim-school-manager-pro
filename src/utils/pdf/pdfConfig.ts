@@ -12,10 +12,10 @@ export const createRtlPdf = (): jsPDF => {
     format: 'a4',
   });
 
-  // Configure for Hebrew text support with Alef font
+  // Configure for Hebrew text support
   configureHebrewFont(pdf);
   
-  console.log("RTL PDF created successfully with Hebrew font");
+  console.log("RTL PDF created successfully");
   return pdf;
 };
 
@@ -30,9 +30,6 @@ export const configureDocumentStyle = (pdf: jsPDF): void => {
   pdf.setFontSize(12);
   pdf.setTextColor(0, 0, 0);
   
-  // Ensure font is set to Alef for Hebrew
-  pdf.setFont('Alef');
-  
-  // Double-check RTL is enabled
-  pdf.setR2L(true);
+  // Set default font
+  pdf.setFont('helvetica');
 }
