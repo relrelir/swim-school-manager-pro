@@ -1,3 +1,4 @@
+
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { 
@@ -56,6 +57,7 @@ export const buildHealthDeclarationPDF = (
 ): string => {
   try {
     console.log("Starting PDF generation with enhanced bidirectional text handling");
+    console.log("Participant data:", participant);
     
     // Add title - Hebrew content with RTL
     addPdfTitle(pdf, 'הצהרת בריאות');
@@ -72,25 +74,29 @@ export const buildHealthDeclarationPDF = (
     
     // Process participant data with appropriate direction control and validation
     const fullName = `${participant.firstname} ${participant.lastname}`;
+    console.log("Full name:", fullName);
     
     // Validate ID number
     const idNumber = isValidIdNumber(participant.idnumber) 
       ? forceLtrDirection(participant.idnumber) 
       : 'לא צוין';
+    console.log("ID number:", idNumber);
     
     // Format phone number
     const phoneNumber = participant.phone 
       ? forceLtrDirection(formatPhoneNumber(participant.phone)) 
       : 'לא צוין';
+    console.log("Phone number:", phoneNumber);
     
-    // IMPORTANT: Data in right column (first element), labels in left column (second element)
+    // FIXED: Switched column order - labels in right column (first element), data in left column (second element)
+    // This matches the structure used in the registration PDF that's working correctly
     const participantData = [
-      [fullName, 'שם מלא'],
-      [idNumber, 'תעודת זהות'],
-      [phoneNumber, 'טלפון'],
+      ['שם מלא', fullName],
+      ['תעודת זהות', idNumber],
+      ['טלפון', phoneNumber],
     ];
     
-    console.log("Creating participant data table");
+    console.log("Creating participant data table with correct column order");
     let lastY = createDataTable(pdf, participantData, 50);
     
     // Add parent details if available
@@ -104,10 +110,10 @@ export const buildHealthDeclarationPDF = (
         ? forceLtrDirection(parentInfo.parentId) 
         : 'לא צוין';
       
-      // IMPORTANT: Data in right column (first), labels in left column (second)
+      // FIXED: Switched column order - labels in right column (first), data in left column (second)
       const parentData = [
-        [parentInfo.parentName || 'לא צוין', 'שם מלא'],
-        [parentIdDisplay, 'תעודת זהות'],
+        ['שם מלא', parentInfo.parentName || 'לא צוין'],
+        ['תעודת זהות', parentIdDisplay],
       ];
       
       lastY = createDataTable(pdf, parentData, lastY + 20);
