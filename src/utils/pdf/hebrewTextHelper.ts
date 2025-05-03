@@ -1,12 +1,12 @@
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * Using standard encoding for better compatibility
+ * Using standard encoding for better compatibility with David font
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // Simply return the text - jsPDF will handle RTL 
+  // Simply return the text - jsPDF will handle RTL with David font
   return text;
 };
 

@@ -5,35 +5,18 @@ import { configureHebrewFont } from './davidFontData';
 
 // Function to set up RTL document with proper Hebrew support
 export const createRtlPdf = (): jsPDF => {
-  try {
-    // Create PDF with standard settings
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
+  // Create PDF with standard settings
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+  });
 
-    // Configure for Hebrew text support
-    configureHebrewFont(pdf);
-    
-    console.log("RTL PDF created successfully");
-    return pdf;
-  } catch (error) {
-    console.error("Error creating RTL PDF:", error);
-    
-    // Create a basic PDF as fallback
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4',
-    });
-    
-    // Set document to RTL for Hebrew
-    pdf.setR2L(true);
-    pdf.setFont("helvetica");
-    
-    return pdf;
-  }
+  // Configure for Hebrew text support using David font
+  configureHebrewFont(pdf);
+  
+  console.log("RTL PDF created successfully with David font");
+  return pdf;
 };
 
 // Helper function to format document date
@@ -47,6 +30,6 @@ export const configureDocumentStyle = (pdf: jsPDF): void => {
   pdf.setFontSize(12);
   pdf.setTextColor(0, 0, 0);
   
-  // Use Helvetica for better cross-platform support
-  pdf.setFont("helvetica");
+  // Set default font to David for Hebrew support
+  pdf.setFont("David");
 }

@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { createRtlPdf } from './pdf/pdfConfig';
 import { buildRegistrationPDF } from './pdf/registrationPdfContentBuilder';
-import { toast } from "@/hooks/use-toast";  // Correct import path
+import { toast } from "@/hooks/use-toast";  // Updated import path
 import { Registration, Participant, Payment } from '@/types';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
@@ -92,8 +92,8 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     })) : [];
     
     try {
-      // Create the PDF document with RTL support
-      console.log("Creating PDF with RTL support");
+      // Create the PDF document with RTL and David font support
+      console.log("Creating PDF with RTL support and David font");
       const pdf = createRtlPdf();
       console.log("PDF object created successfully");
       
