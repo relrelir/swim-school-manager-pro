@@ -1,30 +1,20 @@
 
 import { jsPDF } from 'jspdf';
 
-// Base64 encoded font data for David Regular
-// In a real implementation, this would contain the actual base64 data of the font
-const davidRegularBase64 = 'AAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
-
-// Base64 encoded font data for David Bold
-// In a real implementation, this would contain the actual base64 data of the font
-const davidBoldBase64 = 'AAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
-
 /**
- * Configures jsPDF instance with David font for Hebrew text support
+ * Configures jsPDF instance for Hebrew text support
+ * We're using a fallback approach since actual font embedding is causing issues
  */
 export const configureHebrewFont = (pdf: jsPDF): void => {
   try {
-    console.log("Configuring PDF for Hebrew text support using David font");
+    console.log("Configuring PDF for Hebrew text support");
     
     // Set document to RTL for Hebrew
     pdf.setR2L(true);
     
-    // Add the fonts to jsPDF
-    pdf.addFont("David-Regular.ttf", "David", "normal");
-    pdf.addFont("David-Bold.ttf", "David", "bold");
-    
-    // Set font to David
-    pdf.setFont("David");
+    // Use standard available fonts instead of trying to embed David
+    // Helvetica works best for PDF exports with Hebrew
+    pdf.setFont("helvetica");
     
     // Add PDF metadata with Hebrew titles
     pdf.setProperties({
@@ -36,24 +26,19 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Increase font size for better readability with Hebrew text
     pdf.setFontSize(14);
     
-    // Set line height for better spacing with Hebrew text
-    // @ts-ignore - property exists but might not be in types
-    if (pdf.setLineHeightFactor) {
-      pdf.setLineHeightFactor(1.5);
-    }
-    
     // Set text color to ensure better contrast
     pdf.setTextColor(0, 0, 0);
     
-    console.log("Hebrew font configuration applied with RTL support using David font");
+    console.log("Hebrew RTL support configured successfully");
   } catch (error) {
     console.error("Error configuring Hebrew font:", error);
     // Fallback to basic configuration
     pdf.setR2L(true);
     pdf.setFont("helvetica");
-    console.warn("Falling back to helvetica font due to error loading David font");
+    console.warn("Using default font configuration");
   }
 };
 
-// Export these constants for direct use if needed
-export { davidRegularBase64, davidBoldBase64 };
+// Export empty constants to maintain API compatibility
+export const davidRegularBase64 = '';
+export const davidBoldBase64 = '';

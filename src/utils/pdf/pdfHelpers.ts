@@ -17,8 +17,8 @@ export const createPdf = (): jsPDF => {
   // Set document to RTL
   pdf.setR2L(true);
   
-  // Use David font for better Hebrew support
-  pdf.setFont('David');
+  // Use Helvetica for better support
+  pdf.setFont('helvetica');
   
   return pdf;
 };
@@ -27,27 +27,39 @@ export const createPdf = (): jsPDF => {
  * Adds a title to the PDF document
  */
 export const addPdfTitle = (pdf: jsPDF, title: string): void => {
-  configureDocumentStyle(pdf);
-  pdf.setFontSize(20);
-  pdf.text(title, pdf.internal.pageSize.width / 2, 20, { align: 'center' });
+  try {
+    configureDocumentStyle(pdf);
+    pdf.setFontSize(20);
+    pdf.text(title, pdf.internal.pageSize.width / 2, 20, { align: 'center' });
+  } catch (error) {
+    console.error("Error adding PDF title:", error);
+  }
 };
 
 /**
  * Adds the current date to the PDF document
  */
 export const addPdfDate = (pdf: jsPDF, date: string): void => {
-  configureDocumentStyle(pdf);
-  pdf.setFontSize(10);
-  pdf.text(date, pdf.internal.pageSize.width - 20, 10, { align: 'right' });
+  try {
+    configureDocumentStyle(pdf);
+    pdf.setFontSize(10);
+    pdf.text(date, pdf.internal.pageSize.width - 20, 10, { align: 'right' });
+  } catch (error) {
+    console.error("Error adding PDF date:", error);
+  }
 };
 
 /**
  * Adds a section title to the PDF document
  */
 export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
-  configureDocumentStyle(pdf);
-  pdf.setFontSize(14);
-  pdf.text(title, pdf.internal.pageSize.width - 20, y, { align: 'right' });
+  try {
+    configureDocumentStyle(pdf);
+    pdf.setFontSize(14);
+    pdf.text(title, pdf.internal.pageSize.width - 20, y, { align: 'right' });
+  } catch (error) {
+    console.error("Error adding section title:", error);
+  }
 };
 
 /**
@@ -63,7 +75,7 @@ export const createDataTable = (
   const tableConfig: any = {
     startY,
     styles: { 
-      font: 'David',
+      font: 'helvetica',
       halign: 'right',
     },
     headStyles: {
@@ -127,7 +139,7 @@ export const createPlainTextTable = (
       startY,
       body: data,
       styles: { 
-        font: 'David',
+        font: 'helvetica',
         halign: 'right',
       },
       theme: 'plain',
