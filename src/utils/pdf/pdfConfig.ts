@@ -56,6 +56,9 @@ export const configureDocumentStyle = (pdf: jsPDF): void => {
     pdf.setFontSize(12);
     pdf.setTextColor(0, 0, 0);
     
+    // Disable global RTL - we'll handle direction per element
+    pdf.setR2L(false);
+    
     console.log("Document style configured successfully with font:", pdf.getFont().fontName);
   } catch (error) {
     console.error("Error configuring document style:", error);
@@ -65,3 +68,4 @@ export const configureDocumentStyle = (pdf: jsPDF): void => {
     pdf.setTextColor(0, 0, 0);
   }
 }
+

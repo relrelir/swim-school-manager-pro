@@ -73,13 +73,14 @@ export function buildRegistrationPDF(
     // Format the registration date with day first and explicit LTR control
     const formattedRegistrationDate = forceLtrDirection(format(new Date(registration.registrationDate), 'dd/MM/yyyy'));
     
-    // All monetary values get explicit LTR formatting via our enhanced formatCurrency function
+    // Instead of pre-formatting currency values, pass the numeric values directly to createDataTable
+    // The table formatter will handle the currency formatting with proper direction
     const registrationData = [
       [formattedRegistrationDate, 'תאריך רישום:'],
-      [formatCurrency(registration.requiredAmount), 'סכום מקורי:'],
-      [registration.discountApproved ? formatCurrency(discountAmount) : 'לא', 'הנחה:'],
-      [formatCurrency(effectiveRequiredAmount), 'סכום לתשלום:'],
-      [formatCurrency(registration.paidAmount), 'סכום ששולם:'],
+      [registration.requiredAmount, 'סכום מקורי:'],
+      [registration.discountApproved ? discountAmount : 'לא', 'הנחה:'],
+      [effectiveRequiredAmount, 'סכום לתשלום:'],
+      [registration.paidAmount, 'סכום ששולם:'],
     ];
     
     // Create table with registration data
@@ -98,9 +99,9 @@ export function buildRegistrationPDF(
       ];
       
       // Create payment details rows with enhanced direction control
-      // Apply strongest LTR control for all numeric/receipt data
+      // Pass numeric values directly for amounts
       const paymentData = payments.map(payment => [
-        formatCurrency(payment.amount),
+        payment.amount, // Pass the numeric value - the table cell processor will format it
         forceLtrDirection(payment.receiptNumber),
         forceLtrDirection(format(new Date(payment.paymentDate), 'dd/MM/yyyy'))
       ]);
@@ -124,3 +125,4 @@ export function buildRegistrationPDF(
     throw error;
   }
 }
+
