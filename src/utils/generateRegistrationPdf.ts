@@ -1,9 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createRtlPdf } from './pdf/pdfConfig';
-import { buildRegistrationPDF } from './pdf/registrationPdfContentBuilder';
 import { toast } from "@/components/ui/use-toast";
 import { Registration, Participant, Payment } from '@/types';
+import { formatCurrency } from '@/utils/formatters';
+import { format } from 'date-fns';
+import * as htmlToImage from 'html-to-image';
+import { jsPDF } from 'jspdf';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
@@ -92,15 +94,114 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     })) : [];
     
     try {
-      // Create the PDF document with RTL and font support
-      console.log("Creating PDF with RTL support");
-      const pdf = createRtlPdf();
-      console.log("PDF object created successfully");
+      // Create a virtual registration certificate in the DOM
+      const virtualRegistration = document.createElement('div');
+      virtualRegistration.style.width = '800px';
+      virtualRegistration.style.padding = '40px';
+      virtualRegistration.style.fontFamily = 'Arial, sans-serif';
+      virtualRegistration.style.direction = 'rtl';
+      virtualRegistration.style.backgroundColor = 'white';
       
-      // Build the PDF content
-      console.log("Building PDF content with product name:", product.name);
-      const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
-      console.log("PDF content built successfully, filename:", fileName);
+      // Calculate effective required amount (after discount)
+      const discountAmount = registrationData.discountAmount || 0;
+      const effectiveRequiredAmount = Math.max(0, registrationData.requiredAmount - (registrationData.discountApproved ? discountAmount : 0));
+      
+      // Format current date for display
+      const currentDate = format(new Date(), 'dd/MM/yyyy');
+      
+      // Build registration certificate HTML
+      virtualRegistration.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 28px; margin-bottom: 10px;">אישור רישום למוצר</h1>
+          <p style="font-size: 14px; color: #666;">${currentDate}</p>
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="font-size: 22px;">מוצר: ${product.name}</h2>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+          <h3 style="font-size: 18px; margin-bottom: 15px;">פרטי משתתף:</h3>
+          <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
+            <p><span style="font-weight: bold;">שם מלא:</span> ${participantData.firstName} ${participantData.lastName}</p>
+            <p><span style="font-weight: bold;">תעודת זהות:</span> ${participantData.idNumber || ''}</p>
+            <p><span style="font-weight: bold;">טלפון:</span> ${participantData.phone || ''}</p>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 30px;">
+          <h3 style="font-size: 18px; margin-bottom: 15px;">פרטי רישום:</h3>
+          <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
+            <p><span style="font-weight: bold;">תאריך רישום:</span> ${format(new Date(registrationData.registrationDate), 'dd/MM/yyyy')}</p>
+            <p><span style="font-weight: bold;">סכום מקורי:</span> ${formatCurrency(registrationData.requiredAmount)}</p>
+            <p><span style="font-weight: bold;">הנחה:</span> ${registrationData.discountApproved ? formatCurrency(discountAmount) : 'לא'}</p>
+            <p><span style="font-weight: bold;">סכום לתשלום:</span> ${formatCurrency(effectiveRequiredAmount)}</p>
+            <p><span style="font-weight: bold;">סכום ששולם:</span> ${formatCurrency(registrationData.paidAmount)}</p>
+          </div>
+        </div>
+        
+        ${paymentsData.length > 0 ? `
+          <div style="margin-bottom: 30px;">
+            <h3 style="font-size: 18px; margin-bottom: 15px;">פרטי תשלומים:</h3>
+            <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="background-color: #f5f5f5;">
+                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">תאריך תשלום</th>
+                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">מספר קבלה</th>
+                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #ddd;">סכום</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${paymentsData.map(payment => `
+                    <tr>
+                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">${format(new Date(payment.paymentDate), 'dd/MM/yyyy')}</td>
+                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">${payment.receiptNumber}</td>
+                      <td style="padding: 8px; text-align: right; border-bottom: 1px solid #eee;">${formatCurrency(payment.amount)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ` : ''}
+        
+        <div style="margin-top: 40px; border-top: 1px solid #ccc; padding-top: 20px; text-align: center;">
+          <p>מסמך זה מהווה אישור רשמי על רישום ותשלום.</p>
+        </div>
+      `;
+      
+      // Temporarily append to the document (invisible) to capture the image
+      virtualRegistration.style.position = 'absolute';
+      virtualRegistration.style.left = '-9999px';
+      document.body.appendChild(virtualRegistration);
+      
+      // Convert the HTML to an image
+      const dataUrl = await htmlToImage.toPng(virtualRegistration, { 
+        quality: 1.0,
+        width: 800,
+        height: 1100,
+        backgroundColor: 'white'
+      });
+      
+      // Remove the temporary element
+      document.body.removeChild(virtualRegistration);
+      
+      // Create a PDF with the image
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      // Add the image to the PDF
+      const imgWidth = pdf.internal.pageSize.getWidth();
+      const imgHeight = (1100 * imgWidth) / 800; // Maintain aspect ratio
+      
+      pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      // Generate filename
+      const fileName = `registration_${participantData.firstName}_${participantData.lastName}_${registrationData.id.substring(0, 8)}.pdf`;
       
       // Save the PDF
       pdf.save(fileName);
