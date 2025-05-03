@@ -4,11 +4,11 @@ import { Registration, Participant, Payment } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { addPdfTitle, addPdfDate, addSectionTitle, createDataTable, createPlainTextTable } from './pdfHelpers';
-import { processTextDirection } from './hebrewTextHelper';
+import { processTextDirection, applyStrongDirectionalControl } from './hebrewTextHelper';
 
 /**
  * Builds a registration PDF with participant and payment information
- * With improved text direction handling for mixed content
+ * With significantly improved text direction handling for mixed content
  */
 export function buildRegistrationPDF(
   pdf: jsPDF,
@@ -20,8 +20,8 @@ export function buildRegistrationPDF(
   try {
     console.log("Building registration PDF...");
     
-    // Format current date for display - use explicit format with day first
-    const currentDate = processTextDirection(format(new Date(), 'dd/MM/yyyy'));
+    // Format current date for display with enhanced direction control
+    const currentDate = applyStrongDirectionalControl(format(new Date(), 'dd/MM/yyyy'));
     
     // Create a filename
     const fileName = `registration_${participant.firstName}_${participant.lastName}_${registration.id.substring(0, 8)}.pdf`;
@@ -30,7 +30,7 @@ export function buildRegistrationPDF(
     addPdfTitle(pdf, 'אישור רישום למוצר');
     console.log("Title added to PDF");
     
-    // Add date to document
+    // Add date to document with enhanced direction control
     addPdfDate(pdf, currentDate);
     
     // Add product name
@@ -41,12 +41,11 @@ export function buildRegistrationPDF(
     addSectionTitle(pdf, 'פרטי משתתף:', 50);
     
     // Create participant data - swap column order for correct RTL display
-    // Value first, then label (opposite of what's visually expected for RTL)
-    // Process text for correct direction handling of mixed content
+    // Apply enhanced direction processing for mixed content
     const participantData = [
-      [processTextDirection(`${participant.firstName} ${participant.lastName}`), 'שם מלא:'],
-      [processTextDirection(participant.idNumber), 'תעודת זהות:'],
-      [processTextDirection(participant.phone), 'טלפון:'],
+      [applyStrongDirectionalControl(`${participant.firstName} ${participant.lastName}`), 'שם מלא:'],
+      [applyStrongDirectionalControl(participant.idNumber), 'תעודת זהות:'],
+      [applyStrongDirectionalControl(participant.phone), 'טלפון:'],
     ];
     
     // Create table with participant data
@@ -60,12 +59,11 @@ export function buildRegistrationPDF(
     const discountAmount = registration.discountAmount || 0;
     const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
     
-    // Explicitly format the registration date with day first
-    // Apply direction handling for the date
-    const formattedRegistrationDate = processTextDirection(format(new Date(registration.registrationDate), 'dd/MM/yyyy'));
+    // Format the registration date with explicit day-first format and enhanced direction control
+    const formattedRegistrationDate = applyStrongDirectionalControl(format(new Date(registration.registrationDate), 'dd/MM/yyyy'));
     
     // Registration data - swap column order for correct RTL display
-    // Value first, then label (opposite of what's visually expected for RTL)
+    // Apply enhanced direction control for all numeric/date values
     const registrationData = [
       [formattedRegistrationDate, 'תאריך רישום:'],
       [formatCurrency(registration.requiredAmount), 'סכום מקורי:'],
@@ -89,12 +87,11 @@ export function buildRegistrationPDF(
         'תאריך תשלום'
       ]];
       
-      // Create payment details rows - swap order and ensure correct date format
-      // Apply direction handling for the date and receipt number
+      // Create payment details rows with enhanced direction control
       const paymentData = payments.map(payment => [
         formatCurrency(payment.amount),
-        processTextDirection(payment.receiptNumber),
-        processTextDirection(format(new Date(payment.paymentDate), 'dd/MM/yyyy'))
+        applyStrongDirectionalControl(payment.receiptNumber),
+        applyStrongDirectionalControl(format(new Date(payment.paymentDate), 'dd/MM/yyyy'))
       ]);
       
       // Create table with payment data and headers

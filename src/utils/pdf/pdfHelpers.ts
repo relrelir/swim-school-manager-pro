@@ -1,8 +1,7 @@
-
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { configureDocumentStyle } from './pdfConfig';
-import { processTextDirection } from './hebrewTextHelper';
+import { processTextDirection, applyStrongDirectionalControl, isEnglishOrNumber, isNumberOnly, isDateFormat, isPhoneFormat } from './hebrewTextHelper';
 
 /**
  * Creates a new PDF document with RTL support for Hebrew
@@ -48,8 +47,8 @@ export const addPdfDate = (pdf: jsPDF, date: string): void => {
   console.log(`Adding PDF date: "${date}"`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(10);
-  // Process date to ensure correct display of numbers
-  pdf.text(processTextDirection(date), pdf.internal.pageSize.width - 20, 10, { align: 'right' });
+  // Process date with stronger direction control
+  pdf.text(applyStrongDirectionalControl(date), pdf.internal.pageSize.width - 20, 10, { align: 'right' });
 };
 
 /**
@@ -63,8 +62,35 @@ export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
 };
 
 /**
- * Creates a data table in the PDF document with RTL support
- * Now with improved direction handling for mixed content
+ * Determine if a cell contains content needing LTR direction
+ */
+const cellNeedsLtrDirection = (cell: any): boolean => {
+  // Skip non-string content
+  if (typeof cell !== 'string') return false;
+  
+  // Check for content types that need LTR direction
+  return isNumberOnly(cell) || isDateFormat(cell) || isPhoneFormat(cell) || isEnglishOrNumber(cell);
+};
+
+/**
+ * Process table cell content for proper direction
+ */
+const processCellContent = (cell: any): any => {
+  // Skip non-string content
+  if (typeof cell !== 'string') return cell;
+  
+  // Apply stronger directional control for specific content types
+  if (cellNeedsLtrDirection(cell)) {
+    return applyStrongDirectionalControl(cell);
+  }
+  
+  // Otherwise just use standard processing
+  return processTextDirection(cell);
+};
+
+/**
+ * Creates a data table in the PDF document with enhanced RTL/LTR support
+ * With cell-level direction overrides for mixed content
  */
 export const createDataTable = (
   pdf: jsPDF, 
@@ -75,16 +101,32 @@ export const createDataTable = (
   console.log(`Creating data table at y=${startY} with ${data.length} rows`);
   console.log("First row sample:", JSON.stringify(data[0]));
   
-  // Process text in each cell for correct direction
+  // Process each cell individually for proper direction control
   const processedData = data.map(row => 
-    row.map(cell => typeof cell === 'string' ? processTextDirection(cell) : cell)
+    row.map(cell => processCellContent(cell))
   );
   
-  // Configure autotable with RTL support and Alef font
+  // Configure individual cell styles based on content
+  const cellStyles = data.map(row => 
+    row.map(cell => {
+      // Determine cell direction and alignment based on content
+      const isLtrContent = typeof cell === 'string' && cellNeedsLtrDirection(cell);
+      
+      return {
+        // Set explicit cell-level direction and alignment
+        halign: isLtrContent ? 'left' : 'right',
+        minCellWidth: isLtrContent ? 30 : undefined, // Ensure enough space for LTR content
+        cellPadding: isLtrContent ? { left: 4, right: 4, top: 2, bottom: 2 } : undefined,
+      };
+    })
+  );
+  
+  // Configure autotable with enhanced RTL/LTR support
   const tableConfig: any = {
     startY,
     styles: { 
       font: 'Alef',
+      // Default halign, will be overridden by cell-level styles
       halign: 'right',
     },
     headStyles: {
@@ -94,6 +136,19 @@ export const createDataTable = (
     },
     bodyStyles: {
       fontStyle: 'normal',
+    },
+    // Apply cell-level direction and alignment
+    willDrawCell: function(data: any) {
+      const { row, column, cell } = data;
+      const isLtrContent = typeof cell.raw === 'string' && cellNeedsLtrDirection(cell.raw);
+      
+      if (isLtrContent) {
+        // Override alignment for LTR content cells
+        cell.styles.halign = 'left';
+      } else {
+        // Ensure RTL content cells have correct alignment
+        cell.styles.halign = 'right';
+      }
     },
     theme: 'grid',
   };
@@ -152,6 +207,7 @@ export const createDataTable = (
 
 /**
  * Creates a plain text table (without grid lines) with RTL support
+ * With enhanced cell-level direction processing
  */
 export const createPlainTextTable = (
   pdf: jsPDF, 
@@ -160,34 +216,42 @@ export const createPlainTextTable = (
 ): number => {
   console.log(`Creating plain text table at y=${startY} with ${data.length} rows`);
   
-  // Process text in each cell for correct direction
+  // Process text in each cell with enhanced direction control
   const processedData = data.map(row => 
-    row.map(cell => typeof cell === 'string' ? processTextDirection(cell) : cell)
+    row.map(cell => processCellContent(cell))
   );
   
-  // Configure autotable with RTL support for plain text with Alef font
+  // Configure autotable with enhanced RTL/LTR support for plain text
+  const tableConfig = {
+    startY,
+    body: processedData,
+    styles: { 
+      font: 'Alef',
+      halign: 'right',
+    },
+    // Apply cell-level direction and alignment
+    willDrawCell: function(data: any) {
+      const { cell } = data;
+      const isLtrContent = typeof cell.raw === 'string' && cellNeedsLtrDirection(cell.raw);
+      
+      if (isLtrContent) {
+        // Override alignment for LTR content cells
+        cell.styles.halign = 'left';
+      } else {
+        // Ensure RTL content cells have correct alignment
+        cell.styles.halign = 'right';
+      }
+    },
+    theme: 'plain',
+  };
+  
   try {
-    autoTable(pdf, {
-      startY,
-      body: processedData,
-      styles: { 
-        font: 'Alef',
-        halign: 'right',
-      },
-      theme: 'plain',
-    });
+    autoTable(pdf, tableConfig);
   } catch (error) {
     console.error("Error creating plain text table:", error);
     // Try with default font as fallback
-    autoTable(pdf, {
-      startY,
-      body: processedData,
-      styles: { 
-        font: 'helvetica',
-        halign: 'right',
-      },
-      theme: 'plain',
-    });
+    tableConfig.styles.font = 'helvetica';
+    autoTable(pdf, tableConfig);
   }
 
   // Return the new y position after the table

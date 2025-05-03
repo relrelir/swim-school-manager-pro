@@ -9,6 +9,7 @@ import {
   createPlainTextTable
 } from './pdfHelpers';
 import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './healthDeclarationParser';
+import { applyStrongDirectionalControl } from './hebrewTextHelper';
 
 interface ParticipantData {
   firstname: string;
@@ -27,6 +28,7 @@ interface HealthDeclarationData {
 
 /**
  * Builds the content of a health declaration PDF with Hebrew support
+ * With enhanced text direction handling for mixed content
  */
 export const buildHealthDeclarationPDF = (
   pdf: jsPDF, 
@@ -39,20 +41,21 @@ export const buildHealthDeclarationPDF = (
     // Add title
     addPdfTitle(pdf, 'הצהרת בריאות');
     
-    // Add date
+    // Add date with enhanced direction control
     const formattedDate = healthDeclaration.submission_date 
-      ? format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy HH:mm') 
-      : format(new Date(), 'dd/MM/yyyy HH:mm');
+      ? applyStrongDirectionalControl(format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy HH:mm'))
+      : applyStrongDirectionalControl(format(new Date(), 'dd/MM/yyyy HH:mm'));
     
     addPdfDate(pdf, formattedDate);
     
     // Add participant details
     addSectionTitle(pdf, 'פרטי המשתתף', 45);
     
+    // Apply enhanced direction control for all participant data
     const participantData = [
-      ['שם מלא', `${participant.firstname} ${participant.lastname}`],
-      ['תעודת זהות', participant.idnumber],
-      ['טלפון', participant.phone],
+      ['שם מלא', applyStrongDirectionalControl(`${participant.firstname} ${participant.lastname}`)],
+      ['תעודת זהות', applyStrongDirectionalControl(participant.idnumber)],
+      ['טלפון', applyStrongDirectionalControl(participant.phone)],
     ];
     
     console.log("Creating participant data table");
@@ -64,9 +67,10 @@ export const buildHealthDeclarationPDF = (
     if (parentInfo.parentName || parentInfo.parentId) {
       addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
       
+      // Apply enhanced direction control for parent data
       const parentData = [
-        ['שם מלא', parentInfo.parentName || ''],
-        ['תעודת זהות', parentInfo.parentId || ''],
+        ['שם מלא', parentInfo.parentName ? applyStrongDirectionalControl(parentInfo.parentName) : ''],
+        ['תעודת זהות', parentInfo.parentId ? applyStrongDirectionalControl(parentInfo.parentId) : ''],
       ];
       
       lastY = createDataTable(pdf, parentData, lastY + 20);
