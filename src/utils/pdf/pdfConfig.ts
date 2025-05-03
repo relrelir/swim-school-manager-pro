@@ -30,6 +30,12 @@ export const configureDocumentStyle = (pdf: jsPDF): void => {
   pdf.setFontSize(12);
   pdf.setTextColor(0, 0, 0);
   
-  // Set default font
-  pdf.setFont('helvetica');
+  // Set default font back to David if needed
+  try {
+    pdf.setFont('David');
+  } catch (error) {
+    console.error("Error setting font in document style:", error);
+    // Fallback to standard font
+    pdf.setFont('helvetica');
+  }
 }
