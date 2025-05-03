@@ -33,21 +33,17 @@ const isPhoneFormat = (text: string): boolean => {
 
 /**
  * Process text to ensure correct display direction in PDF
- * - Apply enhanced directional control for English/numbers in RTL context
- * - Uses multiple Unicode control characters for stronger isolation
+ * - Apply special handling for English/numbers in RTL context
+ * - Mark specific content types for directional handling
  */
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
   
-  // For numbers, dates, phone numbers, and English text, we need stronger LTR isolation
+  // For numbers, dates, and phone numbers, we need LTR direction
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text) || isEnglishOrNumber(text)) {
-    // Enhanced isolation using multiple control characters:
-    // \u202A = Left-to-Right Embedding (LRE) - start LTR context
-    // \u202C = Pop Directional Formatting (PDF) - end directional context
-    // \u200E = Left-to-Right Mark (LRM) - additional LTR mark
-    
-    // Create a strong LTR isolation with multiple markers
-    return `\u202A\u200E${text}\u200E\u202C`;
+    // Add special markers for LTR text in RTL context using unicode control characters
+    // LRM = Left-to-Right Mark (U+200E)
+    return `\u200E${text}\u200E`;
   }
 
   // For Hebrew or mixed content, maintain RTL by default
@@ -79,20 +75,3 @@ export const reverseText = (text: string): string => {
 export const prepareRtlText = (text: string): string => {
   return processTextDirection(text);
 };
-
-/**
- * Process text explicitly as LTR content, with strongest possible isolation
- * Used for critical content that must be displayed left-to-right
- */
-export const forceLtrDirection = (text: string): string => {
-  if (!text) return '';
-  
-  // \u202A = Left-to-Right Embedding (LRE) - start LTR context
-  // \u202D = Left-to-Right Override (LRO) - forces LTR
-  // \u202C = Pop Directional Formatting (PDF) - end directional context
-  // \u200E = Left-to-Right Mark (LRM)
-  
-  // Create the strongest possible LTR isolation
-  return `\u202D\u200E${text}\u200E\u202C`;
-};
-
