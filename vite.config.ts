@@ -9,6 +9,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    fs: {
+      // Allow serving files from one level up to the project root
+      allow: ['.'],
+    },
   },
   plugins: [
     react(),
@@ -30,10 +34,4 @@ export default defineConfig(({ mode }) => ({
   },
   assetsInclude: ['**/*.ttf'],
   // Exclude font JS files from ESM processing
-  server: {
-    fs: {
-      // Allow serving files from one level up to the project root
-      allow: ['.'],
-    },
-  },
 }));
