@@ -1,16 +1,21 @@
 
 import { jsPDF } from 'jspdf';
+import davidRegularFontBase64 from './davidFontData';
 
-// Function to configure jsPDF for Hebrew text support with standard fonts
+// Function to configure jsPDF for Hebrew text support using David font
 export const configureHebrewFont = (pdf: jsPDF): void => {
   try {
-    console.log("Configuring PDF for Hebrew text support");
+    console.log("Configuring PDF for Hebrew text support with David font");
+    
+    // Add David font to the PDF document
+    pdf.addFileToVFS('David-Regular.ttf', davidRegularFontBase64);
+    pdf.addFont('David-Regular.ttf', 'David', 'normal');
     
     // Set RTL mode for Hebrew text direction
     pdf.setR2L(true);
     
-    // Use standard font that supports Hebrew characters better
-    pdf.setFont('helvetica');
+    // Use David font for Hebrew characters
+    pdf.setFont('David');
     
     // Add PDF metadata with Hebrew titles
     pdf.setProperties({
@@ -31,7 +36,7 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Set text color to ensure better contrast
     pdf.setTextColor(0, 0, 0);
     
-    console.log("Hebrew font configuration applied with RTL support");
+    console.log("David font configuration applied with RTL support");
   } catch (error) {
     console.error("Error configuring Hebrew font:", error);
     // Fallback to basic configuration
@@ -39,3 +44,4 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     pdf.setFont('helvetica');
   }
 }
+

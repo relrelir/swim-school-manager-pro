@@ -17,8 +17,8 @@ export const createPdf = (): jsPDF => {
   // Set document to RTL
   pdf.setR2L(true);
   
-  // Use standard font
-  pdf.setFont('helvetica');
+  // Use David font
+  pdf.setFont('David');
   
   return pdf;
 };
@@ -63,7 +63,7 @@ export const createDataTable = (
   const tableConfig: any = {
     startY,
     styles: { 
-      font: 'helvetica',
+      font: 'David',
       halign: 'right',
     },
     headStyles: {
@@ -127,7 +127,7 @@ export const createPlainTextTable = (
       startY,
       body: data,
       styles: { 
-        font: 'helvetica',
+        font: 'David',
         halign: 'right',
       },
       theme: 'plain',

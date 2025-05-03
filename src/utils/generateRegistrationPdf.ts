@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { createRtlPdf } from './pdf/pdfConfig';
 import { buildRegistrationPDF } from './pdf/registrationPdfContentBuilder';
@@ -93,7 +92,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     
     try {
       // Create the PDF document with RTL and font support
-      console.log("Creating PDF with RTL support");
+      console.log("Creating PDF with RTL support and David font");
       const pdf = createRtlPdf();
       console.log("PDF object created successfully");
       

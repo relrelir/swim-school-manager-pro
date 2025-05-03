@@ -12,10 +12,10 @@ export const createRtlPdf = (): jsPDF => {
     format: 'a4',
   });
 
-  // Configure for Hebrew text support
+  // Configure for Hebrew text support using David font
   configureHebrewFont(pdf);
   
-  console.log("RTL PDF created successfully");
+  console.log("RTL PDF created successfully with David font");
   return pdf;
 };
 
@@ -30,6 +30,6 @@ export const configureDocumentStyle = (pdf: jsPDF): void => {
   pdf.setFontSize(12);
   pdf.setTextColor(0, 0, 0);
   
-  // Set default font
-  pdf.setFont('helvetica');
+  // Set default font to David
+  pdf.setFont('David');
 }

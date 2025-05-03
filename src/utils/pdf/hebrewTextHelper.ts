@@ -1,12 +1,12 @@
 
 /**
- * Helper function to ensure Hebrew text is properly displayed in PDF
+ * Helper function to ensure Hebrew text is properly displayed in PDF with David font
  * Using standard encoding for better compatibility
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // Simply return the text - jsPDF will handle RTL when setR2L is true
+  // With David font properly installed, we can just return the Hebrew text directly
   return text;
 };
 
@@ -19,6 +19,7 @@ export const reverseText = (text: string): string => {
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
+ * with David font in PDFs
  */
 export const prepareRtlText = (text: string): string => {
   return text || '';
