@@ -1,6 +1,5 @@
-
 import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import autoTable, { UserOptions, CellHookData } from 'jspdf-autotable';
 import { configureDocumentStyle } from './pdfConfig';
 import { processTextDirection, forceLtrDirection } from './hebrewTextHelper';
 
@@ -15,8 +14,8 @@ export const createPdf = (): jsPDF => {
     format: 'a4',
   });
   
-  // Set document to RTL
-  pdf.setR2L(true);
+  // Default to non-RTL initially - we'll handle RTL explicitly for each text element
+  pdf.setR2L(false);
   
   try {
     // Use Alef font
@@ -38,7 +37,11 @@ export const addPdfTitle = (pdf: jsPDF, title: string): void => {
   console.log(`Adding PDF title: "${title}"`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(20);
+  
+  // Hebrew title should be RTL
+  pdf.setR2L(true);
   pdf.text(title, pdf.internal.pageSize.width / 2, 20, { align: 'center' });
+  pdf.setR2L(false); // Reset for subsequent operations
 };
 
 /**
@@ -48,7 +51,10 @@ export const addPdfDate = (pdf: jsPDF, date: string): void => {
   console.log(`Adding PDF date: "${date}"`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(10);
-  // Process date with stronger LTR control
+  
+  // Date is always LTR (numbers)
+  pdf.setR2L(false);
+  // Use explicit LTR for date with strong controls
   pdf.text(forceLtrDirection(date), pdf.internal.pageSize.width - 20, 10, { align: 'right' });
 };
 
@@ -59,7 +65,11 @@ export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
   console.log(`Adding section title: "${title}" at y=${y}`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(14);
+  
+  // Hebrew section title should be RTL
+  pdf.setR2L(true);
   pdf.text(title, pdf.internal.pageSize.width - 20, y, { align: 'right' });
+  pdf.setR2L(false); // Reset for subsequent operations
 };
 
 /**
@@ -75,6 +85,29 @@ const isLtrContent = (content: string | number): boolean => {
 };
 
 /**
+ * Enhanced processing for specific cell types with stronger direction control
+ */
+const processTableCell = (cell: any): string => {
+  if (!cell) return '';
+  const content = String(cell);
+  
+  // Special cases with stronger LTR controls
+  if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
+    // Date format
+    return forceLtrDirection(content);
+  } else if (/^[0-9\s\-\.]+$/.test(content)) {
+    // Pure number (ID, phone, etc)
+    return forceLtrDirection(content);
+  } else if (isLtrContent(content)) {
+    // Other LTR content
+    return forceLtrDirection(content);
+  } else {
+    // Hebrew or mixed content gets standard processing
+    return processTextDirection(content);
+  }
+};
+
+/**
  * Creates a data table in the PDF document with enhanced RTL/LTR support
  */
 export const createDataTable = (
@@ -86,16 +119,9 @@ export const createDataTable = (
   console.log(`Creating data table at y=${startY} with ${data.length} rows`);
   console.log("First row sample:", JSON.stringify(data[0]));
   
-  // Process each cell individually based on content type
+  // Process each cell with enhanced content-aware handling
   const processedData = data.map(row => 
-    row.map(cell => {
-      // For numbers and English text, use strong LTR controls
-      if (typeof cell === 'number' || isLtrContent(String(cell))) {
-        return forceLtrDirection(String(cell));
-      }
-      // For Hebrew or mixed content, use regular processing
-      return typeof cell === 'string' ? processTextDirection(cell) : cell;
-    })
+    row.map(cell => processTableCell(cell))
   );
 
   // Log a sample of the processed data for debugging
@@ -105,14 +131,15 @@ export const createDataTable = (
       : processedData[0][0]
   );
   
-  // Enhanced table configuration to better handle bidirectional text
-  const tableConfig: any = {
+  // Enhanced table configuration with cell-specific direction handling
+  const tableConfig: UserOptions = {
     startY,
     styles: { 
       font: 'Alef',
       overflow: 'linebreak',
       cellPadding: 4,
       lineWidth: 0.1,
+      halign: 'right', // default alignment for most cells
     },
     headStyles: {
       fillColor: [200, 200, 200],
@@ -122,18 +149,18 @@ export const createDataTable = (
     bodyStyles: {
       fontStyle: 'normal',
     },
-    theme: 'grid',
-    willDrawCell: function(data: any) {
+    theme: 'grid' as 'grid', // Explicitly cast to valid ThemeType
+    willDrawCell: function(data: CellHookData) {
       // Detect cell content type to apply appropriate alignment
       const cell = data.cell;
       if (cell && cell.text) {
         // Check if the cell content appears to be LTR (English, numbers)
         const cellText = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
-        if (isLtrContent(cellText)) {
-          // For LTR content, use left alignment
+        if (/\d+/.test(cellText) || /[a-zA-Z]/.test(cellText) && !/[\u0590-\u05FF]/.test(cellText)) {
+          // For LTR content (numbers, English), use left alignment
           cell.styles.halign = 'left';
         } else {
-          // For RTL content, use right alignment
+          // For RTL content (Hebrew), use right alignment
           cell.styles.halign = 'right';
         }
       }
@@ -202,38 +229,32 @@ export const createPlainTextTable = (
 ): number => {
   console.log(`Creating plain text table at y=${startY} with ${data.length} rows`);
   
-  // Process each cell individually based on content type
+  // Process each cell individually with enhanced content-aware handling
   const processedData = data.map(row => 
-    row.map(cell => {
-      // For numbers and English text, use strong LTR controls
-      if (typeof cell === 'number' || isLtrContent(String(cell))) {
-        return forceLtrDirection(String(cell));
-      }
-      // For Hebrew or mixed content, use regular processing
-      return typeof cell === 'string' ? processTextDirection(cell) : cell;
-    })
+    row.map(cell => processTableCell(cell))
   );
   
   // Enhanced table configuration for plain text tables
-  const tableConfig: any = {
+  const tableConfig: UserOptions = {
     startY,
     styles: { 
       font: 'Alef',
       overflow: 'linebreak',
       cellPadding: 3,
+      halign: 'right', // default for Hebrew
     },
-    theme: 'plain',
-    willDrawCell: function(data: any) {
+    theme: 'plain' as 'plain', // Explicitly cast to valid ThemeType
+    willDrawCell: function(data: CellHookData) {
       // Detect cell content type to apply appropriate alignment
       const cell = data.cell;
       if (cell && cell.text) {
         // Check if the cell content appears to be LTR (English, numbers)
         const cellText = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
-        if (isLtrContent(cellText)) {
-          // For LTR content, use left alignment
+        if (/\d+/.test(cellText) || /[a-zA-Z]/.test(cellText) && !/[\u0590-\u05FF]/.test(cellText)) {
+          // For LTR content (numbers, English), use left alignment
           cell.styles.halign = 'left';
         } else {
-          // For RTL content, use right alignment
+          // For RTL content (Hebrew), use right alignment
           cell.styles.halign = 'right';
         }
       }

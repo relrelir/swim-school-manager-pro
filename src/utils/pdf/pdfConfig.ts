@@ -3,9 +3,10 @@ import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { configureHebrewFont } from './alefFontData';
 
-// Function to set up RTL document with proper Hebrew support
+// Function to set up document with proper Hebrew font support
+// But default to LTR mode - we'll handle RTL explicitly per text element
 export const createRtlPdf = async (): Promise<jsPDF> => {
-  console.log("Starting RTL PDF creation...");
+  console.log("Starting PDF creation with enhanced bidirectional text support...");
   
   // Create PDF with standard settings
   const pdf = new jsPDF({
@@ -19,14 +20,17 @@ export const createRtlPdf = async (): Promise<jsPDF> => {
     // Configure for Hebrew text support with Alef font
     await configureHebrewFont(pdf);
     
-    console.log("RTL PDF created successfully with Alef font");
+    // Don't enable global RTL by default
+    // We'll handle text direction explicitly for each element
+    pdf.setR2L(false);
+    
+    console.log("PDF created successfully with Alef font and explicit direction handling");
     return pdf;
   } catch (error) {
     console.error("Error during Hebrew font configuration:", error);
     
-    // Attempt minimal RTL support with fallback font
-    console.log("Setting up fallback RTL support...");
-    pdf.setR2L(true);
+    // Fallback without RTL by default
+    pdf.setR2L(false);
     
     // Verify the PDF object is still valid
     if (!pdf || typeof pdf.text !== 'function') {

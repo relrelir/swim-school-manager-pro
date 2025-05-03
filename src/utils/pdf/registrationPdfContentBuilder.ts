@@ -8,7 +8,7 @@ import { processTextDirection, forceLtrDirection } from './hebrewTextHelper';
 
 /**
  * Builds a registration PDF with participant and payment information
- * With enhanced text direction handling for mixed content
+ * Enhanced with improved bidirectional text handling
  */
 export function buildRegistrationPDF(
   pdf: jsPDF,
@@ -18,10 +18,10 @@ export function buildRegistrationPDF(
   productName: string
 ): string {
   try {
-    console.log("Building registration PDF...");
+    console.log("Building registration PDF with enhanced bidirectional text support...");
     
     // Format current date for display - use explicit format with day first
-    // Apply strong LTR control for date display
+    // Apply strongest possible LTR control for date display
     const currentDate = forceLtrDirection(format(new Date(), 'dd/MM/yyyy'));
     
     // Create a filename
@@ -31,26 +31,28 @@ export function buildRegistrationPDF(
     addPdfTitle(pdf, 'אישור רישום למוצר');
     console.log("Title added to PDF");
     
-    // Add date to document
+    // Add date to document with explicit LTR control
     addPdfDate(pdf, currentDate);
     
-    // Add product name
+    // Add product name - Hebrew content gets RTL
+    pdf.setR2L(true); // Enable RTL just for this section
     pdf.setFontSize(16);
     pdf.text(`מוצר: ${productName}`, pdf.internal.pageSize.width / 2, 35, { align: 'center' });
+    pdf.setR2L(false); // Disable RTL for next operations
     
     // Participant information section
     addSectionTitle(pdf, 'פרטי משתתף:', 50);
     
-    // Process participant data with appropriate direction control
-    // For mixed Hebrew-English names, use the standard processing
-    const fullName = processTextDirection(`${participant.firstName} ${participant.lastName}`);
+    // Process participant data with explicit content type direction control
+    // For Hebrew names, use basic processing
+    const fullName = `${participant.firstName} ${participant.lastName}`;
     
-    // For numbers and IDs, use strong LTR control
+    // For IDs and phone numbers, use strongest possible LTR control
     const idNumber = forceLtrDirection(participant.idNumber);
     const phone = forceLtrDirection(participant.phone);
     
-    // Create participant data - swap column order for correct RTL display
-    // Label second, value first (visually will appear as label: value due to RTL)
+    // Create participant data - now with explicit label/value direction handling
+    // Hebrew labels and text (value, label)
     const participantData = [
       [fullName, 'שם מלא:'],
       [idNumber, 'תעודת זהות:'],
@@ -68,11 +70,10 @@ export function buildRegistrationPDF(
     const discountAmount = registration.discountAmount || 0;
     const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
     
-    // Explicitly format the registration date with day first
-    // Apply strong LTR control for date
+    // Format the registration date with day first and explicit LTR control
     const formattedRegistrationDate = forceLtrDirection(format(new Date(registration.registrationDate), 'dd/MM/yyyy'));
     
-    // Registration data - label second, value first for RTL display
+    // All monetary values get explicit LTR formatting via our enhanced formatCurrency function
     const registrationData = [
       [formattedRegistrationDate, 'תאריך רישום:'],
       [formatCurrency(registration.requiredAmount), 'סכום מקורי:'],
@@ -97,7 +98,7 @@ export function buildRegistrationPDF(
       ];
       
       // Create payment details rows with enhanced direction control
-      // Format dates with strong LTR controls
+      // Apply strongest LTR control for all numeric/receipt data
       const paymentData = payments.map(payment => [
         formatCurrency(payment.amount),
         forceLtrDirection(payment.receiptNumber),
@@ -110,9 +111,11 @@ export function buildRegistrationPDF(
     }
     
     // Add footer
+    pdf.setR2L(true); // Enable RTL for Hebrew footer text
     const footerText = 'מסמך זה מהווה אישור רשמי על רישום ותשלום.';
     pdf.setFontSize(10);
     pdf.text(footerText, pdf.internal.pageSize.width / 2, pdf.internal.pageSize.height - 20, { align: 'center' });
+    pdf.setR2L(false); // Reset RTL setting
     console.log("Added footer");
     
     return fileName;

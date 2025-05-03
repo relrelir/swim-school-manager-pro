@@ -3,21 +3,25 @@ import { processTextDirection, forceLtrDirection } from './pdf/hebrewTextHelper'
 
 /**
  * Format a number as currency in ILS (New Israeli Shekel)
+ * Enhanced with stronger LTR direction control
  */
 export const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat('he-IL', { 
+  const formatted = new Intl.NumberFormat('he-IL', { 
     style: 'currency', 
     currency: 'ILS' 
   }).format(amount);
+  
+  // Force LTR direction for currency values (they contain numbers)
+  return forceLtrDirection(formatted);
 };
 
 /**
  * Format a date in the local format
- * Now with enhanced direction handling for dates
+ * Enhanced with strongest possible LTR direction control
  */
 export const formatDate = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  // Apply stronger direction handling specifically for dates
+  // Apply strongest direction handling specifically for dates
   return forceLtrDirection(dateObj.toLocaleDateString('he-IL'));
 };
 
@@ -30,7 +34,7 @@ export const formatPrice = (price: number): string => {
 
 /**
  * Format time from 24h format to local time format
- * Now with enhanced direction handling for times
+ * Enhanced with strongest possible LTR direction control
  */
 export const formatTime = (time: string): string => {
   try {
@@ -44,17 +48,16 @@ export const formatTime = (time: string): string => {
     date.setHours(hours);
     date.setMinutes(minutes);
     
-    // Format time according to locale (without seconds) and ensure correct direction
+    // Format time according to locale (without seconds) with strongest LTR control
     return forceLtrDirection(date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }));
   } catch (e) {
     console.error('Error formatting time:', e);
-    return time; // Return original if there's an error
+    return forceLtrDirection(time); // Return original with LTR direction if there's an error
   }
 };
 
 /**
- * Format participants count as "X/Y"
- * Now with enhanced direction handling for numbers
+ * Format participants count as "X/Y" with strong LTR direction control
  */
 export const formatParticipantsCount = (current: number, max: number | undefined): string => {
   if (max === undefined || max === null) {
@@ -64,8 +67,7 @@ export const formatParticipantsCount = (current: number, max: number | undefined
 };
 
 /**
- * Format meeting count as "X/Y"
- * Now with enhanced direction handling for numbers
+ * Format meeting count as "X/Y" with strong LTR direction control
  */
 export const formatMeetingCount = (current: number, total: number): string => {
   return forceLtrDirection(`${current}/${total}`);

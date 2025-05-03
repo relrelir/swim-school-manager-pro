@@ -27,8 +27,7 @@ interface HealthDeclarationData {
 }
 
 /**
- * Builds the content of a health declaration PDF with Hebrew support
- * And improved bidirectional text handling
+ * Builds the content of a health declaration PDF with enhanced bidirectional text support
  */
 export const buildHealthDeclarationPDF = (
   pdf: jsPDF, 
@@ -36,23 +35,25 @@ export const buildHealthDeclarationPDF = (
   participant: ParticipantData
 ): string => {
   try {
-    console.log("Starting PDF generation with data:", { participant });
+    console.log("Starting PDF generation with enhanced bidirectional text handling");
     
-    // Add title
+    // Add title - Hebrew content with RTL
     addPdfTitle(pdf, 'הצהרת בריאות');
     
-    // Add date with strong LTR control
+    // Add date with strongest possible LTR control
     const formattedDate = healthDeclaration.submission_date 
       ? format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy HH:mm') 
       : format(new Date(), 'dd/MM/yyyy HH:mm');
     
     addPdfDate(pdf, forceLtrDirection(formattedDate));
     
-    // Add participant details
+    // Add participant details - Hebrew section title
     addSectionTitle(pdf, 'פרטי המשתתף', 45);
     
     // Process participant data with appropriate direction control
     const fullName = `${participant.firstname} ${participant.lastname}`;
+    
+    // Apply strongest LTR control to numeric data
     const participantData = [
       ['שם מלא', fullName],
       ['תעודת זהות', forceLtrDirection(participant.idnumber)],
@@ -105,7 +106,9 @@ export const buildHealthDeclarationPDF = (
     lastY = createPlainTextTable(pdf, [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], lastY + 20);
     
     // Add signature line
+    pdf.setR2L(true); // Enable RTL for Hebrew text
     pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, lastY + 20);
+    pdf.setR2L(false); // Reset RTL setting
     
     // Generate filename
     const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
