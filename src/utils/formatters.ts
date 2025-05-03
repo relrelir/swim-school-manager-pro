@@ -1,5 +1,5 @@
 
-import { processTextDirection, forceLtrDirection, forceRtlDirection, forceTableCurrencyDirection } from './pdf/hebrewTextHelper';
+import { processTextDirection, forceLtrDirection } from './pdf/hebrewTextHelper';
 
 /**
  * Format a number as currency in ILS (New Israeli Shekel)
@@ -13,20 +13,6 @@ export const formatCurrency = (amount: number): string => {
   
   // Force LTR direction for currency values (they contain numbers)
   return forceLtrDirection(formatted);
-};
-
-/**
- * Special formatter for currency values displayed in tables
- * Enhanced to handle the unique requirements of jspdf-autotable
- */
-export const formatCurrencyForTable = (amount: number): string => {
-  const formatted = new Intl.NumberFormat('he-IL', { 
-    style: 'currency', 
-    currency: 'ILS' 
-  }).format(amount);
-  
-  // Special handling for tables
-  return forceTableCurrencyDirection(formatted);
 };
 
 /**
@@ -86,4 +72,3 @@ export const formatParticipantsCount = (current: number, max: number | undefined
 export const formatMeetingCount = (current: number, total: number): string => {
   return forceLtrDirection(`${current}/${total}`);
 };
-

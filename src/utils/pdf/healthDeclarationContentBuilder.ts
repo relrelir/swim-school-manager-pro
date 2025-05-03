@@ -9,7 +9,7 @@ import {
   createPlainTextTable
 } from './pdfHelpers';
 import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './healthDeclarationParser';
-import { forceLtrDirection, forceRtlDirection } from './hebrewTextHelper';
+import { forceLtrDirection } from './hebrewTextHelper';
 
 interface ParticipantData {
   firstname: string;
@@ -53,11 +53,11 @@ export const buildHealthDeclarationPDF = (
     // Process participant data with appropriate direction control
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
-    // Pass participant data directly to the table - the table cell processor will handle formatting
+    // Apply strongest LTR control to numeric data
     const participantData = [
       ['שם מלא', fullName],
-      ['תעודת זהות', participant.idnumber], // Let table processor handle direction
-      ['טלפון', participant.phone], // Let table processor handle direction
+      ['תעודת זהות', forceLtrDirection(participant.idnumber)],
+      ['טלפון', forceLtrDirection(participant.phone)],
     ];
     
     console.log("Creating participant data table");
@@ -69,10 +69,9 @@ export const buildHealthDeclarationPDF = (
     if (parentInfo.parentName || parentInfo.parentId) {
       addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
       
-      // Pass parent data directly to table - the processor will handle direction
       const parentData = [
         ['שם מלא', parentInfo.parentName || ''],
-        ['תעודת זהות', parentInfo.parentId || ''], // Let table processor handle direction
+        ['תעודת זהות', parentInfo.parentId ? forceLtrDirection(parentInfo.parentId) : ''],
       ];
       
       lastY = createDataTable(pdf, parentData, lastY + 20);
@@ -121,4 +120,3 @@ export const buildHealthDeclarationPDF = (
     throw error;
   }
 };
-

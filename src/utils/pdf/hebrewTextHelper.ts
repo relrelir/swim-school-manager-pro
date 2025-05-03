@@ -33,16 +33,6 @@ const isPhoneFormat = (text: string): boolean => {
 };
 
 /**
- * Detect if text is likely a currency value with the Israeli Shekel symbol
- */
-const isCurrencyWithShekel = (text: string): boolean => {
-  if (!text) return false;
-  
-  // Check for ₪ symbol or "ILS" with numbers
-  return /₪|[Ss][Hh][Ee][Kk][Ee][Ll]|ILS|NIS/i.test(text) && /\d/.test(text);
-};
-
-/**
  * Process text to ensure correct display direction in PDF
  * - Apply much stronger directional control for English/numbers in RTL context
  * - Uses multiple Unicode control characters for stronger isolation
@@ -58,32 +48,6 @@ export const processTextDirection = (text: string): string => {
 
   // For Hebrew or mixed content, maintain RTL by default
   return text;
-};
-
-/**
- * Special function to handle table cells with Hebrew content
- * Table cells need extra directionality control specific to autotable library
- */
-export const processTableCellDirection = (text: string): string => {
-  if (!text) return '';
-  
-  // Special case for currency values with Shekel symbol - needs explicit RTL
-  if (isCurrencyWithShekel(text)) {
-    return forceTableCurrencyDirection(text);
-  }
-  
-  // Special handling for dates, phone numbers, and IDs - need strongest LTR controls
-  if (isDateFormat(text) || isPhoneFormat(text) || isNumberOnly(text)) {
-    return forceLtrDirection(text);
-  }
-  
-  // Check if content contains Hebrew characters - if so, ensure proper RTL
-  if (/[\u0590-\u05FF]/.test(text)) {
-    return forceRtlDirection(text);
-  }
-  
-  // Default for English content - use LTR
-  return forceLtrDirection(text);
 };
 
 /**
@@ -104,36 +68,14 @@ export const forceLtrDirection = (text: string): string => {
 };
 
 /**
- * Force RTL direction specifically for table cells with Hebrew text
- * This compensates for autotable's handling of text direction
+ * Helper function to ensure Hebrew text is properly displayed in PDF
+ * Now optimized for Alef font
  */
-export const forceRtlDirection = (text: string): string => {
+export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // Use RTL Override for Hebrew text in tables:
-  // \u202E = Right-to-Left Override - forces RTL
-  // \u202C = Pop Directional Formatting - terminates the control
-  return `\u202E${text}\u202C`;
-};
-
-/**
- * Special formatter for currency values in tables
- * Ensures proper Shekel symbol display in autotable
- */
-export const forceTableCurrencyDirection = (text: string): string => {
-  if (!text) return '';
-
-  // For tables, we need to ensure currency displays correctly with RTL
-  // This approach handles the specific case of currency in tables
-  return `\u202E${text}\u202C`;
-};
-
-/**
- * Helper function specifically for tables to ensure RTL text is displayed correctly
- * with Alef font integration
- */
-export const prepareRtlText = (text: string): string => {
-  return processTextDirection(text);
+  // With Alef font and RTL enabled, we can return text directly
+  return text;
 };
 
 /**
@@ -147,10 +89,6 @@ export const reverseText = (text: string): string => {
  * Helper function specifically for tables to ensure RTL text is displayed correctly
  * with Alef font integration
  */
-export const encodeHebrewText = (text: string): string => {
-  if (!text) return '';
-  
-  // With Alef font and RTL enabled, we can return text directly
-  return text;
+export const prepareRtlText = (text: string): string => {
+  return processTextDirection(text);
 };
-

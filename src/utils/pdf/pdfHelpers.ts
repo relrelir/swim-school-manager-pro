@@ -1,8 +1,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable, { UserOptions, CellHookData } from 'jspdf-autotable';
 import { configureDocumentStyle } from './pdfConfig';
-import { processTextDirection, forceLtrDirection, processTableCellDirection, forceRtlDirection } from './hebrewTextHelper';
-import { formatCurrencyForTable } from '@/utils/formatters';
+import { processTextDirection, forceLtrDirection } from './hebrewTextHelper';
 
 /**
  * Creates a new PDF document with RTL support for Hebrew
@@ -86,49 +85,24 @@ const isLtrContent = (content: string | number): boolean => {
 };
 
 /**
- * Specialized function to detect currency values in table cells
- */
-const isCurrencyValue = (content: string | number): boolean => {
-  if (typeof content === 'number') return false;
-  if (!content) return false;
-  
-  const text = String(content);
-  // Check for currency patterns (₪, ILS, NIS) with numbers
-  return /₪|[Ss][Hh][Ee][Kk][Ee][Ll]|ILS|NIS/i.test(text) && /\d/.test(text);
-};
-
-/**
- * Enhanced processing for specific cell types with specialized direction control for tables
+ * Enhanced processing for specific cell types with stronger direction control
  */
 const processTableCell = (cell: any): string => {
   if (!cell) return '';
   const content = String(cell);
   
-  // Debug log for currency detection
-  if (isCurrencyValue(content)) {
-    console.log(`Cell detected as currency: "${content}"`);
-    return processTableCellDirection(content);
-  }
-  
-  // Special cases with direction control specific for tables
+  // Special cases with stronger LTR controls
   if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     // Date format
-    console.log(`Cell detected as date: "${content}"`);
     return forceLtrDirection(content);
   } else if (/^[0-9\s\-\.]+$/.test(content)) {
     // Pure number (ID, phone, etc)
-    console.log(`Cell detected as number: "${content}"`);
     return forceLtrDirection(content);
   } else if (isLtrContent(content)) {
     // Other LTR content
-    console.log(`Cell detected as LTR: "${content}"`);
     return forceLtrDirection(content);
-  } else if (/[\u0590-\u05FF]/.test(content)) {
-    // Content contains Hebrew - needs RTL in tables specifically
-    console.log(`Cell detected as Hebrew: "${content}"`);
-    return forceRtlDirection(content);
   } else {
-    // Default case - use standard processing
+    // Hebrew or mixed content gets standard processing
     return processTextDirection(content);
   }
 };
@@ -145,16 +119,9 @@ export const createDataTable = (
   console.log(`Creating data table at y=${startY} with ${data.length} rows`);
   console.log("First row sample:", JSON.stringify(data[0]));
   
-  // Process each cell with enhanced content-aware handling for tables
+  // Process each cell with enhanced content-aware handling
   const processedData = data.map(row => 
-    row.map(cell => {
-      // Special handling for numeric values that should be formatted as currency
-      if (typeof cell === 'number' && String(cell).includes('.')) {
-        // This is likely a monetary value, format it specifically for tables
-        return formatCurrencyForTable(cell);
-      }
-      return processTableCell(cell);
-    })
+    row.map(cell => processTableCell(cell))
   );
 
   // Log a sample of the processed data for debugging
@@ -172,7 +139,7 @@ export const createDataTable = (
       overflow: 'linebreak',
       cellPadding: 4,
       lineWidth: 0.1,
-      halign: 'right', // default alignment for Hebrew
+      halign: 'right', // default alignment for most cells
     },
     headStyles: {
       fillColor: [200, 200, 200],
@@ -184,24 +151,16 @@ export const createDataTable = (
     },
     theme: 'grid' as 'grid', // Explicitly cast to valid ThemeType
     willDrawCell: function(data: CellHookData) {
-      // Detect cell content type to apply appropriate alignment and direction
+      // Detect cell content type to apply appropriate alignment
       const cell = data.cell;
       if (cell && cell.text) {
-        // Check content type
+        // Check if the cell content appears to be LTR (English, numbers)
         const cellText = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
-        
-        // Set alignment based on content
-        if (/[\u0590-\u05FF]/.test(cellText) && !/₪/.test(cellText)) {
-          // Hebrew text without currency symbols - right align
-          cell.styles.halign = 'right';
-        } else if (/₪/.test(cellText) || /ILS/.test(cellText)) {
-          // Currency values - use right alignment but with special handling
-          cell.styles.halign = 'right';
-        } else if (/\d+/.test(cellText) || /[a-zA-Z]/.test(cellText)) {
-          // Numbers or English text - use left alignment
-          cell.styles.halign = 'left'; 
+        if (/\d+/.test(cellText) || /[a-zA-Z]/.test(cellText) && !/[\u0590-\u05FF]/.test(cellText)) {
+          // For LTR content (numbers, English), use left alignment
+          cell.styles.halign = 'left';
         } else {
-          // Default to right alignment for anything else
+          // For RTL content (Hebrew), use right alignment
           cell.styles.halign = 'right';
         }
       }
@@ -270,15 +229,9 @@ export const createPlainTextTable = (
 ): number => {
   console.log(`Creating plain text table at y=${startY} with ${data.length} rows`);
   
-  // Process each cell individually with enhanced content-aware handling for tables
+  // Process each cell individually with enhanced content-aware handling
   const processedData = data.map(row => 
-    row.map(cell => {
-      // Special handling for numeric values that should be formatted as currency
-      if (typeof cell === 'number' && String(cell).includes('.')) {
-        return formatCurrencyForTable(cell);
-      }
-      return processTableCell(cell);
-    })
+    row.map(cell => processTableCell(cell))
   );
   
   // Enhanced table configuration for plain text tables
@@ -297,19 +250,11 @@ export const createPlainTextTable = (
       if (cell && cell.text) {
         // Check if the cell content appears to be LTR (English, numbers)
         const cellText = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
-        
-        // Set alignment based on content
-        if (/[\u0590-\u05FF]/.test(cellText) && !/₪/.test(cellText)) {
-          // Hebrew text without currency symbols - right align
-          cell.styles.halign = 'right';
-        } else if (/₪/.test(cellText) || /ILS/.test(cellText)) {
-          // Currency values - use right alignment but with special handling
-          cell.styles.halign = 'right';
-        } else if (/\d+/.test(cellText) || /[a-zA-Z]/.test(cellText)) {
-          // Numbers or English text - use left alignment
-          cell.styles.halign = 'left'; 
+        if (/\d+/.test(cellText) || /[a-zA-Z]/.test(cellText) && !/[\u0590-\u05FF]/.test(cellText)) {
+          // For LTR content (numbers, English), use left alignment
+          cell.styles.halign = 'left';
         } else {
-          // Default to right alignment for anything else
+          // For RTL content (Hebrew), use right alignment
           cell.styles.halign = 'right';
         }
       }
