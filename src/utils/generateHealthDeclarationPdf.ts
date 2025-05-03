@@ -17,7 +17,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       .from('health_declarations')
       .select('id, participant_id, submission_date, notes, form_status')
       .eq('id', healthDeclarationId)
-      .maybeSingle();
+      .single();
     
     if (healthDeclarationError || !healthDeclaration) {
       console.error("Health declaration not found by ID:", healthDeclarationError, healthDeclarationId);
@@ -31,7 +31,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       .from('participants')
       .select('firstname, lastname, idnumber, phone')
       .eq('id', healthDeclaration.participant_id)
-      .maybeSingle();
+      .single();
     
     if (participantError || !participant) {
       console.error("Participant details not found:", participantError);

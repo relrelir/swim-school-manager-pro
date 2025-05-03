@@ -6,7 +6,7 @@
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // Simply return the text - pdfMake will handle RTL when font and rtl:true are set
+  // Simply return the text - jsPDF will handle RTL when setR2L is true
   return text;
 };
 

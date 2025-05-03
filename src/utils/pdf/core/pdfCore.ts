@@ -2,20 +2,28 @@
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
+import { alefFontBase64 } from '../alefFontData';
 
 // Initialize pdfMake with the default fonts
-// This connects the built-in virtual file system from pdfFonts
-(pdfMake as any).vfs = (pdfFonts as any).pdfMake.vfs;
+// Fix TypeScript errors by correctly typing and accessing the vfs
+(pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs || {};
 
-// Define global document defaults
-// Use only fonts that are guaranteed to be in the virtual file system
-export const pdfDocumentDefaults = {
-  defaultStyle: {
-    font: 'Roboto', // Default font that comes with pdfMake
-    rtl: true,
-    alignment: 'right',
-  },
-};
+// Add the Alef font to pdfMake's virtual file system
+if (alefFontBase64) {
+  // Only add if we have valid base64 data
+  (pdfMake as any).vfs['Alef-Regular.ttf'] = alefFontBase64;
+
+  // Register the font
+  (pdfMake as any).fonts = {
+    ...(pdfMake as any).fonts,
+    Alef: {
+      normal: 'Alef-Regular.ttf',
+      bold: 'Alef-Regular.ttf',
+      italics: 'Alef-Regular.ttf',
+      bolditalics: 'Alef-Regular.ttf',
+    },
+  };
+}
 
 /**
  * Helper function to create and download a PDF
@@ -33,42 +41,34 @@ export const makePdf = async (
     pageSize: 'A4',
     pageOrientation: 'portrait',
     pageMargins: [40, 60, 40, 60],
-    ...pdfDocumentDefaults,
+    defaultStyle: { font: alefFontBase64 ? 'Alef' : 'Helvetica' },
+    // Use RTL layout for Hebrew
+    rightToLeft: true,
     ...docDefinition,
   } as TDocumentDefinitions; // Cast to avoid TypeScript error with rightToLeft
 
-  try {
-    console.log("Creating PDF with document definition:", JSON.stringify(fullDocDefinition, null, 2).substring(0, 500) + '...');
-    
-    // Create the PDF document
-    const pdf = pdfMake.createPdf(fullDocDefinition);
+  const pdf = pdfMake.createPdf(fullDocDefinition);
 
-    if (download && typeof window !== 'undefined') {
-      // The simplest way to download a PDF - this will automatically handle the blob creation
-      return new Promise<void>((resolve, reject) => {
-        try {
-          pdf.download(fileName);
-          resolve();
-        } catch (error) {
-          console.error("Error downloading PDF:", error);
-          reject(error);
-        }
+  if (download && typeof window !== 'undefined') {
+    return new Promise<void>((resolve) => {
+      pdf.getBlob((blob: Blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        resolve();
       });
-    } else {
-      // For server-side rendering or when download is not needed
-      return new Promise<Buffer>((resolve, reject) => {
-        try {
-          pdf.getBuffer((buffer: Buffer) => {
-            resolve(buffer);
-          });
-        } catch (error) {
-          console.error("Error generating PDF buffer:", error);
-          reject(error);
-        }
+    });
+  } else {
+    // For server-side rendering or when download is not needed
+    return new Promise<Buffer>((resolve) => {
+      pdf.getBuffer((buffer: Buffer) => {
+        resolve(buffer);
       });
-    }
-  } catch (error) {
-    console.error("Error creating PDF:", error);
-    throw error; // Re-throw to be caught by the caller
+    });
   }
 };
