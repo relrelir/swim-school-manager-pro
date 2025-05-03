@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { configureHebrewFont } from './alefFontData';
 
 // Function to set up RTL document with proper Hebrew support
-export const createRtlPdf = (): jsPDF => {
+export const createRtlPdf = async (): Promise<jsPDF> => {
   // Create PDF with standard settings
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -13,7 +13,7 @@ export const createRtlPdf = (): jsPDF => {
   });
 
   // Configure for Hebrew text support with Alef font
-  configureHebrewFont(pdf);
+  await configureHebrewFont(pdf);
   
   console.log("RTL PDF created successfully with Alef font");
   return pdf;

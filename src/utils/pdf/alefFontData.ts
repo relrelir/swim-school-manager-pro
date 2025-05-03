@@ -1,14 +1,17 @@
 
 import { jsPDF } from 'jspdf';
 
-// Import the font definition files after importing jsPDF to ensure it's defined
-import '../../assets/fonts/Alef-Regular-normal.js';
-import '../../assets/fonts/Alef-Bold-bold.js';
-
 // Function to configure jsPDF for Hebrew text support with Alef font
-export const configureHebrewFont = (pdf: jsPDF): void => {
+export const configureHebrewFont = async (pdf: jsPDF): Promise<void> => {
   try {
     console.log("Configuring PDF for Hebrew text support with Alef font");
+    
+    // Load the font definition files dynamically
+    // This prevents Vite from trying to statically analyze these files
+    await Promise.all([
+      import('../../assets/fonts/Alef-Regular-normal.js'),
+      import('../../assets/fonts/Alef-Bold-bold.js')
+    ]);
     
     // Set RTL mode for Hebrew text direction
     pdf.setR2L(true);

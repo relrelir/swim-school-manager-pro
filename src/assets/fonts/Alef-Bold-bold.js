@@ -1,8 +1,8 @@
 
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
-  (factory());
+  (global = global || self, factory());
 }(this, (function () { 'use strict';
 
 /**
@@ -37,3 +37,6 @@
     console.warn("jsPDF not found when loading Alef-Bold font");
   }
 })(typeof window !== 'undefined' && window.jsPDF ? window.jsPDF : (typeof jsPDF !== 'undefined' ? jsPDF : {}));
+
+return {};
+})));

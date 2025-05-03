@@ -92,9 +92,9 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     })) : [];
     
     try {
-      // Create the PDF document with RTL and font support
+      // Create the PDF document with RTL and font support - now async
       console.log("Creating PDF with RTL support");
-      const pdf = createRtlPdf();
+      const pdf = await createRtlPdf();
       console.log("PDF object created successfully");
       
       // Build the PDF content

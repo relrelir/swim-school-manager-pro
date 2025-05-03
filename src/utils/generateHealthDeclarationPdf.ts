@@ -42,9 +42,9 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     console.log("Data fetched successfully. Participant:", participant);
     
     try {
-      // Create the PDF document with RTL and font support
+      // Create the PDF document with RTL and font support - now async
       console.log("Creating PDF with RTL support");
-      const pdf = createRtlPdf();
+      const pdf = await createRtlPdf();
       console.log("PDF object created successfully");
       
       // Build the PDF content
