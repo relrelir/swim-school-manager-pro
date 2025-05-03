@@ -4,9 +4,9 @@ import { toast } from "@/components/ui/use-toast";
 import { Registration, Participant, Payment } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
-import * as htmlToImage from 'html-to-image';
 import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
+import { configureHebrewFont, ensureAssistantFontLoaded } from './pdf/hebrewPdfConfig';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
   try {
@@ -95,15 +95,25 @@ export const generateRegistrationPdf = async (registrationId: string) => {
     })) : [];
     
     try {
+      // Ensure Assistant font is loaded
+      await document.fonts.ready;
+      await ensureAssistantFontLoaded();
+      
+      console.log("Available fonts:", Array.from(document.fonts).map(f => f.family));
+      
       // Create a virtual registration certificate in the DOM
       const virtualRegistration = document.createElement('div');
       virtualRegistration.style.width = '800px';
+      virtualRegistration.style.height = '1100px';
       virtualRegistration.style.padding = '40px';
-      virtualRegistration.style.fontFamily = 'Arial, sans-serif';
+      virtualRegistration.style.fontFamily = 'Assistant, Arial, sans-serif';
       virtualRegistration.style.direction = 'rtl';
       virtualRegistration.style.backgroundColor = 'white';
-      virtualRegistration.style.position = 'fixed';
-      virtualRegistration.style.left = '-9999px';
+      virtualRegistration.style.position = 'absolute';
+      virtualRegistration.style.top = '0';
+      virtualRegistration.style.left = '-2000px'; // Off-screen but not too far
+      virtualRegistration.style.zIndex = '-1000';
+      virtualRegistration.style.overflow = 'visible';
       
       // Explicitly set font style to ensure it loads
       const style = document.createElement('style');
@@ -113,6 +123,9 @@ export const generateRegistrationPdf = async (registrationId: string) => {
           font-family: 'Assistant', Arial, sans-serif !important;
         }
         p, h1, h2, h3 {
+          font-family: 'Assistant', Arial, sans-serif !important;
+        }
+        table, th, td {
           font-family: 'Assistant', Arial, sans-serif !important;
         }
       `;
@@ -128,16 +141,16 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       // Build registration certificate HTML
       virtualRegistration.innerHTML += `
         <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="font-size: 28px; margin-bottom: 10px;">אישור רישום למוצר</h1>
+          <h1 style="font-size: 28px; margin-bottom: 10px; font-family: Assistant, Arial, sans-serif;">אישור רישום למוצר</h1>
           <p style="font-size: 14px; color: #666;">${currentDate}</p>
         </div>
         
         <div style="text-align: center; margin-bottom: 30px;">
-          <h2 style="font-size: 22px;">מוצר: ${product.name}</h2>
+          <h2 style="font-size: 22px; font-family: Assistant, Arial, sans-serif;">מוצר: ${product.name}</h2>
         </div>
         
         <div style="margin-bottom: 30px;">
-          <h3 style="font-size: 18px; margin-bottom: 15px;">פרטי משתתף:</h3>
+          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif;">פרטי משתתף:</h3>
           <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
             <p><span style="font-weight: bold;">שם מלא:</span> ${participantData.firstName} ${participantData.lastName}</p>
             <p><span style="font-weight: bold;">תעודת זהות:</span> ${participantData.idNumber || ''}</p>
@@ -146,7 +159,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         </div>
         
         <div style="margin-bottom: 30px;">
-          <h3 style="font-size: 18px; margin-bottom: 15px;">פרטי רישום:</h3>
+          <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif;">פרטי רישום:</h3>
           <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
             <p><span style="font-weight: bold;">תאריך רישום:</span> ${format(new Date(registrationData.registrationDate), 'dd/MM/yyyy')}</p>
             <p><span style="font-weight: bold;">סכום מקורי:</span> ${formatCurrency(registrationData.requiredAmount)}</p>
@@ -158,7 +171,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         
         ${paymentsData.length > 0 ? `
           <div style="margin-bottom: 30px;">
-            <h3 style="font-size: 18px; margin-bottom: 15px;">פרטי תשלומים:</h3>
+            <h3 style="font-size: 18px; margin-bottom: 15px; font-family: Assistant, Arial, sans-serif;">פרטי תשלומים:</h3>
             <div style="border: 1px solid #eee; padding: 15px; border-radius: 5px;">
               <table style="width: 100%; border-collapse: collapse;">
                 <thead>
@@ -190,31 +203,44 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       // Append to the document body to render properly
       document.body.appendChild(virtualRegistration);
       
-      // Wait for the fonts to load properly before generating image
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      console.log("HTML element created and appended, waiting for image conversion");
+      // Wait longer for the fonts to load properly before generating image
+      console.log("HTML element created and appended, waiting for fonts to load...");
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      console.log("Font loading wait complete, proceeding to image conversion");
       
       // Convert the HTML to an image with better error handling
       let dataUrl;
       try {
+        console.log("Starting HTML to image conversion...");
         dataUrl = await toPng(virtualRegistration, { 
-          quality: 1.0,
+          quality: 0.95,
           width: 800,
           height: 1100,
           backgroundColor: 'white',
           skipAutoScale: true,
-          pixelRatio: 2, // Higher resolution
-          cacheBust: true // Avoid caching issues
+          pixelRatio: 3, // Higher resolution
+          cacheBust: true, // Avoid caching issues
+          canvasWidth: 2400, // 3x the width for higher resolution
+          canvasHeight: 3300, // 3x the height for higher resolution
+          style: {
+            margin: '0',
+            padding: '40px',
+            fontFamily: 'Assistant, Arial, sans-serif',
+          },
         });
-        console.log("HTML converted to image successfully");
+        console.log("HTML converted to image successfully, dataUrl length:", dataUrl?.length || 0);
       } catch (imageError) {
         console.error("Error during HTML to image conversion:", imageError);
-        throw new Error('שגיאה בהמרת HTML לתמונה');
+        throw new Error(`שגיאה בהמרת HTML לתמונה: ${imageError}`);
       }
       
       // Remove the temporary element
       document.body.removeChild(virtualRegistration);
+      
+      if (!dataUrl || dataUrl.length < 1000) {
+        console.error("Generated image is invalid or too small");
+        throw new Error('התמונה שנוצרה אינה תקינה');
+      }
       
       // Create a PDF with the image
       const pdf = new jsPDF({
@@ -223,10 +249,14 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         format: 'a4',
       });
       
+      // Configure Hebrew font
+      configureHebrewFont(pdf);
+      
       // Add the image to the PDF
       const imgWidth = pdf.internal.pageSize.getWidth();
       const imgHeight = (1100 * imgWidth) / 800; // Maintain aspect ratio
       
+      console.log("Adding image to PDF with dimensions:", { imgWidth, imgHeight });
       pdf.addImage(dataUrl, 'PNG', 0, 0, imgWidth, imgHeight);
       
       // Generate filename
