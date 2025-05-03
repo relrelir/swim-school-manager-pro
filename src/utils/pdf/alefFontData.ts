@@ -1,7 +1,7 @@
 
 import { jsPDF } from 'jspdf';
-import '../assets/fonts/Alef-Regular-normal.js';
-import '../assets/fonts/Alef-Bold-bold.js';
+import '../../assets/fonts/Alef-Regular-normal.js';
+import '../../assets/fonts/Alef-Bold-bold.js';
 
 // Function to configure jsPDF for Hebrew text support with Alef font
 export const configureHebrewFont = (pdf: jsPDF): void => {
