@@ -4,7 +4,6 @@ import { Registration, Participant, Payment } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { addPdfTitle, addPdfDate, addSectionTitle, createDataTable, createPlainTextTable } from './pdfHelpers';
-import { processTextDirection } from './hebrewTextHelper';
 
 /**
  * Builds a registration PDF with participant and payment information
@@ -34,15 +33,13 @@ export function buildRegistrationPDF(
     
     // Add product name
     pdf.setFontSize(16);
-    // Ensure product name is displayed correctly even if it contains English characters
-    const processedProductName = processTextDirection(productName);
-    pdf.text(`מוצר: ${processedProductName}`, pdf.internal.pageSize.width / 2, 35, { align: 'center' });
+    pdf.text(`מוצר: ${productName}`, pdf.internal.pageSize.width / 2, 35, { align: 'center' });
     
     // Participant information section
     addSectionTitle(pdf, 'פרטי משתתף:', 50);
     
     // Create participant data - swap column order for correct RTL display
-    // Value first (as LTR content), then label (RTL content)
+    // Value first, then label (opposite of what's visually expected for RTL)
     const participantData = [
       [`${participant.firstName} ${participant.lastName}`, 'שם מלא:'],
       [participant.idNumber, 'תעודת זהות:'],
@@ -63,7 +60,8 @@ export function buildRegistrationPDF(
     // Explicitly format the registration date with day first
     const formattedRegistrationDate = format(new Date(registration.registrationDate), 'dd/MM/yyyy');
     
-    // Registration data - value first (as LTR content), then label (RTL content)
+    // Registration data - swap column order for correct RTL display
+    // Value first, then label (opposite of what's visually expected for RTL)
     const registrationData = [
       [formattedRegistrationDate, 'תאריך רישום:'],
       [formatCurrency(registration.requiredAmount), 'סכום מקורי:'],
@@ -80,14 +78,14 @@ export function buildRegistrationPDF(
     if (payments.length > 0) {
       addSectionTitle(pdf, 'פרטי תשלומים:', yPosition + 15);
       
-      // Create payment details table header - with LTR content first
+      // Create payment details table header - also swap for RTL
       const paymentHeaders = [[
         'סכום',
         'מספר קבלה', 
         'תאריך תשלום'
       ]];
       
-      // Create payment details rows - ensure LTR content is properly marked
+      // Create payment details rows - swap order and ensure correct date format
       const paymentData = payments.map(payment => [
         formatCurrency(payment.amount),
         payment.receiptNumber,
