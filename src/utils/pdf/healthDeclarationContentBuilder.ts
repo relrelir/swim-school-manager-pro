@@ -9,7 +9,7 @@ import {
   createPlainTextTable
 } from './pdfHelpers';
 import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './healthDeclarationParser';
-import { forceLtrDirection } from './hebrewTextHelper';
+import { forceLtrDirection, containsHebrew } from './hebrewTextHelper';
 
 interface ParticipantData {
   firstname: string;
@@ -25,6 +25,37 @@ interface HealthDeclarationData {
   notes: string | null;
   form_status: string;
 }
+
+/**
+ * Validates if a string contains a valid ID number (numeric content)
+ * Returns true if the string contains at least one digit and no Hebrew characters
+ */
+const isValidIdNumber = (idNumber: string): boolean => {
+  if (!idNumber) return false;
+  
+  // Check if the string contains any digits
+  const hasDigits = /\d/.test(idNumber);
+  
+  // Check if the string contains Hebrew characters (which would indicate it's not a valid ID)
+  const hasHebrew = containsHebrew(idNumber);
+  
+  // A valid ID should have digits and no Hebrew characters
+  return hasDigits && !hasHebrew;
+};
+
+/**
+ * Sanitizes an ID number for display in PDF
+ * Returns a cleaned version or a placeholder if invalid
+ */
+const sanitizeIdNumber = (idNumber: string): string => {
+  if (isValidIdNumber(idNumber)) {
+    // Valid ID - use as is with LTR direction control
+    return forceLtrDirection(idNumber);
+  }
+  
+  // Invalid ID - return empty string or placeholder
+  return '';
+};
 
 /**
  * Builds the content of a health declaration PDF with enhanced bidirectional text support
@@ -53,10 +84,14 @@ export const buildHealthDeclarationPDF = (
     // Process participant data with appropriate direction control
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
+    // Sanitize ID number to ensure it's valid, otherwise provide a placeholder
+    const sanitizedIdNumber = sanitizeIdNumber(participant.idnumber);
+    
     // IMPORTANT CHANGE: Swap the columns - put data in first column and labels in second column
+    // Also add ID number validation
     const participantData = [
       [fullName, 'שם מלא'],
-      [forceLtrDirection(participant.idnumber), 'תעודת זהות'],
+      [sanitizedIdNumber, 'תעודת זהות'],
       [forceLtrDirection(participant.phone), 'טלפון'],
     ];
     
@@ -69,10 +104,13 @@ export const buildHealthDeclarationPDF = (
     if (parentInfo.parentName || parentInfo.parentId) {
       addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
       
+      // Also validate and sanitize parent ID number
+      const sanitizedParentId = parentInfo.parentId ? sanitizeIdNumber(parentInfo.parentId) : '';
+      
       // IMPORTANT CHANGE: Swap the columns here as well - put data in first column and labels in second column
       const parentData = [
         [parentInfo.parentName || '', 'שם מלא'],
-        [parentInfo.parentId ? forceLtrDirection(parentInfo.parentId) : '', 'תעודת זהות'],
+        [sanitizedParentId, 'תעודת זהות'],
       ];
       
       lastY = createDataTable(pdf, parentData, lastY + 20);

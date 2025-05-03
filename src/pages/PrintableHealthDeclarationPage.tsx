@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PrintableHealthDeclaration from '@/components/health-form/PrintableHealthDeclaration';
@@ -7,6 +6,22 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from '@/context/data/utils';
+import { containsHebrew } from '@/utils/pdf/hebrewTextHelper';
+
+// Validate if a string is likely to be a valid ID number
+const isValidId = (id: string | undefined): boolean => {
+  if (!id) return false;
+  
+  // Check if it has digits and doesn't contain Hebrew characters
+  return /\d/.test(id) && !containsHebrew(id);
+};
+
+// Sanitize an ID to ensure it's usable
+const sanitizeId = (id: string | undefined): string => {
+  if (!id) return '';
+  
+  return isValidId(id) ? id : '';
+};
 
 const PrintableHealthDeclarationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -82,6 +97,11 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         }
         
         console.log("Found participant:", participantData);
+        console.log("Participant ID number:", participantData.idnumber);
+
+        // Validate ID number - if it contains Hebrew, clear it
+        const sanitizedIdNumber = sanitizeId(participantData.idnumber);
+        console.log("Sanitized ID number:", sanitizedIdNumber);
 
         // Parse parent information from notes if available
         let parentName = '';
@@ -92,12 +112,16 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         if (parentMatch) {
           parentName = parentMatch[1].trim();
           parentId = parentMatch[2].trim();
+          
+          // Also validate parent ID
+          parentId = sanitizeId(parentId);
+          
           notes = notes.replace(/הורה\/אפוטרופוס: [^,]+, ת\.ז\.: [^\n]+\n\n/g, '').trim();
         }
 
         setHealthData({
           participantName: `${participantData.firstname} ${participantData.lastname}`,
-          participantId: participantData.idnumber,
+          participantId: sanitizedIdNumber,
           participantPhone: participantData.phone,
           formState: {
             agreement: true,
