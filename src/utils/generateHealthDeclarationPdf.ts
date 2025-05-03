@@ -13,7 +13,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       throw new Error('מזהה הצהרת הבריאות חסר או לא תקין');
     }
     
-    // Get the health declaration directly by ID - this should be more reliable than searching by registration ID
+    // Get the health declaration directly by ID
     let { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
       .select('id, participant_id, submission_date, notes, form_status')
@@ -27,7 +27,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     
     console.log("Found health declaration:", healthDeclaration);
     
-    // Get participant details - use participant_id from the health declaration
+    // Get participant details
     const { data: participant, error: participantError } = await supabase
       .from('participants')
       .select('firstname, lastname, idnumber, phone')
@@ -43,7 +43,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     
     try {
       // Create the PDF document with RTL and font support
-      console.log("Creating PDF with RTL support");
+      console.log("Creating PDF with RTL and Hebrew font support");
       const pdf = createRtlPdf();
       console.log("PDF object created successfully");
       
@@ -52,7 +52,8 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
       console.log("PDF content built successfully, filename:", fileName);
       
-      // Save the PDF
+      // Save the PDF - directly trigger download
+      console.log("Saving PDF...");
       pdf.save(fileName);
       console.log("PDF saved successfully");
       

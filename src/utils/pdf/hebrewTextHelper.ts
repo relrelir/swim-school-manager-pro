@@ -1,17 +1,18 @@
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * Using standard encoding for better compatibility
+ * With proper RTL and font configuration, we don't need to do special encoding
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // Simply return the text - jsPDF will handle RTL when setR2L is true
+  // With proper RTL configuration, we can just return the text as-is
   return text;
 };
 
 /**
- * Legacy helper function kept for backward compatibility
+ * Legacy helper function kept for backward compatibility 
+ * No longer needed to reverse text with proper RTL support
  */
 export const reverseText = (text: string): string => {
   return text || '';
@@ -19,6 +20,7 @@ export const reverseText = (text: string): string => {
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
+ * No special handling needed with proper RTL configuration
  */
 export const prepareRtlText = (text: string): string => {
   return text || '';
