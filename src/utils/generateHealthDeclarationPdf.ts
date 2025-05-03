@@ -1,9 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createRtlPdf } from './pdf/pdfConfig';
 import { toast } from "@/components/ui/use-toast";
 import * as htmlToImage from 'html-to-image';
 import { jsPDF } from 'jspdf';
+import { toPng } from 'html-to-image';
 
 export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
   try {
@@ -50,9 +50,24 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
       virtualDeclaration.style.fontFamily = 'Arial, sans-serif';
       virtualDeclaration.style.direction = 'rtl';
       virtualDeclaration.style.backgroundColor = 'white';
+      virtualDeclaration.style.position = 'fixed';
+      virtualDeclaration.style.left = '-9999px';
+      
+      // Explicitly set font style to ensure it loads
+      const style = document.createElement('style');
+      style.textContent = `
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
+        * {
+          font-family: 'Assistant', Arial, sans-serif !important;
+        }
+        p, h1, h2, h3 {
+          font-family: 'Assistant', Arial, sans-serif !important;
+        }
+      `;
+      virtualDeclaration.appendChild(style);
       
       // Build declaration HTML - this could be extracted to a helper method
-      virtualDeclaration.innerHTML = `
+      virtualDeclaration.innerHTML += `
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="font-size: 28px; margin-bottom: 10px;">הצהרת בריאות</h1>
           <p style="font-size: 14px; color: #666;">${new Date().toLocaleDateString('he-IL')}</p>
@@ -95,18 +110,31 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         </div>
       `;
       
-      // Temporarily append to the document (invisible) to capture the image
-      virtualDeclaration.style.position = 'absolute';
-      virtualDeclaration.style.left = '-9999px';
+      // Append to the document body to render properly
       document.body.appendChild(virtualDeclaration);
       
-      // Convert the HTML to an image
-      const dataUrl = await htmlToImage.toPng(virtualDeclaration, { 
-        quality: 1.0,
-        width: 800,
-        height: 1200,
-        backgroundColor: 'white'
-      });
+      // Wait for the fonts to load properly before generating image
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log("HTML element created and appended, waiting for image conversion");
+      
+      // Convert the HTML to image with better error handling
+      let dataUrl;
+      try {
+        dataUrl = await toPng(virtualDeclaration, { 
+          quality: 1.0,
+          width: 800,
+          height: 1200,
+          backgroundColor: 'white',
+          skipAutoScale: true,
+          pixelRatio: 2, // Higher resolution
+          cacheBust: true // Avoid caching issues
+        });
+        console.log("HTML converted to image successfully");
+      } catch (imageError) {
+        console.error("Error during HTML to image conversion:", imageError);
+        throw new Error('שגיאה בהמרת HTML לתמונה');
+      }
       
       // Remove the temporary element
       document.body.removeChild(virtualDeclaration);

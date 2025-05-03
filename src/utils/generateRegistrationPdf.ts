@@ -5,6 +5,7 @@ import { Registration, Participant, Payment } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import * as htmlToImage from 'html-to-image';
+import { toPng } from 'html-to-image';
 import { jsPDF } from 'jspdf';
 
 export const generateRegistrationPdf = async (registrationId: string) => {
@@ -101,6 +102,21 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       virtualRegistration.style.fontFamily = 'Arial, sans-serif';
       virtualRegistration.style.direction = 'rtl';
       virtualRegistration.style.backgroundColor = 'white';
+      virtualRegistration.style.position = 'fixed';
+      virtualRegistration.style.left = '-9999px';
+      
+      // Explicitly set font style to ensure it loads
+      const style = document.createElement('style');
+      style.textContent = `
+        @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
+        * {
+          font-family: 'Assistant', Arial, sans-serif !important;
+        }
+        p, h1, h2, h3 {
+          font-family: 'Assistant', Arial, sans-serif !important;
+        }
+      `;
+      virtualRegistration.appendChild(style);
       
       // Calculate effective required amount (after discount)
       const discountAmount = registrationData.discountAmount || 0;
@@ -110,7 +126,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       const currentDate = format(new Date(), 'dd/MM/yyyy');
       
       // Build registration certificate HTML
-      virtualRegistration.innerHTML = `
+      virtualRegistration.innerHTML += `
         <div style="text-align: center; margin-bottom: 30px;">
           <h1 style="font-size: 28px; margin-bottom: 10px;">אישור רישום למוצר</h1>
           <p style="font-size: 14px; color: #666;">${currentDate}</p>
@@ -171,18 +187,31 @@ export const generateRegistrationPdf = async (registrationId: string) => {
         </div>
       `;
       
-      // Temporarily append to the document (invisible) to capture the image
-      virtualRegistration.style.position = 'absolute';
-      virtualRegistration.style.left = '-9999px';
+      // Append to the document body to render properly
       document.body.appendChild(virtualRegistration);
       
-      // Convert the HTML to an image
-      const dataUrl = await htmlToImage.toPng(virtualRegistration, { 
-        quality: 1.0,
-        width: 800,
-        height: 1100,
-        backgroundColor: 'white'
-      });
+      // Wait for the fonts to load properly before generating image
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      console.log("HTML element created and appended, waiting for image conversion");
+      
+      // Convert the HTML to an image with better error handling
+      let dataUrl;
+      try {
+        dataUrl = await toPng(virtualRegistration, { 
+          quality: 1.0,
+          width: 800,
+          height: 1100,
+          backgroundColor: 'white',
+          skipAutoScale: true,
+          pixelRatio: 2, // Higher resolution
+          cacheBust: true // Avoid caching issues
+        });
+        console.log("HTML converted to image successfully");
+      } catch (imageError) {
+        console.error("Error during HTML to image conversion:", imageError);
+        throw new Error('שגיאה בהמרת HTML לתמונה');
+      }
       
       // Remove the temporary element
       document.body.removeChild(virtualRegistration);

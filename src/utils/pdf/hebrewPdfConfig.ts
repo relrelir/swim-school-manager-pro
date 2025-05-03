@@ -1,7 +1,7 @@
 
 import { jsPDF } from 'jspdf';
 
-// Function to configure jsPDF for Hebrew text support with built-in font
+// Function to configure jsPDF for Hebrew text support with proper fonts
 export const configureHebrewFont = (pdf: jsPDF): void => {
   try {
     console.log("Configuring PDF for Hebrew text support");
@@ -9,13 +9,10 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Set RTL mode for Hebrew text direction
     pdf.setR2L(true);
     
-    // Use built-in helvetica font which has better support
-    pdf.setFont('helvetica');
-    
-    // Add PDF metadata with Hebrew titles
+    // Set properties for better Hebrew support
     pdf.setProperties({
-      title: 'הצהרת בריאות',
-      subject: 'הצהרת בריאות',
+      title: 'מסמך עברית',
+      subject: 'מסמך עברית',
       creator: 'מערכת ניהול'
     });
     
@@ -36,6 +33,15 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     console.error("Error configuring Hebrew font:", error);
     // Fallback to basic configuration
     pdf.setR2L(true);
-    pdf.setFont('helvetica');
   }
+}
+
+// Helper function to prepare HTML content with Hebrew font support
+export const prepareHebrewHtmlContent = (): string => {
+  return `
+    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@400;700&display=swap');
+    * {
+      font-family: 'Assistant', Arial, sans-serif !important;
+    }
+  `;
 }
