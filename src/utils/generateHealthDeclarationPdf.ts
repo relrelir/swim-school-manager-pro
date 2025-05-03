@@ -50,7 +50,7 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
         participant
       );
       
-      // Generate and download the PDF
+      // Generate and download the PDF - simplified call
       await makePdf(pdfDefinition, fileName, true);
       
       console.log("PDF created and downloaded successfully");

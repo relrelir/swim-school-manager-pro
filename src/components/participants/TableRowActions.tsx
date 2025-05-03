@@ -51,6 +51,13 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     setIsGeneratingRegPdf(true);
     try {
       await generateRegistrationPdf(registration.id);
+    } catch (error) {
+      console.error("Error generating registration PDF:", error);
+      toast({
+        title: "שגיאה ביצירת אישור רישום",
+        description: "אירעה שגיאה בעת יצירת המסמך",
+        variant: "destructive"
+      });
     } finally {
       setIsGeneratingRegPdf(false);
     }
@@ -80,16 +87,13 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
           description: "לא נמצאה הצהרה עבור רישום זה",
           variant: "destructive"
         });
+        setIsGeneratingHealthPdf(false);
         return;
       }
       
       console.log("Generating PDF for health declaration ID:", healthDeclaration.id);
       await generateHealthDeclarationPdf(healthDeclaration.id);
       
-      toast({
-        title: "הצהרת הבריאות נוצרה בהצלחה",
-        description: "המסמך נשמר למכשיר שלך"
-      });
     } catch (error) {
       console.error("Error generating health declaration PDF:", error);
       toast({

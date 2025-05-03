@@ -2,33 +2,27 @@
 import pdfMake from 'pdfmake/build/pdfmake';
 import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 import type { TDocumentDefinitions } from 'pdfmake/interfaces';
-import { alefFontBase64 } from '../alefFontData';
 
 // Initialize pdfMake with the default fonts
 // Fix TypeScript errors by correctly typing and accessing the vfs
 (pdfMake as any).vfs = (pdfFonts as any).pdfMake?.vfs || {};
 
-// Add the Alef font to pdfMake's virtual file system
-if (alefFontBase64) {
-  // Add Alef font to virtual file system
-  (pdfMake as any).vfs['Alef-Regular.ttf'] = alefFontBase64;
-
-  // Register the font
-  (pdfMake as any).fonts = {
-    ...(pdfMake as any).fonts,
-    Alef: {
-      normal: 'Alef-Regular.ttf',
-      bold: 'Alef-Regular.ttf',
-      italics: 'Alef-Regular.ttf',
-      bolditalics: 'Alef-Regular.ttf',
-    },
-  };
-}
+// Use the built-in Helvetica font for now, which supports basic Hebrew characters
+// We'll switch to proper Hebrew font when available
+(pdfMake as any).fonts = {
+  ...(pdfMake as any).fonts,
+  Helvetica: {
+    normal: 'Helvetica',
+    bold: 'Helvetica-Bold',
+    italics: 'Helvetica',
+    bolditalics: 'Helvetica-Bold',
+  },
+};
 
 // Define global document defaults
 export const pdfDocumentDefaults = {
   defaultStyle: {
-    font: 'Alef',
+    font: 'Helvetica',
     rtl: true,
     alignment: 'right',
   },
@@ -54,28 +48,37 @@ export const makePdf = async (
     ...docDefinition,
   } as TDocumentDefinitions; // Cast to avoid TypeScript error with rightToLeft
 
-  const pdf = pdfMake.createPdf(fullDocDefinition);
+  try {
+    // Create the PDF document
+    const pdf = pdfMake.createPdf(fullDocDefinition);
 
-  if (download && typeof window !== 'undefined') {
-    return new Promise<void>((resolve) => {
-      pdf.getBlob((blob: Blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        resolve();
+    if (download && typeof window !== 'undefined') {
+      // Download or open the PDF directly
+      // This is more reliable than our previous approach
+      return new Promise<void>((resolve, reject) => {
+        try {
+          pdf.download(fileName);
+          resolve();
+        } catch (error) {
+          console.error("Error downloading PDF:", error);
+          reject(error);
+        }
       });
-    });
-  } else {
-    // For server-side rendering or when download is not needed
-    return new Promise<Buffer>((resolve) => {
-      pdf.getBuffer((buffer: Buffer) => {
-        resolve(buffer);
+    } else {
+      // For server-side rendering or when download is not needed
+      return new Promise<Buffer>((resolve, reject) => {
+        try {
+          pdf.getBuffer((buffer: Buffer) => {
+            resolve(buffer);
+          });
+        } catch (error) {
+          console.error("Error generating PDF buffer:", error);
+          reject(error);
+        }
       });
-    });
+    }
+  } catch (error) {
+    console.error("Error creating PDF:", error);
+    throw error; // Re-throw to be caught by the caller
   }
 };
