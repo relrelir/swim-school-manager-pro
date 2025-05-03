@@ -1,16 +1,18 @@
 
 import { jsPDF } from 'jspdf';
+import '../assets/fonts/Alef-Regular-normal.js';
+import '../assets/fonts/Alef-Bold-bold.js';
 
-// Function to configure jsPDF for Hebrew text support with standard fonts
+// Function to configure jsPDF for Hebrew text support with Alef font
 export const configureHebrewFont = (pdf: jsPDF): void => {
   try {
-    console.log("Configuring PDF for Hebrew text support");
+    console.log("Configuring PDF for Hebrew text support with Alef font");
     
     // Set RTL mode for Hebrew text direction
     pdf.setR2L(true);
     
-    // Use standard font that supports Hebrew characters better
-    pdf.setFont('helvetica');
+    // Use Alef font that properly supports Hebrew characters
+    pdf.setFont('Alef');
     
     // Add PDF metadata with Hebrew titles
     pdf.setProperties({
@@ -19,7 +21,7 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
       creator: 'מערכת ניהול'
     });
     
-    // Increase font size slightly for better readability with Hebrew text
+    // Set font size for better readability with Hebrew text
     pdf.setFontSize(14);
     
     // Set line height for better spacing with Hebrew text
@@ -31,11 +33,12 @@ export const configureHebrewFont = (pdf: jsPDF): void => {
     // Set text color to ensure better contrast
     pdf.setTextColor(0, 0, 0);
     
-    console.log("Hebrew font configuration applied with RTL support");
+    console.log("Hebrew font configuration applied with Alef font and RTL support");
   } catch (error) {
-    console.error("Error configuring Hebrew font:", error);
-    // Fallback to basic configuration
+    console.error("Error configuring Alef font:", error);
+    // Fallback to basic configuration with standard font
     pdf.setR2L(true);
     pdf.setFont('helvetica');
+    console.warn("Falling back to helvetica font due to error");
   }
 }

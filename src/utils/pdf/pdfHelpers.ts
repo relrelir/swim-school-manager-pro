@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { configureDocumentStyle } from './pdfConfig';
@@ -17,8 +16,8 @@ export const createPdf = (): jsPDF => {
   // Set document to RTL
   pdf.setR2L(true);
   
-  // Use standard font
-  pdf.setFont('helvetica');
+  // Use Alef font
+  pdf.setFont('Alef');
   
   return pdf;
 };
@@ -59,11 +58,11 @@ export const createDataTable = (
   startY: number, 
   hasHeader: boolean = false
 ): number => {
-  // Configure autotable with RTL support
+  // Configure autotable with RTL support and Alef font
   const tableConfig: any = {
     startY,
     styles: { 
-      font: 'helvetica',
+      font: 'Alef',
       halign: 'right',
     },
     headStyles: {
@@ -121,13 +120,13 @@ export const createPlainTextTable = (
   data: (string | number)[][], 
   startY: number
 ): number => {
-  // Configure autotable with RTL support for plain text
+  // Configure autotable with RTL support for plain text with Alef font
   try {
     autoTable(pdf, {
       startY,
       body: data,
       styles: { 
-        font: 'helvetica',
+        font: 'Alef',
         halign: 'right',
       },
       theme: 'plain',
