@@ -87,10 +87,10 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
       {/* Printable content */}
       <div 
         ref={printRef} 
-        className="bg-white p-6 border rounded-md shadow-sm print:shadow-none print:border-none print:p-0"
+        className="bg-white p-6 border rounded-md shadow-sm print:shadow-none print:border-none print:p-0 print:max-w-full"
         dir="rtl"
       >
-        {/* Header with logo and title - visible when printing */}
+        {/* Header with title - visible when printing */}
         <div className="mb-6 text-center border-b pb-4">
           <h1 className="text-2xl font-bold mb-2">הצהרת בריאות</h1>
           <p className="text-sm text-gray-500">
@@ -99,7 +99,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
         </div>
 
         {/* Health declaration content */}
-        <div className="print-content">
+        <div className="print-content print:text-sm">
           <HealthDeclarationContent
             participantName={participantName}
             participantId={participantId}
@@ -112,10 +112,10 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           />
         </div>
 
-        {/* Parent/signer information section - always show this section */}
-        <div className="mt-8 pt-4 border-t">
-          <h3 className="text-lg font-semibold mb-4">פרטי ההורה/אפוטרופוס</h3>
-          <div className="grid grid-cols-2 gap-4 mb-6">
+        {/* Parent/signer information section */}
+        <div className="mt-6 pt-4 border-t">
+          <h3 className="text-lg font-semibold mb-3">פרטי ההורה/אפוטרופוס</h3>
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <p className="font-semibold mb-1">שם מלא:</p>
               <p className="mb-2">{formState.parentName || 'לא צוין'}</p>
@@ -127,29 +127,29 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </div>
         </div>
 
-        {/* Signature section */}
-        <div className="mt-8 pt-4 border-t">
-          <div className="flex flex-col gap-8">
+        {/* Medical notes section */}
+        <div className="mt-4 pt-3 border-t">
+          <p className="font-semibold mb-2">הערות רפואיות:</p>
+          <div className="p-3 bg-gray-50 rounded-md">
+            <p>{formState.notes || 'אין הערות רפואיות נוספות'}</p>
+          </div>
+        </div>
+
+        {/* Signature section - more compact */}
+        <div className="mt-4 pt-3 border-t">
+          <div className="flex flex-col gap-4 print:gap-2">
             <div>
               <p className="font-semibold mb-1">חתימת ההורה/אפוטרופוס:</p>
               {formState.parentName && formState.parentId ? (
                 <p className="mb-2">{formState.parentName}, ת.ז.: {formState.parentId}</p>
               ) : (
-                <div className="h-10 border-b border-dashed border-gray-400 w-64"></div>
+                <div className="h-8 border-b border-dashed border-gray-400 w-64"></div>
               )}
             </div>
             <div>
               <p className="font-semibold mb-1">תאריך:</p>
-              <div className="h-10 border-b border-dashed border-gray-400 w-32"></div>
+              <div className="h-8 border-b border-dashed border-gray-400 w-32"></div>
             </div>
-          </div>
-        </div>
-        
-        {/* Medical notes section - always show this section */}
-        <div className="mt-8 pt-4 border-t">
-          <p className="font-semibold mb-2">הערות רפואיות:</p>
-          <div className="p-3 bg-gray-50 rounded-md">
-            <p>{formState.notes || 'אין הערות רפואיות נוספות'}</p>
           </div>
         </div>
       </div>

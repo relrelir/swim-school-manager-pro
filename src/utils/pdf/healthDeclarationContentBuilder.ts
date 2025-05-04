@@ -28,6 +28,7 @@ interface HealthDeclarationData {
 
 /**
  * Builds the content of a health declaration PDF with enhanced bidirectional text support
+ * and optimized layout for single-page document
  */
 export const buildHealthDeclarationPDF = (
   pdf: jsPDF, 
@@ -47,13 +48,18 @@ export const buildHealthDeclarationPDF = (
     
     addPdfDate(pdf, forceLtrDirection(formattedDate));
     
+    // Use more compact spacing to fit on one page
+    const startY = 40;
+    let lastY = startY;
+    
     // Add participant details - Hebrew section title
-    addSectionTitle(pdf, 'פרטי המשתתף', 45);
+    addSectionTitle(pdf, 'פרטי המשתתף', lastY);
     
     // Process participant data with appropriate direction control
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
     // IMPORTANT: Swap the columns - put data in first column and labels in second column
+    // Make this table more compact
     const participantData = [
       [fullName, 'שם מלא'],
       [forceLtrDirection(participant.idnumber), 'תעודת זהות'],
@@ -61,56 +67,58 @@ export const buildHealthDeclarationPDF = (
     ];
     
     console.log("Creating participant data table");
-    let lastY = createDataTable(pdf, participantData, 50);
+    lastY = createDataTable(pdf, participantData, lastY + 5);
     
     // Parse and add parent/signer details
     const parentInfo = parseParentInfo(healthDeclaration.notes);
+    console.log("Parsed parent info:", parentInfo);
     
-    // Always display parent/signer section, even if empty
-    addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
+    // Add parent/guardian section with optimized spacing
+    addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
     
-    // IMPORTANT: Swap the columns here as well - put data in first column and labels in second column
+    // IMPORTANT: Ensure both columns are displayed correctly
     const parentData = [
       [parentInfo.parentName || '', 'שם מלא'],
       [parentInfo.parentId ? forceLtrDirection(parentInfo.parentId) : '', 'תעודת זהות'],
     ];
     
-    lastY = createDataTable(pdf, parentData, lastY + 20);
+    lastY = createDataTable(pdf, parentData, lastY + 10);
     
-    // Add declaration text
-    addSectionTitle(pdf, 'תוכן ההצהרה', lastY + 15);
+    // Add declaration text with more compact layout
+    addSectionTitle(pdf, 'תוכן ההצהרה', lastY + 5);
     
     const declarationItems = getDeclarationItems();
-    const declarationData = declarationItems.map(item => [
-      '•', 
-      item
-    ]);
+    // Make declaration items more compact
+    const declarationData = declarationItems.map(item => ['•', item]);
     
     console.log("Creating declaration items table");
-    lastY = createPlainTextTable(pdf, declarationData, lastY + 20);
+    lastY = createPlainTextTable(pdf, declarationData, lastY + 10);
     
-    // Add medical notes - always show this section
+    // Add medical notes - process from healthDeclaration.notes
     const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
-    addSectionTitle(pdf, 'הערות רפואיות', lastY + 15);
+    console.log("Parsed medical notes:", medicalNotes);
     
-    lastY = createPlainTextTable(pdf, [[medicalNotes]], lastY + 20);
+    addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
+    lastY = createPlainTextTable(pdf, [[medicalNotes]], lastY + 10);
     
-    // Add confirmation
-    addSectionTitle(pdf, 'אישור', lastY + 15);
-    
-    lastY = createPlainTextTable(pdf, [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], lastY + 20);
+    // Add confirmation section with reduced spacing
+    addSectionTitle(pdf, 'אישור', lastY + 5);
+    lastY = createPlainTextTable(
+      pdf, 
+      [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], 
+      lastY + 10
+    );
     
     // Add signature line with parent info
     pdf.setR2L(true); // Enable RTL for Hebrew text
     
     // Add parent details to signature line if available
     if (parentInfo.parentName && parentInfo.parentId) {
-      // Format with parent's full name and ID
-      const signatureText = `חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}, ת.ז.: ${parentInfo.parentId}`;
-      pdf.text(signatureText, 30, lastY + 20);
+      // Use compact format to save space
+      pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}, ת.ז.: ${parentInfo.parentId}`, 30, lastY + 15);
     } else {
       // Default signature line without details
-      pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, lastY + 20);
+      pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, lastY + 15);
     }
     
     pdf.setR2L(false); // Reset RTL setting
