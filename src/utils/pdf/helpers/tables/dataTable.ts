@@ -20,17 +20,19 @@ export const createDataTable = (
     console.log("First row sample:", JSON.stringify(data[0]));
   }
   
-  // Process data with advanced content-aware handling
+  // Process data with content-aware handling for RTL/LTR text
   const processedData = data.map(row => 
     row.map(cell => {
       const processed = processCellContent(cell);
+      // Return processed text with appropriate direction
       return processed.text;
     })
   );
 
-  // Get table configuration with direction control
+  // Get table configuration with RTL/LTR direction management
   const tableConfig = getTableConfig(startY);
   
+  // Table header handling
   if (hasHeader) {
     const headers = processedData[0];
     const body = processedData.slice(1);
@@ -41,6 +43,7 @@ export const createDataTable = (
         ...tableConfig,
         head: [headers],
         body: body,
+        margin: { top: 5, right: 15, bottom: 5, left: 15 }, // Tighter margins
       });
     } catch (error) {
       console.error("Error creating table with header:", error);
@@ -58,6 +61,7 @@ export const createDataTable = (
       autoTable(pdf, {
         ...tableConfig,
         body: processedData,
+        margin: { top: 5, right: 15, bottom: 5, left: 15 }, // Tighter margins
       });
     } catch (error) {
       console.error("Error creating table without header:", error);
@@ -73,11 +77,11 @@ export const createDataTable = (
   // Return the new y position after the table
   let finalY = 0;
   try {
-    finalY = (pdf as any).lastAutoTable.finalY + 5;
+    finalY = (pdf as any).lastAutoTable.finalY + 3; // Reduced spacing
     console.log(`Table created, new Y position: ${finalY}`);
   } catch (error) {
     console.error("Error getting finalY, using default value:", error);
-    finalY = startY + 50; // Default fallback value
+    finalY = startY + 40; // Default fallback value
   }
   
   return finalY;

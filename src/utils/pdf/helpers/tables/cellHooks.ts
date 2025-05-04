@@ -1,32 +1,39 @@
 
 import { CellHookData } from 'jspdf-autotable';
 import { processCellContent } from './contentProcessing';
+import { containsHebrew } from '../contentDetection';
 
 /**
- * Parses and formats cells before rendering to handle bidirectional text
+ * Parse and format cells before rendering for proper display
+ * Enhanced to handle Hebrew and bidirectional text better
  */
 export function didParseCell(data: CellHookData): void {
-  // Get the cell's content and detect its type
+  // Get the cell's content
   const cell = data.cell;
   if (!cell || !cell.text) return;
   
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
+  
+  // Process cell and detect content type for proper alignment
+  const isHebrewContent = containsHebrew(cellContent);
   const processed = processCellContent(cellContent);
   
-  // Apply appropriate alignment based on content type
-  if (processed.isCurrency || !processed.isRtl) {
+  // Set alignment based on content type
+  if (processed.isCurrency || /^\d+$/.test(cellContent) || !isHebrewContent) {
+    // Numbers, currency, English: left-aligned
     cell.styles.halign = 'left';
   } else {
+    // Hebrew text: right-aligned
     cell.styles.halign = 'right';
   }
   
-  // Log what we're doing with each cell for debugging
-  console.log(`Cell "${cellContent}" processed with halign=${cell.styles.halign}`);
+  // Debug info
+  console.log(`Cell "${cellContent}" processed with halign=${cell.styles.halign}, Hebrew=${isHebrewContent}`);
 }
 
 /**
- * Hook for final adjustments to cell drawing if needed
+ * Final adjustments to cell during drawing
  */
 export function willDrawCell(data: CellHookData): void {
-  // Add any final adjustments to cell drawing if needed
+  // Special handling for specific cases if needed
 }

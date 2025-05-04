@@ -14,7 +14,7 @@ export const createPlainTextTable = (
 ): number => {
   console.log(`Creating plain text table at y=${startY} with ${data.length} rows`);
   
-  // Process each cell individually with enhanced content-aware handling
+  // Process each cell with better RTL/LTR handling
   const processedData = data.map(row => 
     row.map(cell => {
       const processed = processCellContent(cell);
@@ -22,32 +22,38 @@ export const createPlainTextTable = (
     })
   );
   
-  // Get plain text table configuration
+  // Get more compact table configuration
   const tableConfig = getPlainTextTableConfig(startY);
+  tableConfig.styles = {
+    ...tableConfig.styles,
+    cellPadding: 2, // Reduce cell padding for compactness
+    fontSize: 10,   // Smaller font for more text
+  };
+  
+  // Use tighter margins to save space
+  const tableOptions = {
+    ...tableConfig,
+    body: processedData,
+    margin: { top: 3, right: 15, bottom: 3, left: 15 },
+  };
   
   try {
-    autoTable(pdf, {
-      ...tableConfig,
-      body: processedData,
-    });
+    autoTable(pdf, tableOptions);
   } catch (error) {
     console.error("Error creating plain text table:", error);
     // Try with default font as fallback
-    tableConfig.styles.font = 'helvetica';
-    autoTable(pdf, {
-      ...tableConfig,
-      body: processedData,
-    });
+    tableOptions.styles.font = 'helvetica';
+    autoTable(pdf, tableOptions);
   }
 
   // Return the new y position after the table
   let finalY = 0;
   try {
-    finalY = (pdf as any).lastAutoTable.finalY + 5;
+    finalY = (pdf as any).lastAutoTable.finalY + 2; // Even more reduced spacing
     console.log(`Plain text table created, new Y position: ${finalY}`);
   } catch (error) {
     console.error("Error getting finalY for plain table, using default value:", error);
-    finalY = startY + 30; // Default fallback value
+    finalY = startY + 25; // Smaller default value
   }
   
   return finalY;
