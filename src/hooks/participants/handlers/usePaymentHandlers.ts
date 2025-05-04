@@ -20,6 +20,10 @@ export const usePaymentHandlers = (
     currentRegistration?: any
   ) => {
     console.log("usePaymentHandlers handleAddPayment called with currentRegistration:", currentRegistration);
+    if (!currentRegistration) {
+      console.warn("Warning: No currentRegistration provided to usePaymentHandlers.handleAddPayment");
+    }
+    
     return baseHandleAddPayment(
       e,
       newPayment,
@@ -31,6 +35,10 @@ export const usePaymentHandlers = (
 
   const handleApplyDiscount = (amount: number, setIsAddPaymentOpen: (open: boolean) => void, currentRegistration?: any) => {
     console.log("usePaymentHandlers handleApplyDiscount called with currentRegistration:", currentRegistration);
+    if (!currentRegistration) {
+      console.warn("Warning: No currentRegistration provided to usePaymentHandlers.handleApplyDiscount");
+    }
+    
     return baseHandleApplyDiscount(amount, setIsAddPaymentOpen, currentRegistration);
   };
 

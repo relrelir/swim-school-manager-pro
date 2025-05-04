@@ -66,11 +66,17 @@ export const useParticipantAdapters = (
     currentRegistration?: Registration | null
   ) => {
     console.log("useParticipantAdapters handleAddPaymentWrapper called with currentRegistration:", currentRegistration);
+    if (!currentRegistration) {
+      console.warn("WARNING: No currentRegistration provided to useParticipantAdapters.handleAddPaymentWrapper");
+    }
     return baseHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment, currentRegistration);
   };
 
   const handleApplyDiscountAdapter = (amount: number, setIsAddPaymentOpen: (open: boolean) => void, currentRegistration?: Registration | null) => {
     console.log("useParticipantAdapters handleApplyDiscountAdapter called with currentRegistration:", currentRegistration);
+    if (!currentRegistration) {
+      console.warn("WARNING: No currentRegistration provided to useParticipantAdapters.handleApplyDiscountAdapter");
+    }
     return baseHandleApplyDiscount(amount, setIsAddPaymentOpen, currentRegistration);
   };
 

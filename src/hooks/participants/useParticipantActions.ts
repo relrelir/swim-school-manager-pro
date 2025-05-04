@@ -127,16 +127,28 @@ export const useParticipantActions = (
     return wrapperHandleAddParticipant(e, resetForm, setIsAddParticipantOpen);
   };
 
-  // Final wrapper for handleAddPayment - ensure currentRegistration is passed along
+  // Final wrapper for handleAddPayment - ensure currentRegistration is explicitly passed
   const handleAddPayment = (e: React.FormEvent) => {
     console.log("useParticipantActions handleAddPayment called with currentRegistration:", currentRegistration);
+    if (!currentRegistration) {
+      console.warn("WARNING: No currentRegistration available in useParticipantActions.handleAddPayment");
+    }
     return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment, currentRegistration);
+  };
+
+  // Final wrapper for handleApplyDiscount - ensure currentRegistration is explicitly passed
+  const wrappedHandleApplyDiscount = (amount: number) => {
+    console.log("useParticipantActions wrappedHandleApplyDiscount called with currentRegistration:", currentRegistration);
+    if (!currentRegistration) {
+      console.warn("WARNING: No currentRegistration available in useParticipantActions.wrappedHandleApplyDiscount");
+    }
+    return handleApplyDiscount(amount, setIsAddPaymentOpen, currentRegistration);
   };
 
   return {
     handleAddParticipant,
     handleAddPayment,
-    handleApplyDiscount,
+    handleApplyDiscount: wrappedHandleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
     handleOpenHealthForm,
