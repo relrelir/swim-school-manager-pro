@@ -97,6 +97,7 @@ export const useRegistrationManagement = (
     setNewPayment: (payment: any) => void
   ) => {
     e.preventDefault();
+    console.log("useRegistrationManagement handleAddPayment with currentRegistration:", currentRegistration);
     
     const updatedRegistrations = baseHandleAddPayment(
       e,
@@ -118,6 +119,7 @@ export const useRegistrationManagement = (
     discountAmount: number,
     setIsAddPaymentOpen: (open: boolean) => void
   ) => {
+    console.log("useRegistrationManagement handleApplyDiscount with currentRegistration:", currentRegistration);
     const updatedRegistrations = baseHandleApplyDiscount(
       discountAmount,
       setIsAddPaymentOpen,

@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Participant, Registration } from '@/types';
+import { toast } from "@/components/ui/use-toast";
 
 interface AddPaymentDialogProps {
   isOpen: boolean;
@@ -40,16 +41,67 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   const [discountAmount, setDiscountAmount] = useState(0);
   const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
 
+  useEffect(() => {
+    // Set a default amount when the dialog opens with a registration
+    if (isOpen && currentRegistration) {
+      const remainingAmount = currentRegistration.requiredAmount - currentRegistration.paidAmount;
+      if (remainingAmount > 0) {
+        setNewPayment(prev => ({ ...prev, amount: remainingAmount }));
+      }
+    }
+  }, [isOpen, currentRegistration, setNewPayment]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Basic validation
+    if (!currentRegistration) {
+      toast({
+        title: "שגיאה",
+        description: "לא נבחר משתתף",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (isDiscount) {
+      if (discountAmount <= 0) {
+        toast({
+          title: "שגיאה",
+          description: "יש להזין סכום הנחה חיובי",
+          variant: "destructive",
+        });
+        return;
+      }
+      onApplyDiscount(discountAmount);
+    } else {
+      if (newPayment.amount <= 0) {
+        toast({
+          title: "שגיאה",
+          description: "יש להזין סכום תשלום חיובי",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!newPayment.receiptNumber) {
+        toast({
+          title: "שגיאה",
+          description: "יש להזין מספר קבלה",
+          variant: "destructive",
+        });
+        return;
+      }
+      onSubmit(e);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>הוסף תשלום</DialogTitle>
         </DialogHeader>
-        <form onSubmit={isDiscount ? (e) => {
-          e.preventDefault();
-          onApplyDiscount(discountAmount);
-        } : onSubmit}>
+        <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-2">
             {currentRegistration && (
               <>
@@ -65,6 +117,9 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                   </p>
                   <p>
                     <span className="font-medium">סכום ששולם עד כה:</span> {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(currentRegistration.paidAmount)}
+                  </p>
+                  <p>
+                    <span className="font-medium">יתרה לתשלום:</span> {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(currentRegistration.requiredAmount - currentRegistration.paidAmount)}
                   </p>
                 </div>
 

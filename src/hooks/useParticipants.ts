@@ -1,7 +1,6 @@
 
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
-import { Registration } from '@/types';
 import { useParticipantCore } from './participants/useParticipantCore';
 import { useParticipantActions } from './participants/useParticipantActions';
 
@@ -31,7 +30,9 @@ export const useParticipants = () => {
     core.setIsAddPaymentOpen,
     core.setNewPayment,
     core.newPayment,
-    core.resetForm
+    core.resetForm,
+    core.currentRegistration,
+    core.setCurrentRegistration
   );
 
   return {
@@ -48,8 +49,8 @@ export const useParticipants = () => {
     setCurrentHealthDeclaration: core.setCurrentHealthDeclaration,
     newParticipant: core.newParticipant,
     setNewParticipant: core.setNewParticipant,
-    currentRegistration: core.currentRegistration,
-    setCurrentRegistration: core.setCurrentRegistration,
+    currentRegistration: actions.currentRegistration || core.currentRegistration,
+    setCurrentRegistration: actions.setCurrentRegistration || core.setCurrentRegistration,
     registrationData: core.registrationData,
     setRegistrationData: core.setRegistrationData,
     newPayment: core.newPayment,

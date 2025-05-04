@@ -27,7 +27,8 @@ export const useParticipantHandlers = (
   newParticipant: any,
   registrationData: any,
   getParticipantForRegistration: (registration: Registration) => Participant | undefined,
-  registrations: Registration[]
+  registrations: Registration[],
+  currentRegistration: Registration | null = null
 ) => {
   const { handleOpenHealthForm } = useHealthFormHandlers(baseHandleOpenHealthForm);
   
@@ -40,7 +41,8 @@ export const useParticipantHandlers = (
   
   const { handleAddPayment, handleApplyDiscount } = usePaymentHandlers(
     baseHandleAddPayment,
-    baseHandleApplyDiscount
+    baseHandleApplyDiscount,
+    currentRegistration
   );
 
   return {

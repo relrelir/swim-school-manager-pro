@@ -22,7 +22,9 @@ export const useParticipantActions = (
   setIsAddPaymentOpen: (value: boolean) => void,
   setNewPayment: (value: any) => void,
   newPayment: any,
-  resetForm: () => void
+  resetForm: () => void,
+  currentRegistration?: Registration | null,
+  setCurrentRegistration?: (registration: Registration | null) => void
 ) => {
   const {
     updateParticipant,
@@ -73,7 +75,9 @@ export const useParticipantActions = (
     handleAddParticipant: baseHandleAddParticipant,
     handleAddPayment: baseHandleAddPayment,
     handleApplyDiscount: baseHandleApplyDiscount,
-    handleDeleteRegistration
+    handleDeleteRegistration,
+    currentRegistration: registrationManagementCurrentReg,
+    setCurrentRegistration: registrationManagementSetCurrentReg
   } = useRegistrationManagement(
     product,
     productId,
@@ -88,6 +92,10 @@ export const useParticipantActions = (
     updateParticipant,
     addHealthDeclaration
   );
+
+  // Use the current registration from props if provided, otherwise use the one from registration management
+  const effectiveCurrentRegistration = currentRegistration || registrationManagementCurrentReg;
+  const effectiveSetCurrentRegistration = setCurrentRegistration || registrationManagementSetCurrentReg;
 
   // Create adapters for various function signatures
   const {
@@ -117,7 +125,8 @@ export const useParticipantActions = (
     newParticipant,
     registrationData,
     getParticipantForRegistration,
-    registrations
+    registrations,
+    effectiveCurrentRegistration
   );
 
   // Final wrapper for handleAddParticipant
@@ -136,6 +145,8 @@ export const useParticipantActions = (
     handleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
-    handleOpenHealthForm
+    handleOpenHealthForm,
+    currentRegistration: effectiveCurrentRegistration,
+    setCurrentRegistration: effectiveSetCurrentRegistration
   };
 };
