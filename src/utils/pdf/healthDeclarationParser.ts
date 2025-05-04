@@ -5,8 +5,9 @@
 export const parseParentInfo = (notes: string | null): { parentName: string; parentId: string } => {
   if (!notes) return { parentName: '', parentId: '' };
   
+  console.log("Parsing parent info from notes:", notes);
+  
   try {
-    console.log("Parsing parent info from notes:", notes);
     // First try to parse as JSON
     const parsedNotes = JSON.parse(notes);
     const result = {
@@ -16,7 +17,7 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
     console.log("Successfully parsed notes as JSON:", result);
     return result;
   } catch (e) {
-    console.log("Failed to parse notes as JSON, trying regex", notes);
+    console.log("Failed to parse notes as JSON, trying regex fallbacks");
     
     // If not valid JSON, try to extract using regex
     const nameMatch = notes.match(/parentName"?:\s*"?([^",}]+)"?/i) || 
@@ -43,13 +44,19 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
 export const parseMedicalNotes = (notes: string | null): string => {
   if (!notes) return 'אין הערות רפואיות נוספות';
   
+  console.log("Parsing medical notes from:", notes);
+  
   try {
-    console.log("Parsing medical notes from:", notes);
     // Try to parse as JSON first
     const parsedNotes = JSON.parse(notes);
-    const result = parsedNotes.notes || parsedNotes.medicalNotes || '';
-    console.log("Successfully parsed medical notes as JSON:", result);
-    return result || 'אין הערות רפואיות נוספות';
+    
+    // Look for specific medical notes fields
+    let medicalNotes = '';
+    if (parsedNotes.notes) medicalNotes = parsedNotes.notes;
+    else if (parsedNotes.medicalNotes) medicalNotes = parsedNotes.medicalNotes;
+    
+    console.log("Successfully parsed medical notes as JSON:", medicalNotes);
+    return medicalNotes || 'אין הערות רפואיות נוספות';
   } catch (e) {
     console.log("Failed to parse medical notes as JSON, trying regex");
     
@@ -58,16 +65,23 @@ export const parseMedicalNotes = (notes: string | null): string => {
                       notes.match(/medicalNotes"?:\s*"?([^",}]+)"?/i) ||
                       notes.match(/הערות רפואיות"?:\s*"?([^",}]+)"?/i);
     
-    let result = notesMatch ? notesMatch[1].trim() : '';
-    
-    // If the entire string doesn't contain parent info markers, it might be just notes
-    if (!result && !notes.includes('parentName') && !notes.includes('parentId') && 
-        !notes.includes('שם') && !notes.includes('ת.ז') && !notes.includes('תעודת זהות')) {
-      result = notes.trim();
+    // If we have a match, use it
+    if (notesMatch) {
+      return notesMatch[1].trim();
     }
     
-    console.log("Extracted medical notes using regex:", result);
-    return result || 'אין הערות רפואיות נוספות';
+    // Check if this might be just medical notes without parent info
+    if (!notes.includes('parentName') && !notes.includes('parentId') && 
+        !notes.includes('שם') && !notes.includes('ת.ז') && !notes.includes('תעודת זהות')) {
+      
+      // If it's not structured as JSON at all, it might be just the notes
+      if (!notes.includes('{') && !notes.includes('}') && !notes.includes(':')) {
+        return notes.trim();
+      }
+    }
+    
+    console.log("Could not extract medical notes from:", notes);
+    return 'אין הערות רפואיות נוספות';
   }
 };
 
