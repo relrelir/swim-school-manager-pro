@@ -17,8 +17,8 @@ const ParticipantsPage: React.FC = () => {
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
-    isLinkDialogOpen,
-    setIsLinkDialogOpen,
+    isHealthFormOpen,
+    setIsHealthFormOpen,
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
     newParticipant,
@@ -161,8 +161,8 @@ const ParticipantsPage: React.FC = () => {
         setIsAddParticipantOpen={setIsAddParticipantOpen}
         isAddPaymentOpen={isAddPaymentOpen}
         setIsAddPaymentOpen={setIsAddPaymentOpen}
-        isHealthFormOpen={isLinkDialogOpen}
-        setIsHealthFormOpen={setIsLinkDialogOpen}
+        isHealthFormOpen={isHealthFormOpen}
+        setIsHealthFormOpen={setIsHealthFormOpen}
         newParticipant={newParticipant}
         setNewParticipant={setNewParticipant}
         registrationData={registrationData}

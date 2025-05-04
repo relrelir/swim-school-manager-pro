@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
-import { Product, ProductType, Season } from '@/types';
+import { Product, ProductType } from '@/types';
+import { Season } from '@/types';
 import { useSeasonProducts } from '@/hooks/useSeasonProducts';
 import ProductFormFields from './ProductFormFields';
 
@@ -27,7 +28,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
     meetingsCount: 1,
     daysOfWeek: [],
     startTime: '',
-    active: true // Add the required active field
   });
   const [calculatedEndDate, setCalculatedEndDate] = useState<string | null>(null);
 
@@ -77,7 +77,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
       meetingsCount: 1,
       daysOfWeek: [],
       startTime: '',
-      active: true // Include active field in reset
     });
   };
 

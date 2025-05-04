@@ -111,8 +111,7 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
           defaultPhone={currentHealthDeclaration.phone}
           healthDeclaration={currentHealthDeclaration.declaration}
           afterSubmit={() => {
-            // Don't clear the health declaration immediately so user can copy the link
-            // if needed, but make sure the dialog can be closed
+            setCurrentHealthDeclaration(null);
           }}
         />
       )}

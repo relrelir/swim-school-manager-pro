@@ -4,7 +4,8 @@ import { HealthDeclaration } from '@/types';
 
 export const useHealthDeclarations = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
-  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>,
+  sendHealthDeclarationSMS: (phone: string, registrationId: string) => Promise<void>,
+  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => void,
   updateHealthDeclaration: (declaration: HealthDeclaration) => void
 ) => {
   const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
