@@ -41,7 +41,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         onClick={() => onOpenHealthForm(registration.id)}
         className="w-full"
       >
-        שלח הצהרת בריאות
+        צור קישור להצהרה
       </Button>
     );
   } else if (healthDeclaration.formStatus === 'sent') {
@@ -52,7 +52,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         onClick={() => onOpenHealthForm(registration.id)}
         className="w-full bg-yellow-100 hover:bg-yellow-200 border-yellow-300"
       >
-        שלח שוב
+        צור קישור מחדש
       </Button>
     );
   } else if (healthDeclaration.formStatus === 'signed') {

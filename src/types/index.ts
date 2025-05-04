@@ -88,4 +88,5 @@ export interface HealthDeclaration {
   signedAt?: string;
   clientAnswer?: string;
   notes?: string;
+  participant?: any; 
 }
