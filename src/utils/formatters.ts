@@ -1,5 +1,5 @@
 
-import { processTextDirection, forceLtrDirection, processTableCellText, processHebrewCurrencyForTable } from './pdf/hebrewTextHelper';
+import { processTextDirection, forceLtrDirection, processTableCellText, processHebrewCurrencyForTable } from './pdf/helpers/textDirection';
 
 /**
  * Format a number as currency in ILS (New Israeli Shekel)
