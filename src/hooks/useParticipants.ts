@@ -1,7 +1,8 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
-import { Registration, Participant } from '@/types';
+import { Registration, Participant, Payment, PaymentStatus } from '@/types';
 import { useParticipantForm } from './useParticipantForm';
 import { useParticipantUtils } from './useParticipantUtils';
 import { useRegistrationManagement } from './useRegistrationManagement';

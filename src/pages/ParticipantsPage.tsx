@@ -3,7 +3,7 @@ import React from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
 import { prepareParticipantsData, exportToCSV } from '@/utils/exportParticipants';
-import { Registration, Participant } from '@/types';
+import { Registration, Participant, Payment } from '@/types';
 
 import ParticipantsHeader from '@/components/participants/ParticipantsHeader';
 import ParticipantsContent from '@/components/participants/ParticipantsContent';
@@ -59,11 +59,15 @@ const ParticipantsPage: React.FC = () => {
         return getPaymentsForRegistration(registration);
       };
       
+      const statusAdapter = (registration: Registration, payments: Payment[]) => {
+        return calculatePaymentStatus(registration, payments);
+      };
+      
       const data = prepareParticipantsData(
         registrations, 
         getParticipantForRegistration,
         registrationToPayments,
-        calculatePaymentStatus
+        statusAdapter
       );
       
       const filename = `משתתפים_${product?.name || 'מוצר'}_${new Date().toISOString().split('T')[0]}.csv`;
@@ -120,6 +124,12 @@ const ParticipantsPage: React.FC = () => {
     handleApplyDiscount(amount, setIsAddPaymentOpen);
   };
 
+  // Adapter for the payment status calculation
+  const calculatePaymentStatusAdapter = (registration: Registration) => {
+    const payments = getPaymentsForRegistration(registration);
+    return calculatePaymentStatus(registration, payments);
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -139,7 +149,7 @@ const ParticipantsPage: React.FC = () => {
         registrationsFilled={registrationsFilled}
         getParticipantForRegistration={getParticipantForRegistration}
         getPaymentsForRegistration={getPaymentsForRegistrationById}
-        calculatePaymentStatus={calculatePaymentStatus}
+        calculatePaymentStatus={calculatePaymentStatusAdapter}
         getStatusClassName={getStatusClassName}
         onAddPayment={handleOpenAddPayment}
         onDeleteRegistration={handleDeleteRegistration}

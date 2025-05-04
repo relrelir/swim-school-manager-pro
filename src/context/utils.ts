@@ -17,56 +17,44 @@ export const mapParticipantFromDB = (dbParticipant: any): Participant => ({
   id: dbParticipant.id,
   firstName: dbParticipant.firstname,
   lastName: dbParticipant.lastname,
-  birthDate: dbParticipant.birthdate,
   idNumber: dbParticipant.idnumber,
-  gender: dbParticipant.gender,
   phone: dbParticipant.phone,
-  email: dbParticipant.email,
-  address: dbParticipant.address,
   healthApproval: dbParticipant.healthapproval,
 });
 
 export const mapParticipantToDB = (participant: Omit<Participant, 'id'>) => ({
   firstname: participant.firstName,
   lastname: participant.lastName,
-  birthdate: participant.birthDate,
   idnumber: participant.idNumber,
-  gender: participant.gender,
   phone: participant.phone,
-  email: participant.email,
-  address: participant.address,
   healthapproval: participant.healthApproval,
 });
 
 export const mapProductFromDB = (dbProduct: any): Product => ({
   id: dbProduct.id,
   name: dbProduct.name,
-  description: dbProduct.description,
+  type: dbProduct.description || 'קורס',
   seasonId: dbProduct.season_id,
   startDate: dbProduct.startdate,
   endDate: dbProduct.enddate,
-  dayOfWeek: dbProduct.day_of_week,
+  daysOfWeek: dbProduct.day_of_week,
   startTime: dbProduct.starttime,
-  endTime: dbProduct.endtime,
   price: dbProduct.price,
   maxParticipants: dbProduct.max_participants,
-  isActive: dbProduct.is_active,
-  teacher: dbProduct.teacher,
+  notes: dbProduct.teacher,
 });
 
 export const mapProductToDB = (product: Omit<Product, 'id'>) => ({
   name: product.name,
-  description: product.description,
+  description: product.type,
   season_id: product.seasonId,
   startdate: product.startDate,
   enddate: product.endDate,
-  day_of_week: product.dayOfWeek,
+  day_of_week: product.daysOfWeek,
   starttime: product.startTime,
-  endtime: product.endTime,
   price: product.price,
   max_participants: product.maxParticipants,
-  is_active: product.isActive,
-  teacher: product.teacher,
+  teacher: product.notes,
 });
 
 export const mapRegistrationFromDB = (dbRegistration: any): Registration => ({
@@ -75,10 +63,10 @@ export const mapRegistrationFromDB = (dbRegistration: any): Registration => ({
   participantId: dbRegistration.participant_id,
   registrationDate: dbRegistration.registration_date,
   requiredAmount: dbRegistration.required_amount,
-  discount: dbRegistration.discount,
-  totalAmount: dbRegistration.total_amount,
+  discountAmount: dbRegistration.discount,
   paidAmount: dbRegistration.paid_amount,
-  status: dbRegistration.status,
+  receiptNumber: dbRegistration.receipt_number,
+  discountApproved: dbRegistration.discount_approved,
 });
 
 export const mapRegistrationToDB = (registration: Omit<Registration, 'id'>) => ({
@@ -86,10 +74,10 @@ export const mapRegistrationToDB = (registration: Omit<Registration, 'id'>) => (
   participant_id: registration.participantId,
   registration_date: registration.registrationDate,
   required_amount: registration.requiredAmount,
-  discount: registration.discount,
-  total_amount: registration.totalAmount,
+  discount: registration.discountAmount,
   paid_amount: registration.paidAmount,
-  status: registration.status,
+  receipt_number: registration.receiptNumber,
+  discount_approved: registration.discountApproved,
 });
 
 export const mapPaymentFromDB = (dbPayment: any): Payment => ({
@@ -97,7 +85,6 @@ export const mapPaymentFromDB = (dbPayment: any): Payment => ({
   registrationId: dbPayment.registration_id,
   amount: dbPayment.amount,
   paymentDate: dbPayment.payment_date,
-  paymentMethod: dbPayment.payment_method,
   receiptNumber: dbPayment.receipt_number,
 });
 
@@ -105,6 +92,59 @@ export const mapPaymentToDB = (payment: Omit<Payment, 'id'>) => ({
   registration_id: payment.registrationId,
   amount: payment.amount,
   payment_date: payment.paymentDate,
-  payment_method: payment.paymentMethod,
   receipt_number: payment.receiptNumber,
 });
+
+// Helper to calculate current meeting number
+export const calculateCurrentMeeting = (product: any): { current: number, total: number } => {
+  if (!product.startDate || !product.meetingsCount || !product.daysOfWeek || product.daysOfWeek.length === 0) {
+    return { current: 0, total: product.meetingsCount || 10 };
+  }
+
+  const startDate = new Date(product.startDate);
+  const today = new Date();
+  
+  // If today is before the start date, return 0
+  if (today < startDate) {
+    return { current: 0, total: product.meetingsCount };
+  }
+
+  // Map Hebrew days to JS day numbers (0 = Sunday, 6 = Saturday)
+  const dayMap: { [key: string]: number } = {
+    'ראשון': 0,
+    'שני': 1,
+    'שלישי': 2,
+    'רביעי': 3,
+    'חמישי': 4,
+    'שישי': 5,
+    'שבת': 6
+  };
+  
+  // Convert Hebrew days to JS day numbers
+  const activityDays = product.daysOfWeek.map((day: string) => dayMap[day]).sort();
+  
+  let meetingCount = 0;
+  let currentDate = new Date(startDate);
+  
+  // Count meetings until today
+  while (currentDate <= today) {
+    const dayOfWeek = currentDate.getDay();
+    
+    if (activityDays.includes(dayOfWeek)) {
+      meetingCount++;
+      
+      // If we've counted all meetings, stop
+      if (meetingCount >= product.meetingsCount) {
+        break;
+      }
+    }
+    
+    // Move to next day
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return { 
+    current: Math.min(meetingCount, product.meetingsCount), 
+    total: product.meetingsCount 
+  };
+};

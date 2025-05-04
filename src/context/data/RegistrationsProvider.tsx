@@ -1,9 +1,10 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { PaymentStatus, Registration } from '@/types';
+import { PaymentStatus, Registration, Payment } from '@/types';
 import { RegistrationsContextType } from './types';
-import { handleSupabaseError, mapRegistrationFromDB, mapRegistrationToDB } from './utils';
+import { handleSupabaseError, mapRegistrationFromDB, mapRegistrationToDB } from '../utils';
 import { supabase } from '@/integrations/supabase/client';
+import { calculateCurrentMeeting } from '../utils';
 
 const RegistrationsContext = createContext<RegistrationsContextType | null>(null);
 
@@ -116,29 +117,45 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
   };
 
   // Calculate payment status, properly accounting for discounts
-  const calculatePaymentStatus = (registration: Registration, actualPaidAmount?: number): PaymentStatus => {
+  const calculatePaymentStatus = (registration: Registration, payments?: Payment[]): PaymentStatus => {
+    // Get the actual paid amount from the payments parameter if provided
+    let actualPaidAmount = registration.paidAmount;
+    
+    if (payments && payments.length > 0) {
+      actualPaidAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    }
+    
     // The discountAmount is the amount of discount applied to this registration
     const discountAmount = registration.discountAmount || 0;
-    const paidWithoutDiscount = actualPaidAmount !== undefined ? actualPaidAmount : registration.paidAmount;
     
     // Calculate the effective amount that needs to be paid after discount
     const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
     
     if (registration.discountApproved) {
-      if (paidWithoutDiscount >= effectiveRequiredAmount) {
+      if (actualPaidAmount >= effectiveRequiredAmount) {
         return 'מלא / הנחה';
       }
       return 'חלקי / הנחה';
-    } else if (paidWithoutDiscount >= registration.requiredAmount) {
-      if (paidWithoutDiscount > registration.requiredAmount) {
+    } else if (actualPaidAmount >= registration.requiredAmount) {
+      if (actualPaidAmount > registration.requiredAmount) {
         return 'יתר';
       }
       return 'מלא';
-    } else if (paidWithoutDiscount < registration.requiredAmount) {
+    } else if (actualPaidAmount < registration.requiredAmount) {
       return 'חלקי';
     }
     
     return 'מלא';
+  };
+  
+  // Calculate meeting progress
+  const calculateMeetingProgress = (product: any) => {
+    return calculateCurrentMeeting(product);
+  };
+  
+  // Get all registrations with details
+  const getAllRegistrationsWithDetails = () => {
+    return [];
   };
 
   const contextValue: RegistrationsContextType = {
@@ -148,6 +165,8 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     deleteRegistration,
     getRegistrationsByProduct,
     calculatePaymentStatus,
+    getAllRegistrationsWithDetails,
+    calculateMeetingProgress,
     loading
   };
 

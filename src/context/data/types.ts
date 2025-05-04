@@ -33,9 +33,9 @@ export interface RegistrationsContextType {
   updateRegistration: (registration: Registration) => void;
   deleteRegistration: (id: string) => void;
   getRegistrationsByProduct: (productId: string) => Registration[];
-  calculatePaymentStatus: (registration: Registration, payments: Payment[]) => string;
+  calculatePaymentStatus: (registration: Registration, payments?: Payment[]) => PaymentStatus;
   getAllRegistrationsWithDetails: () => any[];
-  calculateMeetingProgress: (product: Product) => number;
+  calculateMeetingProgress: (product: Product) => { current: number, total: number };
   loading: boolean;
 }
 
