@@ -1,15 +1,14 @@
 
 import { useState } from 'react';
-import { Participant, Registration, HealthDeclaration } from '@/types';
+import { Participant, Registration, HealthDeclaration, HealthDeclarationStatus } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { generateHealthDeclarationPDF, downloadPDF } from '@/utils/pdfGenerator';
-import { supabase } from '@/integrations/supabase/client';
 
 export const useParticipantHealth = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
   sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>,
   addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>,
-  updateHealthDeclaration: (healthDeclaration: HealthDeclaration) => void,
+  updateHealthDeclaration: (id: string, healthDeclaration: Partial<HealthDeclaration>) => Promise<void>,
   updateParticipant: (participant: Participant) => void,
   participants: Participant[],
   registrations: Registration[]
@@ -50,10 +49,10 @@ export const useParticipantHealth = (
       
       if (!healthDeclaration) {
         // Create a new health declaration with token
-        const newDeclaration = {
+        const newDeclaration: Omit<HealthDeclaration, 'id'> = {
           registrationId: registrationId,
           phone: participant.phone || '',
-          formStatus: 'pending' as const,
+          formStatus: 'pending' as HealthDeclarationStatus,
           sentAt: new Date().toISOString(),
           token: crypto.randomUUID() // Create a unique token for the form
         };
@@ -72,13 +71,10 @@ export const useParticipantHealth = (
       
       // Update the health declaration status if it exists
       if (healthDeclaration) {
-        const updatedDeclaration = {
-          ...healthDeclaration,
-          formStatus: 'sent',
+        await updateHealthDeclaration(healthDeclaration.id, {
+          formStatus: 'sent' as HealthDeclarationStatus,
           sentAt: new Date().toISOString()
-        };
-        
-        await updateHealthDeclaration(updatedDeclaration);
+        });
       }
 
       // Copy link to clipboard
@@ -159,10 +155,9 @@ export const useParticipantHealth = (
       healthDeclaration = {
         id: 'temp-print',
         registrationId: registrationId,
-        phone: participant.phone,
-        formStatus: 'pending',
-        sentAt: new Date().toISOString(),
-        token: 'temp-token'
+        phone: participant.phone || '',
+        formStatus: 'pending' as HealthDeclarationStatus,
+        sentAt: new Date().toISOString()
       };
     }
     

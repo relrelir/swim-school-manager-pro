@@ -38,7 +38,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Log the form link
     console.log(`Form link generated: ${formLink} for declaration ID: ${declarationId}`);
     
-    // Update the health declaration entry in the database - make sure to use the correct field names
+    // Update the health declaration entry in the database
     const { error } = await supabase
       .from('health_declarations')
       .update({

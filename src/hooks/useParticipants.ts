@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
@@ -25,8 +26,8 @@ export const useParticipants = () => {
     payments,
     addParticipant,
     healthDeclarations,
-    addHealthDeclaration,
-    updateHealthDeclaration: baseUpdateHealthDeclaration,
+    addHealthDeclaration: origAddHealthDeclaration,
+    updateHealthDeclaration: origUpdateHealthDeclaration,
     getHealthDeclarationForRegistration,
     sendHealthDeclarationSMS
   } = useData();
@@ -40,9 +41,22 @@ export const useParticipants = () => {
     getStatusClassName
   } = useParticipantUtils(participants, payments);
 
-  // Create an adapter for updateHealthDeclaration to match expected signature
-  const updateHealthDeclaration = (declaration: any) => {
-    return baseUpdateHealthDeclaration(declaration.id, declaration);
+  // Create adapters for health declaration functions to match expected signatures
+  const addHealthDeclaration = async (declaration: any) => {
+    try {
+      return await origAddHealthDeclaration(declaration) || undefined;
+    } catch (error) {
+      console.error('Error in addHealthDeclaration adapter:', error);
+      return undefined;
+    }
+  };
+
+  const updateHealthDeclaration = async (id: string, updates: any) => {
+    try {
+      await origUpdateHealthDeclaration(id, updates);
+    } catch (error) {
+      console.error('Error in updateHealthDeclaration adapter:', error);
+    }
   };
 
   // Load product data
