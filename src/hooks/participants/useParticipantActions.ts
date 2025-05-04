@@ -73,7 +73,9 @@ export const useParticipantActions = (
     handleAddParticipant: baseHandleAddParticipant,
     handleAddPayment: baseHandleAddPayment,
     handleApplyDiscount: baseHandleApplyDiscount,
-    handleDeleteRegistration
+    handleDeleteRegistration,
+    currentRegistration,
+    setCurrentRegistration
   } = useRegistrationManagement(
     product,
     productId,
@@ -125,9 +127,10 @@ export const useParticipantActions = (
     return wrapperHandleAddParticipant(e, resetForm, setIsAddParticipantOpen);
   };
 
-  // Final wrapper for handleAddPayment
+  // Final wrapper for handleAddPayment - ensure currentRegistration is passed along
   const handleAddPayment = (e: React.FormEvent) => {
-    return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
+    console.log("useParticipantActions handleAddPayment called with currentRegistration:", currentRegistration);
+    return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment, currentRegistration);
   };
 
   return {
@@ -136,6 +139,8 @@ export const useParticipantActions = (
     handleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
-    handleOpenHealthForm
+    handleOpenHealthForm,
+    currentRegistration,
+    setCurrentRegistration
   };
 };

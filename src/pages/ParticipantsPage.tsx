@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
@@ -47,6 +46,9 @@ const ParticipantsPage: React.FC = () => {
     calculatePaymentStatus,
     getHealthDeclarationForRegistration,
   } = useParticipants();
+
+  // Debug log to see the current registration state
+  console.log("ParticipantsPage - currentRegistration:", currentRegistration);
 
   // Handle CSV Export
   const handleExportToCSV = () => {
@@ -97,6 +99,7 @@ const ParticipantsPage: React.FC = () => {
 
   // Handler for opening payment dialog
   const handleOpenAddPayment = (registration: Registration) => {
+    console.log("ParticipantsPage - handleOpenAddPayment called with registration:", registration);
     setCurrentRegistration(registration);
     setNewPayment({
       amount: 0,
@@ -123,7 +126,8 @@ const ParticipantsPage: React.FC = () => {
 
   // Create an adapter for the handleApplyDiscount function to match the expected signature
   const handleApplyDiscountWrapper = (amount: number) => {
-    handleApplyDiscount(amount, setIsAddPaymentOpen);
+    console.log("ParticipantsPage - handleApplyDiscountWrapper with currentRegistration:", currentRegistration);
+    handleApplyDiscount(amount, setIsAddPaymentOpen, currentRegistration);
   };
 
   return (

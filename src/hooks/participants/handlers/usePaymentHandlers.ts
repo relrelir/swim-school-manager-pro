@@ -19,6 +19,7 @@ export const usePaymentHandlers = (
     setNewPayment: any,
     currentRegistration?: any
   ) => {
+    console.log("usePaymentHandlers handleAddPayment called with currentRegistration:", currentRegistration);
     return baseHandleAddPayment(
       e,
       newPayment,
@@ -29,6 +30,7 @@ export const usePaymentHandlers = (
   };
 
   const handleApplyDiscount = (amount: number, setIsAddPaymentOpen: (open: boolean) => void, currentRegistration?: any) => {
+    console.log("usePaymentHandlers handleApplyDiscount called with currentRegistration:", currentRegistration);
     return baseHandleApplyDiscount(amount, setIsAddPaymentOpen, currentRegistration);
   };
 

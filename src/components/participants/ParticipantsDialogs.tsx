@@ -76,10 +76,17 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
   handleAddPayment,
   handleApplyDiscount,
 }) => {
-  // Add debug logging
+  // Add debug logging that runs on every render and whenever currentRegistration changes
   useEffect(() => {
     console.log("ParticipantsDialogs rendered with currentRegistration:", currentRegistration);
-  }, [currentRegistration, isAddPaymentOpen]);
+  }, [currentRegistration]);
+
+  // Add debug logging when isAddPaymentOpen changes
+  useEffect(() => {
+    if (isAddPaymentOpen) {
+      console.log("Payment dialog opened with currentRegistration:", currentRegistration);
+    }
+  }, [isAddPaymentOpen, currentRegistration]);
 
   return (
     <>

@@ -19,9 +19,10 @@ export const useParticipantAdapters = (
     e: React.FormEvent,
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any
+    setNewPayment: any,
+    currentRegistration?: Registration | null
   ) => any,
-  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any
+  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void, currentRegistration?: Registration | null) => any
 ) => {
   // Create an adapter for updateParticipant to match the expected signature
   const adaptedUpdateParticipant = async (id: string, data: Partial<Participant>): Promise<Participant> => {
@@ -61,13 +62,16 @@ export const useParticipantAdapters = (
     e: React.FormEvent, 
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any
+    setNewPayment: any,
+    currentRegistration?: Registration | null
   ) => {
-    return baseHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
+    console.log("useParticipantAdapters handleAddPaymentWrapper called with currentRegistration:", currentRegistration);
+    return baseHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment, currentRegistration);
   };
 
-  const handleApplyDiscountAdapter = (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => {
-    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen);
+  const handleApplyDiscountAdapter = (amount: number, setIsAddPaymentOpen: (open: boolean) => void, currentRegistration?: Registration | null) => {
+    console.log("useParticipantAdapters handleApplyDiscountAdapter called with currentRegistration:", currentRegistration);
+    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen, currentRegistration);
   };
 
   return {
