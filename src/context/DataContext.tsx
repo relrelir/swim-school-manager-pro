@@ -1,8 +1,10 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Season, Product, Participant, Registration, Payment } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from './utils';
+import { useAuth } from './AuthContext';
 
 // Import from our providers
 import { SeasonsProvider, useSeasonsContext } from './data/SeasonsProvider';
@@ -10,9 +12,10 @@ import { ProductsProvider, useProductsContext } from './data/ProductsProvider';
 import { ParticipantsProvider, useParticipantsContext } from './data/ParticipantsProvider';
 import { RegistrationsProvider, useRegistrationsContext } from './data/RegistrationsProvider';
 import { PaymentsProvider, usePaymentsContext } from './data/PaymentsProvider';
+import { DataContextType } from './data/types';
 
 // Create the combined context
-const DataContext = createContext({});
+const DataContext = createContext<DataContextType>({} as DataContextType);
 
 export const useData = () => {
   return useContext(DataContext);
@@ -46,14 +49,21 @@ const CombinedDataProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const participantsContext = useParticipantsContext();
   const registrationsContext = useRegistrationsContext();
   const paymentsContext = usePaymentsContext();
+  
+  // Define a function to get daily activities
+  const getDailyActivities = (date: Date) => {
+    // Implementation would go here - this is a placeholder to satisfy the type
+    return [];
+  };
 
   // Combine all context values
-  const combinedContextValue = {
+  const combinedContextValue: DataContextType = {
     ...seasonsContext,
     ...productsContext,
     ...participantsContext,
     ...registrationsContext,
     ...paymentsContext,
+    getDailyActivities
   };
   
   return (

@@ -1,14 +1,14 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
-import { Registration } from '@/types';
+import { Registration, Participant } from '@/types';
 import { useParticipantForm } from './useParticipantForm';
 import { useParticipantUtils } from './useParticipantUtils';
 import { useRegistrationManagement } from './useRegistrationManagement';
 import { useParticipantHealth } from './useParticipantHealth';
 import { useParticipantData } from './useParticipantData';
 import { useParticipantHandlers } from './useParticipantHandlers';
+import { DataContextType } from '@/context/data/types';
 
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -25,7 +25,7 @@ export const useParticipants = () => {
     getPaymentsByRegistration,
     payments,
     addParticipant
-  } = useData();
+  } = useData() as DataContextType;
   
   const [product, setProduct] = useState(undefined);
   
