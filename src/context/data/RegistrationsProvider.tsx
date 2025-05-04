@@ -126,19 +126,19 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     
     if (registration.discountApproved) {
       if (paidWithoutDiscount >= effectiveRequiredAmount) {
-        return 'מלא / הנחה';
+        return 'מלא / הנחה' as PaymentStatus;
       }
-      return 'חלקי / הנחה';
+      return 'חלקי / הנחה' as PaymentStatus;
     } else if (paidWithoutDiscount >= registration.requiredAmount) {
       if (paidWithoutDiscount > registration.requiredAmount) {
-        return 'יתר';
+        return 'יתר' as PaymentStatus;
       }
-      return 'מלא';
+      return 'מלא' as PaymentStatus;
     } else if (paidWithoutDiscount < registration.requiredAmount) {
-      return 'חלקי';
+      return 'חלקי' as PaymentStatus;
     }
     
-    return 'מלא';
+    return 'מלא' as PaymentStatus;
   };
 
   const contextValue: RegistrationsContextType = {
