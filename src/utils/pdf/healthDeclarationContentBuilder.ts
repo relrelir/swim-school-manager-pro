@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { 
@@ -36,7 +35,6 @@ export const buildHealthDeclarationPDF = (
 ): string => {
   try {
     console.log("Starting PDF generation with enhanced bidirectional text handling");
-    console.log("Health declaration notes:", healthDeclaration.notes);
     
     // Add title - Hebrew content with RTL
     addPdfTitle(pdf, 'הצהרת בריאות');
@@ -64,9 +62,8 @@ export const buildHealthDeclarationPDF = (
     console.log("Creating participant data table");
     let lastY = createDataTable(pdf, participantData, 50);
     
-    // Extract parent information from notes
+    // Add parent details if available
     const parentInfo = parseParentInfo(healthDeclaration.notes);
-    console.log("Parsed parent information:", parentInfo);
     
     if (parentInfo.parentName || parentInfo.parentId) {
       addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
@@ -92,35 +89,33 @@ export const buildHealthDeclarationPDF = (
     console.log("Creating declaration items table");
     lastY = createPlainTextTable(pdf, declarationData, lastY + 20);
     
-    // Extract and add medical notes
-    const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
-    console.log("Parsed medical notes:", medicalNotes);
-    
-    // Always add medical notes section
-    addSectionTitle(pdf, 'הערות רפואיות', lastY + 15);
-    lastY = createPlainTextTable(pdf, [[medicalNotes || 'אין הערות נוספות']], lastY + 20);
+    // Add medical notes if any - NEW REQUIREMENT
+    if (healthDeclaration.notes) {
+      const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
+      
+      if (medicalNotes) {
+        addSectionTitle(pdf, 'הערות רפואיות', lastY + 15);
+        
+        lastY = createPlainTextTable(pdf, [[medicalNotes]], lastY + 20);
+      }
+    }
     
     // Add confirmation
     addSectionTitle(pdf, 'אישור', lastY + 15);
     
     lastY = createPlainTextTable(pdf, [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], lastY + 20);
     
-    // Add signature line with parent info - ALWAYS include parent details if available
+    // Add signature line with parent info - UPDATED REQUIREMENT
     pdf.setR2L(true); // Enable RTL for Hebrew text
     
-    // Always show parent information in signature section if available
-    if (parentInfo.parentName) {
-      const signatureNameText = `חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`;
-      pdf.text(signatureNameText, pdf.internal.pageSize.width - 20, lastY + 20, { align: 'right' });
-      
-      if (parentInfo.parentId) {
-        const signatureIdText = `ת.ז.: ${parentInfo.parentId}`;
-        pdf.text(signatureIdText, pdf.internal.pageSize.width - 20, lastY + 30, { align: 'right' });
-      }
+    // Add parent details to signature line if available
+    if (parentInfo.parentName && parentInfo.parentId) {
+      // Format with parent's full name and ID
+      const signatureText = `חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}, ת.ז.: ${parentInfo.parentId}`;
+      pdf.text(signatureText, 30, lastY + 20);
     } else {
       // Default signature line without details
-      pdf.text('חתימת ההורה/אפוטרופוס: _________________', pdf.internal.pageSize.width - 20, lastY + 20, { align: 'right' });
-      pdf.text('ת.ז.: _________________', pdf.internal.pageSize.width - 20, lastY + 30, { align: 'right' });
+      pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, lastY + 20);
     }
     
     pdf.setR2L(false); // Reset RTL setting
