@@ -5,10 +5,10 @@ import { configureDocumentStyle } from '../pdfConfig';
 /**
  * Adds a title to the PDF document
  */
-export const addPdfTitle = (pdf: jsPDF, title: string, fontSize: number = 20): void => {
-  console.log(`Adding PDF title: "${title}" with font size ${fontSize}`);
+export const addPdfTitle = (pdf: jsPDF, title: string): void => {
+  console.log(`Adding PDF title: "${title}"`);
   configureDocumentStyle(pdf);
-  pdf.setFontSize(fontSize);
+  pdf.setFontSize(20);
   
   // Hebrew title should be RTL
   pdf.setR2L(true);
@@ -33,10 +33,10 @@ export const addPdfDate = (pdf: jsPDF, date: string): void => {
 /**
  * Adds a section title to the PDF document
  */
-export const addSectionTitle = (pdf: jsPDF, title: string, y: number, fontSize: number = 14): void => {
-  console.log(`Adding section title: "${title}" at y=${y} with font size ${fontSize}`);
+export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
+  console.log(`Adding section title: "${title}" at y=${y}`);
   configureDocumentStyle(pdf);
-  pdf.setFontSize(fontSize);
+  pdf.setFontSize(14);
   
   // Hebrew section title should be RTL
   pdf.setR2L(true);

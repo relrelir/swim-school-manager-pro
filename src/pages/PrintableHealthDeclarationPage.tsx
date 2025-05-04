@@ -45,9 +45,10 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         }
 
         console.log("Found health declaration:", healthDeclaration);
-        console.log("Health declaration notes:", healthDeclaration.notes);
-        
-        // Get the registration to find the correct participant
+        console.log("Participant ID in health declaration:", healthDeclaration.participant_id);
+
+        // participant_id in health declarations actually contains the registration ID
+        // We need to get the registration to find the correct participant
         const { data: registrationData, error: registrationError } = await supabase
           .from('registrations')
           .select('*')
@@ -83,12 +84,9 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         
         console.log("Found participant:", participantData);
 
-        // Parse parent information and medical notes 
+        // Parse parent information and medical notes
         const parentInfo = parseParentInfo(healthDeclaration.notes || '');
-        const medicalNotes = parseMedicalNotes(healthDeclaration.notes || '');
-        
-        console.log("Parsed parent info:", parentInfo);
-        console.log("Parsed medical notes:", medicalNotes);
+        const notes = parseMedicalNotes(healthDeclaration.notes || '');
 
         setHealthData({
           participantName: `${participantData.firstname} ${participantData.lastname}`,
@@ -96,7 +94,7 @@ const PrintableHealthDeclarationPage: React.FC = () => {
           participantPhone: participantData.phone,
           formState: {
             agreement: true,
-            notes: medicalNotes,
+            notes: notes,
             parentName: parentInfo.parentName,
             parentId: parentInfo.parentId
           },
