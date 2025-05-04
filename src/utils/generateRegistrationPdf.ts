@@ -97,7 +97,7 @@ export const generateRegistrationPdf = async (registrationId: string) => {
       const pdf = await createRtlPdf();
       console.log("PDF object created successfully");
       
-      // Build the PDF content
+      // Build the PDF content with the product name
       console.log("Building PDF content with product name:", product.name);
       const fileName = buildRegistrationPDF(pdf, registrationData, participantData, paymentsData, product.name);
       console.log("PDF content built successfully, filename:", fileName);

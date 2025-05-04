@@ -63,8 +63,12 @@ export function buildRegistrationPDF(
     let yPosition = createDataTable(pdf, participantData, 55);
     console.log("Added participant data");
     
-    // Registration information
+    // Registration information - MODIFIED as per requirements
     addSectionTitle(pdf, 'פרטי רישום:', yPosition + 15);
+    
+    // Calculate payment status text
+    const paymentStatusText = registration.paidAmount >= registration.requiredAmount ? 'שולם במלואו' : 
+                              (registration.paidAmount > 0 ? 'תשלום חלקי' : 'טרם שולם');
     
     // Calculate effective required amount (after discount)
     const discountAmount = registration.discountAmount || 0;
@@ -73,13 +77,13 @@ export function buildRegistrationPDF(
     // Format the registration date with day first and explicit LTR control
     const formattedRegistrationDate = forceLtrDirection(format(new Date(registration.registrationDate), 'dd/MM/yyyy'));
     
-    // All monetary values get explicit LTR formatting via our enhanced formatCurrency function
+    // Modified registration data table with only the requested fields
     const registrationData = [
       [formattedRegistrationDate, 'תאריך רישום:'],
-      [formatCurrency(registration.requiredAmount), 'סכום מקורי:'],
-      [registration.discountApproved ? formatCurrency(discountAmount) : 'לא', 'הנחה:'],
+      [productName, 'מוצר:'],
       [formatCurrency(effectiveRequiredAmount), 'סכום לתשלום:'],
-      [formatCurrency(registration.paidAmount), 'סכום ששולם:'],
+      [participant.healthApproval ? 'כן' : 'לא', 'הצהרת בריאות:'],
+      [paymentStatusText, 'סטטוס תשלום:'],
     ];
     
     // Create table with registration data
