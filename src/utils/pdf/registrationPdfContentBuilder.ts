@@ -1,10 +1,9 @@
-
 import { jsPDF } from 'jspdf';
 import { Registration, Participant, Payment } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { addPdfTitle, addPdfDate, addSectionTitle, createDataTable, createPlainTextTable } from './pdfHelpers';
-import { processTextDirection, forceLtrDirection } from './hebrewTextHelper';
+import { processTextDirection, forceLtrDirection } from './helpers/textDirection';
 
 /**
  * Builds a registration PDF with participant and payment information

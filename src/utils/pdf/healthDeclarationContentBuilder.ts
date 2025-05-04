@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { 
@@ -9,7 +8,7 @@ import {
   createPlainTextTable
 } from './pdfHelpers';
 import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './healthDeclarationParser';
-import { forceLtrDirection } from './hebrewTextHelper';
+import { forceLtrDirection } from './helpers/textDirection';
 
 interface ParticipantData {
   firstname: string;
