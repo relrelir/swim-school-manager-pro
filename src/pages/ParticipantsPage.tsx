@@ -17,10 +17,6 @@ const ParticipantsPage: React.FC = () => {
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
-    isHealthFormOpen,
-    setIsHealthFormOpen,
-    currentHealthDeclaration,
-    setCurrentHealthDeclaration,
     newParticipant,
     setNewParticipant,
     currentRegistration,
@@ -39,13 +35,11 @@ const ParticipantsPage: React.FC = () => {
     handleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
-    handleOpenHealthForm,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
     getStatusClassName,
     calculatePaymentStatus,
-    getHealthDeclarationForRegistration,
   } = useParticipants();
 
   // Handle CSV Export
@@ -145,13 +139,11 @@ const ParticipantsPage: React.FC = () => {
         registrationsFilled={registrationsFilled}
         getParticipantForRegistration={getParticipantForRegistration}
         getPaymentsForRegistration={getPaymentsForRegistrationById}
-        getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
         calculatePaymentStatus={calculatePaymentStatus}
         getStatusClassName={getStatusClassName}
         onAddPayment={handleOpenAddPayment}
         onDeleteRegistration={handleDeleteRegistration}
         onUpdateHealthApproval={updateHealthApprovalById}
-        onOpenHealthForm={handleOpenHealthForm}
         onExport={handleExportToCSV}
       />
 
@@ -161,8 +153,6 @@ const ParticipantsPage: React.FC = () => {
         setIsAddParticipantOpen={setIsAddParticipantOpen}
         isAddPaymentOpen={isAddPaymentOpen}
         setIsAddPaymentOpen={setIsAddPaymentOpen}
-        isHealthFormOpen={isHealthFormOpen}
-        setIsHealthFormOpen={setIsHealthFormOpen}
         newParticipant={newParticipant}
         setNewParticipant={setNewParticipant}
         registrationData={registrationData}
@@ -171,8 +161,6 @@ const ParticipantsPage: React.FC = () => {
         participants={participants}
         newPayment={newPayment}
         setNewPayment={setNewPayment}
-        currentHealthDeclaration={currentHealthDeclaration}
-        setCurrentHealthDeclaration={setCurrentHealthDeclaration}
         handleAddParticipant={handleAddParticipant}
         handleAddPayment={handleAddPayment}
         handleApplyDiscount={handleApplyDiscountWrapper}

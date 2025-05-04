@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
@@ -23,12 +24,7 @@ export const useParticipants = () => {
     addPayment,
     getPaymentsByRegistration,
     payments,
-    addParticipant,
-    healthDeclarations,
-    addHealthDeclaration,
-    updateHealthDeclaration: baseUpdateHealthDeclaration,
-    getHealthDeclarationForRegistration,
-    sendHealthDeclarationSMS
+    addParticipant
   } = useData();
   
   const [product, setProduct] = useState(undefined);
@@ -39,11 +35,6 @@ export const useParticipants = () => {
     getPaymentsForRegistration,
     getStatusClassName
   } = useParticipantUtils(participants, payments);
-
-  // Create an adapter for updateHealthDeclaration to match expected signature
-  const updateHealthDeclaration = (declaration: any) => {
-    return baseUpdateHealthDeclaration(declaration.id, declaration);
-  };
 
   // Load product data
   useEffect(() => {
@@ -90,22 +81,12 @@ export const useParticipants = () => {
     }
   }, [product]);
 
-  // Import participant health hook - now passing registrations
+  // Import participant health hook - simplified for just health approvals
   const {
-    isHealthFormOpen,
-    setIsHealthFormOpen,
-    currentHealthDeclaration,
-    setCurrentHealthDeclaration,
-    handleOpenHealthForm: baseHandleOpenHealthForm,
     handleUpdateHealthApproval
   } = useParticipantHealth(
-    getHealthDeclarationForRegistration,
-    sendHealthDeclarationSMS,
-    addHealthDeclaration,
-    updateHealthDeclaration,
     updateParticipant,
-    participants,
-    registrations
+    participants
   );
 
   // Import registration management hook
@@ -127,18 +108,16 @@ export const useParticipants = () => {
     addPayment,
     getPaymentsByRegistration,
     getRegistrationsByProduct,
-    updateParticipant,
-    addHealthDeclaration
+    updateParticipant
   );
 
   // Import participant handlers
   const {
-    handleOpenHealthForm,
     handleAddParticipant: wrapperHandleAddParticipant,
     handleAddPayment: wrapperHandleAddPayment,
     handleApplyDiscount: handleApplyDiscountAdapter
   } = useParticipantHandlers(
-    baseHandleOpenHealthForm,
+    null, // No longer need handleOpenHealthForm
     baseHandleAddParticipant,
     baseHandleAddPayment,
     baseHandleApplyDiscount,
@@ -165,10 +144,6 @@ export const useParticipants = () => {
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
-    isHealthFormOpen,
-    setIsHealthFormOpen,
-    currentHealthDeclaration,
-    setCurrentHealthDeclaration,
     newParticipant,
     setNewParticipant,
     currentRegistration,
@@ -187,12 +162,10 @@ export const useParticipants = () => {
     handleApplyDiscount: handleApplyDiscountAdapter,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
-    handleOpenHealthForm,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
     getStatusClassName,
     calculatePaymentStatus,
-    getHealthDeclarationForRegistration,
   };
 };

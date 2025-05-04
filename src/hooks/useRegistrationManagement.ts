@@ -15,8 +15,7 @@ export const useRegistrationManagement = (
   addPayment: (payment: any) => void,
   getPaymentsByRegistration: (registrationId: string) => any[],
   getRegistrationsByProduct: (productId: string) => Registration[],
-  updateParticipant: (participant: Participant) => void,
-  addHealthDeclaration: (declaration: Omit<any, 'id'>) => void
+  updateParticipant: (participant: Participant) => void
 ) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -42,7 +41,7 @@ export const useRegistrationManagement = (
     getRegistrationsByProduct
   );
 
-  // Handler for adding a new participant with health declaration
+  // Handler for adding a new participant without health declaration
   const handleAddParticipant = async (
     e: React.FormEvent, 
     newParticipant: any, 
@@ -65,22 +64,6 @@ export const useRegistrationManagement = (
     );
     
     if (result && result.length > 0) {
-      // Find the new registration (should be the last one added)
-      const newRegistration = result[result.length - 1];
-      
-      // Create a health declaration entry for the new registration
-      if (newRegistration) {
-        const participant = getParticipantForRegistration(newRegistration);
-        if (participant) {
-          await addHealthDeclaration({
-            registrationId: newRegistration.id,
-            phone: participant.phone,
-            formStatus: 'pending',
-            sentAt: new Date().toISOString()
-          });
-        }
-      }
-      
       setRegistrations(result);
       setRefreshTrigger(prev => prev + 1);
       return result;
