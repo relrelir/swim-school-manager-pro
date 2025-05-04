@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PrintableHealthDeclaration from '@/components/health-form/PrintableHealthDeclaration';
+import { getHealthDeclarationById } from '@/context/data/healthDeclarations/service';
 import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,30 +37,39 @@ const PrintableHealthDeclarationPage: React.FC = () => {
 
       try {
         console.log("Loading health declaration with ID:", declarationId);
+        const healthDeclaration = await getHealthDeclarationById(declarationId);
         
-        // Get health declaration directly
-        const { data: healthDeclaration, error: healthDeclarationError } = await supabase
-          .from('health_declarations')
-          .select('*')
-          .eq('id', declarationId)
-          .maybeSingle();
-
-        if (healthDeclarationError) {
-          handleSupabaseError(healthDeclarationError, 'fetching health declaration');
-          throw new Error('שגיאה בטעינת הצהרת הבריאות');
-        }
-
         if (!healthDeclaration) {
           throw new Error('לא נמצאה הצהרת בריאות');
         }
 
         console.log("Found health declaration:", healthDeclaration);
+        console.log("Participant ID in health declaration:", healthDeclaration.participant_id);
 
-        // Get the participant directly using participant_id from the health declaration
+        // participant_id in health declarations actually contains the registration ID
+        // We need to get the registration to find the correct participant
+        const { data: registrationData, error: registrationError } = await supabase
+          .from('registrations')
+          .select('*')
+          .eq('id', healthDeclaration.participant_id)
+          .maybeSingle();
+
+        if (registrationError) {
+          handleSupabaseError(registrationError, 'fetching registration');
+          throw new Error('שגיאה בטעינת פרטי הרישום');
+        }
+
+        if (!registrationData) {
+          throw new Error('לא נמצאו פרטי רישום');
+        }
+
+        console.log("Found registration:", registrationData);
+        
+        // Get the participant using the participantId from the registration
         const { data: participantData, error: participantError } = await supabase
           .from('participants')
           .select('*')
-          .eq('id', healthDeclaration.participant_id)
+          .eq('id', registrationData.participantid)
           .maybeSingle();
 
         if (participantError) {
@@ -85,14 +95,9 @@ const PrintableHealthDeclarationPage: React.FC = () => {
           notes = notes.replace(/הורה\/אפוטרופוס: [^,]+, ת\.ז\.: [^\n]+\n\n/g, '').trim();
         }
 
-        // Validate ID number
-        const validatedId = participantData.idnumber && 
-                           /^[\d\s\-]+$/.test(participantData.idnumber) ? 
-                           participantData.idnumber : '';
-
         setHealthData({
           participantName: `${participantData.firstname} ${participantData.lastname}`,
-          participantId: validatedId,
+          participantId: participantData.idnumber,
           participantPhone: participantData.phone,
           formState: {
             agreement: true,
