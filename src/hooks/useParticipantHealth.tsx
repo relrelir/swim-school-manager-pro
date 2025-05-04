@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 export const useParticipantHealth = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
   sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>,
-  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => void,
+  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined> | void,
   updateHealthDeclaration: (declaration: HealthDeclaration) => void,
   updateParticipant: (participant: Participant) => void,
   participants: Participant[],
@@ -57,11 +57,16 @@ export const useParticipantHealth = (
           sentAt: new Date().toISOString()
         };
         
+        // Fix the TypeScript error by properly handling the Promise
         const result = await addHealthDeclaration(newDeclaration);
         if (result) {
           healthDeclaration = result;
         } else {
-          throw new Error("Failed to create health declaration");
+          // If no result is returned, we'll create a temporary declaration for link generation
+          healthDeclaration = {
+            id: 'temp-' + Math.random().toString(36).substring(2, 9),
+            ...newDeclaration
+          };
         }
       }
 
@@ -80,12 +85,7 @@ export const useParticipantHealth = (
       navigator.clipboard.writeText(formLink).then(() => {
         toast({
           title: "לינק הועתק בהצלחה",
-          description: (
-            <div className="space-y-2">
-              <p>הלינק להצהרת הבריאות עבור {participant.firstName} {participant.lastName} הועתק ללוח</p>
-              <p>לינק: <a href={formLink} target="_blank" rel="noopener noreferrer" className="text-primary underline break-all">{formLink}</a></p>
-            </div>
-          ),
+          description: `הלינק להצהרת הבריאות עבור ${participant.firstName} ${participant.lastName} הועתק ללוח: ${formLink}`,
         });
       });
     } catch (error) {

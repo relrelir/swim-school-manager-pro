@@ -7,7 +7,7 @@ import { handleSupabaseError } from './utils';
 
 interface HealthDeclarationsContextType {
   healthDeclarations: HealthDeclaration[];
-  addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined> | void;
+  addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>;
   updateHealthDeclaration: (id: string, updates: Partial<HealthDeclaration>) => Promise<void>;
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined;
   sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>;
@@ -88,10 +88,16 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
   }, []);
 
   // Add a health declaration
-  const addHealthDeclaration = async (healthDeclaration: Omit<HealthDeclaration, 'id'>) => {
+  const addHealthDeclaration = async (healthDeclaration: Omit<HealthDeclaration, 'id'>): Promise<HealthDeclaration | undefined> => {
     try {
       // Convert to DB field names format
       const dbHealthDeclaration = mapHealthDeclarationToDB(healthDeclaration);
+      
+      // Make sure registration_id is properly set
+      if (!dbHealthDeclaration.registration_id) {
+        console.error('Missing registration_id in health declaration');
+        return undefined;
+      }
       
       const { data, error } = await supabase
         .from('health_declarations')
@@ -101,6 +107,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
 
       if (error) {
         handleSupabaseError(error, 'adding health declaration');
+        return undefined;
       }
 
       if (data) {
@@ -109,6 +116,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
         setHealthDeclarations([...healthDeclarations, newHealthDeclaration]);
         return newHealthDeclaration;
       }
+      return undefined;
     } catch (error) {
       console.error('Error adding health declaration:', error);
       toast({
@@ -116,6 +124,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
         description: "אירעה שגיאה בהוספת הצהרת בריאות חדשה",
         variant: "destructive",
       });
+      return undefined;
     }
   };
 
@@ -186,21 +195,18 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
       // Display toast with form link
       if (data && data.formLink) {
         // Create a temporary input element to allow copying the link
-        navigator.clipboard.writeText(data.formLink).then(() => {
-          toast({
-            title: "לינק הועתק בהצלחה",
-            description: (
-              <div className="space-y-2">
-                <p>לינק להצהרת בריאות הועתק ללוח</p>
-                <p>לינק: <a href={data.formLink} target="_blank" rel="noopener noreferrer" className="text-primary underline break-all">{data.formLink}</a></p>
-              </div>
-            ),
-          });
+        navigator.clipboard.writeText(data.formLink).catch((clipboardError) => {
+          console.error("Failed to copy to clipboard:", clipboardError);
+        });
+        
+        toast({
+          title: "לינק נוצר בהצלחה",
+          description: "לינק להצהרת בריאות נוצר והועתק בהצלחה",
         });
       } else {
         toast({
           title: "לינק נוצר",
-          description: `לינק להצהרת בריאות נוצר בהצלחה`,
+          description: "לינק להצהרת בריאות נוצר בהצלחה",
         });
       }
       

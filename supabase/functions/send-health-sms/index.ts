@@ -13,7 +13,7 @@ const corsHeaders = {
 
 // Setup interface for request body
 interface SendSMSRequest {
-  phone: string;
+  phone?: string;
   declarationId: string;
 }
 
@@ -36,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
     const formLink = `${origin}/health-form?id=${declarationId}`;
     
     // Log the form link
-    console.log(`Form link generated: ${formLink}`);
+    console.log(`Form link generated: ${formLink} for declaration ID: ${declarationId}`);
     
     // Update the health declaration entry in the database
     const { error } = await supabase
@@ -49,6 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
       .eq('id', declarationId);
     
     if (error) {
+      console.error('Error updating health declaration:', error);
       throw new Error(`Error updating health declaration: ${error.message}`);
     }
 

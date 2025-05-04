@@ -9,10 +9,6 @@ import {
   DialogFooter 
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/components/ui/use-toast';
 import { HealthDeclaration } from '@/types';
 import { useData } from '@/context/DataContext';
@@ -36,65 +32,66 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
   healthDeclaration,
   afterSubmit
 }) => {
-  const [phone, setPhone] = useState(defaultPhone);
   const { addHealthDeclaration, sendHealthDeclarationSMS, updateHealthDeclaration } = useData();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendSMS = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate phone number
-    if (!phone || phone.trim() === '') {
-      toast({
-        title: "שגיאה",
-        description: "יש להזין מספר טלפון",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const handleGenerateLink = async () => {
+    // This function now just generates the link, no SMS sending
     setIsLoading(true);
     
     try {
       if (healthDeclaration) {
-        // If we have an existing health declaration, update the phone number if needed
-        if (healthDeclaration.phone !== phone) {
-          await updateHealthDeclaration(healthDeclaration.id, { phone });
-        }
-        // Send SMS
-        await sendHealthDeclarationSMS(healthDeclaration.id, phone);
-      } else {
-        // Create a new health declaration
-        const newDeclaration = await addHealthDeclaration({
-          registrationId: registrationId,
-          phone: phone,
-          formStatus: 'pending',
+        // We already have a health declaration, just update its status
+        await updateHealthDeclaration(healthDeclaration.id, { 
+          formStatus: 'sent',
           sentAt: new Date().toISOString()
         });
         
-        if (newDeclaration) {
-          // Send SMS for the new declaration
-          await sendHealthDeclarationSMS(newDeclaration.id, phone);
-        } else {
+        // Generate link
+        const origin = window.location.origin;
+        const formLink = `${origin}/health-form?id=${healthDeclaration.id}`;
+        
+        // Copy link to clipboard
+        await navigator.clipboard.writeText(formLink);
+        toast({
+          title: "לינק הועתק בהצלחה",
+          description: `הלינק להצהרת בריאות עבור ${participantName} הועתק ללוח: ${formLink}`
+        });
+      } else {
+        // Create a new health declaration
+        const newDeclaration = {
+          registrationId: registrationId,
+          phone: defaultPhone,
+          formStatus: 'pending' as const,
+          sentAt: new Date().toISOString()
+        };
+        
+        const createdDeclaration = await addHealthDeclaration(newDeclaration);
+        if (!createdDeclaration) {
           throw new Error("Failed to create health declaration");
         }
+        
+        // Generate link
+        const origin = window.location.origin;
+        const formLink = `${origin}/health-form?id=${createdDeclaration.id}`;
+        
+        // Copy link to clipboard
+        await navigator.clipboard.writeText(formLink);
+        toast({
+          title: "לינק הועתק בהצלחה",
+          description: `הלינק להצהרת בריאות עבור ${participantName} הועתק ללוח: ${formLink}`
+        });
       }
-      
-      // Show success message
-      toast({
-        title: "הצהרת בריאות נשלחה",
-        description: `הצהרת בריאות נשלחה למספר ${phone}`,
-      });
       
       // Close the form and refresh if needed
       onOpenChange(false);
       if (afterSubmit) afterSubmit();
       
     } catch (error) {
-      console.error('Error sending health declaration SMS:', error);
+      console.error('Error generating health declaration link:', error);
       toast({
         title: "שגיאה",
-        description: "אירעה שגיאה בשליחת הצהרת הבריאות",
+        description: "אירעה שגיאה ביצירת לינק להצהרת בריאות",
         variant: "destructive",
       });
     } finally {
@@ -106,38 +103,22 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>שליחת הצהרת בריאות</DialogTitle>
+          <DialogTitle>יצירת לינק להצהרת בריאות</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSendSMS}>
-          <div className="grid gap-4 py-4">
-            <div className="text-sm">
-              שליחת הצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
-            </div>
-            
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-left col-span-1">
-                טלפון
-              </Label>
-              <Input
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="הזן מספר טלפון"
-                className="col-span-3 text-right"
-                required
-              />
-            </div>
-            
-            <div className="text-xs text-muted-foreground">
-              הודעת SMS תישלח למספר זה עם קישור להצהרת הבריאות.
-            </div>
+        <div className="grid gap-4 py-4">
+          <div className="text-sm">
+            יצירת לינק להצהרת בריאות עבור: <span className="font-bold">{participantName}</span>
           </div>
-          <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'שולח...' : healthDeclaration?.formStatus === 'sent' ? 'שלח שוב' : 'שלח'}
-            </Button>
-          </DialogFooter>
-        </form>
+          
+          <div className="text-xs text-muted-foreground">
+            לחץ על הכפתור לייצר לינק להצהרת בריאות. הלינק יועתק אוטומטית ללוח שלך.
+          </div>
+        </div>
+        <DialogFooter>
+          <Button onClick={handleGenerateLink} disabled={isLoading}>
+            {isLoading ? 'מייצר לינק...' : healthDeclaration?.formStatus === 'sent' ? 'יצירת לינק מחדש' : 'צור לינק'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
