@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,78 +16,10 @@ const HealthFormPage: React.FC = () => {
   
   const declarationId = searchParams.get('id');
   const [isLoading, setIsLoading] = useState(false);
-  const [isFormLoading, setIsFormLoading] = useState(true);
   const [formState, setFormState] = useState({
     agreement: false,
     notes: '',
   });
-  const [healthDeclaration, setHealthDeclaration] = useState<any>(null);
-  const [participantName, setParticipantName] = useState<string>('');
-
-  useEffect(() => {
-    if (!declarationId) return;
-    
-    const fetchHealthDeclaration = async () => {
-      try {
-        // Fetch the health declaration
-        const { data: declarationData, error: declarationError } = await supabase
-          .from('health_declarations')
-          .select('*')
-          .eq('id', declarationId)
-          .single();
-          
-        if (declarationError) throw declarationError;
-        
-        if (declarationData) {
-          setHealthDeclaration(declarationData);
-          
-          // Fetch participant info if we have participant_id
-          if (declarationData.participant_id) {
-            const { data: participantData, error: participantError } = await supabase
-              .from('participants')
-              .select('firstname, lastname')
-              .eq('id', declarationData.participant_id)
-              .single();
-              
-            if (!participantError && participantData) {
-              setParticipantName(`${participantData.firstname} ${participantData.lastname}`);
-            }
-          }
-          
-          // If the form is already signed, pre-fill form state
-          if (declarationData.client_answer) {
-            try {
-              const clientAnswer = JSON.parse(declarationData.client_answer);
-              setFormState({
-                agreement: clientAnswer.agreement || false,
-                notes: clientAnswer.notes || '',
-              });
-            } catch (e) {
-              console.error('Error parsing client answer:', e);
-            }
-          }
-          
-          if (declarationData.notes) {
-            setFormState(prev => ({
-              ...prev,
-              notes: declarationData.notes
-            }));
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching health declaration:', error);
-        toast({
-          title: "שגיאה",
-          description: "אירעה שגיאה בטעינת הצהרת הבריאות",
-          variant: "destructive",
-        });
-      } finally {
-        setIsFormLoading(false);
-      }
-    };
-    
-    fetchHealthDeclaration();
-  }, [declarationId]);
 
   const handleAgreementChange = (checked: boolean) => {
     setFormState({ ...formState, agreement: checked });
@@ -149,18 +82,7 @@ const HealthFormPage: React.FC = () => {
     }
   };
 
-  if (isFormLoading) {
-    return (
-      <Card className="w-full max-w-md mx-auto mt-10">
-        <CardHeader>
-          <CardTitle>טוען...</CardTitle>
-          <CardDescription>אנא המתן בזמן שאנו טוענים את פרטי הצהרת הבריאות</CardDescription>
-        </CardHeader>
-      </Card>
-    );
-  }
-
-  if (!declarationId || !healthDeclaration) {
+  if (!declarationId) {
     return (
       <Card className="w-full max-w-md mx-auto mt-10">
         <CardHeader>
@@ -171,19 +93,12 @@ const HealthFormPage: React.FC = () => {
     );
   }
 
-  // Check if form is already signed
-  const isFormSigned = healthDeclaration.form_status === 'signed';
-
   return (
     <div className="container mx-auto py-10 px-4">
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle>הצהרת בריאות {participantName ? `עבור ${participantName}` : ''}</CardTitle>
-          <CardDescription>
-            {isFormSigned 
-              ? 'הצהרת הבריאות כבר נחתמה. תוכל לעיין בפרטיה.' 
-              : 'אנא מלא את הפרטים הבאים והצהר על בריאות המשתתף'}
-          </CardDescription>
+          <CardTitle>הצהרת בריאות</CardTitle>
+          <CardDescription>אנא מלא את הפרטים הבאים והצהר על בריאות המשתתף</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-6">
@@ -210,7 +125,6 @@ const HealthFormPage: React.FC = () => {
                   checked={formState.agreement}
                   onCheckedChange={checked => handleAgreementChange(checked === true)}
                   required
-                  disabled={isFormSigned}
                 />
                 <Label 
                   htmlFor="health-agreement" 
@@ -228,25 +142,14 @@ const HealthFormPage: React.FC = () => {
                 placeholder="אם יש מידע רפואי נוסף שעלינו לדעת, אנא ציין כאן"
                 value={formState.notes}
                 onChange={handleNotesChange}
-                disabled={isFormSigned}
               />
             </div>
           </CardContent>
           
           <CardFooter>
-            {!isFormSigned ? (
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isLoading || !formState.agreement}
-              >
-                {isLoading ? 'שולח...' : 'אישור הצהרה'}
-              </Button>
-            ) : (
-              <div className="w-full text-center text-green-600 font-medium">
-                הצהרת הבריאות אושרה בהצלחה
-              </div>
-            )}
+            <Button type="submit" className="w-full" disabled={isLoading || !formState.agreement}>
+              {isLoading ? 'שולח...' : 'אישור הצהרה'}
+            </Button>
           </CardFooter>
         </form>
       </Card>
