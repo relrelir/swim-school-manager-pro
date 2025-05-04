@@ -140,35 +140,6 @@ export const mapSeasonToDB = (season: any) => {
   };
 };
 
-// Helper to convert database field names to our TypeScript model for health declarations
-export const mapHealthDeclarationFromDB = (dbDeclaration: any) => {
-  return {
-    id: dbDeclaration.id,
-    registrationId: dbDeclaration.participant_id, // This is the mapping error - it should be participant_id, not registration_id
-    phone: dbDeclaration.phone_sent_to || '',     // Correct field name is phone_sent_to
-    formStatus: dbDeclaration.form_status,
-    sentAt: dbDeclaration.updated_at || '',
-    signedAt: dbDeclaration.submission_date,
-    notes: dbDeclaration.notes,
-    token: dbDeclaration.token
-  };
-};
-
-// Helper to convert our TypeScript model to database field names for health declarations
-export const mapHealthDeclarationToDB = (declaration: any) => {
-  const result: any = {};
-  
-  if (declaration.registrationId !== undefined) result.participant_id = declaration.registrationId; // Map to correct DB field
-  if (declaration.phone !== undefined) result.phone_sent_to = declaration.phone;                   // Map to correct DB field
-  if (declaration.formStatus !== undefined) result.form_status = declaration.formStatus;
-  if (declaration.sentAt !== undefined) result.updated_at = declaration.sentAt;
-  if (declaration.signedAt !== undefined) result.submission_date = declaration.signedAt;
-  if (declaration.notes !== undefined) result.notes = declaration.notes;
-  if (declaration.token !== undefined) result.token = declaration.token;
-  
-  return result;
-};
-
 // Helper to calculate current meeting number
 export const calculateCurrentMeeting = (product: any): { current: number, total: number } => {
   if (!product.startDate || !product.meetingsCount || !product.daysOfWeek || product.daysOfWeek.length === 0) {

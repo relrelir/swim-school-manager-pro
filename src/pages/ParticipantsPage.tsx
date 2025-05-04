@@ -1,9 +1,9 @@
+
 import React from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
 import { prepareParticipantsData, exportToCSV } from '@/utils/exportParticipants';
-import { Registration, Participant, Payment } from '@/types';
-import { generatePaymentReceipt, generatePaymentReport, downloadPDF } from '@/utils/pdfGenerator';
+import { Registration, Participant } from '@/types';
 
 import ParticipantsHeader from '@/components/participants/ParticipantsHeader';
 import ParticipantsContent from '@/components/participants/ParticipantsContent';
@@ -40,7 +40,6 @@ const ParticipantsPage: React.FC = () => {
     handleDeleteRegistration,
     handleUpdateHealthApproval,
     handleOpenHealthForm,
-    handlePrintHealthDeclaration,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
@@ -90,104 +89,6 @@ const ParticipantsPage: React.FC = () => {
     }
   };
 
-  // Handle PDF Export for a single receipt
-  const handlePrintReceipt = (registrationId: string, paymentId: string) => {
-    const registration = registrations.find(r => r.id === registrationId);
-    if (!registration) return;
-    
-    const participant = getParticipantForRegistration(registration);
-    if (!participant) return;
-    
-    const payments = getPaymentsForRegistration(registration);
-    const payment = payments.find(p => p.id === paymentId);
-    if (!payment) return;
-    
-    try {
-      const pdfDoc = generatePaymentReceipt(payment, registration, participant);
-      downloadPDF(pdfDoc, `קבלה_${payment.receiptNumber}_${participant.firstName}_${participant.lastName}.pdf`);
-      
-      toast({
-        title: "קבלה נוצרה בהצלחה",
-        description: `הקבלה עבור ${participant.firstName} ${participant.lastName} נוצרה בהצלחה`,
-      });
-    } catch (error) {
-      console.error('Error generating receipt:', error);
-      toast({
-        title: "שגיאה ביצירת קבלה",
-        description: "אירעה שגיאה ביצירת הקבלה",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Handle PDF Export for a registration report
-  const handleGenerateReport = (registrationId: string) => {
-    const registration = registrations.find(r => r.id === registrationId);
-    if (!registration) return;
-    
-    const participant = getParticipantForRegistration(registration);
-    if (!participant) return;
-    
-    try {
-      // For a single registration, create a filtered report
-      const pdfDoc = generatePaymentReport(
-        [registration],
-        getParticipantForRegistration,
-        getPaymentsForRegistration,
-        product?.name
-      );
-      
-      downloadPDF(pdfDoc, `דוח_תשלומים_${participant.firstName}_${participant.lastName}.pdf`);
-      
-      toast({
-        title: "דוח נוצר בהצלחה",
-        description: `הדוח עבור ${participant.firstName} ${participant.lastName} נוצר בהצלחה`,
-      });
-    } catch (error) {
-      console.error('Error generating report:', error);
-      toast({
-        title: "שגיאה ביצירת דוח",
-        description: "אירעה שגיאה ביצירת הדוח",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Handle PDF Export for all registrations
-  const handleGenerateFullReport = () => {
-    if (registrations.length === 0) {
-      toast({
-        title: "אין נתונים לדוח",
-        description: "אין משתתפים רשומים למוצר זה",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      const pdfDoc = generatePaymentReport(
-        registrations,
-        getParticipantForRegistration,
-        getPaymentsForRegistration,
-        product?.name
-      );
-      
-      downloadPDF(pdfDoc, `דוח_תשלומים_מלא_${product?.name || 'מוצר'}.pdf`);
-      
-      toast({
-        title: "דוח מלא נוצר בהצלחה",
-        description: `דוח תשלומים מלא עבור ${product?.name} נוצר בהצלחה`,
-      });
-    } catch (error) {
-      console.error('Error generating full report:', error);
-      toast({
-        title: "שגיאה ביצירת דוח",
-        description: "אירעה שגיאה ביצירת הדוח המלא",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Handler for opening add participant dialog
   const handleOpenAddParticipant = () => {
     resetForm();
@@ -225,17 +126,6 @@ const ParticipantsPage: React.FC = () => {
     handleApplyDiscount(amount, setIsAddPaymentOpen);
   };
 
-  // Adapter function for printing receipt by registration and payment ID
-  const handlePrintReceiptAdapter = (paymentId: string) => {
-    if (!currentRegistration) return;
-    handlePrintReceipt(currentRegistration.id, paymentId);
-  };
-
-  // Adapter function for printing health declaration
-  const handlePrintHealthDeclarationAdapter = (registrationId: string) => {
-    handlePrintHealthDeclaration(registrationId);
-  };
-
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -243,7 +133,6 @@ const ParticipantsPage: React.FC = () => {
         product={product}
         onExport={handleExportToCSV}
         onAddParticipant={handleOpenAddParticipant}
-        onGenerateReport={handleGenerateFullReport}
       />
 
       {/* Main Content */}
@@ -263,10 +152,7 @@ const ParticipantsPage: React.FC = () => {
         onDeleteRegistration={handleDeleteRegistration}
         onUpdateHealthApproval={updateHealthApprovalById}
         onOpenHealthForm={handleOpenHealthForm}
-        onPrintHealthDeclaration={handlePrintHealthDeclarationAdapter}
         onExport={handleExportToCSV}
-        onGenerateReport={handleGenerateReport}
-        onPrintReceipt={handlePrintReceipt}
       />
 
       {/* Dialogs */}
@@ -290,7 +176,6 @@ const ParticipantsPage: React.FC = () => {
         handleAddParticipant={handleAddParticipant}
         handleAddPayment={handleAddPayment}
         handleApplyDiscount={handleApplyDiscountWrapper}
-        onPrintReceipt={handlePrintReceiptAdapter}
       />
     </div>
   );

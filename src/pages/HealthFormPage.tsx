@@ -1,13 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Label } from '@/components/ui/label';
 
 const HealthFormPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -19,42 +20,6 @@ const HealthFormPage: React.FC = () => {
     agreement: false,
     notes: '',
   });
-  const [declaration, setDeclaration] = useState<any>(null);
-
-  // Fetch declaration details
-  useEffect(() => {
-    const fetchDeclaration = async () => {
-      if (!declarationId) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('health_declarations')
-          .select('*')
-          .eq('id', declarationId)
-          .single();
-          
-        if (error) {
-          throw error;
-        }
-        
-        if (data) {
-          setDeclaration(data);
-          
-          // If the form has already been signed, pre-populate with the answers
-          if (data.form_status === 'signed' && data.notes) {
-            setFormState({
-              agreement: true,
-              notes: data.notes || '',
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching declaration:', error);
-      }
-    };
-    
-    fetchDeclaration();
-  }, [declarationId]);
 
   const handleAgreementChange = (checked: boolean) => {
     setFormState({ ...formState, agreement: checked });
@@ -94,6 +59,7 @@ const HealthFormPage: React.FC = () => {
         .update({
           form_status: 'signed',
           signed_at: new Date().toISOString(),
+          client_answer: JSON.stringify(formState),
           notes: formState.notes
         })
         .eq('id', declarationId);
@@ -116,7 +82,6 @@ const HealthFormPage: React.FC = () => {
     }
   };
 
-  // Show error if no declaration ID is provided
   if (!declarationId) {
     return (
       <Card className="w-full max-w-md mx-auto mt-10">
@@ -124,21 +89,6 @@ const HealthFormPage: React.FC = () => {
           <CardTitle>שגיאה</CardTitle>
           <CardDescription>מזהה הצהרת בריאות חסר או לא תקין</CardDescription>
         </CardHeader>
-      </Card>
-    );
-  }
-
-  // Show message if form was already signed
-  if (declaration && declaration.form_status === 'signed') {
-    return (
-      <Card className="w-full max-w-md mx-auto mt-10">
-        <CardHeader>
-          <CardTitle>הצהרת בריאות</CardTitle>
-          <CardDescription>הצהרת הבריאות כבר מולאה ונשלחה בהצלחה!</CardDescription>
-        </CardHeader>
-        <CardFooter>
-          <Button onClick={() => window.close()} className="w-full">סגור</Button>
-        </CardFooter>
       </Card>
     );
   }

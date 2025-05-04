@@ -1,55 +1,45 @@
 
 import React from 'react';
-import { Product } from '@/types';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { UserPlus, FileDown, Printer } from 'lucide-react';
+import { Product } from '@/types';
+import { ArrowRight, Plus, FileDown } from 'lucide-react';
 
 interface ParticipantsHeaderProps {
   product: Product | undefined;
   onExport: () => void;
   onAddParticipant: () => void;
-  onGenerateReport?: () => void;
 }
 
-const ParticipantsHeader: React.FC<ParticipantsHeaderProps> = ({
-  product,
+const ParticipantsHeader: React.FC<ParticipantsHeaderProps> = ({ 
+  product, 
   onExport,
-  onAddParticipant,
-  onGenerateReport
+  onAddParticipant 
 }) => {
+  const navigate = useNavigate();
+  
   return (
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-2 md:space-y-0">
-      <h1 className="text-2xl font-bold">
-        {product ? `משתתפים: ${product.name}` : 'רשימת משתתפים'}
-      </h1>
-      
-      <div className="flex flex-wrap space-x-2 space-y-2 md:space-y-0">
-        <Button 
-          variant="outline"
-          onClick={onExport} 
-          className="flex items-center"
-        >
-          <FileDown className="mr-2 h-4 w-4" />
-          ייצוא CSV
-        </Button>
-        
-        {onGenerateReport && (
-          <Button 
-            variant="outline"
-            onClick={onGenerateReport} 
-            className="flex items-center mr-2"
-          >
-            <Printer className="mr-2 h-4 w-4" />
-            ייצוא PDF
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col">
+        <div className="flex items-center gap-2 mb-1">
+          <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="flex gap-2">
+            <ArrowRight className="h-4 w-4" />
+            <span>חזרה למוצרים</span>
           </Button>
-        )}
-        
-        <Button 
-          onClick={onAddParticipant} 
-          className="flex items-center mr-2"
-        >
-          <UserPlus className="mr-2 h-4 w-4" />
-          הוספת משתתף
+        </div>
+        <h1 className="text-2xl font-bold font-alef">
+          {product ? `משתתפים ב${product.name}` : 'משתתפים'}
+        </h1>
+      </div>
+      
+      <div className="flex gap-2">
+        <Button onClick={onExport} variant="outline" className="flex items-center gap-2">
+          <FileDown className="h-4 w-4" />
+          <span>ייצוא CSV</span>
+        </Button>
+        <Button onClick={onAddParticipant} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          <span>הוסף משתתף</span>
         </Button>
       </div>
     </div>

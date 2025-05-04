@@ -2,22 +2,19 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Registration } from '@/types';
-import { Printer } from 'lucide-react';
 
 interface TableRowActionsProps {
   registration: Registration;
   hasPayments: boolean;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
-  onGenerateReport?: (registrationId: string) => void;
 }
 
 const TableRowActions: React.FC<TableRowActionsProps> = ({
   registration,
   hasPayments,
   onAddPayment,
-  onDeleteRegistration,
-  onGenerateReport
+  onDeleteRegistration
 }) => {
   return (
     <div className="flex space-x-2">
@@ -29,16 +26,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       >
         הוסף תשלום
       </Button>
-      {hasPayments && onGenerateReport && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onGenerateReport(registration.id)}
-        >
-          <Printer className="h-4 w-4 ml-1" />
-          דוח
-        </Button>
-      )}
       <Button
         variant="destructive"
         size="sm"

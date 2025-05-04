@@ -53,7 +53,6 @@ interface ParticipantsDialogsProps {
   handleAddParticipant: (e: React.FormEvent) => void;
   handleAddPayment: (e: React.FormEvent) => void;
   handleApplyDiscount: (amount: number) => void;
-  onPrintReceipt?: (paymentId: string) => void;
 }
 
 const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
@@ -76,7 +75,6 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
   handleAddParticipant,
   handleAddPayment,
   handleApplyDiscount,
-  onPrintReceipt,
 }) => {
   return (
     <>
@@ -101,7 +99,6 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
         setNewPayment={setNewPayment}
         onSubmit={handleAddPayment}
         onApplyDiscount={handleApplyDiscount}
-        onPrintReceipt={onPrintReceipt}
       />
 
       {/* Health Declaration Form */}

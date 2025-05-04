@@ -11,7 +11,7 @@ import ParticipantsTableHeader from './ParticipantsTableHeader';
 interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registrationId: string) => Payment[];
+  getPaymentsForRegistration: (registration: Registration) => Payment[];
   getHealthDeclarationForRegistration?: (registrationId: string) => HealthDeclaration | undefined;
   calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   getStatusClassName: (status: PaymentStatus) => string;
@@ -19,10 +19,7 @@ interface ParticipantsTableProps {
   onDeleteRegistration: (registrationId: string) => void;
   onUpdateHealthApproval: (participant: Participant, isApproved: boolean) => void;
   onOpenHealthForm?: (registrationId: string) => void;
-  onPrintHealthDeclaration?: (registrationId: string) => void;
   onExport?: () => void;
-  onGenerateReport?: (registrationId: string) => void;
-  onPrintReceipt?: (registrationId: string, paymentId: string) => void;
 }
 
 const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
@@ -36,10 +33,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onDeleteRegistration,
   onUpdateHealthApproval,
   onOpenHealthForm,
-  onPrintHealthDeclaration,
   onExport,
-  onGenerateReport,
-  onPrintReceipt,
 }) => {
   // Helper to calculate discount amount
   const calculateDiscountAmount = (registration: Registration) => {
@@ -50,13 +44,6 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   const calculateEffectiveRequiredAmount = (registration: Registration) => {
     const discountAmount = registration.discountAmount || 0;
     return Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
-  };
-
-  // Helper for print receipts with registration context
-  const handlePrintReceipt = (registrationId: string, payment: Payment) => {
-    if (onPrintReceipt) {
-      onPrintReceipt(registrationId, payment.id);
-    }
   };
 
   return (
@@ -82,7 +69,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
         <TableBody>
           {registrations.map((registration) => {
             const participant = getParticipantForRegistration(registration);
-            const registrationPayments = getPaymentsForRegistration(registration.id);
+            const registrationPayments = getPaymentsForRegistration(registration);
             const discountAmount = calculateDiscountAmount(registration);
             const effectiveRequiredAmount = calculateEffectiveRequiredAmount(registration);
             const status = calculatePaymentStatus(registration);
@@ -108,9 +95,6 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     payments={registrationPayments} 
                     discountAmount={discountAmount}
                     discountApproved={registration.discountApproved}
-                    onPrintReceipt={onPrintReceipt ? 
-                      (paymentId) => onPrintReceipt(registration.id, paymentId) : 
-                      undefined}
                   />
                 </TableCell>
                 <TableCell>
@@ -128,7 +112,6 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     healthDeclaration={healthDeclaration}
                     onUpdateHealthApproval={onUpdateHealthApproval}
                     onOpenHealthForm={onOpenHealthForm}
-                    onPrintHealthDeclaration={onPrintHealthDeclaration}
                   />
                 </TableCell>
                 <TableCell className={`font-semibold ${getStatusClassName(status)}`}>
@@ -140,9 +123,6 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     hasPayments={hasPayments}
                     onAddPayment={onAddPayment}
                     onDeleteRegistration={onDeleteRegistration}
-                    onGenerateReport={onGenerateReport ? 
-                      () => onGenerateReport(registration.id) : 
-                      undefined}
                   />
                 </TableCell>
               </TableRow>
