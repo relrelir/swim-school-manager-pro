@@ -36,7 +36,7 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
  * Parse medical notes from the notes field
  */
 export const parseMedicalNotes = (notes: string | null): string => {
-  if (!notes) return '';
+  if (!notes) return 'אין הערות נוספות';
   
   try {
     console.log("Parsing medical notes from:", notes);
@@ -44,7 +44,7 @@ export const parseMedicalNotes = (notes: string | null): string => {
     const parsedNotes = JSON.parse(notes);
     const result = parsedNotes.notes || parsedNotes.medicalNotes || '';
     console.log("Successfully parsed medical notes as JSON:", result);
-    return result;
+    return result || 'אין הערות נוספות';
   } catch (e) {
     console.log("Failed to parse medical notes as JSON, trying regex");
     
@@ -54,7 +54,7 @@ export const parseMedicalNotes = (notes: string | null): string => {
     
     const result = notesMatch ? notesMatch[1].trim() : '';
     console.log("Extracted medical notes using regex:", result);
-    return result;
+    return result || 'אין הערות נוספות';
   }
 };
 
