@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import AddParticipantDialog from '@/components/participants/AddParticipantDialog';
 import AddPaymentDialog from '@/components/participants/AddPaymentDialog';
@@ -76,6 +76,11 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
   handleAddPayment,
   handleApplyDiscount,
 }) => {
+  // Add debug logging
+  useEffect(() => {
+    console.log("ParticipantsDialogs rendered with currentRegistration:", currentRegistration);
+  }, [currentRegistration, isAddPaymentOpen]);
+
   return (
     <>
       {/* Add Participant Dialog */}

@@ -1,6 +1,6 @@
 
 /**
- * Hook for adapting health form functions to consistent signatures
+ * Adapter hook for health form-related functions
  */
 export const useHealthFormAdapters = (
   baseHandleOpenHealthForm: (registrationId: string) => void

@@ -1,8 +1,8 @@
 
-import { Participant, Registration } from '@/types';
+import { Participant } from '@/types';
 
 /**
- * Hook for adapting participant functions to expected signatures
+ * Adapter hook for action-related functions
  */
 export const useActionAdapters = (
   updateParticipant: (participant: Participant) => void

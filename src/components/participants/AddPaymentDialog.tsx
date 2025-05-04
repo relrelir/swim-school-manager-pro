@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,7 +38,10 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
 }) => {
   const [isDiscount, setIsDiscount] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
-  const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  
+  useEffect(() => {
+    console.log("AddPaymentDialog rendered with currentRegistration:", currentRegistration);
+  }, [currentRegistration]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

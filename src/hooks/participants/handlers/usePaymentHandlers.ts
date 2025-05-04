@@ -7,26 +7,29 @@ export const usePaymentHandlers = (
     e: React.FormEvent,
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any
+    setNewPayment: any,
+    currentRegistration?: any
   ) => any,
-  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any
+  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void, currentRegistration?: any) => any
 ) => {
   const handleAddPayment = (
     e: React.FormEvent, 
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any
+    setNewPayment: any,
+    currentRegistration?: any
   ) => {
     return baseHandleAddPayment(
       e,
       newPayment,
       setIsAddPaymentOpen,
-      setNewPayment
+      setNewPayment,
+      currentRegistration
     );
   };
 
-  const handleApplyDiscount = (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => {
-    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen);
+  const handleApplyDiscount = (amount: number, setIsAddPaymentOpen: (open: boolean) => void, currentRegistration?: any) => {
+    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen, currentRegistration);
   };
 
   return {
