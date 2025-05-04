@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
@@ -41,6 +40,7 @@ const ParticipantsPage: React.FC = () => {
     handleDeleteRegistration,
     handleUpdateHealthApproval,
     handleOpenHealthForm,
+    handlePrintHealthDeclaration,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
@@ -231,6 +231,11 @@ const ParticipantsPage: React.FC = () => {
     handlePrintReceipt(currentRegistration.id, paymentId);
   };
 
+  // Adapter function for printing health declaration
+  const handlePrintHealthDeclarationAdapter = (registrationId: string) => {
+    handlePrintHealthDeclaration(registrationId);
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -258,6 +263,7 @@ const ParticipantsPage: React.FC = () => {
         onDeleteRegistration={handleDeleteRegistration}
         onUpdateHealthApproval={updateHealthApprovalById}
         onOpenHealthForm={handleOpenHealthForm}
+        onPrintHealthDeclaration={handlePrintHealthDeclarationAdapter}
         onExport={handleExportToCSV}
         onGenerateReport={handleGenerateReport}
         onPrintReceipt={handlePrintReceipt}

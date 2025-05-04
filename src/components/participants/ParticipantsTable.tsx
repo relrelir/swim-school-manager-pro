@@ -19,6 +19,7 @@ interface ParticipantsTableProps {
   onDeleteRegistration: (registrationId: string) => void;
   onUpdateHealthApproval: (participant: Participant, isApproved: boolean) => void;
   onOpenHealthForm?: (registrationId: string) => void;
+  onPrintHealthDeclaration?: (registrationId: string) => void;
   onExport?: () => void;
   onGenerateReport?: (registrationId: string) => void;
   onPrintReceipt?: (registrationId: string, paymentId: string) => void;
@@ -35,6 +36,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onDeleteRegistration,
   onUpdateHealthApproval,
   onOpenHealthForm,
+  onPrintHealthDeclaration,
   onExport,
   onGenerateReport,
   onPrintReceipt,
@@ -126,6 +128,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     healthDeclaration={healthDeclaration}
                     onUpdateHealthApproval={onUpdateHealthApproval}
                     onOpenHealthForm={onOpenHealthForm}
+                    onPrintHealthDeclaration={onPrintHealthDeclaration}
                   />
                 </TableCell>
                 <TableCell className={`font-semibold ${getStatusClassName(status)}`}>

@@ -97,7 +97,8 @@ export const useParticipants = () => {
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
     handleOpenHealthForm: baseHandleOpenHealthForm,
-    handleUpdateHealthApproval
+    handleUpdateHealthApproval,
+    handlePrintHealthDeclaration
   } = useParticipantHealth(
     getHealthDeclarationForRegistration,
     sendHealthDeclarationSMS,
@@ -188,6 +189,7 @@ export const useParticipants = () => {
     handleDeleteRegistration,
     handleUpdateHealthApproval,
     handleOpenHealthForm,
+    handlePrintHealthDeclaration,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,

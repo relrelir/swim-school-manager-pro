@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
+import { generateHealthDeclarationPDF, downloadPDF } from '@/utils/pdfGenerator';
 
 export const useParticipantHealth = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
@@ -10,7 +11,7 @@ export const useParticipantHealth = (
   updateHealthDeclaration: (declaration: HealthDeclaration) => void,
   updateParticipant: (participant: Participant) => void,
   participants: Participant[],
-  registrations: Registration[] // Add registrations parameter
+  registrations: Registration[]
 ) => {
   const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
   const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<{
@@ -65,6 +66,64 @@ export const useParticipantHealth = (
       }
     }
   };
+  
+  // Handle printing health declaration
+  const handlePrintHealthDeclaration = (registrationId: string) => {
+    // Find the corresponding registration and participant
+    const registration = registrations.find(reg => reg.id === registrationId);
+    if (!registration) {
+      toast({
+        title: "שגיאה",
+        description: "לא נמצא רישום למשתתף זה",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const participant = participants.find(p => p.id === registration.participantId);
+    if (!participant) {
+      toast({
+        title: "שגיאה",
+        description: "לא נמצאו פרטי משתתף",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Get health declaration or create a new one for printing
+    let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+    
+    if (!healthDeclaration) {
+      // If there's no health declaration yet, we'll create a temporary one for printing
+      healthDeclaration = {
+        id: 'temp-print',
+        registrationId: registrationId,
+        phone: participant.phone,
+        formStatus: 'pending',
+        sentAt: new Date().toISOString()
+      };
+    }
+    
+    try {
+      // Generate PDF
+      const pdfDoc = generateHealthDeclarationPDF(healthDeclaration, participant);
+      
+      // Download PDF
+      downloadPDF(pdfDoc, `הצהרת_בריאות_${participant.firstName}_${participant.lastName}.pdf`);
+      
+      toast({
+        title: "הצהרת בריאות נוצרה בהצלחה",
+        description: `הצהרת בריאות עבור ${participant.firstName} ${participant.lastName} נוצרה בהצלחה`,
+      });
+    } catch (error) {
+      console.error('Error generating health declaration:', error);
+      toast({
+        title: "שגיאה ביצירת הצהרת בריאות",
+        description: "אירעה שגיאה ביצירת הצהרת הבריאות",
+        variant: "destructive",
+      });
+    }
+  };
 
   return {
     isHealthFormOpen,
@@ -72,6 +131,7 @@ export const useParticipantHealth = (
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
     handleOpenHealthForm,
-    handleUpdateHealthApproval
+    handleUpdateHealthApproval,
+    handlePrintHealthDeclaration
   };
 };

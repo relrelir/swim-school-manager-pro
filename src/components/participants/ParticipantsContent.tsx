@@ -21,6 +21,7 @@ interface ParticipantsContentProps {
   onDeleteRegistration: (registrationId: string) => void;
   onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
   onOpenHealthForm?: (registrationId: string) => void;
+  onPrintHealthDeclaration?: (registrationId: string) => void;
   onExport?: () => void;
   onGenerateReport?: (registrationId: string) => void;
   onPrintReceipt?: (registrationId: string, paymentId: string) => void;
@@ -42,6 +43,7 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
   onDeleteRegistration,
   onUpdateHealthApproval,
   onOpenHealthForm,
+  onPrintHealthDeclaration,
   onExport,
   onGenerateReport,
   onPrintReceipt,
@@ -78,6 +80,7 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
               }
             }}
             onOpenHealthForm={onOpenHealthForm}
+            onPrintHealthDeclaration={onPrintHealthDeclaration}
             onExport={onExport}
             onGenerateReport={onGenerateReport}
             onPrintReceipt={onPrintReceipt}

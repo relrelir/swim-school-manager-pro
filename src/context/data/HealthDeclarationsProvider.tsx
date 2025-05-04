@@ -185,10 +185,31 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
         )
       );
 
-      toast({
-        title: "SMS נשלח",
-        description: `קישור להצהרת בריאות נשלח למספר ${phone}`,
-      });
+      // Display toast with form link
+      if (data && data.formLink) {
+        // Create a temporary input element to allow copying the link
+        const textArea = document.createElement('textarea');
+        textArea.value = data.formLink;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        toast({
+          title: "SMS נשלח",
+          description: (
+            <div className="space-y-2">
+              <p>קישור להצהרת בריאות נשלח למספר {phone}</p>
+              <p>קישור הועתק ללוח: <a href={data.formLink} target="_blank" rel="noopener noreferrer" className="text-primary underline">{data.formLink}</a></p>
+            </div>
+          ),
+        });
+      } else {
+        toast({
+          title: "SMS נשלח",
+          description: `קישור להצהרת בריאות נשלח למספר ${phone}`,
+        });
+      }
       
       console.log('SMS sent successfully:', data);
     } catch (error) {

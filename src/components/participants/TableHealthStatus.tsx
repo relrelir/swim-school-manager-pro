@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Registration, Participant, HealthDeclaration } from '@/types';
+import { Printer } from 'lucide-react';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -10,6 +11,7 @@ interface TableHealthStatusProps {
   healthDeclaration?: HealthDeclaration;
   onUpdateHealthApproval: (participant: Participant, isApproved: boolean) => void;
   onOpenHealthForm?: (registrationId: string) => void;
+  onPrintHealthDeclaration?: (registrationId: string) => void;
 }
 
 const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
@@ -17,7 +19,8 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   participant,
   healthDeclaration,
   onUpdateHealthApproval,
-  onOpenHealthForm
+  onOpenHealthForm,
+  onPrintHealthDeclaration
 }) => {
   if (!onOpenHealthForm) {
     if (!participant) return null;
@@ -35,35 +38,78 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   
   if (!healthDeclaration || healthDeclaration.formStatus === 'pending') {
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onOpenHealthForm(registration.id)}
-        className="w-full"
-      >
-        שלח הצהרת בריאות
-      </Button>
+      <div className="flex flex-col space-y-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onOpenHealthForm(registration.id)}
+          className="w-full"
+        >
+          שלח הצהרת בריאות
+        </Button>
+        
+        {onPrintHealthDeclaration && participant && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPrintHealthDeclaration(registration.id)}
+            className="w-full flex items-center justify-center"
+            disabled={!participant}
+          >
+            <Printer className="h-4 w-4 ml-1" />
+            הדפסת טופס
+          </Button>
+        )}
+      </div>
     );
   } else if (healthDeclaration.formStatus === 'sent') {
     return (
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onOpenHealthForm(registration.id)}
-        className="w-full bg-yellow-100 hover:bg-yellow-200 border-yellow-300"
-      >
-        שלח שוב
-      </Button>
+      <div className="flex flex-col space-y-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onOpenHealthForm(registration.id)}
+          className="w-full bg-yellow-100 hover:bg-yellow-200 border-yellow-300"
+        >
+          שלח שוב
+        </Button>
+        
+        {onPrintHealthDeclaration && participant && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPrintHealthDeclaration(registration.id)}
+            className="w-full flex items-center justify-center"
+          >
+            <Printer className="h-4 w-4 ml-1" />
+            הדפסת טופס
+          </Button>
+        )}
+      </div>
     );
   } else if (healthDeclaration.formStatus === 'signed') {
     if (!participant) return null;
     
     return (
-      <Checkbox 
-        checked={true}
-        disabled
-        className="mx-auto block"
-      />
+      <div className="flex flex-col space-y-2">
+        <Checkbox 
+          checked={true}
+          disabled
+          className="mx-auto block"
+        />
+        
+        {onPrintHealthDeclaration && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onPrintHealthDeclaration(registration.id)}
+            className="w-full flex items-center justify-center"
+          >
+            <Printer className="h-4 w-4 ml-1" />
+            הדפס הצהרה
+          </Button>
+        )}
+      </div>
     );
   }
   

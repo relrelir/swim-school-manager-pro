@@ -36,7 +36,8 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`SMS would be sent to ${phone} for declaration ${declarationId}`);
     
     // Generate a link to the health form
-    const formLink = `${req.headers.get("origin")}/health-form?id=${declarationId}`;
+    const origin = req.headers.get("origin") || "https://your-app-url.com";
+    const formLink = `${origin}/health-form?id=${declarationId}`;
     
     // Log the form link (in a real app this would be sent via SMS)
     console.log(`Form link: ${formLink}`);
@@ -58,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: "SMS sent successfully",
+        message: "SMS נשלח בהצלחה",
         formLink
       }),
       {
