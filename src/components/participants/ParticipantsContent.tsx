@@ -57,7 +57,7 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
       />
       
       {registrations.length === 0 ? (
-        <EmptyParticipantsState onAddClick={onExport} />
+        <EmptyParticipantsState onExport={onExport} />
       ) : (
         <div className="bg-card rounded-lg shadow-card overflow-hidden">
           <ParticipantsTable
