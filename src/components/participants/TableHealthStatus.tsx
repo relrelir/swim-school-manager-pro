@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Registration, Participant, HealthDeclaration } from '@/types';
-import { Printer } from 'lucide-react';
+import { Printer, Link } from 'lucide-react';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -45,7 +45,8 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
           onClick={() => onOpenHealthForm(registration.id)}
           className="w-full"
         >
-          שלח הצהרת בריאות
+          <Link className="h-4 w-4 ml-1" />
+          יצירת לינק הצהרה
         </Button>
         
         {onPrintHealthDeclaration && participant && (
@@ -71,7 +72,8 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
           onClick={() => onOpenHealthForm(registration.id)}
           className="w-full bg-yellow-100 hover:bg-yellow-200 border-yellow-300"
         >
-          שלח שוב
+          <Link className="h-4 w-4 ml-1" />
+          צור לינק מחדש
         </Button>
         
         {onPrintHealthDeclaration && participant && (

@@ -23,7 +23,6 @@ const mapHealthDeclarationFromDB = (dbDeclaration: any): HealthDeclaration => {
     formStatus: dbDeclaration.form_status as HealthDeclarationStatus,
     sentAt: dbDeclaration.sent_at || '',
     signedAt: dbDeclaration.signed_at,
-    clientAnswer: dbDeclaration.client_answer,
     notes: dbDeclaration.notes
   };
 };
@@ -37,7 +36,6 @@ const mapHealthDeclarationToDB = (declaration: Partial<HealthDeclaration>): any 
   if (declaration.formStatus !== undefined) result.form_status = declaration.formStatus;
   if (declaration.sentAt !== undefined) result.sent_at = declaration.sentAt;
   if (declaration.signedAt !== undefined) result.signed_at = declaration.signedAt;
-  if (declaration.clientAnswer !== undefined) result.client_answer = declaration.clientAnswer;
   if (declaration.notes !== undefined) result.notes = declaration.notes;
   
   return result;
@@ -156,10 +154,10 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
     return healthDeclarations.find(declaration => declaration.registrationId === registrationId);
   };
 
-  // Send SMS for health declaration
+  // Generate and copy health declaration link
   const sendHealthDeclarationSMS = async (healthDeclarationId: string, phone: string) => {
     try {
-      // Call the Supabase edge function to send SMS
+      // Call the Supabase edge function to generate link
       const { error, data } = await supabase.functions.invoke('send-health-sms', {
         body: {
           declarationId: healthDeclarationId,
@@ -168,7 +166,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
       });
       
       if (error) {
-        throw new Error(`Error sending SMS: ${error.message}`);
+        throw new Error(`Error generating health form link: ${error.message}`);
       }
 
       // Update local state
@@ -188,35 +186,30 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
       // Display toast with form link
       if (data && data.formLink) {
         // Create a temporary input element to allow copying the link
-        const textArea = document.createElement('textarea');
-        textArea.value = data.formLink;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        toast({
-          title: "SMS נשלח",
-          description: (
-            <div className="space-y-2">
-              <p>קישור להצהרת בריאות נשלח למספר {phone}</p>
-              <p>קישור הועתק ללוח: <a href={data.formLink} target="_blank" rel="noopener noreferrer" className="text-primary underline">{data.formLink}</a></p>
-            </div>
-          ),
+        navigator.clipboard.writeText(data.formLink).then(() => {
+          toast({
+            title: "לינק הועתק בהצלחה",
+            description: (
+              <div className="space-y-2">
+                <p>לינק להצהרת בריאות הועתק ללוח</p>
+                <p>לינק: <a href={data.formLink} target="_blank" rel="noopener noreferrer" className="text-primary underline break-all">{data.formLink}</a></p>
+              </div>
+            ),
+          });
         });
       } else {
         toast({
-          title: "SMS נשלח",
-          description: `קישור להצהרת בריאות נשלח למספר ${phone}`,
+          title: "לינק נוצר",
+          description: `לינק להצהרת בריאות נוצר בהצלחה`,
         });
       }
       
-      console.log('SMS sent successfully:', data);
+      console.log('Health declaration link generated successfully:', data);
     } catch (error) {
-      console.error('Error sending SMS:', error);
+      console.error('Error generating health declaration link:', error);
       toast({
         title: "שגיאה",
-        description: "אירעה שגיאה בשליחת SMS",
+        description: "אירעה שגיאה ביצירת לינק להצהרת בריאות",
         variant: "destructive",
       });
       throw error;

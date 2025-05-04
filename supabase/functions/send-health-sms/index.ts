@@ -26,21 +26,17 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const { phone, declarationId }: SendSMSRequest = await req.json();
 
-    // Validate request parameters
-    if (!phone || !declarationId) {
-      throw new Error("Missing required parameters: phone and declarationId");
+    // Validate declarationId
+    if (!declarationId) {
+      throw new Error("Missing required parameter: declarationId");
     }
 
-    // In a real app, you would use an SMS service here (Twilio, etc.)
-    // For now, we'll just log it and simulate success
-    console.log(`SMS would be sent to ${phone} for declaration ${declarationId}`);
-    
     // Generate a link to the health form
     const origin = req.headers.get("origin") || "https://your-app-url.com";
     const formLink = `${origin}/health-form?id=${declarationId}`;
     
-    // Log the form link (in a real app this would be sent via SMS)
-    console.log(`Form link: ${formLink}`);
+    // Log the form link
+    console.log(`Form link generated: ${formLink}`);
     
     // Update the health declaration entry in the database
     const { error } = await supabase
@@ -48,7 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
       .update({
         form_status: 'sent',
         sent_at: new Date().toISOString(),
-        phone: phone
+        phone: phone || ''
       })
       .eq('id', declarationId);
     
@@ -59,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: "SMS נשלח בהצלחה",
+        message: "לינק הצהרת בריאות נוצר בהצלחה",
         formLink
       }),
       {

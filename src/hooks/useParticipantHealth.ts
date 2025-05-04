@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { generateHealthDeclarationPDF, downloadPDF } from '@/utils/pdfGenerator';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useParticipantHealth = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
@@ -21,28 +22,85 @@ export const useParticipantHealth = (
     declaration?: HealthDeclaration;
   } | null>(null);
 
-  // Handler for opening health form
-  const handleOpenHealthForm = (
-    registrationId: string, 
-    getParticipantForRegistration: (registration: Registration) => Participant | undefined, 
-    registrations: Registration[]
-  ) => {
+  // Generate a health declaration link
+  const generateHealthDeclarationLink = async (registrationId: string) => {
     const registration = registrations.find(reg => reg.id === registrationId);
-    if (!registration) return;
+    if (!registration) {
+      toast({
+        title: "שגיאה",
+        description: "לא נמצא רישום למשתתף זה",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const participant = getParticipantForRegistration(registration);
-    if (!participant) return;
+    const participant = participants.find(p => p.id === registration.participantId);
+    if (!participant) {
+      toast({
+        title: "שגיאה",
+        description: "לא נמצאו פרטי משתתף",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+    try {
+      // Check if a declaration already exists or create a new one
+      let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+      
+      if (!healthDeclaration) {
+        // Create a new health declaration
+        const newDeclaration = {
+          registrationId: registrationId,
+          phone: participant.phone || '',
+          formStatus: 'pending' as const,
+          sentAt: new Date().toISOString()
+        };
+        
+        const result = await addHealthDeclaration(newDeclaration);
+        if (result) {
+          healthDeclaration = result;
+        } else {
+          throw new Error("Failed to create health declaration");
+        }
+      }
 
-    setCurrentHealthDeclaration({
-      registrationId,
-      participantName: `${participant.firstName} ${participant.lastName}`,
-      phone: participant.phone,
-      declaration: healthDeclaration
-    });
+      // Generate a link based on host and declaration ID
+      const origin = window.location.origin;
+      const formLink = `${origin}/health-form?id=${healthDeclaration.id}`;
+      
+      // Update the health declaration status
+      await updateHealthDeclaration({
+        ...healthDeclaration,
+        formStatus: 'sent',
+        sentAt: new Date().toISOString()
+      });
 
-    setIsHealthFormOpen(true);
+      // Copy link to clipboard
+      navigator.clipboard.writeText(formLink).then(() => {
+        toast({
+          title: "לינק הועתק בהצלחה",
+          description: (
+            <div className="space-y-2">
+              <p>הלינק להצהרת הבריאות עבור {participant.firstName} {participant.lastName} הועתק ללוח</p>
+              <p>לינק: <a href={formLink} target="_blank" rel="noopener noreferrer" className="text-primary underline break-all">{formLink}</a></p>
+            </div>
+          ),
+        });
+      });
+    } catch (error) {
+      console.error('Error generating health declaration link:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה ביצירת לינק להצהרת בריאות",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handler for opening health form
+  const handleOpenHealthForm = (registrationId: string) => {
+    generateHealthDeclarationLink(registrationId);
   };
 
   // Handle updating health approval
