@@ -3,7 +3,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { HealthDeclaration, HealthDeclarationStatus } from '@/types';
 import { supabase } from '@/integrations/supabase/client';
-import { handleSupabaseError } from './utils';
+import { handleSupabaseError, mapHealthDeclarationFromDB, mapHealthDeclarationToDB } from './utils';
 
 interface HealthDeclarationsContextType {
   healthDeclarations: HealthDeclaration[];
@@ -13,33 +13,6 @@ interface HealthDeclarationsContextType {
   sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>;
   loading: boolean;
 }
-
-// Helper to map from DB column names to our TypeScript model
-const mapHealthDeclarationFromDB = (dbDeclaration: any): HealthDeclaration => {
-  return {
-    id: dbDeclaration.id,
-    registrationId: dbDeclaration.registration_id,
-    phone: dbDeclaration.phone || '',
-    formStatus: dbDeclaration.form_status as HealthDeclarationStatus,
-    sentAt: dbDeclaration.sent_at || '',
-    signedAt: dbDeclaration.signed_at,
-    notes: dbDeclaration.notes
-  };
-};
-
-// Helper to map from our TypeScript model to DB column names
-const mapHealthDeclarationToDB = (declaration: Partial<HealthDeclaration>): any => {
-  const result: any = {};
-  
-  if (declaration.registrationId !== undefined) result.registration_id = declaration.registrationId;
-  if (declaration.phone !== undefined) result.phone = declaration.phone;
-  if (declaration.formStatus !== undefined) result.form_status = declaration.formStatus;
-  if (declaration.sentAt !== undefined) result.sent_at = declaration.sentAt;
-  if (declaration.signedAt !== undefined) result.signed_at = declaration.signedAt;
-  if (declaration.notes !== undefined) result.notes = declaration.notes;
-  
-  return result;
-};
 
 const HealthDeclarationsContext = createContext<HealthDeclarationsContextType | null>(null);
 
@@ -68,7 +41,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
         }
 
         if (data) {
-          // Transform data to match our HealthDeclaration type
+          // Transform data to match our HealthDeclaration type using the updated mapHealthDeclarationFromDB
           const transformedDeclarations = data.map(declaration => mapHealthDeclarationFromDB(declaration));
           setHealthDeclarations(transformedDeclarations);
         }
@@ -90,13 +63,18 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
   // Add a health declaration
   const addHealthDeclaration = async (healthDeclaration: Omit<HealthDeclaration, 'id'>): Promise<HealthDeclaration | undefined> => {
     try {
-      // Convert to DB field names format
+      // Convert to DB field names format using the updated mapHealthDeclarationToDB
       const dbHealthDeclaration = mapHealthDeclarationToDB(healthDeclaration);
       
-      // Make sure registration_id is properly set
-      if (!dbHealthDeclaration.registration_id) {
-        console.error('Missing registration_id in health declaration');
+      // Make sure participant_id is properly set
+      if (!dbHealthDeclaration.participant_id) {
+        console.error('Missing participant_id in health declaration');
         return undefined;
+      }
+
+      // Make sure we have a token generated for the form
+      if (!dbHealthDeclaration.token) {
+        dbHealthDeclaration.token = crypto.randomUUID();
       }
       
       const { data, error } = await supabase

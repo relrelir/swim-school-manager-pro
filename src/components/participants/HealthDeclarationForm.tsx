@@ -1,6 +1,5 @@
 
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Dialog, 
   DialogContent, 
@@ -11,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { HealthDeclaration } from '@/types';
-import { useData } from '@/context/DataContext';
 
 interface HealthDeclarationFormProps {
   isOpen: boolean;
@@ -32,56 +30,26 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
   healthDeclaration,
   afterSubmit
 }) => {
-  const { addHealthDeclaration, sendHealthDeclarationSMS, updateHealthDeclaration } = useData();
   const [isLoading, setIsLoading] = useState(false);
 
+  // Handle link generation
   const handleGenerateLink = async () => {
-    // This function now just generates the link, no SMS sending
     setIsLoading(true);
     
     try {
-      if (healthDeclaration) {
-        // We already have a health declaration, just update its status
-        await updateHealthDeclaration(healthDeclaration.id, { 
-          formStatus: 'sent',
-          sentAt: new Date().toISOString()
-        });
-        
-        // Generate link
-        const origin = window.location.origin;
-        const formLink = `${origin}/health-form?id=${healthDeclaration.id}`;
-        
-        // Copy link to clipboard
-        await navigator.clipboard.writeText(formLink);
-        toast({
-          title: "לינק הועתק בהצלחה",
-          description: `הלינק להצהרת בריאות עבור ${participantName} הועתק ללוח: ${formLink}`
-        });
-      } else {
-        // Create a new health declaration
-        const newDeclaration = {
-          registrationId: registrationId,
-          phone: defaultPhone,
-          formStatus: 'pending' as const,
-          sentAt: new Date().toISOString()
-        };
-        
-        const createdDeclaration = await addHealthDeclaration(newDeclaration);
-        if (!createdDeclaration) {
-          throw new Error("Failed to create health declaration");
-        }
-        
-        // Generate link
-        const origin = window.location.origin;
-        const formLink = `${origin}/health-form?id=${createdDeclaration.id}`;
-        
-        // Copy link to clipboard
-        await navigator.clipboard.writeText(formLink);
-        toast({
-          title: "לינק הועתק בהצלחה",
-          description: `הלינק להצהרת בריאות עבור ${participantName} הועתק ללוח: ${formLink}`
-        });
-      }
+      // Generate the link
+      const origin = window.location.origin;
+      const formLink = healthDeclaration 
+        ? `${origin}/health-form?id=${healthDeclaration.id}` 
+        : `${origin}/health-form?registration=${registrationId}`;
+      
+      // Copy link to clipboard
+      await navigator.clipboard.writeText(formLink);
+      
+      toast({
+        title: "לינק הועתק בהצלחה",
+        description: `הלינק להצהרת בריאות עבור ${participantName} הועתק ללוח`
+      });
       
       // Close the form and refresh if needed
       onOpenChange(false);

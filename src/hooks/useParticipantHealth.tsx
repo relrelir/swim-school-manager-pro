@@ -8,8 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 export const useParticipantHealth = (
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
   sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>,
-  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined> | void,
-  updateHealthDeclaration: (declaration: HealthDeclaration) => void,
+  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>,
+  updateHealthDeclaration: (healthDeclaration: HealthDeclaration) => void,
   updateParticipant: (participant: Participant) => void,
   participants: Participant[],
   registrations: Registration[]
@@ -49,24 +49,20 @@ export const useParticipantHealth = (
       let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
       
       if (!healthDeclaration) {
-        // Create a new health declaration
+        // Create a new health declaration with token
         const newDeclaration = {
           registrationId: registrationId,
           phone: participant.phone || '',
           formStatus: 'pending' as const,
-          sentAt: new Date().toISOString()
+          sentAt: new Date().toISOString(),
+          token: crypto.randomUUID() // Create a unique token for the form
         };
         
-        // Fix the TypeScript error by properly handling the Promise
         const result = await addHealthDeclaration(newDeclaration);
         if (result) {
           healthDeclaration = result;
         } else {
-          // If no result is returned, we'll create a temporary declaration for link generation
-          healthDeclaration = {
-            id: 'temp-' + Math.random().toString(36).substring(2, 9),
-            ...newDeclaration
-          };
+          throw new Error("Failed to create health declaration");
         }
       }
 
@@ -74,20 +70,26 @@ export const useParticipantHealth = (
       const origin = window.location.origin;
       const formLink = `${origin}/health-form?id=${healthDeclaration.id}`;
       
-      // Update the health declaration status
-      await updateHealthDeclaration({
-        ...healthDeclaration,
-        formStatus: 'sent',
-        sentAt: new Date().toISOString()
-      });
+      // Update the health declaration status if it exists
+      if (healthDeclaration) {
+        const updatedDeclaration = {
+          ...healthDeclaration,
+          formStatus: 'sent',
+          sentAt: new Date().toISOString()
+        };
+        
+        await updateHealthDeclaration(updatedDeclaration);
+      }
 
       // Copy link to clipboard
       navigator.clipboard.writeText(formLink).then(() => {
         toast({
           title: "לינק הועתק בהצלחה",
-          description: `הלינק להצהרת הבריאות עבור ${participant.firstName} ${participant.lastName} הועתק ללוח: ${formLink}`,
+          description: `הלינק להצהרת בריאות עבור ${participant.firstName} ${participant.lastName} הועתק ללוח`
         });
       });
+
+      return formLink;
     } catch (error) {
       console.error('Error generating health declaration link:', error);
       toast({
@@ -95,6 +97,7 @@ export const useParticipantHealth = (
         description: "אירעה שגיאה ביצירת לינק להצהרת בריאות",
         variant: "destructive",
       });
+      return null;
     }
   };
 
@@ -158,7 +161,8 @@ export const useParticipantHealth = (
         registrationId: registrationId,
         phone: participant.phone,
         formStatus: 'pending',
-        sentAt: new Date().toISOString()
+        sentAt: new Date().toISOString(),
+        token: 'temp-token'
       };
     }
     
