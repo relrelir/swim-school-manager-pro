@@ -42,7 +42,7 @@ export const useParticipantHandlers = (
   const { handleAddPayment, handleApplyDiscount } = usePaymentHandlers(
     baseHandleAddPayment,
     baseHandleApplyDiscount,
-    currentRegistration
+    currentRegistration // Make sure to pass currentRegistration
   );
 
   return {

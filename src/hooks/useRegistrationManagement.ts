@@ -20,14 +20,18 @@ export const useRegistrationManagement = (
 ) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
+  const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
 
   // Import sub-hooks
   const {
-    currentRegistration,
-    setCurrentRegistration,
     handleAddPayment: baseHandleAddPayment,
     handleApplyDiscount: baseHandleApplyDiscount
-  } = usePaymentHandlers(addPayment, updateRegistration, getRegistrationsByProduct);
+  } = usePaymentHandlers(
+    addPayment, 
+    updateRegistration, 
+    getRegistrationsByProduct,
+    currentRegistration // Pass currentRegistration explicitly
+  );
   
   const {
     handleAddParticipant: baseHandleAddParticipant,
@@ -99,6 +103,11 @@ export const useRegistrationManagement = (
     e.preventDefault();
     console.log("useRegistrationManagement handleAddPayment with currentRegistration:", currentRegistration);
     
+    if (!currentRegistration) {
+      console.error("Error: currentRegistration is null in useRegistrationManagement.handleAddPayment");
+      return registrations;
+    }
+    
     const updatedRegistrations = baseHandleAddPayment(
       e,
       newPayment,
@@ -107,7 +116,7 @@ export const useRegistrationManagement = (
       productId
     );
     
-    if (updatedRegistrations.length > 0) {
+    if (updatedRegistrations && updatedRegistrations.length > 0) {
       setRegistrations(updatedRegistrations);
       return updatedRegistrations;
     }
@@ -120,13 +129,19 @@ export const useRegistrationManagement = (
     setIsAddPaymentOpen: (open: boolean) => void
   ) => {
     console.log("useRegistrationManagement handleApplyDiscount with currentRegistration:", currentRegistration);
+    
+    if (!currentRegistration) {
+      console.error("Error: currentRegistration is null in useRegistrationManagement.handleApplyDiscount");
+      return registrations;
+    }
+    
     const updatedRegistrations = baseHandleApplyDiscount(
       discountAmount,
       setIsAddPaymentOpen,
       productId
     );
     
-    if (updatedRegistrations.length > 0) {
+    if (updatedRegistrations && updatedRegistrations.length > 0) {
       setRegistrations(updatedRegistrations);
       return updatedRegistrations;
     }

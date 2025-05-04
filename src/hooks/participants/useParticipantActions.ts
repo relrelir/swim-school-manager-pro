@@ -70,7 +70,7 @@ export const useParticipantActions = (
     registrations
   );
 
-  // Import registration management hook
+  // Import registration management hook with currentRegistration
   const {
     handleAddParticipant: baseHandleAddParticipant,
     handleAddPayment: baseHandleAddPayment,
@@ -97,6 +97,13 @@ export const useParticipantActions = (
   const effectiveCurrentRegistration = currentRegistration || registrationManagementCurrentReg;
   const effectiveSetCurrentRegistration = setCurrentRegistration || registrationManagementSetCurrentReg;
 
+  // Make sure we set the current registration in the registration management hook when it changes
+  if (currentRegistration && registrationManagementSetCurrentReg && 
+     (!registrationManagementCurrentReg || registrationManagementCurrentReg.id !== currentRegistration.id)) {
+    console.log("Syncing currentRegistration to registrationManagement:", currentRegistration);
+    registrationManagementSetCurrentReg(currentRegistration);
+  }
+
   // Create adapters for various function signatures
   const {
     adaptedHandleOpenHealthForm,
@@ -111,7 +118,7 @@ export const useParticipantActions = (
     baseHandleApplyDiscount
   );
 
-  // Import participant handlers with actual implementations
+  // Import participant handlers with actual implementations and current registration
   const {
     handleOpenHealthForm,
     handleAddParticipant: wrapperHandleAddParticipant,
@@ -126,7 +133,7 @@ export const useParticipantActions = (
     registrationData,
     getParticipantForRegistration,
     registrations,
-    effectiveCurrentRegistration
+    effectiveCurrentRegistration // Make sure we're passing the current registration
   );
 
   // Final wrapper for handleAddParticipant
@@ -134,8 +141,9 @@ export const useParticipantActions = (
     return wrapperHandleAddParticipant(e, resetForm, setIsAddParticipantOpen);
   };
 
-  // Final wrapper for handleAddPayment
+  // Final wrapper for handleAddPayment with debug logging
   const handleAddPayment = (e: React.FormEvent) => {
+    console.log("useParticipantActions.handleAddPayment called with currentRegistration:", effectiveCurrentRegistration);
     return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
   };
 

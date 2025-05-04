@@ -21,6 +21,13 @@ export const usePaymentHandlers = (
     setNewPayment: any
   ) => {
     console.log("Payment handler called with currentRegistration:", currentRegistration);
+    
+    // Check if currentRegistration is null and log an error if it is
+    if (!currentRegistration) {
+      console.error("Error: currentRegistration is null in usePaymentHandlers.handleAddPayment");
+      return [];
+    }
+    
     return baseHandleAddPayment(
       e,
       newPayment,
@@ -31,6 +38,13 @@ export const usePaymentHandlers = (
 
   const handleApplyDiscount = (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => {
     console.log("Apply discount handler called with currentRegistration:", currentRegistration);
+    
+    // Check if currentRegistration is null and log an error if it is
+    if (!currentRegistration) {
+      console.error("Error: currentRegistration is null in usePaymentHandlers.handleApplyDiscount");
+      return [];
+    }
+    
     return baseHandleApplyDiscount(amount, setIsAddPaymentOpen);
   };
 

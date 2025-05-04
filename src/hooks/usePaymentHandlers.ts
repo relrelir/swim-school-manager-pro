@@ -7,64 +7,86 @@ export const usePaymentHandlers = (
   addPayment: (payment: Omit<Payment, 'id'>) => void, 
   updateRegistration: (registration: Registration) => void, 
   getRegistrationsByProduct: (productId: string) => Registration[],
+  initialCurrentRegistration: Registration | null = null 
 ) => {
-  const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
+  const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(initialCurrentRegistration);
 
   // Handle adding a new payment
-  const handleAddPayment = (e: React.FormEvent, 
-                           newPayment: { amount: number; receiptNumber: string; paymentDate: string },
-                           setIsAddPaymentOpen: (open: boolean) => void,
-                           setNewPayment: React.Dispatch<React.SetStateAction<{
-                             amount: number;
-                             receiptNumber: string;
-                             paymentDate: string;
-                           }>>,
-                           productId?: string) => {
+  const handleAddPayment = (
+    e: React.FormEvent, 
+    newPayment: { amount: number; receiptNumber: string; paymentDate: string },
+    setIsAddPaymentOpen: (open: boolean) => void,
+    setNewPayment: React.Dispatch<React.SetStateAction<{
+      amount: number;
+      receiptNumber: string;
+      paymentDate: string;
+    }>>,
+    productId?: string
+  ) => {
+    // Prevent default form submission
+    e.preventDefault();
     
-    if (currentRegistration) {
-      // Check if receipt number is provided
-      if (!newPayment.receiptNumber) {
-        toast({
-          title: "שגיאה",
-          description: "מספר קבלה הוא שדה חובה",
-          variant: "destructive",
-        });
-        return [];
-      }
-      
-      // Add the new payment
-      const payment: Omit<Payment, 'id'> = {
-        registrationId: currentRegistration.id,
-        amount: newPayment.amount,
-        receiptNumber: newPayment.receiptNumber,
-        paymentDate: newPayment.paymentDate,
-      };
-      
-      addPayment(payment);
-      
-      // Update the registration's paidAmount
-      const updatedPaidAmount = currentRegistration.paidAmount + newPayment.amount;
-      
-      const updatedRegistration: Registration = {
-        ...currentRegistration,
-        paidAmount: updatedPaidAmount,
-      };
-      
-      updateRegistration(updatedRegistration);
-      
-      // Reset form and close dialog
-      setCurrentRegistration(null);
-      setNewPayment({
-        amount: 0,
-        receiptNumber: '',
-        paymentDate: new Date().toISOString().substring(0, 10),
+    // Log current state for debugging
+    console.log("usePaymentHandlers.handleAddPayment called with registration:", currentRegistration);
+    
+    if (!currentRegistration) {
+      console.error("Error: currentRegistration is null in usePaymentHandlers.handleAddPayment");
+      toast({
+        title: "שגיאה",
+        description: "לא נבחר משתתף לתשלום",
+        variant: "destructive",
       });
-      setIsAddPaymentOpen(false);
-      
-      // Refresh registrations list
-      if (productId) {
-        return getRegistrationsByProduct(productId);
-      }
+      return [];
+    }
+    
+    // Check if receipt number is provided
+    if (!newPayment.receiptNumber) {
+      toast({
+        title: "שגיאה",
+        description: "מספר קבלה הוא שדה חובה",
+        variant: "destructive",
+      });
+      return [];
+    }
+    
+    // Add the new payment
+    const payment: Omit<Payment, 'id'> = {
+      registrationId: currentRegistration.id,
+      amount: newPayment.amount,
+      receiptNumber: newPayment.receiptNumber,
+      paymentDate: newPayment.paymentDate,
+    };
+    
+    addPayment(payment);
+    
+    // Update the registration's paidAmount
+    const updatedPaidAmount = currentRegistration.paidAmount + newPayment.amount;
+    
+    const updatedRegistration: Registration = {
+      ...currentRegistration,
+      paidAmount: updatedPaidAmount,
+    };
+    
+    updateRegistration(updatedRegistration);
+    
+    // Reset form and close dialog
+    setCurrentRegistration(null);
+    setNewPayment({
+      amount: 0,
+      receiptNumber: '',
+      paymentDate: new Date().toISOString().substring(0, 10),
+    });
+    setIsAddPaymentOpen(false);
+    
+    // Show success message
+    toast({
+      title: "תשלום נוסף בהצלחה",
+      description: `תשלום בסך ${Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(newPayment.amount)} נוסף בהצלחה`,
+    });
+    
+    // Refresh registrations list
+    if (productId) {
+      return getRegistrationsByProduct(productId);
     }
     
     return [];
@@ -76,29 +98,39 @@ export const usePaymentHandlers = (
     setIsAddPaymentOpen: (open: boolean) => void,
     productId?: string
   ) => {
-    if (currentRegistration) {
-      // Update the registration with discount
-      const updatedRegistration: Registration = {
-        ...currentRegistration,
-        discountApproved: true,
-        discountAmount: (currentRegistration.discountAmount || 0) + discountAmount,
-      };
-      
-      updateRegistration(updatedRegistration);
-      
+    console.log("usePaymentHandlers.handleApplyDiscount called with registration:", currentRegistration);
+    
+    if (!currentRegistration) {
+      console.error("Error: currentRegistration is null in usePaymentHandlers.handleApplyDiscount");
       toast({
-        title: "הנחה אושרה",
-        description: `הנחה בסך ${Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount)} אושרה למשתתף`,
+        title: "שגיאה",
+        description: "לא נבחר משתתף להנחה",
+        variant: "destructive",
       });
-      
-      // Reset form and close dialog
-      setCurrentRegistration(null);
-      setIsAddPaymentOpen(false);
-      
-      // Refresh registrations list
-      if (productId) {
-        return getRegistrationsByProduct(productId);
-      }
+      return [];
+    }
+    
+    // Update the registration with discount
+    const updatedRegistration: Registration = {
+      ...currentRegistration,
+      discountApproved: true,
+      discountAmount: (currentRegistration.discountAmount || 0) + discountAmount,
+    };
+    
+    updateRegistration(updatedRegistration);
+    
+    toast({
+      title: "הנחה אושרה",
+      description: `הנחה בסך ${Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(discountAmount)} אושרה למשתתף`,
+    });
+    
+    // Reset form and close dialog
+    setCurrentRegistration(null);
+    setIsAddPaymentOpen(false);
+    
+    // Refresh registrations list
+    if (productId) {
+      return getRegistrationsByProduct(productId);
     }
     
     return [];

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -39,11 +38,11 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
 }) => {
   const [isDiscount, setIsDiscount] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
-  const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
+  
   useEffect(() => {
     // Set a default amount when the dialog opens with a registration
     if (isOpen && currentRegistration) {
+      console.log("Dialog opened with registration:", currentRegistration);
       const remainingAmount = currentRegistration.requiredAmount - currentRegistration.paidAmount;
       if (remainingAmount > 0) {
         setNewPayment(prev => ({ ...prev, amount: remainingAmount }));
@@ -53,6 +52,7 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submit payment form with currentRegistration:", currentRegistration);
     
     // Basic validation
     if (!currentRegistration) {

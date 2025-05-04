@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
@@ -97,9 +96,10 @@ const ParticipantsPage: React.FC = () => {
 
   // Handler for opening payment dialog
   const handleOpenAddPayment = (registration: Registration) => {
+    console.log("Opening payment dialog for registration:", registration);
     setCurrentRegistration(registration);
     setNewPayment({
-      amount: 0,
+      amount: Math.max(0, registration.requiredAmount - registration.paidAmount),
       receiptNumber: '',
       paymentDate: new Date().toISOString().substring(0, 10),
     });
@@ -123,6 +123,7 @@ const ParticipantsPage: React.FC = () => {
 
   // Create an adapter for the handleApplyDiscount function to match the expected signature
   const handleApplyDiscountWrapper = (amount: number) => {
+    console.log("Apply discount wrapper called with currentRegistration:", currentRegistration);
     handleApplyDiscount(amount, setIsAddPaymentOpen);
   };
 
