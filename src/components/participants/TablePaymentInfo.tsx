@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Payment } from '@/types';
-import { formatCurrencyForTable } from '@/utils/formatters';
 
 interface TablePaymentInfoProps {
   payments: Payment[];
@@ -25,7 +24,7 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
     <div className="space-y-1">
       {actualPayments.map((payment, idx) => (
         <div key={idx} className="text-sm">
-          {formatCurrencyForTable(payment.amount)}
+          {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(payment.amount)}
         </div>
       ))}
     </div>

@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import AddParticipantDialog from '@/components/participants/AddParticipantDialog';
 import AddPaymentDialog from '@/components/participants/AddPaymentDialog';
@@ -76,18 +76,6 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
   handleAddPayment,
   handleApplyDiscount,
 }) => {
-  // Add debug logging that runs on every render and whenever currentRegistration changes
-  useEffect(() => {
-    console.log("ParticipantsDialogs rendered with currentRegistration:", currentRegistration);
-  }, [currentRegistration]);
-
-  // Add debug logging when isAddPaymentOpen changes
-  useEffect(() => {
-    if (isAddPaymentOpen) {
-      console.log("Payment dialog opened with currentRegistration:", currentRegistration);
-    }
-  }, [isAddPaymentOpen, currentRegistration]);
-
   return (
     <>
       {/* Add Participant Dialog */}
@@ -123,8 +111,7 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
           defaultPhone={currentHealthDeclaration.phone}
           healthDeclaration={currentHealthDeclaration.declaration}
           afterSubmit={() => {
-            // Don't clear the health declaration immediately so user can copy the link
-            // if needed, but make sure the dialog can be closed
+            setCurrentHealthDeclaration(null);
           }}
         />
       )}

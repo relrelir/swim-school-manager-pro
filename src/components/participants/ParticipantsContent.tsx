@@ -47,9 +47,12 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
     return getPaymentsForRegistration(registration.id);
   };
   
-  // Fixed: The adapter now correctly expects a registrationId string
-  const updateHealthApprovalAdapter = (registrationId: string, isApproved: boolean) => {
-    onUpdateHealthApproval(registrationId, isApproved);
+  const updateHealthApprovalAdapter = (participant: Participant, isApproved: boolean) => {
+    // Find the registration for this participant
+    const registration = registrations.find(reg => reg.participantId === participant.id);
+    if (registration) {
+      onUpdateHealthApproval(registration.id, isApproved);
+    }
   };
 
   return (

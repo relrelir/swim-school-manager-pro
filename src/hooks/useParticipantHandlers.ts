@@ -1,14 +1,12 @@
 
 import { Registration, Participant } from '@/types';
-import { useAddParticipantHandler } from './participants/handlers/useAddParticipantHandler';
-import { usePaymentHandlers } from './participants/handlers/usePaymentHandlers';
-import { useHealthFormHandlers } from './participants/handlers/useHealthFormHandlers';
 
-/**
- * Composition hook for all participant-related handlers
- */
 export const useParticipantHandlers = (
-  baseHandleOpenHealthForm: (registrationId: string) => void,
+  baseHandleOpenHealthForm: (
+    registrationId: string, 
+    getParticipantForRegistration: (registration: Registration) => Participant | undefined,
+    registrations: Registration[]
+  ) => void,
   baseHandleAddParticipant: (
     e: React.FormEvent, 
     newParticipant: any, 
@@ -21,60 +19,55 @@ export const useParticipantHandlers = (
     e: React.FormEvent,
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any,
-    currentRegistration?: Registration | null
+    setNewPayment: any
   ) => any,
-  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void, currentRegistration?: any) => any,
+  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any,
   newParticipant: any,
   registrationData: any,
   getParticipantForRegistration: (registration: Registration) => Participant | undefined,
   registrations: Registration[]
 ) => {
-  const { handleOpenHealthForm } = useHealthFormHandlers(baseHandleOpenHealthForm);
-  
-  const { handleAddParticipant } = useAddParticipantHandler(
-    baseHandleAddParticipant,
-    newParticipant,
-    registrationData,
-    getParticipantForRegistration
-  );
-  
-  const { handleAddPayment, handleApplyDiscount } = usePaymentHandlers(
-    baseHandleAddPayment,
-    baseHandleApplyDiscount
-  );
-
-  // Updated to ensure we explicitly pass currentRegistration through the entire chain
-  const wrappedHandleAddPayment = (
-    e: React.FormEvent,
-    newPayment: any,
-    setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any,
-    currentRegistration?: Registration | null
-  ) => {
-    console.log("useParticipantHandlers wrappedHandleAddPayment called with currentRegistration:", currentRegistration);
-    if (!currentRegistration) {
-      console.warn("WARNING: No currentRegistration provided to useParticipantHandlers.wrappedHandleAddPayment");
-    }
-    return handleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment, currentRegistration);
+  // Handler for opening health form - wrapper to pass required parameters
+  const handleOpenHealthForm = (registrationId: string) => {
+    baseHandleOpenHealthForm(registrationId, getParticipantForRegistration, registrations);
   };
 
-  const wrappedHandleApplyDiscount = (
-    amount: number,
+  // Wrapper for handleAddParticipant
+  const handleAddParticipant = (e: React.FormEvent, resetForm: () => void, setIsAddParticipantOpen: (open: boolean) => void) => {
+    return baseHandleAddParticipant(
+      e, 
+      newParticipant, 
+      registrationData, 
+      resetForm, 
+      setIsAddParticipantOpen,
+      getParticipantForRegistration
+    );
+  };
+
+  // Wrapper for handleAddPayment
+  const handleAddPayment = (
+    e: React.FormEvent, 
+    newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    currentRegistration?: Registration | null
+    setNewPayment: any
   ) => {
-    console.log("useParticipantHandlers wrappedHandleApplyDiscount called with currentRegistration:", currentRegistration);
-    if (!currentRegistration) {
-      console.warn("WARNING: No currentRegistration provided to useParticipantHandlers.wrappedHandleApplyDiscount");
-    }
-    return handleApplyDiscount(amount, setIsAddPaymentOpen, currentRegistration);
+    return baseHandleAddPayment(
+      e,
+      newPayment,
+      setIsAddPaymentOpen,
+      setNewPayment
+    );
+  };
+
+  // Adapter for handleApplyDiscount to match expected signature in AddPaymentDialog
+  const handleApplyDiscountAdapter = (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => {
+    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen);
   };
 
   return {
     handleOpenHealthForm,
     handleAddParticipant,
-    handleAddPayment: wrappedHandleAddPayment,
-    handleApplyDiscount: wrappedHandleApplyDiscount
+    handleAddPayment,
+    handleApplyDiscount: handleApplyDiscountAdapter
   };
 };

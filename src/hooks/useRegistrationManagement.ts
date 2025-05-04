@@ -20,10 +20,11 @@ export const useRegistrationManagement = (
 ) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
-  const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
 
   // Import sub-hooks
   const {
+    currentRegistration,
+    setCurrentRegistration,
     handleAddPayment: baseHandleAddPayment,
     handleApplyDiscount: baseHandleApplyDiscount
   } = usePaymentHandlers(addPayment, updateRegistration, getRegistrationsByProduct);
@@ -97,18 +98,15 @@ export const useRegistrationManagement = (
   ) => {
     e.preventDefault();
     
-    console.log("handleAddPayment in useRegistrationManagement, currentRegistration:", currentRegistration);
-    
     const updatedRegistrations = baseHandleAddPayment(
       e,
       newPayment,
       setIsAddPaymentOpen,
       setNewPayment,
-      productId,
-      currentRegistration // Pass the currentRegistration explicitly
+      productId
     );
     
-    if (updatedRegistrations && updatedRegistrations.length > 0) {
+    if (updatedRegistrations.length > 0) {
       setRegistrations(updatedRegistrations);
       return updatedRegistrations;
     }
@@ -120,16 +118,13 @@ export const useRegistrationManagement = (
     discountAmount: number,
     setIsAddPaymentOpen: (open: boolean) => void
   ) => {
-    console.log("handleApplyDiscount in useRegistrationManagement, currentRegistration:", currentRegistration);
-    
     const updatedRegistrations = baseHandleApplyDiscount(
       discountAmount,
       setIsAddPaymentOpen,
-      productId,
-      currentRegistration // Pass the currentRegistration explicitly
+      productId
     );
     
-    if (updatedRegistrations && updatedRegistrations.length > 0) {
+    if (updatedRegistrations.length > 0) {
       setRegistrations(updatedRegistrations);
       return updatedRegistrations;
     }

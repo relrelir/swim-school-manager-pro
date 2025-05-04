@@ -1,8 +1,5 @@
 
-import { Participant, Product, Registration, Season, Payment, PaymentStatus, HealthDeclaration } from '@/types';
-
-// Import the DailyActivity type or define it here
-import { DailyActivity, RegistrationWithDetails } from '@/types';
+import { Participant, Product, Registration, Season, Payment, PaymentStatus, DailyActivity, HealthDeclaration } from '@/types';
 
 export interface SeasonsContextType {
   seasons: Season[];
@@ -50,14 +47,15 @@ export interface PaymentsContextType {
 
 export interface HealthDeclarationsContextType {
   healthDeclarations: HealthDeclaration[];
-  addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>;
+  addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined> | void;
   updateHealthDeclaration: (id: string, updates: Partial<HealthDeclaration>) => Promise<void>;
   getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined;
+  sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>;
   loading: boolean;
 }
 
 export interface CombinedDataContextType extends SeasonsContextType, ProductsContextType, ParticipantsContextType, RegistrationsContextType, PaymentsContextType, HealthDeclarationsContextType {
-  getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
+  getAllRegistrationsWithDetails: () => any[];
   calculateMeetingProgress: (product: Product) => { current: number; total: number };
   getDailyActivities: (date: string) => DailyActivity[];
 }

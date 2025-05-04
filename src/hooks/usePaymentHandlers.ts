@@ -19,13 +19,9 @@ export const usePaymentHandlers = (
                              receiptNumber: string;
                              paymentDate: string;
                            }>>,
-                           productId?: string,
-                           registrationToUse?: Registration | null) => {
+                           productId?: string) => {
     
-    // Use the passed registration if provided, otherwise use the internal state
-    const regToUse = registrationToUse || currentRegistration;
-    
-    if (regToUse) {
+    if (currentRegistration) {
       // Check if receipt number is provided
       if (!newPayment.receiptNumber) {
         toast({
@@ -38,7 +34,7 @@ export const usePaymentHandlers = (
       
       // Add the new payment
       const payment: Omit<Payment, 'id'> = {
-        registrationId: regToUse.id,
+        registrationId: currentRegistration.id,
         amount: newPayment.amount,
         receiptNumber: newPayment.receiptNumber,
         paymentDate: newPayment.paymentDate,
@@ -47,10 +43,10 @@ export const usePaymentHandlers = (
       addPayment(payment);
       
       // Update the registration's paidAmount
-      const updatedPaidAmount = regToUse.paidAmount + newPayment.amount;
+      const updatedPaidAmount = currentRegistration.paidAmount + newPayment.amount;
       
       const updatedRegistration: Registration = {
-        ...regToUse,
+        ...currentRegistration,
         paidAmount: updatedPaidAmount,
       };
       
@@ -69,13 +65,6 @@ export const usePaymentHandlers = (
       if (productId) {
         return getRegistrationsByProduct(productId);
       }
-    } else {
-      console.error("No registration provided for payment");
-      toast({
-        title: "שגיאה",
-        description: "לא נבחר משתתף לתשלום",
-        variant: "destructive",
-      });
     }
     
     return [];
@@ -85,18 +74,14 @@ export const usePaymentHandlers = (
   const handleApplyDiscount = (
     discountAmount: number, 
     setIsAddPaymentOpen: (open: boolean) => void,
-    productId?: string,
-    registrationToUse?: Registration | null
+    productId?: string
   ) => {
-    // Use the passed registration if provided, otherwise use the internal state
-    const regToUse = registrationToUse || currentRegistration;
-    
-    if (regToUse) {
+    if (currentRegistration) {
       // Update the registration with discount
       const updatedRegistration: Registration = {
-        ...regToUse,
+        ...currentRegistration,
         discountApproved: true,
-        discountAmount: (regToUse.discountAmount || 0) + discountAmount,
+        discountAmount: (currentRegistration.discountAmount || 0) + discountAmount,
       };
       
       updateRegistration(updatedRegistration);
@@ -114,13 +99,6 @@ export const usePaymentHandlers = (
       if (productId) {
         return getRegistrationsByProduct(productId);
       }
-    } else {
-      console.error("No registration provided for discount");
-      toast({
-        title: "שגיאה",
-        description: "לא נבחר משתתף להנחה",
-        variant: "destructive",
-      });
     }
     
     return [];
