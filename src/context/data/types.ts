@@ -1,10 +1,9 @@
 
-// Add DataContext type
-import { Season, Product, Participant, Registration, Payment } from '@/types';
+import { Participant, Product, Registration, Season, Payment, PaymentStatus, DailyActivity, HealthDeclaration } from '@/types';
 
 export interface SeasonsContextType {
   seasons: Season[];
-  addSeason: (season: Omit<Season, 'id'>) => Promise<Season | undefined>;
+  addSeason: (season: Omit<Season, 'id'>) => Promise<Season | undefined> | undefined;
   updateSeason: (season: Season) => void;
   deleteSeason: (id: string) => void;
   loading: boolean;
@@ -12,8 +11,8 @@ export interface SeasonsContextType {
 
 export interface ProductsContextType {
   products: Product[];
-  addProduct: (product: Omit<Product, 'id'>) => Promise<Product | undefined>;
-  updateProduct: (product: Product) => void;
+  addProduct: (product: Omit<Product, 'id'>) => Promise<Product | undefined> | undefined;
+  updateProduct: (product: Product) => Promise<void>;
   deleteProduct: (id: string) => void;
   getProductsBySeason: (seasonId: string) => Product[];
   loading: boolean;
@@ -29,33 +28,34 @@ export interface ParticipantsContextType {
 
 export interface RegistrationsContextType {
   registrations: Registration[];
-  addRegistration: (registration: Omit<Registration, 'id'>) => Promise<Registration | undefined>;
+  addRegistration: (registration: Omit<Registration, 'id'>) => Promise<Registration | undefined> | undefined;
   updateRegistration: (registration: Registration) => void;
   deleteRegistration: (id: string) => void;
   getRegistrationsByProduct: (productId: string) => Registration[];
-  calculatePaymentStatus: (registration: Registration, payments?: Payment[]) => PaymentStatus;
-  getAllRegistrationsWithDetails: () => any[];
-  calculateMeetingProgress: (product: Product) => { current: number, total: number };
+  calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   loading: boolean;
 }
 
 export interface PaymentsContextType {
   payments: Payment[];
-  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined>;
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | undefined;
   updatePayment: (payment: Payment) => void;
   deletePayment: (id: string) => void;
   getPaymentsByRegistration: (registrationId: string) => Payment[];
   loading: boolean;
 }
 
-export interface DailyActivityContextType {
-  getDailyActivities: (date: Date) => any[];
+export interface HealthDeclarationsContextType {
+  healthDeclarations: HealthDeclaration[];
+  addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined> | void;
+  updateHealthDeclaration: (id: string, updates: Partial<HealthDeclaration>) => Promise<void>;
+  getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined;
+  sendHealthDeclarationSMS: (healthDeclarationId: string, phone: string) => Promise<void>;
+  loading: boolean;
 }
 
-export interface DataContextType extends 
-  SeasonsContextType,
-  ProductsContextType,
-  ParticipantsContextType,
-  RegistrationsContextType,
-  PaymentsContextType,
-  DailyActivityContextType {}
+export interface CombinedDataContextType extends SeasonsContextType, ProductsContextType, ParticipantsContextType, RegistrationsContextType, PaymentsContextType, HealthDeclarationsContextType {
+  getAllRegistrationsWithDetails: () => any[];
+  calculateMeetingProgress: (product: Product) => { current: number; total: number };
+  getDailyActivities: (date: string) => DailyActivity[];
+}

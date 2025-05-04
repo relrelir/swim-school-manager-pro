@@ -1,15 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
-import { Registration, Participant, Payment, PaymentStatus } from '@/types';
+import { Registration } from '@/types';
 import { useParticipantForm } from './useParticipantForm';
 import { useParticipantUtils } from './useParticipantUtils';
 import { useRegistrationManagement } from './useRegistrationManagement';
 import { useParticipantHealth } from './useParticipantHealth';
 import { useParticipantData } from './useParticipantData';
 import { useParticipantHandlers } from './useParticipantHandlers';
-import { DataContextType } from '@/context/data/types';
 
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -25,8 +23,13 @@ export const useParticipants = () => {
     addPayment,
     getPaymentsByRegistration,
     payments,
-    addParticipant
-  } = useData() as DataContextType;
+    addParticipant,
+    healthDeclarations,
+    addHealthDeclaration,
+    updateHealthDeclaration: baseUpdateHealthDeclaration,
+    getHealthDeclarationForRegistration,
+    sendHealthDeclarationSMS
+  } = useData();
   
   const [product, setProduct] = useState(undefined);
   
@@ -36,6 +39,11 @@ export const useParticipants = () => {
     getPaymentsForRegistration,
     getStatusClassName
   } = useParticipantUtils(participants, payments);
+
+  // Create an adapter for updateHealthDeclaration to match expected signature
+  const updateHealthDeclaration = (declaration: any) => {
+    return baseUpdateHealthDeclaration(declaration.id, declaration);
+  };
 
   // Load product data
   useEffect(() => {
@@ -82,12 +90,22 @@ export const useParticipants = () => {
     }
   }, [product]);
 
-  // Import participant health hook - simplified for just health approvals
+  // Import participant health hook - now passing registrations
   const {
+    isHealthFormOpen,
+    setIsHealthFormOpen,
+    currentHealthDeclaration,
+    setCurrentHealthDeclaration,
+    handleOpenHealthForm: baseHandleOpenHealthForm,
     handleUpdateHealthApproval
   } = useParticipantHealth(
+    getHealthDeclarationForRegistration,
+    sendHealthDeclarationSMS,
+    addHealthDeclaration,
+    updateHealthDeclaration,
     updateParticipant,
-    participants
+    participants,
+    registrations
   );
 
   // Import registration management hook
@@ -109,16 +127,18 @@ export const useParticipants = () => {
     addPayment,
     getPaymentsByRegistration,
     getRegistrationsByProduct,
-    updateParticipant
+    updateParticipant,
+    addHealthDeclaration
   );
 
   // Import participant handlers
   const {
+    handleOpenHealthForm,
     handleAddParticipant: wrapperHandleAddParticipant,
     handleAddPayment: wrapperHandleAddPayment,
     handleApplyDiscount: handleApplyDiscountAdapter
   } = useParticipantHandlers(
-    null, // No longer need handleOpenHealthForm
+    baseHandleOpenHealthForm,
     baseHandleAddParticipant,
     baseHandleAddPayment,
     baseHandleApplyDiscount,
@@ -145,6 +165,10 @@ export const useParticipants = () => {
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
+    isHealthFormOpen,
+    setIsHealthFormOpen,
+    currentHealthDeclaration,
+    setCurrentHealthDeclaration,
     newParticipant,
     setNewParticipant,
     currentRegistration,
@@ -163,10 +187,12 @@ export const useParticipants = () => {
     handleApplyDiscount: handleApplyDiscountAdapter,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
+    handleOpenHealthForm,
     resetForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
     getStatusClassName,
     calculatePaymentStatus,
+    getHealthDeclarationForRegistration,
   };
 };

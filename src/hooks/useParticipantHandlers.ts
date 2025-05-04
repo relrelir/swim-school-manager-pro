@@ -2,37 +2,54 @@
 import { Registration, Participant } from '@/types';
 
 export const useParticipantHandlers = (
-  handleOpenHealthForm: ((registrationId: string) => void) | null,
-  baseHandleAddParticipant: any,
-  baseHandleAddPayment: any, 
-  baseHandleApplyDiscount: any,
-  newParticipant: any, 
+  baseHandleOpenHealthForm: (
+    registrationId: string, 
+    getParticipantForRegistration: (registration: Registration) => Participant | undefined,
+    registrations: Registration[]
+  ) => void,
+  baseHandleAddParticipant: (
+    e: React.FormEvent, 
+    newParticipant: any, 
+    registrationData: any, 
+    resetForm: () => void, 
+    setIsAddParticipantOpen: (open: boolean) => void,
+    getParticipantForRegistration: (registration: Registration) => Participant | undefined
+  ) => any,
+  baseHandleAddPayment: (
+    e: React.FormEvent,
+    newPayment: any,
+    setIsAddPaymentOpen: (open: boolean) => void,
+    setNewPayment: any
+  ) => any,
+  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any,
+  newParticipant: any,
   registrationData: any,
   getParticipantForRegistration: (registration: Registration) => Participant | undefined,
   registrations: Registration[]
 ) => {
-  // Create wrapper for adding participant
-  const handleAddParticipant = (
-    e: React.FormEvent,
-    resetForm: () => void,
-    setIsAddParticipantOpen: (open: boolean) => void
-  ) => {
+  // Handler for opening health form - wrapper to pass required parameters
+  const handleOpenHealthForm = (registrationId: string) => {
+    baseHandleOpenHealthForm(registrationId, getParticipantForRegistration, registrations);
+  };
+
+  // Wrapper for handleAddParticipant
+  const handleAddParticipant = (e: React.FormEvent, resetForm: () => void, setIsAddParticipantOpen: (open: boolean) => void) => {
     return baseHandleAddParticipant(
       e, 
-      newParticipant,
-      registrationData,
-      resetForm,
+      newParticipant, 
+      registrationData, 
+      resetForm, 
       setIsAddParticipantOpen,
       getParticipantForRegistration
     );
   };
 
-  // Create wrapper for adding payment
+  // Wrapper for handleAddPayment
   const handleAddPayment = (
-    e: React.FormEvent,
+    e: React.FormEvent, 
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: (payment: any) => void
+    setNewPayment: any
   ) => {
     return baseHandleAddPayment(
       e,
@@ -42,20 +59,15 @@ export const useParticipantHandlers = (
     );
   };
 
-  // Create wrapper for applying discount
-  const handleApplyDiscount = (
-    discountAmount: number,
-    setIsAddPaymentOpen: (open: boolean) => void
-  ) => {
-    return baseHandleApplyDiscount(
-      discountAmount,
-      setIsAddPaymentOpen
-    );
+  // Adapter for handleApplyDiscount to match expected signature in AddPaymentDialog
+  const handleApplyDiscountAdapter = (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => {
+    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen);
   };
 
   return {
+    handleOpenHealthForm,
     handleAddParticipant,
     handleAddPayment,
-    handleApplyDiscount
+    handleApplyDiscount: handleApplyDiscountAdapter
   };
 };

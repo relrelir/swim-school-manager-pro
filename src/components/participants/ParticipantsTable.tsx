@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Participant, PaymentStatus, Registration, Payment } from '@/types';
+import { Participant, PaymentStatus, Registration, Payment, HealthDeclaration } from '@/types';
 import TableHealthStatus from './TableHealthStatus';
 import TablePaymentInfo from './TablePaymentInfo';
 import TableReceiptNumbers from './TableReceiptNumbers';
@@ -12,11 +12,13 @@ interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
   getPaymentsForRegistration: (registration: Registration) => Payment[];
+  getHealthDeclarationForRegistration?: (registrationId: string) => HealthDeclaration | undefined;
   calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   getStatusClassName: (status: PaymentStatus) => string;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
   onUpdateHealthApproval: (participant: Participant, isApproved: boolean) => void;
+  onOpenHealthForm?: (registrationId: string) => void;
   onExport?: () => void;
 }
 
@@ -24,11 +26,13 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   registrations,
   getParticipantForRegistration,
   getPaymentsForRegistration,
+  getHealthDeclarationForRegistration,
   calculatePaymentStatus,
   getStatusClassName,
   onAddPayment,
   onDeleteRegistration,
   onUpdateHealthApproval,
+  onOpenHealthForm,
   onExport,
 }) => {
   // Helper to calculate discount amount
@@ -57,7 +61,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             <TableHead>תשלומים</TableHead>
             <TableHead>מספרי קבלות</TableHead>
             <TableHead>הנחה</TableHead>
-            <TableHead>אישור בריאות</TableHead>
+            <TableHead>הצהרת בריאות</TableHead>
             <TableHead>סטטוס</TableHead>
             <TableHead>פעולות</TableHead>
           </TableRow>
@@ -70,6 +74,8 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             const effectiveRequiredAmount = calculateEffectiveRequiredAmount(registration);
             const status = calculatePaymentStatus(registration);
             const hasPayments = registrationPayments.length > 0;
+            const healthDeclaration = getHealthDeclarationForRegistration && 
+              getHealthDeclarationForRegistration(registration.id);
             
             if (!participant) return null;
             
@@ -101,8 +107,11 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 </TableCell>
                 <TableCell>
                   <TableHealthStatus 
+                    registration={registration}
                     participant={participant}
+                    healthDeclaration={healthDeclaration}
                     onUpdateHealthApproval={onUpdateHealthApproval}
+                    onOpenHealthForm={onOpenHealthForm}
                   />
                 </TableCell>
                 <TableCell className={`font-semibold ${getStatusClassName(status)}`}>
