@@ -1,16 +1,16 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CheckCircle, AlertCircle, Link } from 'lucide-react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
+import { useHealthDeclarationsContext } from '@/context/data/HealthDeclarationsProvider';
 
 interface TableHealthStatusProps {
   registration: Registration;
   participant?: Participant;
-  healthDeclaration?: HealthDeclaration;
   onUpdateHealthApproval: (isApproved: boolean) => void;
   onOpenHealthForm?: () => void;
 }
@@ -18,29 +18,48 @@ interface TableHealthStatusProps {
 const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   registration,
   participant,
-  healthDeclaration,
   onUpdateHealthApproval,
   onOpenHealthForm
 }) => {
-  const [isGeneratingLink, setIsGeneratingLink] = React.useState(false);
-  const [isCopied, setIsCopied] = React.useState(false);
+  const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [healthDeclaration, setHealthDeclaration] = useState<HealthDeclaration | undefined>(undefined);
+  const [isFormSigned, setIsFormSigned] = useState(false);
+  const { getHealthDeclarationForRegistration } = useHealthDeclarationsContext();
+
+  useEffect(() => {
+    // Fetch the health declaration when component mounts or registration changes
+    const fetchHealthDeclaration = async () => {
+      if (registration?.id) {
+        try {
+          const declaration = await getHealthDeclarationForRegistration(registration.id);
+          setHealthDeclaration(declaration);
+          
+          // Check if the form is signed
+          const signed = Boolean(
+            declaration && 
+            (declaration.formStatus === 'signed' || declaration.form_status === 'signed')
+          );
+          setIsFormSigned(signed);
+          
+          console.log("Health declaration status in TableHealthStatus:", {
+            registrationId: registration.id,
+            participantId: registration.participantId,
+            hasDeclaration: Boolean(declaration),
+            formStatus: declaration?.formStatus || declaration?.form_status,
+            isFormSigned: signed,
+            healthDeclarationId: declaration?.id
+          });
+        } catch (error) {
+          console.error("Error fetching health declaration:", error);
+        }
+      }
+    };
+    
+    fetchHealthDeclaration();
+  }, [registration?.id, getHealthDeclarationForRegistration]);
 
   if (!participant) return null;
-
-  // Check if the form is signed (completed)
-  const isFormSigned = Boolean(
-    healthDeclaration && 
-    (healthDeclaration.formStatus === 'signed' || healthDeclaration.form_status === 'signed')
-  );
-  
-  console.log("Health declaration status in TableHealthStatus:", {
-    registrationId: registration.id,
-    participantId: registration.participantId,
-    hasDeclaration: Boolean(healthDeclaration),
-    formStatus: healthDeclaration?.formStatus || healthDeclaration?.form_status,
-    isFormSigned,
-    healthDeclarationId: healthDeclaration?.id
-  });
   
   // Handle generate health declaration link
   const handleGenerateLink = async () => {

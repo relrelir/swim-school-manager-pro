@@ -7,6 +7,7 @@ import {
   addHealthDeclarationService,
   updateHealthDeclarationService
 } from './healthDeclarations/service';
+import { supabase } from '@/integrations/supabase/client';
 
 export { useHealthDeclarationsContext } from './healthDeclarations/useHealthDeclarations';
 
@@ -64,7 +65,7 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
   };
 
   // Get health declaration for a specific registration
-  const getHealthDeclarationForRegistration = (registrationId: string) => {
+  const getHealthDeclarationForRegistration = async (registrationId: string) => {
     if (!registrationId) {
       console.error("Registration ID is undefined or null");
       return undefined;
@@ -73,7 +74,35 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
     console.log("Looking for health declaration for registration:", registrationId);
     console.log("Available declarations:", healthDeclarations.length);
     
-    // Try multiple matching strategies
+    // IMPROVED APPROACH: First try to get participant ID from registration table
+    try {
+      const { data: registrationData, error: registrationError } = await supabase
+        .from('registrations')
+        .select('participantid')
+        .eq('id', registrationId)
+        .maybeSingle();
+        
+      if (!registrationError && registrationData && registrationData.participantid) {
+        const participantId = registrationData.participantid;
+        console.log(`Found participant ID ${participantId} for registration ${registrationId}`);
+        
+        // Look for health declarations that match this participant ID
+        const matchingDeclaration = healthDeclarations.find(
+          d => d.participant_id === participantId
+        );
+        
+        if (matchingDeclaration) {
+          console.log(`Found health declaration ${matchingDeclaration.id} by participant ID match`);
+          return matchingDeclaration;
+        } else {
+          console.log(`No health declaration found for participant ID ${participantId}`);
+        }
+      }
+    } catch (error) {
+      console.error("Error looking up participant ID from registration:", error);
+    }
+    
+    // Try multiple fallback matching strategies
     
     // 1. Direct match with registrationId field
     let declaration = healthDeclarations.find(declaration => 

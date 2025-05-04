@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Registration } from '@/types';
 import { Trash2Icon, FileDownIcon, CreditCardIcon, PrinterIcon } from 'lucide-react';
@@ -27,23 +27,33 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   const { getHealthDeclarationForRegistration, healthDeclarations } = useHealthDeclarationsContext();
   
   // State to track if this registration has a valid health declaration
-  const [hasHealthDeclaration, setHasHealthDeclaration] = React.useState(false);
+  const [hasHealthDeclaration, setHasHealthDeclaration] = useState(false);
   
   // Effect to check for health declaration when component mounts or registration/healthDeclarations change
-  React.useEffect(() => {
+  useEffect(() => {
     if (!registration.id) return;
     
-    // Get health declaration and check if it exists
-    const healthDeclaration = getHealthDeclarationForRegistration(registration.id);
-    const declarationExists = Boolean(healthDeclaration && healthDeclaration.id);
+    // Async function to check for health declaration
+    const checkForHealthDeclaration = async () => {
+      try {
+        // Get health declaration and check if it exists
+        const healthDeclaration = await getHealthDeclarationForRegistration(registration.id);
+        const declarationExists = Boolean(healthDeclaration && healthDeclaration.id);
+        
+        console.log(`Registration ${registration.id} health declaration check:`, 
+          declarationExists ? `Found (ID: ${healthDeclaration?.id})` : "Not found", 
+          `Total available declarations: ${healthDeclarations.length}`
+        );
+        
+        // Update state
+        setHasHealthDeclaration(declarationExists);
+      } catch (error) {
+        console.error("Error checking for health declaration:", error);
+        setHasHealthDeclaration(false);
+      }
+    };
     
-    console.log(`Registration ${registration.id} health declaration check:`, 
-      declarationExists ? `Found (ID: ${healthDeclaration?.id})` : "Not found", 
-      `Total available declarations: ${healthDeclarations.length}`
-    );
-    
-    // Update state
-    setHasHealthDeclaration(declarationExists);
+    checkForHealthDeclaration();
   }, [registration.id, getHealthDeclarationForRegistration, healthDeclarations]);
 
   // Handle download registration PDF
@@ -71,7 +81,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     setIsGeneratingHealthPdf(true);
     try {
       console.log("Looking for health declaration for registration ID:", registration.id);
-      const healthDeclaration = getHealthDeclarationForRegistration(registration.id);
+      const healthDeclaration = await getHealthDeclarationForRegistration(registration.id);
       
       if (!healthDeclaration || !healthDeclaration.id) {
         console.error("Health declaration not found for registration:", registration.id);
