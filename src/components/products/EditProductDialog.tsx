@@ -83,7 +83,8 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
         notes: editingProduct.notes,
         endDate: calculatedEndDate || editingProduct.endDate,
         discountAmount: editingProduct.discountAmount,
-        effectivePrice: editingProduct.effectivePrice
+        effectivePrice: editingProduct.effectivePrice,
+        active: editingProduct.active // Include active field
       };
       
       onSubmit(updatedProduct);

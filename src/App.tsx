@@ -12,6 +12,7 @@ import ReportPage from "./pages/ReportPage";
 import DailyActivityPage from "./pages/DailyActivityPage";
 import HealthFormPage from "./pages/HealthFormPage";
 import FormSuccessPage from "./pages/FormSuccessPage";
+import PrintableHealthDeclarationPage from "./pages/PrintableHealthDeclarationPage";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./context/AuthContext";
 import { DataProvider } from "./context/DataContext";
@@ -37,8 +38,10 @@ const App = () => (
             <div className="min-h-screen flex flex-col bg-background font-inter antialiased">
               <Routes>
                 {/* Public routes for health declaration form */}
+                <Route path="/health-form/:token" element={<HealthFormPage />} />
                 <Route path="/health-form" element={<HealthFormPage />} />
                 <Route path="/form-success" element={<FormSuccessPage />} />
+                <Route path="/print/health-declaration" element={<PrintableHealthDeclarationPage />} />
                 
                 {/* App routes wrapped in layout */}
                 <Route path="/" element={<Layout><Outlet /></Layout>}>

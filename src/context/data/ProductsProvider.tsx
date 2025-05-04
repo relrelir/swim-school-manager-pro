@@ -38,7 +38,11 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           const transformedProducts = data.map(product => {
             // Map DB fields to our model properties (handle casing differences)
             const mappedProduct = mapProductFromDB(product);
-            return mappedProduct;
+            // Ensure the active field is set
+            return {
+              ...mappedProduct,
+              active: true // Set default value directly instead of using non-existent p.active
+            };
           });
           
           setProducts(transformedProducts);
@@ -61,8 +65,14 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Add a product
   const addProduct = async (product: Omit<Product, 'id'>) => {
     try {
+      // Ensure product has active field
+      const fullProduct = {
+        ...product,
+        active: true // Set default value directly
+      };
+
       // Convert to DB field names format (lowercase)
-      const dbProduct = mapProductToDB(product);
+      const dbProduct = mapProductToDB(fullProduct);
       
       const { data, error } = await supabase
         .from('products')
@@ -76,7 +86,10 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (data) {
         // Convert back to our TypeScript model format (camelCase)
-        const newProduct = mapProductFromDB(data);
+        const newProduct = {
+          ...mapProductFromDB(data),
+          active: true // Set default value directly
+        };
         setProducts([...products, newProduct]);
         return newProduct;
       }

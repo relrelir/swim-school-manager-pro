@@ -12,7 +12,7 @@ const corsHeaders = {
 };
 
 // Setup interface for request body
-interface CreateHealthDeclarationRequest {
+interface SendSMSRequest {
   phone: string;
   declarationId: string;
 }
@@ -24,12 +24,22 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { phone, declarationId }: CreateHealthDeclarationRequest = await req.json();
+    const { phone, declarationId }: SendSMSRequest = await req.json();
 
     // Validate request parameters
     if (!phone || !declarationId) {
       throw new Error("Missing required parameters: phone and declarationId");
     }
+
+    // In a real app, you would use an SMS service here (Twilio, etc.)
+    // For now, we'll just log it and simulate success
+    console.log(`SMS would be sent to ${phone} for declaration ${declarationId}`);
+    
+    // Generate a link to the health form
+    const formLink = `${req.headers.get("origin")}/health-form?id=${declarationId}`;
+    
+    // Log the form link (in a real app this would be sent via SMS)
+    console.log(`Form link: ${formLink}`);
     
     // Update the health declaration entry in the database
     const { error } = await supabase
@@ -45,18 +55,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Error updating health declaration: ${error.message}`);
     }
 
-    // Get the origin for the form link
-    const origin = req.headers.get("origin") || "https://your-app-url.com";
-    // Generate a link to the health form
-    const formLink = `${origin}/health-form?id=${declarationId}`;
-    
-    // Log the form link
-    console.log(`Form link created: ${formLink}`);
-
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: "Health declaration link created successfully",
+        message: "SMS sent successfully",
         formLink
       }),
       {
@@ -68,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
   } catch (error) {
-    console.error("Error in create-health-declaration function:", error.message);
+    console.error("Error in send-health-sms function:", error.message);
     
     return new Response(
       JSON.stringify({

@@ -1,53 +1,88 @@
-import { format } from 'date-fns';
+
+import { processTextDirection, forceLtrDirection, processTableCellText, processHebrewCurrencyForTable } from './pdf/hebrewTextHelper';
 
 /**
- * Format a date string to a localized format (dd/MM/yyyy)
+ * Format a number as currency in ILS (New Israeli Shekel)
+ * Enhanced with stronger LTR direction control
  */
-export const formatDate = (dateString: string) => {
-  try {
-    return format(new Date(dateString), 'dd/MM/yyyy');
-  } catch (e) {
-    return dateString;
-  }
-};
-
-/**
- * Format a time string to HH:mm format
- */
-export const formatTime = (timeString: string | undefined) => {
-  if (!timeString) return '-';
+export const formatCurrency = (amount: number): string => {
+  const formatted = new Intl.NumberFormat('he-IL', { 
+    style: 'currency', 
+    currency: 'ILS' 
+  }).format(amount);
   
-  // If time is already in HH:mm format, return it
-  if (/^\d{2}:\d{2}$/.test(timeString)) {
-    return timeString;
-  }
+  // Force LTR direction for currency values (they contain numbers)
+  return forceLtrDirection(formatted);
+};
+
+/**
+ * Special formatter for currency values in tables
+ * This uses specific handling to ensure proper display in PDF tables
+ */
+export const formatCurrencyForTable = (amount: number): string => {
+  const formatted = new Intl.NumberFormat('he-IL', { 
+    style: 'currency', 
+    currency: 'ILS' 
+  }).format(amount);
   
-  // Otherwise try to extract hours and minutes
+  // Use special table cell processing for currency values
+  return processHebrewCurrencyForTable(formatted);
+};
+
+/**
+ * Format a date in the local format
+ * Enhanced with strongest possible LTR direction control
+ */
+export const formatDate = (date: Date | string): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  // Apply strongest direction handling specifically for dates
+  return forceLtrDirection(dateObj.toLocaleDateString('he-IL'));
+};
+
+/**
+ * Format a price (alias to formatCurrency for better semantics)
+ */
+export const formatPrice = (price: number): string => {
+  return formatCurrency(price);
+};
+
+/**
+ * Format time from 24h format to local time format
+ * Enhanced with strongest possible LTR direction control
+ */
+export const formatTime = (time: string): string => {
   try {
-    const [hours, minutes] = timeString.split(':');
-    return `${hours}:${minutes}`;
+    if (!time) return '';
+    
+    // Parse hours and minutes from time string (expecting format like "14:30")
+    const [hours, minutes] = time.split(':').map(Number);
+    
+    // Create a date object to use toLocaleTimeString
+    const date = new Date();
+    date.setHours(hours);
+    date.setMinutes(minutes);
+    
+    // Format time according to locale (without seconds) with strongest LTR control
+    return forceLtrDirection(date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }));
   } catch (e) {
-    return timeString;
+    console.error('Error formatting time:', e);
+    return forceLtrDirection(time); // Return original with LTR direction if there's an error
   }
 };
 
 /**
- * Format price with ILS currency symbol
+ * Format participants count as "X/Y" with strong LTR direction control
  */
-export const formatPrice = (price: number) => {
-  return new Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(price);
+export const formatParticipantsCount = (current: number, max: number | undefined): string => {
+  if (max === undefined || max === null) {
+    return forceLtrDirection(`${current}`);
+  }
+  return forceLtrDirection(`${current}/${max}`);
 };
 
 /**
- * Format meeting count as current/total
+ * Format meeting count as "X/Y" with strong LTR direction control
  */
-export const formatMeetingCount = (current: number, total: number) => {
-  return `${current}/${total}`;
-};
-
-/**
- * Format participants count as current/max
- */
-export const formatParticipantsCount = (current: number, max: number) => {
-  return `${current}/${max}`;
+export const formatMeetingCount = (current: number, total: number): string => {
+  return forceLtrDirection(`${current}/${total}`);
 };
