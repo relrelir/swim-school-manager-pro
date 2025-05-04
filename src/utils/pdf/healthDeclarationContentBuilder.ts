@@ -1,4 +1,3 @@
-
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { 
@@ -57,7 +56,6 @@ export const buildHealthDeclarationPDF = (
 ): string => {
   try {
     console.log("Starting PDF generation with enhanced bidirectional text handling");
-    console.log("Participant data:", participant);
     
     // Add title - Hebrew content with RTL
     addPdfTitle(pdf, 'הצהרת בריאות');
@@ -74,26 +72,22 @@ export const buildHealthDeclarationPDF = (
     
     // Process participant data with appropriate direction control and validation
     const fullName = `${participant.firstname} ${participant.lastname}`;
-    console.log("Participant full name:", fullName);
     
     // Validate ID number
     const idNumber = isValidIdNumber(participant.idnumber) 
       ? forceLtrDirection(participant.idnumber) 
       : 'לא צוין';
-    console.log("Participant ID number:", idNumber);
     
     // Format phone number
     const phoneNumber = participant.phone 
       ? forceLtrDirection(formatPhoneNumber(participant.phone)) 
       : 'לא צוין';
-    console.log("Participant phone number:", phoneNumber);
     
     // IMPORTANT: Data in right column (first element), labels in left column (second element)
-    // Added colons to match the format in the registration PDF
     const participantData = [
-      [fullName, 'שם מלא:'],
-      [idNumber, 'תעודת זהות:'],
-      [phoneNumber, 'טלפון:'],
+      [fullName, 'שם מלא'],
+      [idNumber, 'תעודת זהות'],
+      [phoneNumber, 'טלפון'],
     ];
     
     console.log("Creating participant data table");
@@ -101,7 +95,6 @@ export const buildHealthDeclarationPDF = (
     
     // Add parent details if available
     const parentInfo = parseParentInfo(healthDeclaration.notes);
-    console.log("Parsed parent info:", parentInfo);
     
     if (parentInfo.parentName || parentInfo.parentId) {
       addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
@@ -112,10 +105,9 @@ export const buildHealthDeclarationPDF = (
         : 'לא צוין';
       
       // IMPORTANT: Data in right column (first), labels in left column (second)
-      // Added colons to match the format in the registration PDF
       const parentData = [
-        [parentInfo.parentName || 'לא צוין', 'שם מלא:'],
-        [parentIdDisplay, 'תעודת זהות:'],
+        [parentInfo.parentName || 'לא צוין', 'שם מלא'],
+        [parentIdDisplay, 'תעודת זהות'],
       ];
       
       lastY = createDataTable(pdf, parentData, lastY + 20);
