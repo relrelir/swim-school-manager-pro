@@ -1,3 +1,4 @@
+
 import { jsPDF } from 'jspdf';
 import { format } from 'date-fns';
 import { 
@@ -52,7 +53,7 @@ export const buildHealthDeclarationPDF = (
     // Process participant data with appropriate direction control
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
-    // IMPORTANT CHANGE: Swap the columns - put data in first column and labels in second column
+    // IMPORTANT: Swap the columns - put data in first column and labels in second column
     const participantData = [
       [fullName, 'שם מלא'],
       [forceLtrDirection(participant.idnumber), 'תעודת זהות'],
@@ -62,20 +63,19 @@ export const buildHealthDeclarationPDF = (
     console.log("Creating participant data table");
     let lastY = createDataTable(pdf, participantData, 50);
     
-    // Add parent details if available
+    // Parse and add parent/signer details
     const parentInfo = parseParentInfo(healthDeclaration.notes);
     
-    if (parentInfo.parentName || parentInfo.parentId) {
-      addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
-      
-      // IMPORTANT CHANGE: Swap the columns here as well - put data in first column and labels in second column
-      const parentData = [
-        [parentInfo.parentName || '', 'שם מלא'],
-        [parentInfo.parentId ? forceLtrDirection(parentInfo.parentId) : '', 'תעודת זהות'],
-      ];
-      
-      lastY = createDataTable(pdf, parentData, lastY + 20);
-    }
+    // Always display parent/signer section, even if empty
+    addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 15);
+    
+    // IMPORTANT: Swap the columns here as well - put data in first column and labels in second column
+    const parentData = [
+      [parentInfo.parentName || '', 'שם מלא'],
+      [parentInfo.parentId ? forceLtrDirection(parentInfo.parentId) : '', 'תעודת זהות'],
+    ];
+    
+    lastY = createDataTable(pdf, parentData, lastY + 20);
     
     // Add declaration text
     addSectionTitle(pdf, 'תוכן ההצהרה', lastY + 15);
@@ -89,23 +89,18 @@ export const buildHealthDeclarationPDF = (
     console.log("Creating declaration items table");
     lastY = createPlainTextTable(pdf, declarationData, lastY + 20);
     
-    // Add medical notes if any - NEW REQUIREMENT
-    if (healthDeclaration.notes) {
-      const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
-      
-      if (medicalNotes) {
-        addSectionTitle(pdf, 'הערות רפואיות', lastY + 15);
-        
-        lastY = createPlainTextTable(pdf, [[medicalNotes]], lastY + 20);
-      }
-    }
+    // Add medical notes - always show this section
+    const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
+    addSectionTitle(pdf, 'הערות רפואיות', lastY + 15);
+    
+    lastY = createPlainTextTable(pdf, [[medicalNotes]], lastY + 20);
     
     // Add confirmation
     addSectionTitle(pdf, 'אישור', lastY + 15);
     
     lastY = createPlainTextTable(pdf, [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], lastY + 20);
     
-    // Add signature line with parent info - UPDATED REQUIREMENT
+    // Add signature line with parent info
     pdf.setR2L(true); // Enable RTL for Hebrew text
     
     // Add parent details to signature line if available

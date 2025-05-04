@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from '@/context/data/utils';
+import { parseParentInfo, parseMedicalNotes } from '@/utils/pdf/healthDeclarationParser';
 
 const PrintableHealthDeclarationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -83,17 +84,9 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         
         console.log("Found participant:", participantData);
 
-        // Parse parent information from notes if available
-        let parentName = '';
-        let parentId = '';
-        let notes = healthDeclaration.notes || '';
-
-        const parentMatch = notes.match(/הורה\/אפוטרופוס: ([^,]+), ת\.ז\.: ([^\n]+)/);
-        if (parentMatch) {
-          parentName = parentMatch[1].trim();
-          parentId = parentMatch[2].trim();
-          notes = notes.replace(/הורה\/אפוטרופוס: [^,]+, ת\.ז\.: [^\n]+\n\n/g, '').trim();
-        }
+        // Parse parent information and medical notes
+        const parentInfo = parseParentInfo(healthDeclaration.notes || '');
+        const notes = parseMedicalNotes(healthDeclaration.notes || '');
 
         setHealthData({
           participantName: `${participantData.firstname} ${participantData.lastname}`,
@@ -102,8 +95,8 @@ const PrintableHealthDeclarationPage: React.FC = () => {
           formState: {
             agreement: true,
             notes: notes,
-            parentName: parentName,
-            parentId: parentId
+            parentName: parentInfo.parentName,
+            parentId: parentInfo.parentId
           },
           submissionDate: healthDeclaration.submission_date ? new Date(healthDeclaration.submission_date) : new Date()
         });

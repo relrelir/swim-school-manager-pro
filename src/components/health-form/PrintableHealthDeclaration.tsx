@@ -112,7 +112,22 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           />
         </div>
 
-        {/* Signature section - only visible when printing - UPDATED */}
+        {/* Parent/signer information section - always show this section */}
+        <div className="mt-8 pt-4 border-t">
+          <h3 className="text-lg font-semibold mb-4">פרטי ההורה/אפוטרופוס</h3>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div>
+              <p className="font-semibold mb-1">שם מלא:</p>
+              <p className="mb-2">{formState.parentName || 'לא צוין'}</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">תעודת זהות:</p>
+              <p className="mb-2">{formState.parentId || 'לא צוין'}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Signature section */}
         <div className="mt-8 pt-4 border-t">
           <div className="flex flex-col gap-8">
             <div>
@@ -130,15 +145,13 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </div>
         </div>
         
-        {/* Medical notes section - ADDED */}
-        {formState.notes && (
-          <div className="mt-8 pt-4 border-t">
-            <p className="font-semibold mb-2">הערות רפואיות:</p>
-            <div className="p-3 bg-gray-50 rounded-md">
-              <p>{formState.notes}</p>
-            </div>
+        {/* Medical notes section - always show this section */}
+        <div className="mt-8 pt-4 border-t">
+          <p className="font-semibold mb-2">הערות רפואיות:</p>
+          <div className="p-3 bg-gray-50 rounded-md">
+            <p>{formState.notes || 'אין הערות רפואיות נוספות'}</p>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
