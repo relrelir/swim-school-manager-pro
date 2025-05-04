@@ -112,12 +112,16 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           />
         </div>
 
-        {/* Signature section - only visible when printing */}
+        {/* Signature section - only visible when printing - UPDATED */}
         <div className="mt-8 pt-4 border-t">
           <div className="flex flex-col gap-8">
             <div>
               <p className="font-semibold mb-1">חתימת ההורה/אפוטרופוס:</p>
-              <div className="h-10 border-b border-dashed border-gray-400 w-64"></div>
+              {formState.parentName && formState.parentId ? (
+                <p className="mb-2">{formState.parentName}, ת.ז.: {formState.parentId}</p>
+              ) : (
+                <div className="h-10 border-b border-dashed border-gray-400 w-64"></div>
+              )}
             </div>
             <div>
               <p className="font-semibold mb-1">תאריך:</p>
@@ -125,6 +129,16 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
             </div>
           </div>
         </div>
+        
+        {/* Medical notes section - ADDED */}
+        {formState.notes && (
+          <div className="mt-8 pt-4 border-t">
+            <p className="font-semibold mb-2">הערות רפואיות:</p>
+            <div className="p-3 bg-gray-50 rounded-md">
+              <p>{formState.notes}</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

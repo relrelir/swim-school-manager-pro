@@ -90,7 +90,7 @@ export const buildHealthDeclarationPDF = (
     console.log("Creating declaration items table");
     lastY = createPlainTextTable(pdf, declarationData, lastY + 20);
     
-    // Add medical notes if any
+    // Add medical notes if any - NEW REQUIREMENT
     if (healthDeclaration.notes) {
       const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
       
@@ -106,9 +106,19 @@ export const buildHealthDeclarationPDF = (
     
     lastY = createPlainTextTable(pdf, [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], lastY + 20);
     
-    // Add signature line
+    // Add signature line with parent info - UPDATED REQUIREMENT
     pdf.setR2L(true); // Enable RTL for Hebrew text
-    pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, lastY + 20);
+    
+    // Add parent details to signature line if available
+    if (parentInfo.parentName && parentInfo.parentId) {
+      // Format with parent's full name and ID
+      const signatureText = `חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}, ת.ז.: ${parentInfo.parentId}`;
+      pdf.text(signatureText, 30, lastY + 20);
+    } else {
+      // Default signature line without details
+      pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, lastY + 20);
+    }
+    
     pdf.setR2L(false); // Reset RTL setting
     
     // Generate filename
