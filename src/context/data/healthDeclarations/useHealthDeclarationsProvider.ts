@@ -7,11 +7,17 @@ import {
   addHealthDeclarationService,
   updateHealthDeclarationService
 } from './service';
-import { findHealthDeclarationByRegistrationId } from './utils/healthDeclarationLookup';
+import { useHealthDeclarationLookup } from '@/hooks/useHealthDeclarationLookup';
 
 export function useHealthDeclarationsProvider() {
   const [healthDeclarations, setHealthDeclarations] = useState<HealthDeclaration[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Initialize our new custom hook for lookups
+  const {
+    findDeclarationByRegistrationId,
+    findDeclarationByParticipantId
+  } = useHealthDeclarationLookup(healthDeclarations);
 
   // Load health declarations from Supabase
   useEffect(() => {
@@ -64,7 +70,12 @@ export function useHealthDeclarationsProvider() {
 
   // Get health declaration for a specific registration
   const getHealthDeclarationForRegistration = async (registrationId: string) => {
-    return await findHealthDeclarationByRegistrationId(registrationId, healthDeclarations);
+    return await findDeclarationByRegistrationId(registrationId);
+  };
+
+  // Get health declaration by participant ID
+  const getHealthDeclarationByParticipantId = async (participantId: string) => {
+    return await findDeclarationByParticipantId(participantId);
   };
 
   return {
@@ -72,6 +83,7 @@ export function useHealthDeclarationsProvider() {
     addHealthDeclaration,
     updateHealthDeclaration,
     getHealthDeclarationForRegistration,
+    getHealthDeclarationByParticipantId,
     loading
   };
 }

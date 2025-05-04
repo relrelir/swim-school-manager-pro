@@ -7,6 +7,7 @@ export interface HealthDeclarationsContextType {
   addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>;
   updateHealthDeclaration: (id: string, updates: Partial<HealthDeclaration>) => Promise<void>;
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
+  getHealthDeclarationByParticipantId: (participantId: string) => Promise<HealthDeclaration | undefined>;
   loading: boolean;
 }
 
