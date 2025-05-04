@@ -85,11 +85,9 @@ export const HealthDeclarationsProvider: React.FC<{ children: React.ReactNode }>
       return declaration;
     }
     
-    // 2. Try participant_id field - now also checking if participant_id equals the registrationId
-    // (sometimes the registrationId is stored in the participant_id field)
+    // 2. Try participant_id field - FIXED: removed the problematic condition
     declaration = healthDeclarations.find(declaration => 
-      declaration.participant_id === registrationId ||
-      declaration.registrationId === declaration.participant_id
+      declaration.participant_id === registrationId
     );
     
     if (declaration) {

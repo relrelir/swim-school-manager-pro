@@ -27,11 +27,26 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     
     console.log("Found health declaration:", healthDeclaration);
     
-    // Get participant details - use participant_id from the health declaration
+    // FIXED: First get the registration using health declaration's participant_id
+    // (which is actually the registration ID)
+    const { data: registrationData, error: registrationError } = await supabase
+      .from('registrations')
+      .select('participantid')
+      .eq('id', healthDeclaration.participant_id)
+      .single();
+      
+    if (registrationError || !registrationData) {
+      console.error("Registration details not found:", registrationError);
+      throw new Error('פרטי הרישום לא נמצאו');
+    }
+    
+    console.log("Found registration with participant ID:", registrationData.participantid);
+    
+    // Now get participant details using the correct participant ID from registration
     const { data: participant, error: participantError } = await supabase
       .from('participants')
       .select('firstname, lastname, idnumber, phone')
-      .eq('id', healthDeclaration.participant_id)
+      .eq('id', registrationData.participantid)
       .single();
     
     if (participantError || !participant) {
