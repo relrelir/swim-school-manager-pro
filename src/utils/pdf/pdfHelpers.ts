@@ -8,7 +8,7 @@ export {
   addPdfTitle,
   addPdfDate,
   addSectionTitle
-} from './core/pdfCore';
+} from './core/index';
 
 // Content detection helpers
 export {
