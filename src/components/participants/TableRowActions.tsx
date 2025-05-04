@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Registration } from '@/types';
@@ -66,9 +65,9 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     }
   };
   
-  // Handle print health declaration PDF
+  // Handle print health declaration PDF - Updated to use participantId
   const handlePrintHealthDeclaration = async () => {
-    if (!registration || !registration.id) {
+    if (!registration || !registration.id || !registration.participantId) {
       console.error("Cannot generate PDF: Invalid registration", registration);
       toast({
         title: "שגיאה",
@@ -80,21 +79,8 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     
     setIsGeneratingHealthPdf(true);
     try {
-      console.log("Looking for health declaration for registration ID:", registration.id);
-      const healthDeclaration = await getHealthDeclarationForRegistration(registration.id);
-      
-      if (!healthDeclaration || !healthDeclaration.id) {
-        console.error("Health declaration not found for registration:", registration.id);
-        toast({
-          title: "הצהרת בריאות לא נמצאה",
-          description: "לא נמצאה הצהרה עבור רישום זה",
-          variant: "destructive"
-        });
-        return;
-      }
-      
-      console.log("Generating PDF for health declaration ID:", healthDeclaration.id);
-      await generateHealthDeclarationPdf(healthDeclaration.id);
+      console.log("Generating PDF for participant ID:", registration.participantId);
+      await generateHealthDeclarationPdf(registration.participantId);
       
       toast({
         title: "הצהרת הבריאות נוצרה בהצלחה",

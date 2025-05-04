@@ -4,49 +4,34 @@ import { createRtlPdf } from './pdf/pdfConfig';
 import { buildHealthDeclarationPDF } from './pdf/healthDeclarationContentBuilder';
 import { toast } from "@/components/ui/use-toast";
 
-export const generateHealthDeclarationPdf = async (healthDeclarationId: string) => {
+export const generateHealthDeclarationPdf = async (participantId: string) => {
   try {
-    console.log("Starting health declaration PDF generation for declaration ID:", healthDeclarationId);
+    console.log("Starting health declaration PDF generation for participant ID:", participantId);
     
-    if (!healthDeclarationId) {
-      console.error("Health declaration ID is missing or invalid");
-      throw new Error('מזהה הצהרת הבריאות חסר או לא תקין');
+    if (!participantId) {
+      console.error("Participant ID is missing or invalid");
+      throw new Error('מזהה המשתתף חסר או לא תקין');
     }
     
-    // Get the health declaration directly by ID - this should be more reliable than searching by registration ID
-    let { data: healthDeclaration, error: healthDeclarationError } = await supabase
-      .from('health_declarations')
-      .select('id, participant_id, submission_date, notes, form_status')
-      .eq('id', healthDeclarationId)
-      .single();
-    
-    if (healthDeclarationError || !healthDeclaration) {
-      console.error("Health declaration not found by ID:", healthDeclarationError, healthDeclarationId);
-      throw new Error('הצהרת בריאות לא נמצאה');
-    }
-    
-    console.log("Found health declaration:", healthDeclaration);
-    
-    // FIXED: First get the registration using health declaration's participant_id
-    // (which is actually the registration ID)
-    const { data: registrationData, error: registrationError } = await supabase
+    // 1. Get the registration using participant ID
+    const { data: registration, error: registrationError } = await supabase
       .from('registrations')
-      .select('participantid')
-      .eq('id', healthDeclaration.participant_id)
+      .select('*')
+      .eq('participantid', participantId)
       .single();
       
-    if (registrationError || !registrationData) {
+    if (registrationError || !registration) {
       console.error("Registration details not found:", registrationError);
       throw new Error('פרטי הרישום לא נמצאו');
     }
     
-    console.log("Found registration with participant ID:", registrationData.participantid);
+    console.log("Found registration:", registration);
     
-    // Now get participant details using the correct participant ID from registration
+    // 2. Get participant details using the participantId
     const { data: participant, error: participantError } = await supabase
       .from('participants')
       .select('firstname, lastname, idnumber, phone')
-      .eq('id', registrationData.participantid)
+      .eq('id', participantId)
       .single();
     
     if (participantError || !participant) {
@@ -55,6 +40,27 @@ export const generateHealthDeclarationPdf = async (healthDeclarationId: string) 
     }
     
     console.log("Data fetched successfully. Participant:", participant);
+    
+    // 3. Get health declaration data (if exists)
+    let { data: healthDeclaration, error: healthDeclarationError } = await supabase
+      .from('health_declarations')
+      .select('id, participant_id, submission_date, notes, form_status')
+      .eq('participant_id', participantId)
+      .single();
+    
+    // If no health declaration exists, create a default object for PDF generation
+    if (healthDeclarationError || !healthDeclaration) {
+      healthDeclaration = {
+        id: '',
+        participant_id: participantId,
+        submission_date: null,
+        notes: null,
+        form_status: 'pending'
+      };
+      console.log("No health declaration found, using default object");
+    } else {
+      console.log("Found health declaration:", healthDeclaration.id);
+    }
     
     try {
       // Create the PDF document with RTL and font support - now async

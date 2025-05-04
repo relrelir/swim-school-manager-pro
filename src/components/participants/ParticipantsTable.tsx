@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Participant, PaymentStatus, Registration, Payment } from '@/types';
+import { Participant, PaymentStatus, Registration, Payment, HealthDeclaration } from '@/types';
 import TableHealthStatus from './TableHealthStatus';
 import TablePaymentInfo from './TablePaymentInfo';
 import TableReceiptNumbers from './TableReceiptNumbers';
@@ -13,6 +13,7 @@ interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
   getPaymentsForRegistration: (registration: Registration) => Payment[];
+  getHealthDeclarationForRegistration?: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   getStatusClassName: (status: PaymentStatus) => string;
   onAddPayment: (registration: Registration) => void;
@@ -26,6 +27,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   registrations,
   getParticipantForRegistration,
   getPaymentsForRegistration,
+  getHealthDeclarationForRegistration,
   calculatePaymentStatus,
   getStatusClassName,
   onAddPayment,
