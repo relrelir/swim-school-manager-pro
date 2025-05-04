@@ -22,9 +22,7 @@ export const useParticipantActions = (
   setIsAddPaymentOpen: (value: boolean) => void,
   setNewPayment: (value: any) => void,
   newPayment: any,
-  resetForm: () => void,
-  currentRegistration?: Registration | null,
-  setCurrentRegistration?: (registration: Registration | null) => void
+  resetForm: () => void
 ) => {
   const {
     updateParticipant,
@@ -70,14 +68,12 @@ export const useParticipantActions = (
     registrations
   );
 
-  // Import registration management hook with currentRegistration
+  // Import registration management hook
   const {
     handleAddParticipant: baseHandleAddParticipant,
     handleAddPayment: baseHandleAddPayment,
     handleApplyDiscount: baseHandleApplyDiscount,
-    handleDeleteRegistration,
-    currentRegistration: registrationManagementCurrentReg,
-    setCurrentRegistration: registrationManagementSetCurrentReg
+    handleDeleteRegistration
   } = useRegistrationManagement(
     product,
     productId,
@@ -93,17 +89,6 @@ export const useParticipantActions = (
     addHealthDeclaration
   );
 
-  // Use the current registration from props if provided, otherwise use the one from registration management
-  const effectiveCurrentRegistration = currentRegistration || registrationManagementCurrentReg;
-  const effectiveSetCurrentRegistration = setCurrentRegistration || registrationManagementSetCurrentReg;
-
-  // Make sure we set the current registration in the registration management hook when it changes
-  if (currentRegistration && registrationManagementSetCurrentReg && 
-     (!registrationManagementCurrentReg || registrationManagementCurrentReg.id !== currentRegistration.id)) {
-    console.log("Syncing currentRegistration to registrationManagement:", currentRegistration);
-    registrationManagementSetCurrentReg(currentRegistration);
-  }
-
   // Create adapters for various function signatures
   const {
     adaptedHandleOpenHealthForm,
@@ -118,7 +103,7 @@ export const useParticipantActions = (
     baseHandleApplyDiscount
   );
 
-  // Import participant handlers with actual implementations and current registration
+  // Import participant handlers with actual implementations
   const {
     handleOpenHealthForm,
     handleAddParticipant: wrapperHandleAddParticipant,
@@ -132,8 +117,7 @@ export const useParticipantActions = (
     newParticipant,
     registrationData,
     getParticipantForRegistration,
-    registrations,
-    effectiveCurrentRegistration // Make sure we're passing the current registration
+    registrations
   );
 
   // Final wrapper for handleAddParticipant
@@ -141,9 +125,8 @@ export const useParticipantActions = (
     return wrapperHandleAddParticipant(e, resetForm, setIsAddParticipantOpen);
   };
 
-  // Final wrapper for handleAddPayment with debug logging
+  // Final wrapper for handleAddPayment
   const handleAddPayment = (e: React.FormEvent) => {
-    console.log("useParticipantActions.handleAddPayment called with currentRegistration:", effectiveCurrentRegistration);
     return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
   };
 
@@ -153,8 +136,6 @@ export const useParticipantActions = (
     handleApplyDiscount,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
-    handleOpenHealthForm,
-    currentRegistration: effectiveCurrentRegistration,
-    setCurrentRegistration: effectiveSetCurrentRegistration
+    handleOpenHealthForm
   };
 };
