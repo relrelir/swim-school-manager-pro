@@ -40,3 +40,7 @@ export {
   createDataTable,
   createPlainTextTable
 } from './helpers/tableHelpers';
+
+// Export the legacy function 'containsHebrew' directly as an alias
+// to maintain backward compatibility with any code using hebrewTextHelper.ts
+export { containsHebrew as containsHebrewText } from './helpers/contentDetection';
