@@ -1,3 +1,4 @@
+
 import { processTableCellText, forceLtrDirection, manuallyReverseString } from '../textDirection';
 import { containsHebrew } from '../contentDetection';
 
@@ -49,7 +50,6 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   } else if (isHebrewContent) {
     // Pure Hebrew text - needs manual character reversal to display properly in tables
     return { 
-      // For Hebrew text in tables, we need to manually reverse the characters
       text: manuallyReverseString(content),
       isRtl: true,
       isCurrency: false 

@@ -112,7 +112,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           />
         </div>
 
-        {/* Parent/signer information section */}
+        {/* Parent/signer information section - now displays both fields separately */}
         <div className="mt-6 pt-4 border-t">
           <h3 className="text-lg font-semibold mb-3">פרטי ההורה/אפוטרופוס</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -127,11 +127,15 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </div>
         </div>
 
-        {/* Medical notes section */}
+        {/* Medical notes section - now correctly displays actual notes */}
         <div className="mt-4 pt-3 border-t">
           <p className="font-semibold mb-2">הערות רפואיות:</p>
           <div className="p-3 bg-gray-50 rounded-md">
-            <p>{formState.notes || 'אין הערות רפואיות נוספות'}</p>
+            {formState.notes ? (
+              <p>{formState.notes}</p>
+            ) : (
+              <p>אין הערות רפואיות נוספות</p>
+            )}
           </div>
         </div>
 
@@ -140,8 +144,8 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           <div className="flex flex-col gap-4 print:gap-2">
             <div>
               <p className="font-semibold mb-1">חתימת ההורה/אפוטרופוס:</p>
-              {formState.parentName && formState.parentId ? (
-                <p className="mb-2">{formState.parentName}, ת.ז.: {formState.parentId}</p>
+              {formState.parentName ? (
+                <p className="mb-2">{formState.parentName}</p>
               ) : (
                 <div className="h-8 border-b border-dashed border-gray-400 w-64"></div>
               )}

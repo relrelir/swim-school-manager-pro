@@ -76,10 +76,10 @@ export const buildHealthDeclarationPDF = (
     // Add parent/guardian section with optimized spacing
     addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
     
-    // IMPORTANT: Ensure both columns are displayed correctly
+    // Create separate rows for parent name and ID
     const parentData = [
       [parentInfo.parentName || '', 'שם מלא'],
-      [parentInfo.parentId ? forceLtrDirection(parentInfo.parentId) : '', 'תעודת זהות'],
+      [forceLtrDirection(parentInfo.parentId || ''), 'תעודת זהות'],
     ];
     
     lastY = createDataTable(pdf, parentData, lastY + 10);
@@ -99,7 +99,10 @@ export const buildHealthDeclarationPDF = (
     console.log("Parsed medical notes:", medicalNotes);
     
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
-    lastY = createPlainTextTable(pdf, [[medicalNotes]], lastY + 10);
+    
+    // Display medical notes or default message
+    const notesText = medicalNotes ? medicalNotes : 'אין הערות רפואיות נוספות';
+    lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
     // Add confirmation section with reduced spacing
     addSectionTitle(pdf, 'אישור', lastY + 5);
@@ -113,12 +116,13 @@ export const buildHealthDeclarationPDF = (
     pdf.setR2L(true); // Enable RTL for Hebrew text
     
     // Add parent details to signature line if available
-    if (parentInfo.parentName && parentInfo.parentId) {
+    const signatureY = lastY + 15;
+    if (parentInfo.parentName) {
       // Use compact format to save space
-      pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}, ת.ז.: ${parentInfo.parentId}`, 30, lastY + 15);
+      pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`, 30, signatureY);
     } else {
       // Default signature line without details
-      pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, lastY + 15);
+      pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, signatureY);
     }
     
     pdf.setR2L(false); // Reset RTL setting

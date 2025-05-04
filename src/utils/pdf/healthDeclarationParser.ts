@@ -10,8 +10,8 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
     // First try to parse as JSON
     const parsedNotes = JSON.parse(notes);
     const result = {
-      parentName: parsedNotes.parentName || '',
-      parentId: parsedNotes.parentId || ''
+      parentName: parsedNotes.parentName || parsedNotes.parentname || '',
+      parentId: parsedNotes.parentId || parsedNotes.parentid || ''
     };
     console.log("Successfully parsed notes as JSON:", result);
     return result;
@@ -20,11 +20,13 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
     
     // If not valid JSON, try to extract using regex with improved patterns
     const nameMatch = notes.match(/parentName"?:\s*"?([^",}]+)"?/i) || 
+                     notes.match(/parentname"?:\s*"?([^",}]+)"?/i) || 
                      notes.match(/שם מלא"?:\s*"?([^",}]+)"?/i) ||
                      notes.match(/שם ההורה"?:\s*"?([^",}]+)"?/i) ||
                      notes.match(/שם הורה"?:\s*"?([^",}]+)"?/i);
     
     const idMatch = notes.match(/parentId"?:\s*"?([^",}]+)"?/i) || 
+                   notes.match(/parentid"?:\s*"?([^",}]+)"?/i) || 
                    notes.match(/תעודת זהות"?:\s*"?([^",}]+)"?/i) ||
                    notes.match(/ת\.?ז\.?"?:\s*"?([^",}]+)"?/i) ||
                    notes.match(/מספר זהות"?:\s*"?([^",}]+)"?/i);
@@ -44,7 +46,7 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
  * Improved to ensure proper separation from parent info
  */
 export const parseMedicalNotes = (notes: string | null): string => {
-  if (!notes) return 'אין הערות רפואיות נוספות';
+  if (!notes) return '';
   
   try {
     console.log("Parsing medical notes from:", notes);
@@ -54,40 +56,35 @@ export const parseMedicalNotes = (notes: string | null): string => {
     // Look for medical notes in various fields
     const medicalNotes = parsedNotes.notes || 
                         parsedNotes.medicalNotes || 
+                        parsedNotes.medicalComments || 
                         parsedNotes.הערות || 
                         parsedNotes.הערותרפואיות || '';
                         
     console.log("Successfully parsed medical notes as JSON:", medicalNotes);
-    return medicalNotes || 'אין הערות רפואיות נוספות';
+    return medicalNotes || '';
   } catch (e) {
     console.log("Failed to parse medical notes as JSON, trying regex");
     
     // If not valid JSON, try to extract using improved regex
-    const notesMatch = notes.match(/notes"?:\s*"?([^"]*)"?/i) || 
-                      notes.match(/medicalNotes"?:\s*"?([^"]*)"?/i) ||
-                      notes.match(/הערות רפואיות"?:\s*"?([^"]*)"?/i) ||
-                      notes.match(/הערות"?:\s*"?([^"]*)"?/i);
+    const notesMatch = notes.match(/notes"?:\s*"?([^"]*)"?[,}]?/i) || 
+                      notes.match(/medicalNotes"?:\s*"?([^"]*)"?[,}]?/i) ||
+                      notes.match(/הערות רפואיות"?:\s*"?([^"]*)"?[,}]?/i) ||
+                      notes.match(/הערות"?:\s*"?([^"]*)"?[,}]?/i);
     
     let result = notesMatch ? notesMatch[1].trim() : '';
     
     // If no pattern matches, and string doesn't contain parent info markers,
-    // the entire string might be medical notes
+    // check if the entire string might be medical notes
     if (!result && !notes.includes('parentName') && !notes.includes('parentId') && 
+        !notes.includes('parentname') && !notes.includes('parentid') && 
         !notes.includes('שם') && !notes.includes('ת.ז') && !notes.includes('תעודת זהות')) {
       
-      // Remove any JSON-like structure that might be parent info
+      // Check if entire text is potentially medical notes
       result = notes.replace(/{[^}]*}/g, '').trim();
-      
-      // If still empty after cleanup, return default message
-      if (!result) {
-        return 'אין הערות רפואיות נוספות';
-      }
-      
-      return result;
     }
     
     console.log("Extracted medical notes using regex:", result);
-    return result || 'אין הערות רפואיות נוספות';
+    return result;
   }
 };
 
