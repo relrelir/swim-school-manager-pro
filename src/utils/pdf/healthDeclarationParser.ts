@@ -24,8 +24,18 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
     }
     
     // If not valid JSON or doesn't contain parent info, try to extract using regex
-    const nameMatch = notes.match(/parentName"?:\s*"?([^",}]+)"?/i) || notes.match(/שם מלא:?\s*([^\n,]+)/i);
-    const idMatch = notes.match(/parentId"?:\s*"?([^",}]+)"?/i) || notes.match(/ת\.?ז\.?:?\s*([^\n,]+)/i);
+    // Look for more formats of parent name and ID in Hebrew text
+    const nameMatch = 
+      notes.match(/parentName"?:\s*"?([^",}]+)"?/i) || 
+      notes.match(/שם מלא:?\s*([^\n,]+)/i) || 
+      notes.match(/שם הורה:?\s*([^\n,]+)/i) ||
+      notes.match(/שם:?\s*([^\n,]+)/i);
+      
+    const idMatch = 
+      notes.match(/parentId"?:\s*"?([^",}]+)"?/i) || 
+      notes.match(/ת\.?ז\.?:?\s*([^\n,]+)/i) ||
+      notes.match(/תעודת זהות:?\s*([^\n,]+)/i) ||
+      notes.match(/מספר זהות:?\s*([^\n,]+)/i);
     
     const result = {
       parentName: nameMatch ? nameMatch[1].trim() : '',
@@ -68,7 +78,11 @@ export const parseMedicalNotes = (notes: string | null): string => {
     // Remove parent information patterns if present
     cleanedNotes = cleanedNotes
       .replace(/שם מלא:?\s*[^\n,]+,?\s*/gi, '')
+      .replace(/שם הורה:?\s*[^\n,]+,?\s*/gi, '')
+      .replace(/שם:?\s*[^\n,]+,?\s*/gi, '')
       .replace(/ת\.?ז\.?:?\s*[^\n,]+,?\s*/gi, '')
+      .replace(/תעודת זהות:?\s*[^\n,]+,?\s*/gi, '')
+      .replace(/מספר זהות:?\s*[^\n,]+,?\s*/gi, '')
       .replace(/parentName"?:\s*"?[^",}]+,?\s*/gi, '')
       .replace(/parentId"?:\s*"?[^",}]+,?\s*/gi, '')
       .replace(/הורה\/אפוטרופוס:\s*[^,]+,\s*ת\.ז\.:\s*[^\n]+\s*/gi, '')
@@ -76,10 +90,17 @@ export const parseMedicalNotes = (notes: string | null): string => {
       
     // Extract medical notes using regex if still in JSON-like format
     const notesMatch = cleanedNotes.match(/notes"?:\s*"?([^",}]+)"?/i) || 
-                      cleanedNotes.match(/medicalNotes"?:\s*"?([^",}]+)"?/i);
+                      cleanedNotes.match(/medicalNotes"?:\s*"?([^",}]+)"?/i) ||
+                      cleanedNotes.match(/הערות:?\s*([^\n]+)/i);
     
     if (notesMatch) {
       return notesMatch[1].trim() || 'אין הערות נוספות';
+    }
+    
+    // Check if there's any text mentioning specific medical conditions
+    if (cleanedNotes.match(/אלרגיה|רגישות|תרופות|מגבל|טיפול|רפוא|בריאות/i)) {
+      console.log("Found medical-related content:", cleanedNotes);
+      return cleanedNotes;
     }
     
     // If notes field has content after removing parent info, return it
@@ -92,7 +113,7 @@ export const parseMedicalNotes = (notes: string | null): string => {
     // assume they're medical notes
     if (!notes.includes('parentName') && 
         !notes.includes('parentId') && 
-        !notes.includes('שם מלא') && 
+        !notes.includes('שם') && 
         !notes.includes('ת.ז')) {
       console.log("Using entire notes field as medical notes:", notes);
       return notes;

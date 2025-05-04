@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PrintableHealthDeclaration from '@/components/health-form/PrintableHealthDeclaration';
@@ -84,9 +85,12 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         
         console.log("Found participant:", participantData);
 
-        // Use our parser utilities to extract parent info and medical notes
+        // Use our improved parser utilities to extract parent info and medical notes
         const parentInfo = parseParentInfo(healthDeclaration.notes);
         const medicalNotesText = parseMedicalNotes(healthDeclaration.notes);
+        
+        console.log("Parsed parent info:", parentInfo);
+        console.log("Parsed medical notes:", medicalNotesText);
 
         setHealthData({
           participantName: `${participantData.firstname} ${participantData.lastname}`,

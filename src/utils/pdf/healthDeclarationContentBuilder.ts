@@ -98,7 +98,7 @@ export const buildHealthDeclarationPDF = (
     
     // Always add medical notes section
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 15);
-    lastY = createPlainTextTable(pdf, [[medicalNotes]], lastY + 20);
+    lastY = createPlainTextTable(pdf, [[medicalNotes || 'אין הערות נוספות']], lastY + 20);
     
     // Add confirmation
     addSectionTitle(pdf, 'אישור', lastY + 15);

@@ -112,7 +112,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           />
         </div>
 
-        {/* Signature section - only visible when printing - UPDATED */}
+        {/* Signature section */}
         <div className="mt-8 pt-4 border-t">
           <div className="flex flex-col gap-8">
             <div>
@@ -134,7 +134,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </div>
         </div>
         
-        {/* Medical notes section - ALWAYS shown */}
+        {/* Medical notes section - clearly separated */}
         <div className="mt-8 pt-4 border-t">
           <p className="font-semibold mb-2">הערות רפואיות:</p>
           <div className="p-3 bg-gray-50 rounded-md">

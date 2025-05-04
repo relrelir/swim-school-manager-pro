@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { CheckCircle, AlertCircle, Link } from 'lucide-react';
+import { CheckCircle, AlertCircle, Link, FileText } from 'lucide-react';
 import { Participant, Registration, HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
 import { useHealthDeclarationsContext } from '@/context/data/HealthDeclarationsProvider';
+import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -22,6 +23,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   onOpenHealthForm
 }) => {
   const [isGeneratingLink, setIsGeneratingLink] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [healthDeclaration, setHealthDeclaration] = useState<HealthDeclaration | undefined>(undefined);
   const [isFormSigned, setIsFormSigned] = useState(false);
@@ -90,6 +92,27 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
       setIsGeneratingLink(false);
     }
   };
+  
+  // Handle generate PDF
+  const handleGeneratePDF = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      await generateHealthDeclarationPdf(participant.id);
+      toast({
+        title: "PDF נוצר בהצלחה",
+        description: "הצהרת הבריאות נשמרה במכשיר שלך",
+      });
+    } catch (error) {
+      console.error('Error generating health declaration PDF:', error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה ביצירת ה-PDF",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
 
   // Helper function to copy text to clipboard
   const copyToClipboard = async (text: string) => {
@@ -124,7 +147,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </Tooltip>
       )}
       
-      {/* Link Button - Always visible */}
+      {/* Link Button */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -146,6 +169,29 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </TooltipTrigger>
         <TooltipContent>
           צור וקבל קישור להצהרת בריאות
+        </TooltipContent>
+      </Tooltip>
+      
+      {/* PDF Button */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-red-500 hover:text-red-600 flex items-center border-red-200 hover:border-red-400"
+            onClick={handleGeneratePDF}
+            disabled={isGeneratingPdf}
+          >
+            {isGeneratingPdf ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent ml-1" />
+            ) : (
+              <FileText className="h-4 w-4 ml-1" />
+            )}
+            צור PDF
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          צור קובץ PDF של הצהרת הבריאות
         </TooltipContent>
       </Tooltip>
     </div>
