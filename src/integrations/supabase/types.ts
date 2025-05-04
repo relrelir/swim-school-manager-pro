@@ -42,6 +42,7 @@ export type Database = {
           participant_id: string
           phone_sent_to: string
           submission_date: string | null
+          token: string
           updated_at: string
         }
         Insert: {
@@ -52,6 +53,7 @@ export type Database = {
           participant_id: string
           phone_sent_to: string
           submission_date?: string | null
+          token: string
           updated_at?: string
         }
         Update: {
@@ -62,6 +64,7 @@ export type Database = {
           participant_id?: string
           phone_sent_to?: string
           submission_date?: string | null
+          token?: string
           updated_at?: string
         }
         Relationships: [

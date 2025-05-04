@@ -1,36 +1,38 @@
 
 import React from 'react';
-import { Registration, Participant, Payment, HealthDeclaration, PaymentStatus } from '@/types';
-import ParticipantsSummaryCards from '@/components/participants/ParticipantsSummaryCards';
-import ParticipantsTable from '@/components/participants/ParticipantsTable';
-import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
+import { Product, Registration, Participant, PaymentStatus, HealthDeclaration, Payment } from '@/types';
+import ParticipantsSummaryCards from './ParticipantsSummaryCards';
+import ParticipantsTable from './ParticipantsTable';
+import EmptyParticipantsState from './EmptyParticipantsState';
 
 interface ParticipantsContentProps {
-  registrations: Registration[];
+  product: Product | undefined;
   totalParticipants: number;
-  product: any;
+  registrationsFilled: number;
   totalExpected: number;
   totalPaid: number;
-  registrationsFilled: number;
+  registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registrationId: string) => Payment[]; // Changed to accept registrationId
-  getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined;
+  getPaymentsForRegistration: (registrationId: string) => Payment[];
+  getHealthDeclarationForRegistration?: (registrationId: string) => HealthDeclaration | undefined;
   calculatePaymentStatus: (registration: Registration) => PaymentStatus;
-  getStatusClassName: (status: string) => string;
+  getStatusClassName: (status: PaymentStatus) => string;
   onAddPayment: (registration: Registration) => void;
-  onDeleteRegistration: (id: string) => void;
-  onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void; // Changed to accept registrationId
-  onOpenHealthForm: (registrationId: string) => void;
-  onExport: () => void;
+  onDeleteRegistration: (registrationId: string) => void;
+  onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
+  onOpenHealthForm?: (registrationId: string) => void;
+  onExport?: () => void;
+  onGenerateReport?: (registrationId: string) => void;
+  onPrintReceipt?: (registrationId: string, paymentId: string) => void;
 }
 
 const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
-  registrations,
-  totalParticipants,
   product,
+  totalParticipants,
+  registrationsFilled,
   totalExpected,
   totalPaid,
-  registrationsFilled,
+  registrations,
   getParticipantForRegistration,
   getPaymentsForRegistration,
   getHealthDeclarationForRegistration,
@@ -40,47 +42,47 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
   onDeleteRegistration,
   onUpdateHealthApproval,
   onOpenHealthForm,
-  onExport
+  onExport,
+  onGenerateReport,
+  onPrintReceipt,
 }) => {
-  // Create adapter functions to handle the type conversion
-  const getPaymentsAdapter = (registration: Registration) => {
-    return getPaymentsForRegistration(registration.id);
-  };
-  
-  const updateHealthApprovalAdapter = (participant: Participant, isApproved: boolean) => {
-    // Find the registration for this participant
-    const registration = registrations.find(reg => reg.participantId === participant.id);
-    if (registration) {
-      onUpdateHealthApproval(registration.id, isApproved);
-    }
-  };
-
   return (
     <>
-      <ParticipantsSummaryCards 
-        totalParticipants={totalParticipants}
+      <ParticipantsSummaryCards
         product={product}
+        totalParticipants={totalParticipants}
+        registrationsFilled={registrationsFilled}
         totalExpected={totalExpected}
         totalPaid={totalPaid}
-        registrationsFilled={registrationsFilled}
       />
-
+      
       {registrations.length === 0 ? (
-        <EmptyParticipantsState />
+        <EmptyParticipantsState onAddClick={onExport} />
       ) : (
-        <ParticipantsTable
-          registrations={registrations}
-          getParticipantForRegistration={getParticipantForRegistration}
-          getPaymentsForRegistration={getPaymentsAdapter}
-          getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
-          calculatePaymentStatus={calculatePaymentStatus}
-          getStatusClassName={getStatusClassName}
-          onAddPayment={onAddPayment}
-          onDeleteRegistration={onDeleteRegistration}
-          onUpdateHealthApproval={updateHealthApprovalAdapter}
-          onOpenHealthForm={onOpenHealthForm}
-          onExport={onExport}
-        />
+        <div className="bg-card rounded-lg shadow-card overflow-hidden">
+          <ParticipantsTable
+            registrations={registrations}
+            getParticipantForRegistration={getParticipantForRegistration}
+            getPaymentsForRegistration={getPaymentsForRegistration}
+            getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
+            calculatePaymentStatus={calculatePaymentStatus}
+            getStatusClassName={getStatusClassName}
+            onAddPayment={onAddPayment}
+            onDeleteRegistration={onDeleteRegistration}
+            onUpdateHealthApproval={(participant, isApproved) => {
+              if (participant) {
+                const registration = registrations.find(r => r.participantId === participant.id);
+                if (registration) {
+                  onUpdateHealthApproval(registration.id, isApproved);
+                }
+              }
+            }}
+            onOpenHealthForm={onOpenHealthForm}
+            onExport={onExport}
+            onGenerateReport={onGenerateReport}
+            onPrintReceipt={onPrintReceipt}
+          />
+        </div>
       )}
     </>
   );

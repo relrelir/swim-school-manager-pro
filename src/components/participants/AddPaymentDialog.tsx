@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Participant, Registration } from '@/types';
+import { Printer } from 'lucide-react';
 
 interface AddPaymentDialogProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ interface AddPaymentDialogProps {
   }>>;
   onSubmit: (e: React.FormEvent) => void;
   onApplyDiscount: (amount: number) => void;
+  onPrintReceipt?: (paymentId: string) => void;
 }
 
 const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
@@ -35,6 +37,7 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   setNewPayment,
   onSubmit,
   onApplyDiscount,
+  onPrintReceipt,
 }) => {
   const [isDiscount, setIsDiscount] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
