@@ -1,3 +1,4 @@
+
 /**
  * Parse parent information from the notes field with improved extraction
  */
@@ -132,9 +133,25 @@ export const parseMedicalNotes = (text: string | null): string => {
       console.log("Failed to parse medical notes as JSON, trying regex");
     }
     
+    // First, clean the text by removing "הורה/אפוטרופוס:" and similar patterns
+    let cleanedText = text;
+    const parentLabelPatterns = [
+      /הורה\/אפוטרופוס:?/g,
+      /הורה:?/g,
+      /אפוטרופוס:?/g,
+      /שם הורה\/אפוטרופוס:?/g,
+      /שם ההורה:?/g,
+      /שם מלא:?/g
+    ];
+    
+    // Remove all parent label patterns from the text
+    parentLabelPatterns.forEach(pattern => {
+      cleanedText = cleanedText.replace(pattern, '');
+    });
+    
     // Look for explicitly marked medical notes first
-    const notesMatch = text.match(/(?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)[\s:="]+["']?([^"\}\r\n]+)["']?/i) || 
-                      text.match(/["'](?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)["'][\s:="]+["']?([^"\}\r\n]+)["']?/i);
+    const notesMatch = cleanedText.match(/(?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)[\s:="]+["']?([^"\}\r\n]+)["']?/i) || 
+                      cleanedText.match(/["'](?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)["'][\s:="]+["']?([^"\}\r\n]+)["']?/i);
     
     if (notesMatch && notesMatch[1].trim()) {
       const result = notesMatch[1].trim();
@@ -143,7 +160,7 @@ export const parseMedicalNotes = (text: string | null): string => {
     }
     
     // CRITICAL FIX: Check for specific medical phrase pattern like "אני קוף"
-    const medicalPhraseMatch = text.match(/אני\s+([^"\{\}\r\n]+)/i);
+    const medicalPhraseMatch = cleanedText.match(/אני\s+([^"\{\}\r\n]+)/i);
     if (medicalPhraseMatch && medicalPhraseMatch[0].trim()) {
       const result = medicalPhraseMatch[0].trim();
       console.log("Extracted medical phrase:", result);
@@ -160,11 +177,13 @@ export const parseMedicalNotes = (text: string | null): string => {
       // Try to remove parent name patterns (first+last name)
       /[\u0590-\u05FF\s]+\s+[\u0590-\u05FF\s]+/i,
       // Remove objects and syntax elements
-      /[\{\}"\s]*(parentName|parentId|שם|תעודת זהות|ת\.ז\.)[\s:"=]*["']?[^"\}\r\n,]*["']?[,\s]*/gi
+      /[\{\}"\s]*(parentName|parentId|שם|תעודת זהות|ת\.ז\.)[\s:"=]*["']?[^"\}\r\n,]*["']?[,\s]*/gi,
+      // Add the new pattern to remove הורה/אפוטרופוס explicitly
+      /(?:הורה\/אפוטרופוס)[:]*\s*/gi
     ];
     
     // Remove all parent-related patterns
-    let remainingText = text;
+    let remainingText = cleanedText;
     parentPatterns.forEach(pattern => {
       remainingText = remainingText.replace(pattern, ' ');
     });

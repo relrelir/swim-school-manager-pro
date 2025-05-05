@@ -36,10 +36,6 @@ export const buildHealthDeclarationPDF = (
   participant: ParticipantData
 ): string => {
   try {
-    // Reduce console.log calls for better performance
-    // console.log("Starting PDF generation with enhanced bidirectional text handling");
-    // console.log("Raw notes field:", healthDeclaration.notes);
-    
     // Add title - Hebrew title works correctly with global RTL
     addPdfTitle(pdf, 'הצהרת בריאות');
     
@@ -67,14 +63,11 @@ export const buildHealthDeclarationPDF = (
       [forceLtrDirection(participant.phone || ''), 'טלפון'], // Phone number needs LTR control
     ];
     
-    // Reduce console.log call for performance
-    // console.log("Creating participant data table");
     lastY = createDataTable(pdf, participantData, lastY + 5);
     
     // ===== PARENT/GUARDIAN SECTION - SEPARATE SECTION =====
     // Parse parent info with our improved parser - parseParentInfo is now more efficient
     const parentInfo = parseParentInfo(healthDeclaration.notes);
-    // console.log("Parsed parent info:", parentInfo);
     
     // Add parent/guardian section with optimized spacing
     addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
@@ -85,8 +78,6 @@ export const buildHealthDeclarationPDF = (
       [forceLtrDirection(parentInfo.parentId || 'לא צוין'), 'תעודת זהות'], // ID number needs LTR control
     ];
     
-    // Reduce console.log call for performance
-    // console.log("Parent name being used:", parentInfo.parentName || 'לא צוין');
     lastY = createDataTable(pdf, parentData, lastY + 10);
     
     // ===== DECLARATION SECTION =====
@@ -99,14 +90,16 @@ export const buildHealthDeclarationPDF = (
       item // Hebrew text - no special formatting needed with global RTL
     ]);
     
-    // Reduce console.log call for performance
-    // console.log("Creating declaration items table");
     lastY = createPlainTextTable(pdf, declarationData, lastY + 10);
     
     // ===== MEDICAL NOTES SECTION - SEPARATE SECTION =====
-    // Parse medical notes with our improved parser - parseMedicalNotes is now more efficient
-    const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
-    // console.log("Parsed medical notes:", medicalNotes);
+    // Clean the notes field before parsing medical notes
+    const rawNotes = healthDeclaration.notes || '';
+    // First clean up text by removing parent/guardian labels
+    const cleanedText = rawNotes.replace(/הורה\/אפוטרופוס:?/g, '');
+    
+    // Parse medical notes with our improved parser
+    const medicalNotes = parseMedicalNotes(cleanedText);
     
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
     
@@ -142,8 +135,6 @@ export const buildHealthDeclarationPDF = (
     // Generate filename
     const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;
     
-    // Reduce console.log call for performance
-    // console.log("PDF generation completed successfully");
     return fileName;
   } catch (error) {
     console.error('Error building PDF content:', error);

@@ -37,15 +37,11 @@ const PrintableHealthDeclarationPage: React.FC = () => {
       }
 
       try {
-        console.log("Loading health declaration with ID:", declarationId);
         const healthDeclaration = await getHealthDeclarationById(declarationId);
         
         if (!healthDeclaration) {
           throw new Error('לא נמצאה הצהרת בריאות');
         }
-
-        console.log("Found health declaration:", healthDeclaration);
-        console.log("Raw notes field:", healthDeclaration.notes);
 
         // Fetch participant data
         const { data: participant, error: participantError } = await supabase
@@ -62,16 +58,14 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         if (!participant) {
           throw new Error('לא נמצאו פרטי המשתתף');
         }
-        
-        console.log("Found participant:", participant);
 
-        // Parse parent information and medical notes separately with improved parsing
-        // Use the improved parsers to correctly extract information
-        const parentInfo = parseParentInfo(healthDeclaration.notes || '');
-        const medicalNotes = parseMedicalNotes(healthDeclaration.notes || '');
+        // Clean the notes text before parsing
+        const rawNotes = healthDeclaration.notes || '';
+        const cleanedText = rawNotes.replace(/הורה\/אפוטרופוס:?/g, '');
         
-        console.log("Parsed parent info:", parentInfo);
-        console.log("Parsed medical notes:", medicalNotes);
+        // Parse parent information and medical notes separately with improved parsing
+        const parentInfo = parseParentInfo(rawNotes);
+        const medicalNotes = parseMedicalNotes(cleanedText);
 
         // Set health data with properly separated fields
         setHealthData({
