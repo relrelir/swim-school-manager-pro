@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ interface AddPaymentDialogProps {
     registrationId?: string; // Add registrationId field
   }>>;
   onSubmit: (e: React.FormEvent) => void;
-  onApplyDiscount: (amount: number) => void;
+  onApplyDiscount: (amount: number, registrationId?: string) => void; // Update to accept registrationId
 }
 
 const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
@@ -50,7 +49,8 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
         </DialogHeader>
         <form onSubmit={isDiscount ? (e) => {
           e.preventDefault();
-          onApplyDiscount(discountAmount);
+          // Pass the registration ID when applying discount
+          onApplyDiscount(discountAmount, currentRegistration?.id);
         } : onSubmit}>
           <div className="space-y-4 py-2">
             {currentRegistration && (

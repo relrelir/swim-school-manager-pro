@@ -24,7 +24,7 @@ export const useParticipantAdapters = (
     setIsAddPaymentOpen: (open: boolean) => void,
     setNewPayment: any
   ) => any,
-  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any
+  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void, registrationId?: string) => any
 ) => {
   const { adaptedUpdateParticipant } = useActionAdapters(updateParticipant);
   const { adaptedHandleOpenHealthForm } = useHealthFormAdapters(baseHandleOpenHealthForm);

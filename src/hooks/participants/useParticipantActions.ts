@@ -23,7 +23,7 @@ export const useParticipantActions = (
   setNewPayment: (value: any) => void,
   newPayment: any,
   resetForm: () => void,
-  currentRegistration: Registration | null // Add currentRegistration parameter
+  currentRegistration: Registration | null
 ) => {
   const {
     updateParticipant,

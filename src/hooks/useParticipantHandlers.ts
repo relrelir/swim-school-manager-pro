@@ -23,7 +23,7 @@ export const useParticipantHandlers = (
     setIsAddPaymentOpen: (open: boolean) => void,
     setNewPayment: any
   ) => any,
-  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any,
+  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void, registrationId?: string) => any,
   newParticipant: any,
   registrationData: any,
   getParticipantForRegistration: (registration: Registration) => Participant | undefined,

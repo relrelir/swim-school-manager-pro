@@ -89,14 +89,35 @@ export const usePaymentHandlers = (
   const handleApplyDiscount = async (
     discountAmount: number, 
     setIsAddPaymentOpen: (open: boolean) => void,
-    productId?: string
+    productId?: string,
+    registrationId?: string // Add registrationId parameter
   ): Promise<Registration[]> => {
-    if (currentRegistration) {
+    // Check if we have a registration ID
+    if (!registrationId && !currentRegistration) {
+      toast({
+        title: "שגיאה",
+        description: "שגיאת מערכת: מזהה הרישום חסר",
+        variant: "destructive",
+      });
+      return [];
+    }
+    
+    // Get the registration from either the parameter or current state
+    let targetRegistration: Registration | null = null;
+    
+    if (registrationId && productId) {
+      const regs = getRegistrationsByProduct(productId);
+      targetRegistration = regs.find(r => r.id === registrationId) || null;
+    } else {
+      targetRegistration = currentRegistration;
+    }
+    
+    if (targetRegistration) {
       // Update the registration with discount
       const updatedRegistration: Registration = {
-        ...currentRegistration,
+        ...targetRegistration,
         discountApproved: true,
-        discountAmount: (currentRegistration.discountAmount || 0) + discountAmount,
+        discountAmount: (targetRegistration.discountAmount || 0) + discountAmount,
       };
       
       updateRegistration(updatedRegistration);

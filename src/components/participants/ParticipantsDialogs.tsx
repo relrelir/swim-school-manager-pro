@@ -32,11 +32,13 @@ interface ParticipantsDialogsProps {
     amount: number;
     receiptNumber: string;
     paymentDate: string;
+    registrationId?: string; // Add registrationId field
   };
   setNewPayment: React.Dispatch<React.SetStateAction<{
     amount: number;
     receiptNumber: string;
     paymentDate: string;
+    registrationId?: string; // Add registrationId field
   }>>;
   currentHealthDeclaration: {
     registrationId: string;
@@ -52,7 +54,7 @@ interface ParticipantsDialogsProps {
   } | null>>;
   handleAddParticipant: (e: React.FormEvent) => void;
   handleAddPayment: (e: React.FormEvent) => void;
-  handleApplyDiscount: (amount: number) => void;
+  handleApplyDiscount: (amount: number, registrationId?: string) => void; // Update to accept registrationId
 }
 
 const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({

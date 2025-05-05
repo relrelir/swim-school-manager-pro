@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Registration, Participant, Payment } from '@/types';
 import { usePaymentHandlers } from './usePaymentHandlers';
@@ -114,14 +113,17 @@ export const useRegistrationManagement = (
     return registrations;
   };
 
+  // Updated to accept registrationId parameter
   const handleApplyDiscount = async (
     discountAmount: number,
-    setIsAddPaymentOpen: (open: boolean) => void
+    setIsAddPaymentOpen: (open: boolean) => void,
+    registrationId?: string // Added registrationId parameter
   ) => {
     const updatedRegistrations = await baseHandleApplyDiscount(
       discountAmount,
       setIsAddPaymentOpen,
-      productId
+      productId,
+      registrationId // Pass the registrationId to the base handler
     );
     
     if (updatedRegistrations && updatedRegistrations.length > 0) {

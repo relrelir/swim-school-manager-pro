@@ -9,7 +9,7 @@ export const usePaymentAdapters = (
     setIsAddPaymentOpen: (open: boolean) => void,
     setNewPayment: any
   ) => any,
-  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any
+  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void, registrationId?: string) => any
 ) => {
   const handleAddPaymentWrapper = (
     e: React.FormEvent, 
@@ -20,8 +20,9 @@ export const usePaymentAdapters = (
     return baseHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
   };
 
-  const handleApplyDiscountAdapter = (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => {
-    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen);
+  // Update the adapter to accept registrationId
+  const handleApplyDiscountAdapter = (amount: number, setIsAddPaymentOpen: (open: boolean) => void, registrationId?: string) => {
+    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen, registrationId);
   };
 
   return {
