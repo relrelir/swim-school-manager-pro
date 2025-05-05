@@ -31,8 +31,8 @@ export const createDataTable = (
   // Get table configuration with direction control
   const tableConfig = getTableConfig(startY);
   
-  // CRITICAL FIX: Enable RTL mode before creating table
-  pdf.setR2L(true);
+  // CRITICAL FIX: Do NOT enable global RTL mode as it interferes with number display
+  // Let cell-level direction markers handle text direction instead
   
   if (hasHeader) {
     const headers = processedData[0];
@@ -72,9 +72,6 @@ export const createDataTable = (
       });
     }
   }
-  
-  // CRITICAL FIX: Disable RTL mode after creating table
-  pdf.setR2L(false);
 
   // Return the new y position after the table
   let finalY = 0;
