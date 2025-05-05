@@ -16,11 +16,13 @@ interface AddPaymentDialogProps {
     amount: number;
     receiptNumber: string;
     paymentDate: string;
+    registrationId?: string; // Add registrationId field
   };
   setNewPayment: React.Dispatch<React.SetStateAction<{
     amount: number;
     receiptNumber: string;
     paymentDate: string;
+    registrationId?: string; // Add registrationId field
   }>>;
   onSubmit: (e: React.FormEvent) => void;
   onApplyDiscount: (amount: number) => void;

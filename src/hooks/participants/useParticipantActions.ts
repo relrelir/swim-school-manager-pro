@@ -22,7 +22,8 @@ export const useParticipantActions = (
   setIsAddPaymentOpen: (value: boolean) => void,
   setNewPayment: (value: any) => void,
   newPayment: any,
-  resetForm: () => void
+  resetForm: () => void,
+  currentRegistration: Registration | null // Add currentRegistration parameter
 ) => {
   const {
     updateParticipant,
