@@ -29,12 +29,12 @@ const queryClient = new QueryClient({
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <DataProvider>
-          <Toaster />
-          <Sonner position="bottom-left" className="rtl" />
-          <BrowserRouter>
+    <AuthProvider>
+      <DataProvider>
+        <Toaster />
+        <Sonner position="bottom-left" className="rtl" />
+        <BrowserRouter>
+          <TooltipProvider>
             <div className="min-h-screen flex flex-col bg-background font-inter antialiased">
               <Routes>
                 {/* Public routes for health declaration form */}
@@ -54,10 +54,10 @@ const App = () => (
                 </Route>
               </Routes>
             </div>
-          </BrowserRouter>
-        </DataProvider>
-      </AuthProvider>
-    </TooltipProvider>
+          </TooltipProvider>
+        </BrowserRouter>
+      </DataProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
