@@ -37,6 +37,7 @@ export const buildHealthDeclarationPDF = (
 ): string => {
   try {
     console.log("Starting PDF generation with enhanced bidirectional text handling");
+    console.log("Raw notes field:", healthDeclaration.notes);
     
     // Add title - Hebrew content with RTL
     addPdfTitle(pdf, 'הצהרת בריאות');

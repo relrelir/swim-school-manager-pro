@@ -1,9 +1,9 @@
-
 import { processTableCellText, forceLtrDirection } from '../textDirection';
 import { containsHebrew } from '../contentDetection';
 
 /**
  * Process cell text based on content type for optimal table display
+ * Fixed to correctly handle Hebrew text without reversing
  */
 export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean } => {
   if (cell === null || cell === undefined) {
@@ -57,9 +57,9 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
       isCurrency: false 
     };
   } else if (isHebrewContent) {
-    // Pure Hebrew text - DO NOT reverse characters anymore
+    // Pure Hebrew text - keep original text order, don't reverse or modify
     return { 
-      text: content, // Changed from manuallyReverseString to keep original order
+      text: content, // Original text - no manipulation
       isRtl: true,
       isCurrency: false 
     };

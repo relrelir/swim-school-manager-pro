@@ -48,28 +48,10 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         console.log("Raw notes field:", healthDeclaration.notes);
 
         // Fetch participant data
-        const { data: registrationData, error: registrationError } = await supabase
-          .from('registrations')
-          .select('*')
-          .eq('id', healthDeclaration.participant_id)
-          .maybeSingle();
-
-        if (registrationError) {
-          handleSupabaseError(registrationError, 'fetching registration');
-          throw new Error('שגיאה בטעינת פרטי הרישום');
-        }
-
-        if (!registrationData) {
-          throw new Error('לא נמצאו פרטי רישום');
-        }
-
-        console.log("Found registration:", registrationData);
-        
-        // Get participant data
-        const { data: participantData, error: participantError } = await supabase
+        const { data: participant, error: participantError } = await supabase
           .from('participants')
           .select('*')
-          .eq('id', registrationData.participantid)
+          .eq('id', healthDeclaration.participant_id)
           .maybeSingle();
 
         if (participantError) {
@@ -77,11 +59,11 @@ const PrintableHealthDeclarationPage: React.FC = () => {
           throw new Error('שגיאה בטעינת פרטי המשתתף');
         }
 
-        if (!participantData) {
+        if (!participant) {
           throw new Error('לא נמצאו פרטי המשתתף');
         }
         
-        console.log("Found participant:", participantData);
+        console.log("Found participant:", participant);
 
         // Parse parent information and medical notes separately with improved parsing
         // Use the improved parsers to correctly extract information
@@ -93,9 +75,9 @@ const PrintableHealthDeclarationPage: React.FC = () => {
 
         // Set health data with properly separated fields
         setHealthData({
-          participantName: `${participantData.firstname} ${participantData.lastname}`,
-          participantId: participantData.idnumber,
-          participantPhone: participantData.phone,
+          participantName: `${participant.firstname} ${participant.lastname}`,
+          participantId: participant.idnumber,
+          participantPhone: participant.phone,
           formState: {
             agreement: true,
             notes: medicalNotes, // Use the correctly parsed medical notes

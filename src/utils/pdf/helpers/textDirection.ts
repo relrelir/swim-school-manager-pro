@@ -3,7 +3,6 @@ import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrN
 /**
  * Process text to ensure correct display direction in PDF
  * - Apply much stronger directional control for English/numbers in RTL context
- * - Uses multiple Unicode control characters for stronger isolation
  */
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
@@ -14,7 +13,7 @@ export const processTextDirection = (text: string): string => {
     return forceLtrDirection(text);
   }
 
-  // For Hebrew or mixed content, maintain RTL by default
+  // For Hebrew or mixed content, don't modify the text direction - PDF with Alef font handles it
   return text;
 };
 
@@ -42,13 +41,8 @@ export const forceLtrDirection = (text: string): string => {
 export const forceRtlDirection = (text: string): string => {
   if (!text) return '';
   
-  // Apply RTL controls:
-  // \u202E = Right-to-Left Override - forces characters as RTL
-  // \u200F = Right-to-Left Mark - reinforces RTL behavior
-  // \u202B = Right-to-Left Embedding - establishes RTL context
-  // \u202C = Pop Directional Formatting - terminates directional controls
-  
-  return `\u202B\u200F${text}\u200F\u202C`;
+  // Apply RTL controls - but don't reverse the text or modify its content
+  return text;
 };
 
 /**
@@ -58,13 +52,12 @@ export const forceRtlDirection = (text: string): string => {
  */
 export const manuallyReverseString = (text: string): string => {
   if (!text) return '';
-  // We're keeping the original string order now instead of reversing
+  // We're keeping the original string order
   return text;
 };
 
 /**
  * Special processor for table cells to handle mixed content
- * More aggressive handling for tables specifically
  */
 export const processTableCellText = (text: string): string => {
   if (!text) return '';
@@ -83,8 +76,8 @@ export const processTableCellText = (text: string): string => {
       return forceLtrDirection(text);
     }
   } else if (containsHebrew(text)) {
-    // Pure Hebrew text in tables - keep original order with RTL direction controls
-    return forceRtlDirection(text);
+    // Pure Hebrew text in tables - keep original order
+    return text;
   }
   
   // Default for mixed content
@@ -106,11 +99,11 @@ export const processHebrewCurrencyForTable = (text: string): string => {
     // Split the currency value into numeric part and symbol
     const numericPart = forceLtrDirection(numericMatch[0]);
     // Construct the currency string with explicit bidirectional control
-    return `\u202B\u200F${text.replace(/[\d,\.]+/, numericPart)}\u200F\u202C`;
+    return text.replace(/[\d,\.]+/, numericPart);
   }
   
-  // If we can't parse it, apply RTL to the whole string
-  return forceRtlDirection(text);
+  // If we can't parse it, return the original text
+  return text;
 };
 
 /**

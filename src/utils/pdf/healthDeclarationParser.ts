@@ -29,20 +29,22 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
       console.log("Failed to parse notes as JSON, trying regex");
     }
     
-    // If not valid JSON, try to extract using improved regex patterns with better capture groups
+    // If not valid JSON, try to extract using improved regex patterns for better capture
     
-    // For parent name, look for various Hebrew and English patterns
-    // Improved pattern with more variations and better boundary detection
-    const nameMatch = notes.match(/(?:שם[\s_]*(?:הורה|מלא|ההורה|אפוטרופוס)|parentName|parentname|parent[\s_]*name)[\s:="]+["']?([^",}\r\n]+)["']?/i) || 
-                      notes.match(/["'](?:שם[\s_]*(?:הורה|מלא|ההורה|אפוטרופוס)|parentName|parentname|parent[\s_]*name)["'][\s:="]+["']?([^",}\r\n]+)["']?/i);
+    // For parent name, look for various Hebrew and English patterns with better boundary detection
+    const nameMatch = notes.match(/(?:שם[\s_]*(?:הורה|מלא|ההורה|אפוטרופוס)|parentName|parentname|parent[\s_]*name)[\s:="]+["']?([^",\}\r\n]+)["']?/i) || 
+                     notes.match(/["'](?:שם[\s_]*(?:הורה|מלא|ההורה|אפוטרופוס)|parentName|parentname|parent[\s_]*name)["'][\s:="]+["']?([^",\}\r\n]+)["']?/i);
     
-    // For parent ID, look for various Hebrew and English patterns
-    // Improved pattern with more variations and better boundary detection
-    const idMatch = notes.match(/(?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)[\s:="]+["']?([^",}\r\n]+)["']?/i) || 
-                    notes.match(/["'](?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)["'][\s:="]+["']?([^",}\r\n]+)["']?/i);
+    // For parent ID, look for various Hebrew and English patterns with better boundary detection
+    const idMatch = notes.match(/(?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)[\s:="]+["']?([^",\}\r\n]+)["']?/i) || 
+                    notes.match(/["'](?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)["'][\s:="]+["']?([^",\}\r\n]+)["']?/i);
+    
+    // If the entire notes field seems to be just the parent name (common case with simple forms)
+    // Check if the entire notes could be just a name without any prefixes
+    const directNameMatch = !nameMatch && /^[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]+\s+[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]+$/i.test(notes);
     
     const result = {
-      parentName: nameMatch ? nameMatch[1].trim() : '',
+      parentName: nameMatch ? nameMatch[1].trim() : (directNameMatch ? notes.trim() : ''),
       parentId: idMatch ? idMatch[1].trim() : ''
     };
     
@@ -85,10 +87,9 @@ export const parseMedicalNotes = (notes: string | null): string => {
       console.log("Failed to parse medical notes as JSON, trying regex");
     }
     
-    // If not valid JSON, use improved regex patterns to extract medical notes
     // Look for explicitly marked medical notes first
-    const notesMatch = notes.match(/(?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)[\s:="]+["']?([^"}\r\n]+)["']?/i) || 
-                       notes.match(/["'](?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)["'][\s:="]+["']?([^"}\r\n]+)["']?/i);
+    const notesMatch = notes.match(/(?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)[\s:="]+["']?([^"\}\r\n]+)["']?/i) || 
+                      notes.match(/["'](?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)["'][\s:="]+["']?([^"\}\r\n]+)["']?/i);
     
     if (notesMatch && notesMatch[1].trim()) {
       const result = notesMatch[1].trim();
@@ -96,33 +97,43 @@ export const parseMedicalNotes = (notes: string | null): string => {
       return result;
     }
     
-    // If no specific medical notes found, check if the notes field contains 
-    // content that isn't parent-related
+    // Check for medical notes after " אני " pattern (common in health forms)
+    // This specifically targets phrases like "אני קוף" without including the parent name
+    const medicalPhraseMatch = notes.match(/אני\s+([^"\{\}\r\n]+)/i);
+    if (medicalPhraseMatch && medicalPhraseMatch[0].trim()) {
+      const result = medicalPhraseMatch[0].trim();
+      console.log("Extracted medical phrase:", result);
+      return result;
+    }
     
-    // First, strip out all parent info patterns
+    // If we can't identify specific medical notes but there's content without parent info
+    // First, strip out all parent-related patterns
     const parentPatterns = [
-      /(?:שם[\s_]*(?:הורה|מלא|ההורה)|parentName|parentname|parent[\s_]*name)[\s:="]+["']?([^",}\r\n]+)["']?/gi,
-      /["'](?:שם[\s_]*(?:הורה|מלא|ההורה)|parentName|parentname|parent[\s_]*name)["'][\s:="]+["']?([^",}\r\n]+)["']?/gi,
-      /(?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)[\s:="]+["']?([^",}\r\n]+)["']?/gi,
-      /["'](?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)["'][\s:="]+["']?([^",}\r\n]+)["']?/gi,
-      /[\{\}"\s]*(parentName|parentId|שם|תעודת זהות|ת\.ז\.)[\s:"=]*["']?[^"}\r\n,]*["']?[,\s]*/gi
+      /(?:שם[\s_]*(?:הורה|מלא|ההורה)|parentName|parentname|parent[\s_]*name)[\s:="]+["']?([^",\}\r\n]+)["']?/gi,
+      /["'](?:שם[\s_]*(?:הורה|מלא|ההורה)|parentName|parentname|parent[\s_]*name)["'][\s:="]+["']?([^",\}\r\n]+)["']?/gi,
+      /(?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)[\s:="]+["']?([^",\}\r\n]+)["']?/gi,
+      /["'](?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)["'][\s:="]+["']?([^",\}\r\n]+)["']?/gi,
+      // Try to remove parent name patterns (first+last name)
+      /[\u0590-\u05FF\s]+\s+[\u0590-\u05FF\s]+/i,
+      // Remove objects and syntax elements
+      /[\{\}"\s]*(parentName|parentId|שם|תעודת זהות|ת\.ז\.)[\s:"=]*["']?[^"\}\r\n,]*["']?[,\s]*/gi
     ];
     
     // Remove all parent-related patterns
     let remainingText = notes;
     parentPatterns.forEach(pattern => {
-      remainingText = remainingText.replace(pattern, '');
+      remainingText = remainingText.replace(pattern, ' ');
     });
     
-    // Clean up JSON syntax remnants
+    // Clean up JSON syntax remnants and extra spaces
     remainingText = remainingText
       .replace(/[\{\}",]|\s*:\s*['"]?|['"]?\s*[,:]?\s*[\{\}]/g, ' ')
       .replace(/\s{2,}/g, ' ')
       .trim();
       
-    // If we have remaining text after removing parent info, it might be medical notes
-    if (remainingText && remainingText !== notes) {
-      console.log("Extracted remaining text as possible medical notes:", remainingText);
+    // If we have substantial remaining text after removing parent info, it might be medical notes
+    if (remainingText && remainingText.length > 5 && remainingText !== notes) {
+      console.log("Extracted remaining text as medical notes:", remainingText);
       return remainingText;
     }
     

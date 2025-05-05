@@ -4,6 +4,7 @@ import { processCellContent } from './contentProcessing';
 
 /**
  * Parses and formats cells before rendering to handle bidirectional text
+ * Fixed to respect Hebrew text direction and not reverse it
  */
 export function didParseCell(data: CellHookData): void {
   // Get the cell's content and detect its type
@@ -36,6 +37,7 @@ export function didParseCell(data: CellHookData): void {
 
 /**
  * Hook for final adjustments to cell drawing if needed
+ * Fixed to respect original text order
  */
 export function willDrawCell(data: CellHookData): void {
   // Add any final adjustments to cell drawing if needed
