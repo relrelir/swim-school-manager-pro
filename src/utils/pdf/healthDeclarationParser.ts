@@ -1,4 +1,3 @@
-
 /**
  * Parse parent information from the notes field with improved extraction
  */
@@ -29,27 +28,72 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
       console.log("Failed to parse notes as JSON, trying regex");
     }
     
-    // If not valid JSON, try to extract using improved regex patterns for better capture
+    // CRITICAL FIX: Extract parent information with much more robust pattern matching
     
-    // For parent name, look for various Hebrew and English patterns with better boundary detection
-    const nameMatch = notes.match(/(?:שם[\s_]*(?:הורה|מלא|ההורה|אפוטרופוס)|parentName|parentname|parent[\s_]*name)[\s:="]+["']?([^",\}\r\n]+)["']?/i) || 
-                     notes.match(/["'](?:שם[\s_]*(?:הורה|מלא|ההורה|אפוטרופוס)|parentName|parentname|parent[\s_]*name)["'][\s:="]+["']?([^",\}\r\n]+)["']?/i);
+    // Check if the entire notes is a simple Hebrew name pattern (like "יצחק הראל")
+    // This is the most common case for many forms - just the parent's name
+    if (/^[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]+\s+[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]+$/i.test(notes)) {
+      console.log("Direct Hebrew name pattern detected:", notes);
+      return {
+        parentName: notes.trim(),
+        parentId: ''
+      };
+    }
     
-    // For parent ID, look for various Hebrew and English patterns with better boundary detection
-    const idMatch = notes.match(/(?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)[\s:="]+["']?([^",\}\r\n]+)["']?/i) || 
-                    notes.match(/["'](?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)["'][\s:="]+["']?([^",\}\r\n]+)["']?/i);
+    // Common pattern: "שם הורה/אפוטרופוס: יצחק הראל"
+    const parentLabeledMatch = notes.match(/(?:שם|שם\s*מלא|שם\s*(?:הורה|ההורה|אפוטרופוס)|parent\s*name)[\s:]*([^\n\r\.,;]*)/i);
     
-    // CRITICAL FIX: If the entire notes field seems to be just the parent name (like "יצחק הראל")
-    // Check if the entire notes could be just a name without any prefixes
-    // This matches Hebrew names with space between words (like first and last name)
-    const directNameMatch = !nameMatch && /^[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]+\s+[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]+$/i.test(notes);
+    // Check for labeled patterns like "הורה: יצחק הראל"
+    const simpleLabeledMatch = notes.match(/(?:הורה|אפוטרופוס|אחראי|חותם)[\s:]+([^\n\r\.,;]*)/i);
+    
+    // For structured formats
+    const nameMatch = notes.match(/(?:שם[\s_]*(?:הורה|מלא|ההורה|אפוטרופוס)|parentName|parentname|parent[\s_]*name)[\s:="]+["']?([^",\}\r\n;]+)["']?/i) || 
+                     notes.match(/["'](?:שם[\s_]*(?:הורה|מלא|ההורה|אפוטרופוס)|parentName|parentname|parent[\s_]*name)["'][\s:="]+["']?([^",\}\r\n;]+)["']?/i);
+    
+    // For parent ID, look for various Hebrew and English patterns
+    const idMatch = notes.match(/(?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)[\s:="]+["']?([^",\}\r\n;]+)["']?/i) || 
+                    notes.match(/["'](?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)["'][\s:="]+["']?([^",\}\r\n;]+)["']?/i);
+    
+    // CRITICAL FIX: Try multiple approaches to find the parent name
+    let parentName = '';
+    
+    // Try each match pattern in priority order
+    if (parentLabeledMatch && parentLabeledMatch[1].trim()) {
+      parentName = parentLabeledMatch[1].trim();
+      console.log("Found parent name from labeled match:", parentName);
+    } 
+    else if (simpleLabeledMatch && simpleLabeledMatch[1].trim()) {
+      parentName = simpleLabeledMatch[1].trim();
+      console.log("Found parent name from simple labeled match:", parentName);
+    }
+    else if (nameMatch && nameMatch[1].trim()) {
+      parentName = nameMatch[1].trim();
+      console.log("Found parent name from structured match:", parentName);
+    }
+    // Special case: The notes itself might be just the name
+    // If we have a short string that looks like a Hebrew name and no other patterns matched
+    else if (notes.length < 30 && /[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]/.test(notes)) {
+      // Look for something that looks like a Hebrew name (sequences of Hebrew characters)
+      const nameCandidates = notes.match(/[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]{2,}(?:\s+[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]{2,})+/g);
+      if (nameCandidates && nameCandidates.length > 0) {
+        // Take the longest match as it's likely the full name
+        const longestName = nameCandidates.reduce((longest, current) => 
+          current.length > longest.length ? current : longest, '');
+        parentName = longestName.trim();
+        console.log("Found parent name from Hebrew text pattern:", parentName);
+      } else {
+        // If no multi-word Hebrew sequence, the whole text might be the name
+        parentName = notes.trim();
+        console.log("Using entire notes as parent name (fallback):", parentName);
+      }
+    }
     
     const result = {
-      parentName: nameMatch ? nameMatch[1].trim() : (directNameMatch ? notes.trim() : ''),
+      parentName: parentName,
       parentId: idMatch ? idMatch[1].trim() : ''
     };
     
-    console.log("Extracted parent info using regex:", result);
+    console.log("Final extracted parent info:", result);
     return result;
   } catch (e) {
     console.error("Error parsing parent info:", e);
@@ -61,14 +105,14 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
  * Parse medical notes from the notes field
  * Improved to ensure proper separation from parent info
  */
-export const parseMedicalNotes = (notes: string | null): string => {
-  if (!notes) return '';
+export const parseMedicalNotes = (text: string | null): string => {
+  if (!text) return '';
   
   try {
-    console.log("Parsing medical notes from:", notes);
+    console.log("Parsing medical notes from:", text);
     // Try to parse as JSON first
     try {
-      const parsedNotes = JSON.parse(notes);
+      const parsedNotes = JSON.parse(text);
       
       // Look for medical notes in various fields with improved field detection
       const medicalNotes = parsedNotes.notes || 
@@ -89,8 +133,8 @@ export const parseMedicalNotes = (notes: string | null): string => {
     }
     
     // Look for explicitly marked medical notes first
-    const notesMatch = notes.match(/(?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)[\s:="]+["']?([^"\}\r\n]+)["']?/i) || 
-                      notes.match(/["'](?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)["'][\s:="]+["']?([^"\}\r\n]+)["']?/i);
+    const notesMatch = text.match(/(?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)[\s:="]+["']?([^"\}\r\n]+)["']?/i) || 
+                      text.match(/["'](?:notes|medicalNotes|medical[\s_]*notes|הערות[\s_]*רפואיות|הערות)["'][\s:="]+["']?([^"\}\r\n]+)["']?/i);
     
     if (notesMatch && notesMatch[1].trim()) {
       const result = notesMatch[1].trim();
@@ -99,7 +143,7 @@ export const parseMedicalNotes = (notes: string | null): string => {
     }
     
     // CRITICAL FIX: Check for specific medical phrase pattern like "אני קוף"
-    const medicalPhraseMatch = notes.match(/אני\s+([^"\{\}\r\n]+)/i);
+    const medicalPhraseMatch = text.match(/אני\s+([^"\{\}\r\n]+)/i);
     if (medicalPhraseMatch && medicalPhraseMatch[0].trim()) {
       const result = medicalPhraseMatch[0].trim();
       console.log("Extracted medical phrase:", result);
@@ -120,7 +164,7 @@ export const parseMedicalNotes = (notes: string | null): string => {
     ];
     
     // Remove all parent-related patterns
-    let remainingText = notes;
+    let remainingText = text;
     parentPatterns.forEach(pattern => {
       remainingText = remainingText.replace(pattern, ' ');
     });
@@ -132,7 +176,7 @@ export const parseMedicalNotes = (notes: string | null): string => {
       .trim();
       
     // If we have substantial remaining text after removing parent info, it might be medical notes
-    if (remainingText && remainingText.length > 5 && remainingText !== notes) {
+    if (remainingText && remainingText.length > 5 && remainingText !== text) {
       console.log("Extracted remaining text as medical notes:", remainingText);
       return remainingText;
     }

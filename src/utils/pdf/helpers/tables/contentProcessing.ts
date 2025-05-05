@@ -3,7 +3,7 @@ import { containsHebrew } from '../contentDetection';
 
 /**
  * Process cell text based on content type for optimal table display
- * Fixed to correctly handle Hebrew text without reversing
+ * CRITICAL FIX: Correctly handle Hebrew text without reversing
  */
 export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean } => {
   if (cell === null || cell === undefined) {
@@ -18,53 +18,56 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   
   // Handle participant ID numbers and other numeric IDs
   if (/^\d{5,9}$/.test(content)) {
-    // ID numbers need special handling - must be LTR regardless of context
+    // ID numbers need special handling - must be LTR
     return { 
       text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: false 
     };
   }
-  // Process by content type for optimal display
+  // Currency with Hebrew text
+  else if (isCurrency && isHebrewContent) {
+    // CRITICAL FIX: Don't manipulate Hebrew currency text content
+    return { 
+      text: content, // Just use original text
+      isRtl: true,
+      isCurrency: true 
+    };
+  }
+  // Non-Hebrew currency
   else if (isCurrency) {
-    if (isHebrewContent) {
-      // Hebrew currency needs special handling
-      return { 
-        text: processTableCellText(content),
-        isRtl: true,
-        isCurrency: true 
-      };
-    } else {
-      // Non-Hebrew currency
-      return { 
-        text: forceLtrDirection(content),
-        isRtl: false,
-        isCurrency: true 
-      };
-    }
-  } else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
-    // Date format - always LTR
+    return { 
+      text: forceLtrDirection(content),
+      isRtl: false,
+      isCurrency: true 
+    };
+  }
+  // Date format - always LTR
+  else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     return { 
       text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: false 
     };
-  } else if (/^[0-9\s\-\.\/]+$/.test(content)) {
-    // Pure number (ID numbers, phone numbers, etc) - always LTR
+  }
+  // Pure numbers
+  else if (/^[0-9\s\-\.\/]+$/.test(content)) {
     return { 
       text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: false 
     };
-  } else if (isHebrewContent) {
-    // Pure Hebrew text - keep original text order, don't reverse or modify
+  }
+  // Hebrew text - CRITICAL FIX: never modify or reverse
+  else if (isHebrewContent) {
     return { 
-      text: content, // Original text - no manipulation
+      text: content, // Pure unmodified text
       isRtl: true,
       isCurrency: false 
     };
-  } else {
-    // Other content (English, etc)
+  }
+  // Other content (English, etc)
+  else {
     return { 
       text: forceLtrDirection(content),
       isRtl: false,

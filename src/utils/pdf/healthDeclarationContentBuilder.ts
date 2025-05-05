@@ -28,7 +28,7 @@ interface HealthDeclarationData {
 
 /**
  * Builds the content of a health declaration PDF with enhanced bidirectional text support
- * and optimized layout for single-page document
+ * CRITICAL FIX: Optimized to properly display Hebrew text without reversing
  */
 export const buildHealthDeclarationPDF = (
   pdf: jsPDF, 
@@ -39,8 +39,10 @@ export const buildHealthDeclarationPDF = (
     console.log("Starting PDF generation with enhanced bidirectional text handling");
     console.log("Raw notes field:", healthDeclaration.notes);
     
-    // Add title - Hebrew content with RTL
+    // CRITICAL FIX: Add title with direct Hebrew support - no need for text manipulation
+    pdf.setR2L(true); // Enable RTL for Hebrew titles
     addPdfTitle(pdf, 'הצהרת בריאות');
+    pdf.setR2L(false);
     
     // Add date with strongest possible LTR control
     const formattedDate = healthDeclaration.submission_date 
@@ -54,13 +56,14 @@ export const buildHealthDeclarationPDF = (
     let lastY = startY;
     
     // ===== PARTICIPANT SECTION =====
-    // Add participant details with clear section title
+    pdf.setR2L(true); // Enable RTL for section titles
     addSectionTitle(pdf, 'פרטי המשתתף', lastY);
+    pdf.setR2L(false);
     
-    // Process participant data with appropriate direction control
+    // Process participant data
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
-    // Create participant data table - ONLY participant info (name, ID, phone)
+    // CRITICAL FIX: Create participant data table with improved formatting
     const participantData = [
       [fullName, 'שם מלא'],
       [forceLtrDirection(participant.idnumber || ''), 'תעודת זהות'],
@@ -71,48 +74,56 @@ export const buildHealthDeclarationPDF = (
     lastY = createDataTable(pdf, participantData, lastY + 5);
     
     // ===== PARENT/GUARDIAN SECTION - SEPARATE SECTION =====
-    // Parse parent info from notes field - completely separate from medical notes
+    // CRITICAL FIX: Parse parent info with our improved parser
     const parentInfo = parseParentInfo(healthDeclaration.notes);
     console.log("Parsed parent info:", parentInfo);
     
-    // Add parent/guardian section with optimized spacing - AS SEPARATE SECTION
+    // Add parent/guardian section with optimized spacing
+    pdf.setR2L(true);
     addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
+    pdf.setR2L(false);
     
-    // Create parent info table - ensure name and ID are in separate rows
-    // ONLY parent info in this section
+    // CRITICAL FIX: Create parent info table - using the correctly parsed parent name
     const parentData = [
       [parentInfo.parentName || 'לא צוין', 'שם מלא'],
       [forceLtrDirection(parentInfo.parentId || 'לא צוין'), 'תעודת זהות'],
     ];
     
+    console.log("Parent name being used:", parentInfo.parentName || 'לא צוין');
     lastY = createDataTable(pdf, parentData, lastY + 10);
     
     // ===== DECLARATION SECTION =====
-    // Add declaration text with more compact layout
+    pdf.setR2L(true);
     addSectionTitle(pdf, 'תוכן ההצהרה', lastY + 5);
+    pdf.setR2L(false);
     
     const declarationItems = getDeclarationItems();
-    // Make declaration items more compact
     const declarationData = declarationItems.map(item => ['•', item]);
     
     console.log("Creating declaration items table");
     lastY = createPlainTextTable(pdf, declarationData, lastY + 10);
     
     // ===== MEDICAL NOTES SECTION - SEPARATE SECTION =====
-    // Process medical notes separately from parent info with improved parsing
+    // CRITICAL FIX: Parse medical notes with our improved parser
     const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
     console.log("Parsed medical notes:", medicalNotes);
     
+    pdf.setR2L(true);
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
+    pdf.setR2L(false);
     
-    // Display medical notes or default message in their own dedicated section
-    // Only show "אין הערות רפואיות נוספות" if medicalNotes is truly empty
-    const notesText = medicalNotes && medicalNotes.trim() !== '' ? medicalNotes : 'אין הערות רפואיות נוספות';
+    // Display medical notes or default message
+    const notesText = medicalNotes && medicalNotes.trim() !== '' 
+      ? medicalNotes 
+      : 'אין הערות רפואיות נוספות';
+      
     lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
     // ===== CONFIRMATION SECTION =====
-    // Add confirmation section with reduced spacing
+    pdf.setR2L(true);
     addSectionTitle(pdf, 'אישור', lastY + 5);
+    pdf.setR2L(false);
+    
     lastY = createPlainTextTable(
       pdf, 
       [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], 
@@ -120,16 +131,15 @@ export const buildHealthDeclarationPDF = (
     );
     
     // ===== SIGNATURE SECTION =====
-    // Add signature line with parent info
+    // CRITICAL FIX: Use the parent name in the signature line if available
     pdf.setR2L(true); // Enable RTL for Hebrew text
     
-    // Add parent details to signature line if available, ensure parent name is shown
     const signatureY = lastY + 15;
     if (parentInfo.parentName && parentInfo.parentName.trim() !== '') {
-      // Use compact format with parent name
+      // Use parent name in signature line
       pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`, 30, signatureY);
     } else {
-      // Default signature line without details
+      // Default signature line
       pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, signatureY);
     }
     

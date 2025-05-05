@@ -4,7 +4,7 @@ import { processCellContent } from './contentProcessing';
 
 /**
  * Parses and formats cells before rendering to handle bidirectional text
- * Fixed to respect Hebrew text direction and not reverse it
+ * CRITICAL FIX: Respect Hebrew text direction and never reverse it
  */
 export function didParseCell(data: CellHookData): void {
   // Get the cell's content and detect its type
@@ -14,10 +14,10 @@ export function didParseCell(data: CellHookData): void {
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   const processed = processCellContent(cellContent);
   
-  // Set cell content - ensure it's always in array format as expected by jsPDF-AutoTable
+  // CRITICAL FIX: Set cell content without any character manipulation
   cell.text = Array.isArray(processed.text) ? processed.text : [processed.text];
   
-  // Handle IDs and numbers with special care
+  // CRITICAL FIX: Apply appropriate alignment based on content type
   if (/^\d{5,9}$/.test(cellContent)) {
     // ID numbers always left-aligned
     cell.styles.halign = 'left';
@@ -37,19 +37,18 @@ export function didParseCell(data: CellHookData): void {
 
 /**
  * Hook for final adjustments to cell drawing if needed
- * Fixed to respect original text order
+ * CRITICAL FIX: Never reverses or modifies text order
  */
 export function willDrawCell(data: CellHookData): void {
   // Add any final adjustments to cell drawing if needed
-  // Specifically for ID numbers and phone numbers
   const cell = data.cell;
   if (!cell || !cell.text) return;
   
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   
-  // Ensure ID numbers are displayed correctly
+  // CRITICAL FIX: For ID numbers only, add LTR mark
   if (/^\d{5,9}$/.test(cellContent)) {
-    // Add extra LTR mark for ID numbers - ensure it's an array
+    // Add extra LTR mark for ID numbers
     cell.text = [`\u200E${cellContent}\u200E`];
   }
 }

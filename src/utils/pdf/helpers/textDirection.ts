@@ -3,7 +3,7 @@ import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrN
 
 /**
  * Process text to ensure correct display direction in PDF
- * - Fixed to not reverse Hebrew text
+ * CRITICAL FIX: Ensures Hebrew text is displayed correctly without reversing
  */
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
@@ -14,7 +14,8 @@ export const processTextDirection = (text: string): string => {
     return forceLtrDirection(text);
   }
 
-  // For Hebrew or mixed content, don't modify the text direction - PDF with Alef font handles it
+  // CRITICAL FIX: For Hebrew or mixed content, don't modify the text - 
+  // Let PDF with Alef font handle it correctly
   return text;
 };
 
@@ -26,39 +27,37 @@ export const forceLtrDirection = (text: string): string => {
   if (!text) return '';
   
   // Stack multiple controls for maximum effect:
-  // \u202D = Left-to-Right Override - strongest LTR control, forces all chars as LTR
+  // \u202D = Left-to-Right Override - strongest LTR control
   // \u200E = Left-to-Right Mark - reinforces LTR behavior
-  // \u202A = Left-to-Right Embedding - establishes LTR context
-  // \u202C = Pop Directional Formatting - properly terminates directional controls
+  // Close with \u202C to terminate directional controls
   
-  // Create the strongest possible LTR isolation with multiple nested controls
   return `\u202D\u200E${text}\u200E\u202C`;
 };
 
 /**
  * Force RTL direction specifically for Hebrew text in tables
- * Fixed to NOT reverse text content
+ * CRITICAL FIX: Does NOT reverse or modify the text in any way
  */
 export const forceRtlDirection = (text: string): string => {
   if (!text) return '';
   
-  // Apply RTL controls - but don't reverse the text or modify its content
+  // CRITICAL FIX: Do NOT reverse or modify the text - just return it directly
   return text;
 };
 
 /**
- * DEPRECATED - Do not use!
+ * DEPRECATED - Never use this function!
  * This function is preserved only for backward compatibility
- * No longer used for reversing strings
+ * CRITICAL FIX: No longer reverses strings in any circumstance
  */
 export const manuallyReverseString = (text: string): string => {
-  // Critical fix: Do NOT reverse the string
+  // CRITICAL FIX: Never reverse the string - just return it as is
   return text;
 };
 
 /**
  * Special processor for table cells to handle mixed content
- * Fixed to maintain correct text direction for Hebrew
+ * CRITICAL FIX: Never reverses Hebrew text, ensures proper directionality
  */
 export const processTableCellText = (text: string): string => {
   if (!text) return '';
@@ -68,68 +67,55 @@ export const processTableCellText = (text: string): string => {
     // Numeric content always gets LTR
     return forceLtrDirection(text);
   } else if (isHebrewCurrency(text)) {
+    // Special handling for Hebrew currency
     if (containsHebrew(text)) {
-      // Hebrew currency needs special handling to display correctly in tables
-      // Try to preserve the shekel symbol position while making text RTL
-      return processHebrewCurrencyForTable(text);
+      return text; // CRITICAL FIX: Don't modify Hebrew currency text
     } else {
-      // Non-Hebrew currency should be LTR
       return forceLtrDirection(text);
     }
   } else if (containsHebrew(text)) {
-    // Pure Hebrew text in tables - keep original order
+    // CRITICAL FIX: Pure Hebrew text - return as is, no manipulation
     return text;
   }
   
-  // Default for mixed content
-  return processTextDirection(text);
+  // Default for mixed or other content
+  return text;
 };
 
 /**
  * Special formatter for Hebrew currency values in tables
- * This ensures the currency symbol renders correctly
+ * CRITICAL FIX: Ensures currency symbols display correctly without reversing text
  */
 export const processHebrewCurrencyForTable = (text: string): string => {
-  // Handle shekel symbol position - it should appear on the right in Hebrew context
-  // but autoTable may need different handling
-  
-  // Extract numeric part if possible
-  const numericMatch = text.match(/[\d,\.]+/);
-  
-  if (numericMatch) {
-    // Split the currency value into numeric part and symbol
-    const numericPart = forceLtrDirection(numericMatch[0]);
-    // Construct the currency string with explicit bidirectional control
-    return text.replace(/[\d,\.]+/, numericPart);
-  }
-  
-  // If we can't parse it, return the original text
+  // CRITICAL FIX: Don't manipulate the text structure, just preserve the original formatting
   return text;
 };
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * Now optimized for Alef font - doesn't modify text content
+ * CRITICAL FIX: With Alef font, no text manipulation is needed
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // With Alef font and RTL enabled, we can return text directly
+  // CRITICAL FIX: With Alef font and RTL enabled, we can return text directly
+  // without any manipulation
   return text;
 };
 
 /**
  * Legacy helper function kept for backward compatibility
- * FIXED to not reverse text
+ * CRITICAL FIX: Never reverses text under any circumstances
  */
 export const reverseText = (text: string): string => {
+  // CRITICAL FIX: Simply return the text as is
   return text || '';
 };
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
- * with Alef font integration
  */
 export const prepareRtlText = (text: string): string => {
-  return processTextDirection(text);
+  // CRITICAL FIX: Don't modify the text structure
+  return text;
 };
