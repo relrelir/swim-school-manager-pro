@@ -1,9 +1,10 @@
+
 import { processTableCellText, forceLtrDirection } from '../textDirection';
 import { containsHebrew } from '../contentDetection';
 
 /**
  * Process cell text based on content type for optimal table display
- * Enhanced to better handle numeric content
+ * Enhanced with strong directional embedding controls
  */
 export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean, isNumber: boolean } => {
   if (cell === null || cell === undefined) {
@@ -17,65 +18,64 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   
   console.log(`Processing cell: ${content}, Hebrew: ${isHebrewContent}, Currency: ${isCurrency}, Numeric: ${isNumericOnly}`);
   
-  // Handle ID numbers - must be LTR with explicit LTR marker
+  // Handle ID numbers - must be LTR with strong LTR embedding
   if (/^\d{5,9}$/.test(content)) {
     return { 
-      text: `\u200E${content}`, // Add explicit LTR mark for ID numbers
+      text: `\u202A${content}\u202C`, // LRE + PDF (Left-to-Right Embedding with Pop Directional Formatting)
       isRtl: false,
       isCurrency: false,
       isNumber: true 
     };
   }
-  // Phone numbers - must be LTR with explicit LTR marker
+  // Phone numbers - must be LTR with strong LTR embedding
   else if (/^0\d{1,2}[\-\s]?\d{7,8}$/.test(content)) {
     return { 
-      text: `\u200E${content}`, // Add explicit LTR mark for phone numbers
+      text: `\u202A${content}\u202C`, // LRE + PDF
       isRtl: false,
       isCurrency: false,
       isNumber: true 
     };
   }
-  // Pure numbers - must be LTR with explicit LTR marker
+  // Pure numbers - must be LTR with strong LTR embedding
   else if (isNumericOnly) {
     return { 
-      text: `\u200E${content}`, // Add explicit LTR mark for numbers
+      text: `\u202A${content}\u202C`, // LRE + PDF
       isRtl: false,
       isCurrency: false,
       isNumber: true 
     };
   }
-  // Currency with Hebrew text
+  // Currency with Hebrew text - use RTL embedding
   else if (isCurrency && isHebrewContent) {
-    // Simple RTL mark for Hebrew currency
     return { 
-      text: `\u200F${content}`,
+      text: `\u202B${content}\u202C`, // RLE + PDF (Right-to-Left Embedding with Pop Directional Formatting)
       isRtl: true,
       isCurrency: true,
       isNumber: false 
     };
   }
-  // Non-Hebrew currency
+  // Non-Hebrew currency - use LTR embedding
   else if (isCurrency) {
     return { 
-      text: `\u200E${content}`, // Explicit LTR mark for non-Hebrew currency
+      text: `\u202A${content}\u202C`, // LRE + PDF
       isRtl: false,
       isCurrency: true,
       isNumber: false 
     };
   }
-  // Date format - always LTR
+  // Date format - always LTR with strong embedding
   else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     return { 
-      text: `\u200E${content}`, // Explicit LTR mark for dates
+      text: `\u202A${content}\u202C`, // LRE + PDF
       isRtl: false,
       isCurrency: false,
       isNumber: false 
     };
   }
-  // Hebrew text - simple RTL mark
+  // Hebrew text - use RTL embedding
   else if (isHebrewContent) {
     return { 
-      text: `\u200F${content}`, // RLM (Right-to-Left Mark)
+      text: `\u202B${content}\u202C`, // RLE + PDF
       isRtl: true,
       isCurrency: false,
       isNumber: false 
@@ -84,7 +84,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Other content (English, etc)
   else {
     return { 
-      text: content, // Leave as is - RTL context will handle it
+      text: `\u202A${content}\u202C`, // LRE + PDF
       isRtl: false,
       isCurrency: false,
       isNumber: false 

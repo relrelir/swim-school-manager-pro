@@ -1,22 +1,21 @@
-
 import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrNumber, isHebrewCurrency } from './contentDetection';
 
 /**
  * Process text to ensure correct display direction in PDF
- * Simplified to use minimal direction markers
+ * Enhanced with strong directional embedding controls
  */
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
   
-  // For numbers, dates, phone numbers, and English text, we use LTR
+  // For numbers, dates, phone numbers, and English text, we use LTR embedding
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text) || isEnglishOrNumber(text)) {
-    // Simple LTR mark
-    return `\u200E${text}`;
+    // Strong LTR embedding with proper isolation
+    return `\u202A${text}\u202C`;
   }
 
-  // For Hebrew or mixed content, add simple RTL marker
+  // For Hebrew or mixed content, add strong RTL embedding
   if (containsHebrew(text)) {
-    return `\u200F${text}`;
+    return `\u202B${text}\u202C`;
   }
   
   // Default - return unchanged for non-Hebrew text
@@ -24,25 +23,25 @@ export const processTextDirection = (text: string): string => {
 };
 
 /**
- * Force LTR direction with simple LTR marker
- * Enhanced to always add LTR mark for consistent LTR display
+ * Force LTR direction with strong LTR embedding
+ * Enhanced to use proper directional embedding for consistent LTR display
  */
 export const forceLtrDirection = (text: string): string => {
   if (!text) return '';
   
-  // Always add LTR mark for consistent direction
-  return `\u200E${text}`;
+  // Strong LTR embedding with proper isolation
+  return `\u202A${text}\u202C`;
 };
 
 /**
  * Force RTL direction specifically for Hebrew text
- * Simplified to use just RLM
+ * Enhanced with strong RTL embedding
  */
 export const forceRtlDirection = (text: string): string => {
   if (!text) return '';
   
-  // Simple RTL mark
-  return `\u200F${text}`;
+  // Strong RTL embedding with proper isolation
+  return `\u202B${text}\u202C`;
 };
 
 /**
@@ -56,25 +55,25 @@ export const manuallyReverseString = (text: string): string => {
 
 /**
  * Special processor for table cells to handle mixed content
- * Enhanced to always add LTR mark for numeric content
+ * Enhanced with strong directional embedding
  */
 export const processTableCellText = (text: string): string => {
   if (!text) return '';
   
   // Check content type to apply appropriate direction
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text)) {
-    // Always add LTR mark for numeric content
-    return `\u200E${text}`;
+    // Strong LTR embedding for numeric content
+    return `\u202A${text}\u202C`;
   } else if (isHebrewCurrency(text)) {
     // Special handling for Hebrew currency
     if (containsHebrew(text)) {
-      return `\u200F${text}`; // Simple RTL mark
+      return `\u202B${text}\u202C`; // Strong RTL embedding
     } else {
-      return `\u200E${text}`; // Simple LTR mark
+      return `\u202A${text}\u202C`; // Strong LTR embedding
     }
   } else if (containsHebrew(text)) {
-    // Simple RTL mark for Hebrew text
-    return `\u200F${text}`;
+    // Strong RTL embedding for Hebrew text
+    return `\u202B${text}\u202C`;
   }
   
   // Default for mixed or other content
@@ -83,38 +82,38 @@ export const processTableCellText = (text: string): string => {
 
 /**
  * Special formatter for Hebrew currency values in tables
- * Simplified to use simple RTL mark
+ * Enhanced with strong RTL embedding
  */
 export const processHebrewCurrencyForTable = (text: string): string => {
-  // Simple RTL mark for Hebrew currency
-  return `\u200F${text}`;
+  // Strong RTL embedding for Hebrew currency
+  return `\u202B${text}\u202C`;
 };
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * Simplified to use simple RTL mark
+ * Enhanced with strong RTL embedding
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // Simple RTL mark for Hebrew text
-  return `\u200F${text}`;
+  // Strong RTL embedding for Hebrew text
+  return `\u202B${text}\u202C`;
 };
 
 /**
  * Legacy helper function kept for backward compatibility
- * Simplified to use simple RTL mark
+ * Enhanced with strong RTL embedding
  */
 export const reverseText = (text: string): string => {
-  // Apply simple RTL mark to text
-  return text ? `\u200F${text}` : '';
+  // Apply strong RTL embedding to text
+  return text ? `\u202B${text}\u202C` : '';
 };
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
- * Simplified to use simple RTL mark
+ * Enhanced with strong RTL embedding
  */
 export const prepareRtlText = (text: string): string => {
-  // Simple RTL mark for Hebrew text
-  return `\u200F${text}`;
+  // Strong RTL embedding for Hebrew text
+  return `\u202B${text}\u202C`;
 };
