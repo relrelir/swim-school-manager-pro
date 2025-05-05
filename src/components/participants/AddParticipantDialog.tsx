@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Participant } from '@/types';
-
 interface AddParticipantDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -26,7 +24,6 @@ interface AddParticipantDialogProps {
   }>>;
   onSubmit: (e: React.FormEvent) => void;
 }
-
 const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   isOpen,
   onOpenChange,
@@ -34,10 +31,9 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   setNewParticipant,
   registrationData,
   setRegistrationData,
-  onSubmit,
+  onSubmit
 }) => {
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+  return <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>הוסף משתתף חדש</DialogTitle>
@@ -47,52 +43,38 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="first-name">שם פרטי</Label>
-                <Input
-                  id="first-name"
-                  value={newParticipant.firstName}
-                  onChange={(e) => setNewParticipant({ ...newParticipant, firstName: e.target.value })}
-                  required
-                />
+                <Input id="first-name" value={newParticipant.firstName} onChange={e => setNewParticipant({
+                ...newParticipant,
+                firstName: e.target.value
+              })} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="last-name">שם משפחה</Label>
-                <Input
-                  id="last-name"
-                  value={newParticipant.lastName}
-                  onChange={(e) => setNewParticipant({ ...newParticipant, lastName: e.target.value })}
-                  required
-                />
+                <Input id="last-name" value={newParticipant.lastName} onChange={e => setNewParticipant({
+                ...newParticipant,
+                lastName: e.target.value
+              })} required />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="id-number">תעודת זהות</Label>
-                <Input
-                  id="id-number"
-                  value={newParticipant.idNumber}
-                  onChange={(e) => setNewParticipant({ ...newParticipant, idNumber: e.target.value })}
-                  required
-                />
+                <Input id="id-number" value={newParticipant.idNumber} onChange={e => setNewParticipant({
+                ...newParticipant,
+                idNumber: e.target.value
+              })} required />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">טלפון</Label>
-                <Input
-                  id="phone"
-                  value={newParticipant.phone}
-                  onChange={(e) => setNewParticipant({ ...newParticipant, phone: e.target.value })}
-                  required
-                />
+                <Input id="phone" value={newParticipant.phone} onChange={e => setNewParticipant({
+                ...newParticipant,
+                phone: e.target.value
+              })} required />
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Checkbox
-                id="health-approval"
-                checked={newParticipant.healthApproval}
-                onCheckedChange={(checked) => 
-                  setNewParticipant({ ...newParticipant, healthApproval: checked as boolean })
-                }
-              />
-              <Label htmlFor="health-approval" className="mr-2">אישור בריאות</Label>
+              
+              
             </div>
             
             <div className="space-y-4 pt-4 border-t">
@@ -101,45 +83,25 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="required-amount">סכום לתשלום</Label>
-                  <Input
-                    id="required-amount"
-                    type="number"
-                    value={registrationData.requiredAmount}
-                    className="bg-gray-100 ltr"
-                    readOnly
-                  />
+                  <Input id="required-amount" type="number" value={registrationData.requiredAmount} className="bg-gray-100 ltr" readOnly />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="paid-amount">סכום ששולם</Label>
-                  <Input
-                    id="paid-amount"
-                    type="number"
-                    value={registrationData.paidAmount}
-                    onChange={(e) => setRegistrationData({ 
-                      ...registrationData, 
-                      paidAmount: Number(e.target.value),
-                      discountApproved: registrationData.discountApproved
-                    })}
-                    required
-                    min={0}
-                    max={registrationData.requiredAmount}
-                    className="ltr"
-                  />
+                  <Input id="paid-amount" type="number" value={registrationData.paidAmount} onChange={e => setRegistrationData({
+                  ...registrationData,
+                  paidAmount: Number(e.target.value),
+                  discountApproved: registrationData.discountApproved
+                })} required min={0} max={registrationData.requiredAmount} className="ltr" />
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="receipt-number">מספר קבלה</Label>
-                <Input
-                  id="receipt-number"
-                  value={registrationData.receiptNumber}
-                  onChange={(e) => setRegistrationData({ 
-                    ...registrationData, 
-                    receiptNumber: e.target.value,
-                    discountApproved: registrationData.discountApproved
-                  })}
-                  required
-                />
+                <Input id="receipt-number" value={registrationData.receiptNumber} onChange={e => setRegistrationData({
+                ...registrationData,
+                receiptNumber: e.target.value,
+                discountApproved: registrationData.discountApproved
+              })} required />
               </div>
             </div>
           </div>
@@ -148,8 +110,6 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
           </DialogFooter>
         </form>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default AddParticipantDialog;
