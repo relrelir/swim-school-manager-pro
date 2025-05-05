@@ -1,21 +1,22 @@
 import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrNumber, isHebrewCurrency } from './contentDetection';
+import { formatPdfField, forceLtrDirection as forceLtrDirectionFormat, forceRtlDirection as forceRtlDirectionFormat } from './textFormatting';
 
 /**
  * Process text to ensure correct display direction in PDF
- * Simplified to use minimal direction markers
+ * Using format utilities for consistent bidirectional text handling
  */
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
   
   // For numbers, dates, phone numbers, and English text, we use LTR
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text) || isEnglishOrNumber(text)) {
-    // Simple LTR mark
-    return `\u200E${text}`;
+    // Use our utility function for LTR text
+    return forceLtrDirectionFormat(text);
   }
 
-  // For Hebrew or mixed content, add simple RTL marker
+  // For Hebrew or mixed content, use our utility function
   if (containsHebrew(text)) {
-    return `\u200F${text}`;
+    return forceRtlDirectionFormat(text);
   }
   
   // Default - return unchanged for non-Hebrew text
@@ -26,21 +27,14 @@ export const processTextDirection = (text: string): string => {
  * Force LTR direction with simple LTR marker
  */
 export const forceLtrDirection = (text: string): string => {
-  if (!text) return '';
-  
-  // Simple LTR mark
-  return `\u200E${text}`;
+  return forceLtrDirectionFormat(text);
 };
 
 /**
  * Force RTL direction specifically for Hebrew text
- * Simplified to use just RLM
  */
 export const forceRtlDirection = (text: string): string => {
-  if (!text) return '';
-  
-  // Simple RTL mark
-  return `\u200F${text}`;
+  return forceRtlDirectionFormat(text);
 };
 
 /**
@@ -54,65 +48,39 @@ export const manuallyReverseString = (text: string): string => {
 
 /**
  * Special processor for table cells to handle mixed content
- * Simplified to use minimal direction markers
  */
 export const processTableCellText = (text: string): string => {
   if (!text) return '';
   
-  // Check content type to apply appropriate direction
-  if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text)) {
-    // Simple LTR mark for numeric content
-    return `\u200E${text}`;
-  } else if (isHebrewCurrency(text)) {
-    // Special handling for Hebrew currency
-    if (containsHebrew(text)) {
-      return `\u200F${text}`; // Simple RTL mark
-    } else {
-      return `\u200E${text}`; // Simple LTR mark
-    }
-  } else if (containsHebrew(text)) {
-    // Simple RTL mark for Hebrew text
-    return `\u200F${text}`;
-  }
-  
-  // Default for mixed or other content
-  return text;
+  return formatPdfField(text);
 };
 
 /**
  * Special formatter for Hebrew currency values in tables
- * Simplified to use simple RTL mark
  */
 export const processHebrewCurrencyForTable = (text: string): string => {
-  // Simple RTL mark for Hebrew currency
-  return `\u200F${text}`;
+  return forceRtlDirectionFormat(text);
 };
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * Simplified to use simple RTL mark
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // Simple RTL mark for Hebrew text
-  return `\u200F${text}`;
+  return forceRtlDirectionFormat(text);
 };
 
 /**
  * Legacy helper function kept for backward compatibility
- * Simplified to use simple RTL mark
  */
 export const reverseText = (text: string): string => {
-  // Apply simple RTL mark to text
-  return text ? `\u200F${text}` : '';
+  return text ? forceRtlDirectionFormat(text) : '';
 };
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
- * Simplified to use simple RTL mark
  */
 export const prepareRtlText = (text: string): string => {
-  // Simple RTL mark for Hebrew text
-  return `\u200F${text}`;
+  return forceRtlDirectionFormat(text);
 };

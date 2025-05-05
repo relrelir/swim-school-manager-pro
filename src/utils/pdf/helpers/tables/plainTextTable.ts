@@ -25,9 +25,6 @@ export const createPlainTextTable = (
   // Get plain text table configuration
   const tableConfig = getPlainTextTableConfig(startY);
   
-  // CRITICAL FIX: Enable RTL mode before creating table
-  pdf.setR2L(true);
-  
   try {
     autoTable(pdf, {
       ...tableConfig,
@@ -42,9 +39,6 @@ export const createPlainTextTable = (
       body: processedData,
     });
   }
-  
-  // CRITICAL FIX: Disable RTL mode after creating table
-  pdf.setR2L(false);
 
   // Return the new y position after the table
   let finalY = 0;
