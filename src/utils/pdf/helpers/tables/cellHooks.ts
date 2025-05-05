@@ -15,12 +15,14 @@ export function didParseCell(data: CellHookData): void {
   
   // Apply appropriate alignment based on content type
   if (processed.isCurrency || !processed.isRtl) {
+    // Force left alignment for numbers, IDs, currency, and non-RTL text
     cell.styles.halign = 'left';
   } else {
+    // Right alignment for Hebrew text
     cell.styles.halign = 'right';
   }
   
-  // Log what we're doing with each cell for debugging
+  // Log cell processing for debugging
   console.log(`Cell "${cellContent}" processed with halign=${cell.styles.halign}`);
 }
 

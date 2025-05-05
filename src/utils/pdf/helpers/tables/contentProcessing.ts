@@ -16,7 +16,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   
   console.log(`Processing cell: ${content}, Hebrew: ${isHebrewContent}, Currency: ${isCurrency}`);
   
-  // Process by content type
+  // Process by content type for optimal display
   if (isCurrency) {
     if (isHebrewContent) {
       // Hebrew currency needs special handling
@@ -34,21 +34,21 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
       };
     }
   } else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
-    // Date format
+    // Date format - always LTR
     return { 
       text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: false 
     };
   } else if (/^[0-9\s\-\.\/]+$/.test(content)) {
-    // Pure number (ID, phone, etc)
+    // Pure number (ID numbers, phone numbers, etc) - always LTR
     return { 
       text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: false 
     };
   } else if (isHebrewContent) {
-    // Pure Hebrew text - needs manual character reversal to display properly in tables
+    // Pure Hebrew text - needs manual character reversal for proper display
     return { 
       text: manuallyReverseString(content),
       isRtl: true,

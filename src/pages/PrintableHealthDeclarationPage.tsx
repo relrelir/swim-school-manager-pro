@@ -83,14 +83,14 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         
         console.log("Found participant:", participantData);
 
-        // Parse parent information and medical notes with improved parsing
+        // Parse parent information and medical notes separately with improved parsing
         const parentInfo = parseParentInfo(healthDeclaration.notes || '');
         const medicalNotes = parseMedicalNotes(healthDeclaration.notes || '');
         
         console.log("Parsed parent info:", parentInfo);
         console.log("Parsed medical notes:", medicalNotes);
 
-        // Set health data for display
+        // Set health data for display with properly separated fields
         setHealthData({
           participantName: `${participantData.firstname} ${participantData.lastname}`,
           participantId: participantData.idnumber,

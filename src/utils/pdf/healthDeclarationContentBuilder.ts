@@ -52,14 +52,14 @@ export const buildHealthDeclarationPDF = (
     const startY = 40;
     let lastY = startY;
     
-    // Add participant details - Hebrew section title
+    // ===== PARTICIPANT SECTION =====
+    // Add participant details with clear section title
     addSectionTitle(pdf, 'פרטי המשתתף', lastY);
     
     // Process participant data with appropriate direction control
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
-    // IMPORTANT: Swap the columns - put data in first column and labels in second column
-    // Make this table more compact
+    // Create participant data table - IMPORTANT: Display only participant's ID number here
     const participantData = [
       [fullName, 'שם מלא'],
       [forceLtrDirection(participant.idnumber), 'תעודת זהות'],
@@ -69,14 +69,15 @@ export const buildHealthDeclarationPDF = (
     console.log("Creating participant data table");
     lastY = createDataTable(pdf, participantData, lastY + 5);
     
-    // Parse and add parent/signer details
+    // ===== PARENT/GUARDIAN SECTION =====
+    // Parse parent info from notes field - completely separate from medical notes
     const parentInfo = parseParentInfo(healthDeclaration.notes);
     console.log("Parsed parent info:", parentInfo);
     
     // Add parent/guardian section with optimized spacing
     addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
     
-    // Create separate rows for parent name and ID
+    // Create parent info table - ensure name and ID are in separate rows
     const parentData = [
       [parentInfo.parentName || '', 'שם מלא'],
       [forceLtrDirection(parentInfo.parentId || ''), 'תעודת זהות'],
@@ -84,6 +85,7 @@ export const buildHealthDeclarationPDF = (
     
     lastY = createDataTable(pdf, parentData, lastY + 10);
     
+    // ===== DECLARATION SECTION =====
     // Add declaration text with more compact layout
     addSectionTitle(pdf, 'תוכן ההצהרה', lastY + 5);
     
@@ -94,16 +96,18 @@ export const buildHealthDeclarationPDF = (
     console.log("Creating declaration items table");
     lastY = createPlainTextTable(pdf, declarationData, lastY + 10);
     
-    // Add medical notes - process from healthDeclaration.notes
+    // ===== MEDICAL NOTES SECTION =====
+    // Process medical notes separately from parent info
     const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
     console.log("Parsed medical notes:", medicalNotes);
     
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
     
-    // Display medical notes or default message
+    // Display medical notes or default message in their own dedicated section
     const notesText = medicalNotes ? medicalNotes : 'אין הערות רפואיות נוספות';
     lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
+    // ===== CONFIRMATION SECTION =====
     // Add confirmation section with reduced spacing
     addSectionTitle(pdf, 'אישור', lastY + 5);
     lastY = createPlainTextTable(
@@ -112,13 +116,14 @@ export const buildHealthDeclarationPDF = (
       lastY + 10
     );
     
+    // ===== SIGNATURE SECTION =====
     // Add signature line with parent info
     pdf.setR2L(true); // Enable RTL for Hebrew text
     
     // Add parent details to signature line if available
     const signatureY = lastY + 15;
     if (parentInfo.parentName) {
-      // Use compact format to save space
+      // Use compact format with parent name
       pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`, 30, signatureY);
     } else {
       // Default signature line without details
