@@ -1,6 +1,7 @@
 
 import { CellHookData } from 'jspdf-autotable';
 import { processCellContent } from './contentProcessing';
+import { formatPdfField } from '../textFormatting';
 
 /**
  * Parses and formats cells before rendering to handle bidirectional text
@@ -35,8 +36,8 @@ export function didParseCell(data: CellHookData): void {
 }
 
 /**
- * Hook for final adjustments to cell drawing if needed
- * Simplified to use only the essential RTL/LTR markers
+ * Hook for final adjustments to cell drawing
+ * Now using formatPdfField for proper direction markers
  */
 export function willDrawCell(data: CellHookData): void {
   // Add any final adjustments to cell drawing if needed
@@ -45,12 +46,12 @@ export function willDrawCell(data: CellHookData): void {
   
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   
-  // For ID numbers, use simple LTR marker
+  // For ID numbers, use LTR markers
   if (/^\d{5,9}$/.test(cellContent)) {
-    cell.text = [`\u200E${cellContent}`]; // LRM (Left-to-Right Mark)
+    cell.text = [formatPdfField(cellContent, 'number')];
   }
-  // For Hebrew text cells, use simple RTL marker
+  // For Hebrew text cells, use RTL markers
   else if (/[\u0590-\u05FF]/.test(cellContent)) {
-    cell.text = [`\u200F${cellContent}`]; // RLM (Right-to-Left Mark)
+    cell.text = [formatPdfField(cellContent, 'text')];
   }
 }

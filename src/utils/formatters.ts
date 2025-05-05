@@ -1,9 +1,10 @@
 
 import { processTextDirection, forceLtrDirection, processTableCellText, processHebrewCurrencyForTable } from './pdf/helpers/textDirection';
+import { formatPdfField } from './pdf/helpers/textFormatting';
 
 /**
  * Format a number as currency in ILS (New Israeli Shekel)
- * Enhanced with stronger LTR direction control
+ * Enhanced with proper direction markers for PDF display
  */
 export const formatCurrency = (amount: number): string => {
   const formatted = new Intl.NumberFormat('he-IL', { 
@@ -11,8 +12,8 @@ export const formatCurrency = (amount: number): string => {
     currency: 'ILS' 
   }).format(amount);
   
-  // Force LTR direction for currency values (they contain numbers)
-  return forceLtrDirection(formatted);
+  // Format currency values with LTR markers
+  return formatPdfField(formatted, 'number');
 };
 
 /**
@@ -25,18 +26,18 @@ export const formatCurrencyForTable = (amount: number): string => {
     currency: 'ILS' 
   }).format(amount);
   
-  // Use special table cell processing for currency values
-  return processHebrewCurrencyForTable(formatted);
+  // Format currency values with LTR markers
+  return formatPdfField(formatted, 'number');
 };
 
 /**
  * Format a date in the local format
- * Enhanced with strongest possible LTR direction control
+ * Enhanced with LTR direction markers
  */
 export const formatDate = (date: Date | string): string => {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  // Apply strongest direction handling specifically for dates
-  return forceLtrDirection(dateObj.toLocaleDateString('he-IL'));
+  // Apply direction handling specifically for dates
+  return formatPdfField(dateObj.toLocaleDateString('he-IL'), 'number');
 };
 
 /**
@@ -48,7 +49,7 @@ export const formatPrice = (price: number): string => {
 
 /**
  * Format time from 24h format to local time format
- * Enhanced with strongest possible LTR direction control
+ * Enhanced with LTR direction markers
  */
 export const formatTime = (time: string): string => {
   try {
@@ -62,27 +63,27 @@ export const formatTime = (time: string): string => {
     date.setHours(hours);
     date.setMinutes(minutes);
     
-    // Format time according to locale (without seconds) with strongest LTR control
-    return forceLtrDirection(date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }));
+    // Format time with LTR markers
+    return formatPdfField(date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }), 'number');
   } catch (e) {
     console.error('Error formatting time:', e);
-    return forceLtrDirection(time); // Return original with LTR direction if there's an error
+    return formatPdfField(time, 'number'); // Return original with LTR direction if there's an error
   }
 };
 
 /**
- * Format participants count as "X/Y" with strong LTR direction control
+ * Format participants count as "X/Y" with LTR direction markers
  */
 export const formatParticipantsCount = (current: number, max: number | undefined): string => {
   if (max === undefined || max === null) {
-    return forceLtrDirection(`${current}`);
+    return formatPdfField(`${current}`, 'number');
   }
-  return forceLtrDirection(`${current}/${max}`);
+  return formatPdfField(`${current}/${max}`, 'number');
 };
 
 /**
- * Format meeting count as "X/Y" with strong LTR direction control
+ * Format meeting count as "X/Y" with LTR direction markers
  */
 export const formatMeetingCount = (current: number, total: number): string => {
-  return forceLtrDirection(`${current}/${total}`);
+  return formatPdfField(`${current}/${total}`, 'number');
 };
