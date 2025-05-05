@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { CheckCircle, AlertCircle, Link } from 'lucide-react';
@@ -27,41 +27,38 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   const [isFormSigned, setIsFormSigned] = useState(false);
   const { getHealthDeclarationForRegistration } = useHealthDeclarationsContext();
 
-  useEffect(() => {
-    // Fetch the health declaration when component mounts or registration changes
-    const fetchHealthDeclaration = async () => {
-      if (registration?.id) {
-        try {
-          const declaration = await getHealthDeclarationForRegistration(registration.id);
-          setHealthDeclaration(declaration);
-          
-          // Check if the form is signed
-          const signed = Boolean(
-            declaration && 
-            (declaration.formStatus === 'signed' || declaration.form_status === 'signed')
-          );
-          setIsFormSigned(signed);
-          
-          console.log("Health declaration status in TableHealthStatus:", {
-            registrationId: registration.id,
-            participantId: registration.participantId,
-            hasDeclaration: Boolean(declaration),
-            formStatus: declaration?.formStatus || declaration?.form_status,
-            isFormSigned: signed,
-            healthDeclarationId: declaration?.id
-          });
-        } catch (error) {
-          console.error("Error fetching health declaration:", error);
-        }
-      }
-    };
+  // אופטימיזציה: שימוש ב-useMemo ותנאי מחמיר יותר
+  const registrationId = useMemo(() => registration?.id, [registration?.id]);
+
+  // אופטימיזציה: שימוש ב-useCallback למניעת רינדורים מיותרים
+  const fetchHealthDeclaration = useCallback(async () => {
+    if (!registrationId) return;
     
+    try {
+      const declaration = await getHealthDeclarationForRegistration(registrationId);
+      if (declaration?.id !== healthDeclaration?.id) {
+        setHealthDeclaration(declaration);
+        
+        // Check if the form is signed
+        const signed = Boolean(
+          declaration && 
+          (declaration.formStatus === 'signed' || declaration.form_status === 'signed')
+        );
+        setIsFormSigned(signed);
+      }
+    } catch (error) {
+      console.error("Error fetching health declaration:", error);
+    }
+  }, [registrationId, getHealthDeclarationForRegistration, healthDeclaration?.id]);
+
+  // אופטימיזציה: שימוש ב-useEffect עם תלויות נכונות
+  useEffect(() => {
     fetchHealthDeclaration();
-  }, [registration?.id, getHealthDeclarationForRegistration]);
+  }, [fetchHealthDeclaration]);
 
   if (!participant) return null;
   
-  // Handle generate health declaration link
+  // אופטימיזציה: שימוש ב-useCallback למניעת רינדורים מיותרים
   const handleGenerateLink = async () => {
     setIsGeneratingLink(true);
     try {
@@ -91,7 +88,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
     }
   };
 
-  // Helper function to copy text to clipboard
+  // אופטימיזציה: שימוש ב-useCallback למניעת רינדורים מיותרים
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -102,6 +99,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
     }
   };
 
+  // הפחתת מספר האלמנטים המרונדרים
   return (
     <div className="flex items-center gap-2 flex-wrap">
       {participant.healthApproval ? (

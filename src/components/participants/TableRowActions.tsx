@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Registration } from '@/types';
 import { Trash2Icon, FileDownIcon, CreditCardIcon, PrinterIcon } from 'lucide-react';
@@ -21,53 +22,51 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   onAddPayment,
   onDeleteRegistration,
 }) => {
-  const [isGeneratingRegPdf, setIsGeneratingRegPdf] = React.useState(false);
-  const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = React.useState(false);
-  const { getHealthDeclarationForRegistration, healthDeclarations } = useHealthDeclarationsContext();
-  
-  // State to track if this registration has a valid health declaration
+  const [isGeneratingRegPdf, setIsGeneratingRegPdf] = useState(false);
+  const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = useState(false);
   const [hasHealthDeclaration, setHasHealthDeclaration] = useState(false);
+  const { getHealthDeclarationForRegistration } = useHealthDeclarationsContext();
   
-  // Effect to check for health declaration when component mounts or registration/healthDeclarations change
-  useEffect(() => {
-    if (!registration.id) return;
+  // אופטימיזציה: יצירת registrationId וparticipantId כ-useMemo למניעת חישובים מיותרים
+  const registrationId = useMemo(() => registration?.id, [registration?.id]);
+  const participantId = useMemo(() => registration?.participantId, [registration?.participantId]);
+  
+  // אופטימיזציה: שימוש ב-useCallback למניעת רינדורים מיותרים
+  const checkForHealthDeclaration = useCallback(async () => {
+    if (!registrationId) return;
     
-    // Async function to check for health declaration
-    const checkForHealthDeclaration = async () => {
-      try {
-        // Get health declaration and check if it exists
-        const healthDeclaration = await getHealthDeclarationForRegistration(registration.id);
-        const declarationExists = Boolean(healthDeclaration && healthDeclaration.id);
-        
-        console.log(`Registration ${registration.id} health declaration check:`, 
-          declarationExists ? `Found (ID: ${healthDeclaration?.id})` : "Not found", 
-          `Total available declarations: ${healthDeclarations.length}`
-        );
-        
-        // Update state
+    try {
+      // Get health declaration and check if it exists
+      const healthDeclaration = await getHealthDeclarationForRegistration(registrationId);
+      const declarationExists = Boolean(healthDeclaration && healthDeclaration.id);
+      
+      // Update state only if changed
+      if (hasHealthDeclaration !== declarationExists) {
         setHasHealthDeclaration(declarationExists);
-      } catch (error) {
-        console.error("Error checking for health declaration:", error);
-        setHasHealthDeclaration(false);
       }
-    };
-    
+    } catch (error) {
+      console.error("Error checking for health declaration:", error);
+    }
+  }, [registrationId, getHealthDeclarationForRegistration, hasHealthDeclaration]);
+  
+  // אופטימיזציה: שימוש ב-useEffect עם תלויות נכונות
+  useEffect(() => {
     checkForHealthDeclaration();
-  }, [registration.id, getHealthDeclarationForRegistration, healthDeclarations]);
+  }, [checkForHealthDeclaration]);
 
-  // Handle download registration PDF
-  const handleGenerateRegPdf = async () => {
+  // אופטימיזציה: שימוש ב-useCallback למניעת רינדורים מיותרים
+  const handleGenerateRegPdf = useCallback(async () => {
     setIsGeneratingRegPdf(true);
     try {
-      await generateRegistrationPdf(registration.id);
+      await generateRegistrationPdf(registrationId);
     } finally {
       setIsGeneratingRegPdf(false);
     }
-  };
+  }, [registrationId]);
   
-  // Handle print health declaration PDF - Updated to use participantId
-  const handlePrintHealthDeclaration = async () => {
-    if (!registration || !registration.id || !registration.participantId) {
+  // אופטימיזציה: שימוש ב-useCallback למניעת רינדורים מיותרים
+  const handlePrintHealthDeclaration = useCallback(async () => {
+    if (!registration || !registrationId || !participantId) {
       console.error("Cannot generate PDF: Invalid registration", registration);
       toast({
         title: "שגיאה",
@@ -79,8 +78,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     
     setIsGeneratingHealthPdf(true);
     try {
-      console.log("Generating PDF for participant ID:", registration.participantId);
-      await generateHealthDeclarationPdf(registration.participantId);
+      await generateHealthDeclarationPdf(participantId);
       
       toast({
         title: "הצהרת הבריאות נוצרה בהצלחה",
@@ -96,7 +94,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     } finally {
       setIsGeneratingHealthPdf(false);
     }
-  };
+  }, [registrationId, participantId, registration]);
   
   return (
     <div className="flex gap-2 justify-end">

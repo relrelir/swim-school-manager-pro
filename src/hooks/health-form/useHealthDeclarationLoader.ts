@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -17,57 +17,59 @@ export const useHealthDeclarationLoader = () => {
   const [error, setError] = useState<string | null>(null);
   const [healthDeclarationId, setHealthDeclarationId] = useState<string | null>(null);
   
-  useEffect(() => {
-    const loadHealthDeclaration = async () => {
-      if (!token) {
-        setError('מזהה הצהרת בריאות חסר בקישור');
+  // הפיכת loadHealthDeclaration לפונקציה ממוקשת לשיפור ביצועים
+  const loadHealthDeclaration = useCallback(async () => {
+    if (!token) {
+      setError('מזהה הצהרת בריאות חסר בקישור');
+      setIsLoadingData(false);
+      return;
+    }
+    
+    try {
+      // Fetch everything in a single query with proper joins to reduce network requests
+      // First getting the health declaration and participant in one query
+      const { data: healthDeclarationData, error: healthDeclarationError } = await supabase
+        .from('health_declarations')
+        .select(`
+          id, 
+          participant_id,
+          participants:participant_id (firstname, lastname, idnumber, phone)
+        `)
+        .eq('token', token)
+        .single();
+      
+      if (healthDeclarationError || !healthDeclarationData) {
+        setError('הצהרת בריאות לא נמצאה או שפג תוקפה');
         setIsLoadingData(false);
         return;
       }
       
-      try {
-        // Get the health declaration by token
-        const { data: healthDeclarationData, error: healthDeclarationError } = await supabase
-          .from('health_declarations')
-          .select('id, participant_id')
-          .eq('token', token)
-          .single();
-        
-        if (healthDeclarationError || !healthDeclarationData) {
-          setError('הצהרת בריאות לא נמצאה או שפג תוקפה');
-          setIsLoadingData(false);
-          return;
-        }
-        
-        setHealthDeclarationId(healthDeclarationData.id);
-        
-        // Get the participant details
-        const { data: participantData, error: participantError } = await supabase
-          .from('participants')
-          .select('firstname, lastname, idnumber, phone')
-          .eq('id', healthDeclarationData.participant_id)
-          .single();
-        
-        if (participantError || !participantData) {
-          setError('לא נמצאו פרטי משתתף תקינים');
-          setIsLoadingData(false);
-          return;
-        }
-        
-        setParticipantName(`${participantData.firstname} ${participantData.lastname}`);
-        setParticipantId(participantData.idnumber);
-        setParticipantPhone(participantData.phone);
-        
-      } catch (error) {
-        console.error('Error loading health declaration:', error);
-        setError('אירעה שגיאה בטעינת הצהרת הבריאות');
-      } finally {
+      setHealthDeclarationId(healthDeclarationData.id);
+      
+      // Extract participant data directly from the joined query
+      const participantData = healthDeclarationData.participants;
+      
+      if (!participantData) {
+        setError('לא נמצאו פרטי משתתף תקינים');
         setIsLoadingData(false);
+        return;
       }
-    };
-    
-    loadHealthDeclaration();
+      
+      setParticipantName(`${participantData.firstname} ${participantData.lastname}`);
+      setParticipantId(participantData.idnumber);
+      setParticipantPhone(participantData.phone);
+      
+    } catch (error) {
+      console.error('Error loading health declaration:', error);
+      setError('אירעה שגיאה בטעינת הצהרת הבריאות');
+    } finally {
+      setIsLoadingData(false);
+    }
   }, [token]);
+  
+  useEffect(() => {
+    loadHealthDeclaration();
+  }, [loadHealthDeclaration]);
   
   return {
     isLoadingData,

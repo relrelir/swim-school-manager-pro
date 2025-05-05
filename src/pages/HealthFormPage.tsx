@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ErrorState, LoadingState } from '@/components/health-form/HealthFormStates';
-import HealthDeclarationContent from '@/components/health-form/HealthDeclarationContent';
 import { useHealthForm } from '@/hooks/useHealthForm';
+
+// אופטימיזציה: שימוש ב-lazy loading לטעינת תוכן הטופס רק כשנדרש
+const HealthDeclarationContent = lazy(() => import('@/components/health-form/HealthDeclarationContent'));
 
 const HealthFormPage: React.FC = () => {
   const {
@@ -43,16 +45,18 @@ const HealthFormPage: React.FC = () => {
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent>
-            <HealthDeclarationContent 
-              participantName={participantName}
-              participantId={participantId}
-              participantPhone={participantPhone}
-              formState={formState}
-              handleAgreementChange={handleAgreementChange}
-              handleNotesChange={handleNotesChange}
-              handleParentNameChange={handleParentNameChange}
-              handleParentIdChange={handleParentIdChange}
-            />
+            <Suspense fallback={<div className="p-4 text-center">טוען תוכן טופס...</div>}>
+              <HealthDeclarationContent 
+                participantName={participantName}
+                participantId={participantId}
+                participantPhone={participantPhone}
+                formState={formState}
+                handleAgreementChange={handleAgreementChange}
+                handleNotesChange={handleNotesChange}
+                handleParentNameChange={handleParentNameChange}
+                handleParentIdChange={handleParentIdChange}
+              />
+            </Suspense>
           </CardContent>
           
           <CardFooter>
