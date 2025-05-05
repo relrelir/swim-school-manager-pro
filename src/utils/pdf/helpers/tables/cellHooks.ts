@@ -1,3 +1,4 @@
+
 import { CellHookData } from 'jspdf-autotable';
 import { processCellContent } from './contentProcessing';
 
@@ -20,6 +21,7 @@ export function didParseCell(data: CellHookData): void {
     // ID numbers always left-aligned
     cell.styles.halign = 'left';
   }
+  // Apply appropriate alignment based on content type
   else if (processed.isCurrency || !processed.isRtl) {
     // Force left alignment for numbers, currency, and non-RTL text
     cell.styles.halign = 'left';
@@ -28,12 +30,13 @@ export function didParseCell(data: CellHookData): void {
     cell.styles.halign = 'right';
   }
   
+  // Log cell processing for debugging
   console.log(`Cell "${cellContent}" processed with halign=${cell.styles.halign}`);
 }
 
 /**
  * Hook for final adjustments to cell drawing if needed
- * Using stronger RTL/LTR embedding characters for better direction control
+ * Simplified to use only the essential RTL/LTR markers
  */
 export function willDrawCell(data: CellHookData): void {
   // Add any final adjustments to cell drawing if needed
@@ -42,19 +45,12 @@ export function willDrawCell(data: CellHookData): void {
   
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   
-  // For ID numbers and numeric content, use strong LTR EMBEDDING
-  if (/^\d{5,9}$/.test(cellContent) || /^[\d\-\+\.]+$/.test(cellContent)) {
-    // \u202A = LEFT-TO-RIGHT EMBEDDING
-    // \u202C = POP DIRECTIONAL FORMATTING (to end the embedding)
-    cell.text = [`\u202A${cellContent}\u202C`];
+  // For ID numbers, use simple LTR marker
+  if (/^\d{5,9}$/.test(cellContent)) {
+    cell.text = [`\u200E${cellContent}`]; // LRM (Left-to-Right Mark)
   }
-  // For dates and phone numbers, also use strong LTR EMBEDDING
-  else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(cellContent) || /^0\d{1,2}[\-\s]?\d{7,8}$/.test(cellContent)) {
-    cell.text = [`\u202A${cellContent}\u202C`];
-  }
-  // For Hebrew text cells, use RTL marker
+  // For Hebrew text cells, use simple RTL marker
   else if (/[\u0590-\u05FF]/.test(cellContent)) {
-    // Keep using simple RTL mark for Hebrew as it works correctly
-    cell.text = [`\u200F${cellContent}`];
+    cell.text = [`\u200F${cellContent}`]; // RLM (Right-to-Left Mark)
   }
 }

@@ -7,7 +7,7 @@ import { getTableConfig } from './tableConfig';
 
 /**
  * Creates a data table in the PDF document with enhanced RTL/LTR support
- * for mixed content environments, without using global RTL settings
+ * for mixed content environments
  */
 export const createDataTable = (
   pdf: jsPDF, 
@@ -31,7 +31,8 @@ export const createDataTable = (
   // Get table configuration with direction control
   const tableConfig = getTableConfig(startY);
   
-  // REMOVE global RTL setting - let individual cells handle direction
+  // CRITICAL FIX: Enable RTL mode before creating table
+  pdf.setR2L(true);
   
   if (hasHeader) {
     const headers = processedData[0];
@@ -72,7 +73,8 @@ export const createDataTable = (
     }
   }
   
-  // REMOVE global RTL reset - no longer needed
+  // CRITICAL FIX: Disable RTL mode after creating table
+  pdf.setR2L(false);
 
   // Return the new y position after the table
   let finalY = 0;

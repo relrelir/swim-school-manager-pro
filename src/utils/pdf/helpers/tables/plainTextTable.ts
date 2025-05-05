@@ -6,7 +6,6 @@ import { getPlainTextTableConfig } from './tableConfig';
 
 /**
  * Creates a plain text table (without grid lines) with improved RTL support
- * Removed global RTL settings to prevent number reversal
  */
 export const createPlainTextTable = (
   pdf: jsPDF, 
@@ -26,7 +25,8 @@ export const createPlainTextTable = (
   // Get plain text table configuration
   const tableConfig = getPlainTextTableConfig(startY);
   
-  // REMOVE global RTL setting - let individual cells handle direction
+  // CRITICAL FIX: Enable RTL mode before creating table
+  pdf.setR2L(true);
   
   try {
     autoTable(pdf, {
@@ -43,7 +43,8 @@ export const createPlainTextTable = (
     });
   }
   
-  // REMOVE global RTL reset - no longer needed
+  // CRITICAL FIX: Disable RTL mode after creating table
+  pdf.setR2L(false);
 
   // Return the new y position after the table
   let finalY = 0;

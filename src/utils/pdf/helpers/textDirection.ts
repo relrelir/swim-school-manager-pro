@@ -2,18 +2,18 @@ import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrN
 
 /**
  * Process text to ensure correct display direction in PDF
- * Using stronger LTR embedding for numeric content
+ * Simplified to use minimal direction markers
  */
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
   
-  // For numbers, dates, phone numbers, and English text, use LTR EMBEDDING
+  // For numbers, dates, phone numbers, and English text, we use LTR
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text) || isEnglishOrNumber(text)) {
-    // Strong LTR embedding
-    return `\u202A${text}\u202C`;
+    // Simple LTR mark
+    return `\u200E${text}`;
   }
 
-  // For Hebrew or mixed content, add RTL marker
+  // For Hebrew or mixed content, add simple RTL marker
   if (containsHebrew(text)) {
     return `\u200F${text}`;
   }
@@ -23,22 +23,23 @@ export const processTextDirection = (text: string): string => {
 };
 
 /**
- * Force LTR direction with strong LTR embedding
+ * Force LTR direction with simple LTR marker
  */
 export const forceLtrDirection = (text: string): string => {
   if (!text) return '';
   
-  // Strong LTR embedding
-  return `\u202A${text}\u202C`;
+  // Simple LTR mark
+  return `\u200E${text}`;
 };
 
 /**
  * Force RTL direction specifically for Hebrew text
+ * Simplified to use just RLM
  */
 export const forceRtlDirection = (text: string): string => {
   if (!text) return '';
   
-  // RTL mark
+  // Simple RTL mark
   return `\u200F${text}`;
 };
 
@@ -53,24 +54,24 @@ export const manuallyReverseString = (text: string): string => {
 
 /**
  * Special processor for table cells to handle mixed content
- * Using stronger direction markers
+ * Simplified to use minimal direction markers
  */
 export const processTableCellText = (text: string): string => {
   if (!text) return '';
   
   // Check content type to apply appropriate direction
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text)) {
-    // Strong LTR embedding for numeric content
-    return `\u202A${text}\u202C`;
+    // Simple LTR mark for numeric content
+    return `\u200E${text}`;
   } else if (isHebrewCurrency(text)) {
     // Special handling for Hebrew currency
     if (containsHebrew(text)) {
-      return `\u200F${text}`; // RTL mark
+      return `\u200F${text}`; // Simple RTL mark
     } else {
-      return `\u202A${text}\u202C`; // LTR embedding
+      return `\u200E${text}`; // Simple LTR mark
     }
   } else if (containsHebrew(text)) {
-    // RTL mark for Hebrew text
+    // Simple RTL mark for Hebrew text
     return `\u200F${text}`;
   }
   
@@ -80,34 +81,38 @@ export const processTableCellText = (text: string): string => {
 
 /**
  * Special formatter for Hebrew currency values in tables
+ * Simplified to use simple RTL mark
  */
 export const processHebrewCurrencyForTable = (text: string): string => {
-  // RTL mark for Hebrew currency
+  // Simple RTL mark for Hebrew currency
   return `\u200F${text}`;
 };
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
+ * Simplified to use simple RTL mark
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // RTL mark for Hebrew text
+  // Simple RTL mark for Hebrew text
   return `\u200F${text}`;
 };
 
 /**
  * Legacy helper function kept for backward compatibility
+ * Simplified to use simple RTL mark
  */
 export const reverseText = (text: string): string => {
-  // Apply RTL mark to text
+  // Apply simple RTL mark to text
   return text ? `\u200F${text}` : '';
 };
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
+ * Simplified to use simple RTL mark
  */
 export const prepareRtlText = (text: string): string => {
-  // RTL mark for Hebrew text
+  // Simple RTL mark for Hebrew text
   return `\u200F${text}`;
 };
