@@ -22,7 +22,8 @@ export const useParticipantActions = (
   setIsAddPaymentOpen: (value: boolean) => void,
   setNewPayment: (value: any) => void,
   newPayment: any,
-  resetForm: () => void
+  resetForm: () => void,
+  currentRegistration: Registration | null
 ) => {
   const {
     updateParticipant,
@@ -125,11 +126,9 @@ export const useParticipantActions = (
     return wrapperHandleAddParticipant(e, resetForm, setIsAddParticipantOpen);
   };
 
-  // Final wrapper for handleAddPayment - FIX: properly pass the event to the handler
-  // and correctly forward the necessary parameters
+  // Final wrapper for handleAddPayment - pass the currentRegistration object
   const handleAddPayment = (e: React.FormEvent) => {
-    // The issue was here - we need to pass the proper arguments in the correct order
-    return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
+    return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment, productId, currentRegistration);
   };
 
   return {

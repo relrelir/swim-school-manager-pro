@@ -19,9 +19,13 @@ export const usePaymentHandlers = (
                              receiptNumber: string;
                              paymentDate: string;
                            }>>,
-                           productId?: string) => {
+                           productId?: string,
+                           registration?: Registration | null) => {
     
-    if (currentRegistration) {
+    // Use the provided registration parameter if available, otherwise use currentRegistration state
+    const registrationToUpdate = registration || currentRegistration;
+    
+    if (registrationToUpdate) {
       // Check if receipt number is provided
       if (!newPayment.receiptNumber) {
         toast({
@@ -34,7 +38,7 @@ export const usePaymentHandlers = (
       
       // Add the new payment
       const payment: Omit<Payment, 'id'> = {
-        registrationId: currentRegistration.id,
+        registrationId: registrationToUpdate.id,
         amount: newPayment.amount,
         receiptNumber: newPayment.receiptNumber,
         paymentDate: newPayment.paymentDate,
@@ -43,10 +47,10 @@ export const usePaymentHandlers = (
       addPayment(payment);
       
       // Update the registration's paidAmount
-      const updatedPaidAmount = currentRegistration.paidAmount + newPayment.amount;
+      const updatedPaidAmount = registrationToUpdate.paidAmount + newPayment.amount;
       
       const updatedRegistration: Registration = {
-        ...currentRegistration,
+        ...registrationToUpdate,
         paidAmount: updatedPaidAmount,
       };
       
@@ -65,6 +69,13 @@ export const usePaymentHandlers = (
       if (productId) {
         return getRegistrationsByProduct(productId);
       }
+    } else {
+      // No registration selected
+      toast({
+        title: "שגיאה",
+        description: "לא נבחר משתתף להוספת תשלום",
+        variant: "destructive",
+      });
     }
     
     return [];
@@ -74,14 +85,18 @@ export const usePaymentHandlers = (
   const handleApplyDiscount = (
     discountAmount: number, 
     setIsAddPaymentOpen: (open: boolean) => void,
-    productId?: string
+    productId?: string,
+    registration?: Registration | null
   ) => {
-    if (currentRegistration) {
+    // Use the provided registration parameter if available, otherwise use currentRegistration state
+    const registrationToUpdate = registration || currentRegistration;
+    
+    if (registrationToUpdate) {
       // Update the registration with discount
       const updatedRegistration: Registration = {
-        ...currentRegistration,
+        ...registrationToUpdate,
         discountApproved: true,
-        discountAmount: (currentRegistration.discountAmount || 0) + discountAmount,
+        discountAmount: (registrationToUpdate.discountAmount || 0) + discountAmount,
       };
       
       updateRegistration(updatedRegistration);
@@ -99,6 +114,13 @@ export const usePaymentHandlers = (
       if (productId) {
         return getRegistrationsByProduct(productId);
       }
+    } else {
+      // No registration selected
+      toast({
+        title: "שגיאה",
+        description: "לא נבחר משתתף להוספת הנחה",
+        variant: "destructive",
+      });
     }
     
     return [];

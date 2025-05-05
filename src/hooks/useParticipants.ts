@@ -31,7 +31,8 @@ export const useParticipants = () => {
     core.setIsAddPaymentOpen,
     core.setNewPayment,
     core.newPayment,
-    core.resetForm
+    core.resetForm,
+    core.currentRegistration // Pass the currentRegistration
   );
 
   return {
