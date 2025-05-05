@@ -2,7 +2,7 @@
 import React from 'react';
 import { TableBody, TableRow, TableCell } from '@/components/ui/table';
 import { Product } from '@/types';
-import { formatDate, formatPriceForUI, formatTime, formatParticipantsCount, formatMeetingCount } from '@/utils/formatters';
+import { formatDateForUI, formatPriceForUI, formatTimeForUI, formatParticipantsCountForUI, formatMeetingCountForUI } from '@/utils/formatters';
 import { calculateCurrentMeeting } from '@/context/data/utils';
 import ProductsTableActions from './ProductsTableActions';
 
@@ -26,13 +26,13 @@ const ProductsTableContent: React.FC<ProductsTableContentProps> = ({
           <TableRow key={product.id}>
             <TableCell className="font-medium">{product.name}</TableCell>
             <TableCell>{product.type}</TableCell>
-            <TableCell>{formatDate(product.startDate)}</TableCell>
-            <TableCell>{formatDate(product.endDate)}</TableCell>
+            <TableCell>{formatDateForUI(product.startDate)}</TableCell>
+            <TableCell>{formatDateForUI(product.endDate)}</TableCell>
             <TableCell>{formatPriceForUI(product.price)}</TableCell>
-            <TableCell>{formatParticipantsCount(getParticipantsCount(product.id), product.maxParticipants)}</TableCell>
+            <TableCell>{formatParticipantsCountForUI(getParticipantsCount(product.id), product.maxParticipants)}</TableCell>
             <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
-            <TableCell>{formatTime(product.startTime)}</TableCell>
-            <TableCell>{formatMeetingCount(current, total)}</TableCell>
+            <TableCell>{formatTimeForUI(product.startTime)}</TableCell>
+            <TableCell>{formatMeetingCountForUI(current, total)}</TableCell>
             <TableCell>
               <ProductsTableActions 
                 product={product} 

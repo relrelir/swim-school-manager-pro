@@ -2,7 +2,7 @@
 import React from 'react';
 import { TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { Product } from '@/types';
-import { formatDate, formatPriceForUI, formatTime, formatParticipantsCount } from '@/utils/formatters';
+import { formatDateForUI, formatPriceForUI, formatTimeForUI, formatParticipantsCountForUI } from '@/utils/formatters';
 import SeasonProductsTableActions from './SeasonProductsTableActions';
 
 interface SeasonProductsTableContentProps {
@@ -46,13 +46,13 @@ const SeasonProductsTableContent: React.FC<SeasonProductsTableContentProps> = ({
                 </div>
               )}
             </TableCell>
-            <TableCell>{formatDate(product.startDate)}</TableCell>
-            <TableCell>{formatDate(product.endDate)}</TableCell>
+            <TableCell>{formatDateForUI(product.startDate)}</TableCell>
+            <TableCell>{formatDateForUI(product.endDate)}</TableCell>
             <TableCell>{product.daysOfWeek?.join(', ') || '-'}</TableCell>
-            <TableCell>{formatTime(product.startTime)}</TableCell>
+            <TableCell>{formatTimeForUI(product.startTime)}</TableCell>
             <TableCell>{formatMeetingCount(product)}</TableCell>
             <TableCell>
-              {formatParticipantsCount(getParticipantsCount(product.id), product.maxParticipants)}
+              {formatParticipantsCountForUI(getParticipantsCount(product.id), product.maxParticipants)}
             </TableCell>
             <TableCell>
               <SeasonProductsTableActions 
