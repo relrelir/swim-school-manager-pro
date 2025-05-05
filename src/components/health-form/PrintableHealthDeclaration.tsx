@@ -159,7 +159,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
             {formState.notes && formState.notes.trim() !== '' ? (
               <p>{formState.notes}</p>
             ) : (
-              <p>אין הערות רפואיות נוספות</p>
+              <p>אין הערות נוספות</p>
             )}
           </div>
         </div>
