@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Participant } from '@/types';
@@ -44,7 +45,6 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
           setParticipants(transformedParticipants);
         }
       } catch (error) {
-        console.error('Error loading participants:', error);
         toast({
           title: "שגיאה",
           description: "אירעה שגיאה בטעינת משתתפים",
@@ -81,7 +81,6 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return newParticipant;
       }
     } catch (error) {
-      console.error('Error adding participant:', error);
       toast({
         title: "שגיאה",
         description: "אירעה שגיאה בהוספת משתתף חדש",
@@ -109,7 +108,6 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         setParticipants(participants.map(p => p.id === id ? participant : p));
       } catch (error) {
-        console.error('Error updating participant:', error);
         toast({
           title: "שגיאה",
           description: "אירעה שגיאה בעדכון משתתף",
@@ -130,7 +128,6 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         setParticipants(participants.filter(p => p.id !== id));
       } catch (error) {
-        console.error('Error deleting participant:', error);
         toast({
           title: "שגיאה",
           description: "אירעה שגיאה במחיקת משתתף",

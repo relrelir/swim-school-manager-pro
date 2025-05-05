@@ -46,7 +46,6 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
         const transformedPayments = data?.map(payment => mapPaymentFromDB(payment)) || [];
         setPayments(transformedPayments);
       } catch (error) {
-        console.error('Error loading payments:', error);
         toast({
           title: "שגיאה",
           description: "אירעה שגיאה בטעינת תשלומים",
@@ -80,7 +79,6 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
         return newPayment;
       }
     } catch (error) {
-      console.error('Error adding payment:', error);
       toast({
         title: "שגיאה",
         description: "אירעה שגיאה בהוספת תשלום חדש",
@@ -105,7 +103,6 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
 
       setPayments(payments.map(p => p.id === payment.id ? payment : p));
     } catch (error) {
-      console.error('Error updating payment:', error);
       toast({
         title: "שגיאה",
         description: "אירעה שגיאה בעדכון תשלום",
@@ -127,7 +124,6 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
 
       setPayments(payments.filter(p => p.id !== id));
     } catch (error) {
-      console.error('Error deleting payment:', error);
       toast({
         title: "שגיאה",
         description: "אירעה שגיאה במחיקת תשלום",

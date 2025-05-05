@@ -21,13 +21,11 @@ export const useHealthDeclarationActions = (
   const handleOpenHealthForm = (registrationId: string) => {
     const registration = registrations.find(r => r.id === registrationId);
     if (!registration) {
-      console.error('Registration not found:', registrationId);
       return;
     }
 
     const participant = participants.find(p => p.id === registration.participantId);
     if (!participant) {
-      console.error('Participant not found for registration:', registrationId);
       return;
     }
 
@@ -55,7 +53,7 @@ export const useHealthDeclarationActions = (
         healthApproval: isApproved
       });
     } catch (error) {
-      console.error('Error updating health approval:', error);
+      // Error handling is done in updateParticipant
     }
   };
 

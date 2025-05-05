@@ -6,7 +6,6 @@ import { configureDocumentStyle } from '../pdfConfig';
  * Adds a title to the PDF document
  */
 export const addPdfTitle = (pdf: jsPDF, title: string): void => {
-  console.log(`Adding PDF title: "${title}"`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(20);
   
@@ -20,7 +19,6 @@ export const addPdfTitle = (pdf: jsPDF, title: string): void => {
  * Adds the current date to the PDF document
  */
 export const addPdfDate = (pdf: jsPDF, date: string): void => {
-  console.log(`Adding PDF date: "${date}"`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(10);
   
@@ -34,7 +32,6 @@ export const addPdfDate = (pdf: jsPDF, date: string): void => {
  * Adds a section title to the PDF document
  */
 export const addSectionTitle = (pdf: jsPDF, title: string, y: number): void => {
-  console.log(`Adding section title: "${title}" at y=${y}`);
   configureDocumentStyle(pdf);
   pdf.setFontSize(14);
   

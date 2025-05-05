@@ -19,9 +19,7 @@ export const createPdf = (): jsPDF => {
   try {
     // Use Alef font
     pdf.setFont('Alef');
-    console.log("Font set to Alef in createPdf");
   } catch (error) {
-    console.error("Error setting Alef font in createPdf:", error);
     // Fallback to standard font
     pdf.setFont('helvetica');
   }

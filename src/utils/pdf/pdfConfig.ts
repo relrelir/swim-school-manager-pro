@@ -5,8 +5,6 @@ import { configureHebrewFont } from './alefFontData';
 
 // Function to set up document with proper Hebrew font support
 export const createRtlPdf = async (): Promise<jsPDF> => {
-  console.log("Starting PDF creation with enhanced bidirectional text support...");
-  
   // Create PDF with standard settings
   const pdf = new jsPDF({
     orientation: 'portrait',
@@ -15,7 +13,6 @@ export const createRtlPdf = async (): Promise<jsPDF> => {
   });
 
   try {
-    console.log("Configuring Hebrew font support...");
     // Configure for Hebrew text support with Alef font
     await configureHebrewFont(pdf);
     
@@ -23,9 +20,8 @@ export const createRtlPdf = async (): Promise<jsPDF> => {
     if (typeof pdf.setLanguage === 'function') {
       try {
         pdf.setLanguage('he');
-        console.log("PDF language set to Hebrew");
       } catch (langError) {
-        console.error("Error setting PDF language:", langError);
+        // Language setting failed, continue without it
       }
     }
     
@@ -33,11 +29,8 @@ export const createRtlPdf = async (): Promise<jsPDF> => {
     // This is critical for proper text direction
     pdf.setR2L(true);
     
-    console.log("PDF created successfully with Alef font and RTL mode");
     return pdf;
   } catch (error) {
-    console.error("Error during Hebrew font configuration:", error);
-    
     // Fallback with RTL still enabled
     pdf.setR2L(true);
     
@@ -67,10 +60,7 @@ export const configureDocumentStyle = (pdf: jsPDF): void => {
     
     // CRITICAL: Always use RTL for document styling
     pdf.setR2L(true);
-    
-    console.log("Document style configured successfully with font:", pdf.getFont().fontName);
   } catch (error) {
-    console.error("Error configuring document style:", error);
     // Fallback to default font
     pdf.setFont('helvetica');
     pdf.setFontSize(12);

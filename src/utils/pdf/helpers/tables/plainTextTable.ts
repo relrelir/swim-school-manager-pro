@@ -12,8 +12,6 @@ export const createPlainTextTable = (
   data: (string | number)[][], 
   startY: number
 ): number => {
-  console.log(`Creating plain text table at y=${startY} with ${data.length} rows`);
-  
   // Process each cell individually with enhanced content-aware handling
   const processedData = data.map(row => 
     row.map(cell => {
@@ -31,7 +29,6 @@ export const createPlainTextTable = (
       body: processedData,
     });
   } catch (error) {
-    console.error("Error creating plain text table:", error);
     // Try with default font as fallback
     tableConfig.styles.font = 'helvetica';
     autoTable(pdf, {
@@ -44,9 +41,7 @@ export const createPlainTextTable = (
   let finalY = 0;
   try {
     finalY = (pdf as any).lastAutoTable.finalY + 5;
-    console.log(`Plain text table created, new Y position: ${finalY}`);
   } catch (error) {
-    console.error("Error getting finalY for plain table, using default value:", error);
     finalY = startY + 30; // Default fallback value
   }
   
