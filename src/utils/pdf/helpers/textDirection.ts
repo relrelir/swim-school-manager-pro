@@ -13,10 +13,10 @@ export const processTextDirection = (text: string): string => {
     return forceLtrDirection(text);
   }
 
-  // CRITICAL FIX: For Hebrew or mixed content, add RTL marks to ensure correct display direction
+  // CRITICAL FIX: For Hebrew or mixed content, add RTL isolation
   if (containsHebrew(text)) {
-    // Add RTL marks to force RTL display
-    return `\u200F${text}\u200F`;
+    // Use strongest RTL isolation for Hebrew text
+    return forceRtlDirection(text);
   }
   
   // Default - return unchanged for non-Hebrew text
@@ -30,23 +30,25 @@ export const processTextDirection = (text: string): string => {
 export const forceLtrDirection = (text: string): string => {
   if (!text) return '';
   
-  // Stack multiple controls for maximum effect:
-  // \u202D = Left-to-Right Override - strongest LTR control
-  // \u200E = Left-to-Right Mark - reinforces LTR behavior
-  // Close with \u202C to terminate directional controls
+  // Use LTR Isolate for maximum isolation:
+  // \u2066 = Left-to-Right Isolate - strongest LTR control
+  // \u2069 = Pop Directional Isolate - end isolation
   
-  return `\u202D\u200E${text}\u200E\u202C`;
+  return `\u2066${text}\u2069`;
 };
 
 /**
  * Force RTL direction specifically for Hebrew text in tables
- * CRITICAL FIX: Does NOT reverse or modify the text in any way
+ * CRITICAL FIX: Use bidirectional isolation for Hebrew text
  */
 export const forceRtlDirection = (text: string): string => {
   if (!text) return '';
   
-  // Add RTL mark at beginning and end to ensure correct display
-  return `\u200F${text}\u200F`;
+  // Use RTL Isolate for maximum isolation:
+  // \u2067 = Right-to-Left Isolate - strongest RTL control
+  // \u2069 = Pop Directional Isolate - end isolation
+  
+  return `\u2067${text}\u2069`;
 };
 
 /**
@@ -61,14 +63,14 @@ export const manuallyReverseString = (text: string): string => {
 
 /**
  * Special processor for table cells to handle mixed content
- * CRITICAL FIX: Never reverses Hebrew text, ensures proper directionality
+ * CRITICAL FIX: Apply bidirectional isolation for proper handling
  */
 export const processTableCellText = (text: string): string => {
   if (!text) return '';
   
   // Check content type to apply appropriate direction
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text)) {
-    // Numeric content always gets LTR
+    // Numeric content always gets LTR isolation
     return forceLtrDirection(text);
   } else if (isHebrewCurrency(text)) {
     // Special handling for Hebrew currency
@@ -78,7 +80,7 @@ export const processTableCellText = (text: string): string => {
       return forceLtrDirection(text);
     }
   } else if (containsHebrew(text)) {
-    // CRITICAL FIX: Add RTL markers for Hebrew text
+    // CRITICAL FIX: Use strongest RTL isolation for Hebrew text
     return forceRtlDirection(text);
   }
   
@@ -88,37 +90,38 @@ export const processTableCellText = (text: string): string => {
 
 /**
  * Special formatter for Hebrew currency values in tables
- * CRITICAL FIX: Ensures currency symbols display correctly without reversing text
+ * CRITICAL FIX: Use bidirectional isolation for currency values
  */
 export const processHebrewCurrencyForTable = (text: string): string => {
-  // CRITICAL FIX: Add RTL markers for correct display
+  // Use RTL isolation for Hebrew currency
   return forceRtlDirection(text);
 };
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * CRITICAL FIX: With Alef font, no text manipulation is needed
+ * CRITICAL FIX: Use bidirectional isolation for Hebrew text
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // CRITICAL FIX: Add RTL markers to ensure correct display
+  // CRITICAL FIX: Add RTL isolation for Hebrew text
   return forceRtlDirection(text);
 };
 
 /**
  * Legacy helper function kept for backward compatibility
- * CRITICAL FIX: Never reverses text under any circumstances
+ * CRITICAL FIX: Use bidirectional isolation for Hebrew text
  */
 export const reverseText = (text: string): string => {
-  // CRITICAL FIX: Simply return the text with RTL markers
+  // CRITICAL FIX: Apply RTL isolation to text
   return text ? forceRtlDirection(text) : '';
 };
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
+ * CRITICAL FIX: Use bidirectional isolation for Hebrew text in tables
  */
 export const prepareRtlText = (text: string): string => {
-  // CRITICAL FIX: Add RTL markers for correct display
+  // CRITICAL FIX: Apply RTL isolation to text
   return forceRtlDirection(text);
 };

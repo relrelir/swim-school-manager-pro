@@ -14,6 +14,8 @@ export const getTableConfig = (startY: number): UserOptions => ({
     cellPadding: 4,
     lineWidth: 0.1,
     halign: 'right', // Default alignment for Hebrew context
+    valign: 'middle', // Center text vertically
+    minCellWidth: 20, // Ensure minimum width for cells
   },
   headStyles: {
     fillColor: [200, 200, 200],
@@ -28,7 +30,7 @@ export const getTableConfig = (startY: number): UserOptions => ({
   // CRITICAL FIX: Process cells before rendering to handle bidirectional text
   didParseCell,
   
-  // CRITICAL FIX: Final adjustments to cell rendering
+  // CRITICAL FIX: Final adjustments to cell rendering with stronger RTL isolation
   willDrawCell,
 });
 
@@ -43,9 +45,13 @@ export const getPlainTextTableConfig = (startY: number): UserOptions => ({
     overflow: 'linebreak',
     cellPadding: 3,
     halign: 'right', // Default alignment for Hebrew context
+    valign: 'middle', // Center text vertically
   },
   theme: 'plain' as 'plain',
   
-  // CRITICAL FIX: Process cells before rendering
+  // CRITICAL FIX: Process cells before rendering with enhanced RTL handling
   didParseCell,
+  
+  // CRITICAL FIX: Final adjustments to cell rendering
+  willDrawCell,
 });

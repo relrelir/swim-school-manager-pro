@@ -4,7 +4,7 @@ import { containsHebrew } from '../contentDetection';
 
 /**
  * Process cell text based on content type for optimal table display
- * CRITICAL FIX: Correctly handle Hebrew text without reversing
+ * CRITICAL FIX: Use bidirectional isolation markers for Hebrew text
  */
 export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean } => {
   if (cell === null || cell === undefined) {
@@ -28,9 +28,9 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   }
   // Currency with Hebrew text
   else if (isCurrency && isHebrewContent) {
-    // CRITICAL FIX: Don't manipulate Hebrew currency text content
+    // CRITICAL FIX: Use strongest RTL isolation for Hebrew currency
     return { 
-      text: content, // Just use original text
+      text: `\u2067${content}\u2069`, // RTL Isolate + content + Pop Directional Isolate
       isRtl: true,
       isCurrency: true 
     };
@@ -59,10 +59,10 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
       isCurrency: false 
     };
   }
-  // Hebrew text - CRITICAL FIX: Add RTL marker to ensure correct rendering
+  // Hebrew text - CRITICAL FIX: Use strongest RTL isolation
   else if (isHebrewContent) {
     return { 
-      text: `\u200F${content}\u200F`, // Add RTL markers to force correct rendering
+      text: `\u2067${content}\u2069`, // RTL Isolate + content + Pop Directional Isolate
       isRtl: true,
       isCurrency: false 
     };

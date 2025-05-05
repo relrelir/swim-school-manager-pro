@@ -37,7 +37,7 @@ export function didParseCell(data: CellHookData): void {
 
 /**
  * Hook for final adjustments to cell drawing if needed
- * CRITICAL FIX: Never reverses or modifies text order
+ * CRITICAL FIX: Apply stronger RTL isolation for Hebrew text
  */
 export function willDrawCell(data: CellHookData): void {
   // Add any final adjustments to cell drawing if needed
@@ -46,16 +46,16 @@ export function willDrawCell(data: CellHookData): void {
   
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   
-  // CRITICAL FIX: For ID numbers only, add LTR mark
+  // CRITICAL FIX: For ID numbers, add strong LTR isolation
   if (/^\d{5,9}$/.test(cellContent)) {
-    // Add extra LTR mark for ID numbers
-    cell.text = [`\u200E${cellContent}\u200E`];
+    // Add explicit LTR isolation for ID numbers
+    cell.text = [`\u2066${cellContent}\u2069`];
   }
-  
-  // CRITICAL FIX: For plain Hebrew text cells, ensure RTL presentation
-  // by adding RTL markers if not already present
-  else if (/[\u0590-\u05FF]/.test(cellContent) && !/\u200F.*\u200F$/.test(cellContent)) {
-    // Add RTL mark to ensure correct rendering
-    cell.text = [`\u200F${cellContent}\u200F`];
+  // CRITICAL FIX: For Hebrew text cells, ensure RTL presentation with strongest isolation
+  else if (/[\u0590-\u05FF]/.test(cellContent)) {
+    // Apply RTL Isolation (RLI + PDI) - the strongest form of RTL control
+    // \u2067 = Right-to-Left Isolate
+    // \u2069 = Pop Directional Isolate
+    cell.text = [`\u2067${cellContent}\u2069`];
   }
 }
