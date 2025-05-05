@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Product, Registration } from '@/types';
+import { useSummaryCalculations } from './useSummaryCalculations';
 
 /**
  * Hook for managing participant-related effects
@@ -31,13 +32,13 @@ export const useParticipantEffects = (
     }
   }, [productId, getRegistrationsByProduct, refreshTrigger]);
 
-  // Calculate summary data
-  const totalParticipants = registrations.length;
-  const registrationsFilled = loadedProduct?.maxParticipants ? 
-    Math.min(totalParticipants / loadedProduct.maxParticipants, 1) * 100 : 0;
-  
-  const totalExpected = registrations.reduce((sum, reg) => sum + reg.requiredAmount, 0);
-  const totalPaid = registrations.reduce((sum, reg) => sum + reg.paidAmount, 0);
+  // Use the shared summary calculations hook for consistent calculations across the app
+  const { 
+    totalParticipants, 
+    registrationsFilled, 
+    totalExpected, 
+    totalPaid 
+  } = useSummaryCalculations(registrations, loadedProduct);
 
   return {
     product: loadedProduct, 

@@ -4,6 +4,7 @@ import { Registration, Participant, HealthDeclaration, PaymentStatus } from '@/t
 import { useParticipantUtils } from '../useParticipantUtils';
 import { useParticipantEffects } from '../useParticipantEffects';
 import { useParticipantState } from '../useParticipantState';
+import { useSummaryCalculations } from '../useSummaryCalculations';
 
 /**
  * Core hook for participant data and state management
