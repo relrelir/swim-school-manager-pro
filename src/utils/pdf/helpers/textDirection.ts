@@ -1,4 +1,3 @@
-
 import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrNumber, isHebrewCurrency } from './contentDetection';
 
 /**
@@ -14,8 +13,13 @@ export const processTextDirection = (text: string): string => {
     return forceLtrDirection(text);
   }
 
-  // CRITICAL FIX: For Hebrew or mixed content, don't modify the text - 
-  // Let PDF with Alef font handle it correctly
+  // CRITICAL FIX: For Hebrew or mixed content, add RTL marks to ensure correct display direction
+  if (containsHebrew(text)) {
+    // Add RTL marks to force RTL display
+    return `\u200F${text}\u200F`;
+  }
+  
+  // Default - return unchanged for non-Hebrew text
   return text;
 };
 
@@ -41,8 +45,8 @@ export const forceLtrDirection = (text: string): string => {
 export const forceRtlDirection = (text: string): string => {
   if (!text) return '';
   
-  // CRITICAL FIX: Do NOT reverse or modify the text - just return it directly
-  return text;
+  // Add RTL mark at beginning and end to ensure correct display
+  return `\u200F${text}\u200F`;
 };
 
 /**
@@ -69,13 +73,13 @@ export const processTableCellText = (text: string): string => {
   } else if (isHebrewCurrency(text)) {
     // Special handling for Hebrew currency
     if (containsHebrew(text)) {
-      return text; // CRITICAL FIX: Don't modify Hebrew currency text
+      return forceRtlDirection(text); // Use RTL markers for Hebrew currency
     } else {
       return forceLtrDirection(text);
     }
   } else if (containsHebrew(text)) {
-    // CRITICAL FIX: Pure Hebrew text - return as is, no manipulation
-    return text;
+    // CRITICAL FIX: Add RTL markers for Hebrew text
+    return forceRtlDirection(text);
   }
   
   // Default for mixed or other content
@@ -87,8 +91,8 @@ export const processTableCellText = (text: string): string => {
  * CRITICAL FIX: Ensures currency symbols display correctly without reversing text
  */
 export const processHebrewCurrencyForTable = (text: string): string => {
-  // CRITICAL FIX: Don't manipulate the text structure, just preserve the original formatting
-  return text;
+  // CRITICAL FIX: Add RTL markers for correct display
+  return forceRtlDirection(text);
 };
 
 /**
@@ -98,9 +102,8 @@ export const processHebrewCurrencyForTable = (text: string): string => {
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // CRITICAL FIX: With Alef font and RTL enabled, we can return text directly
-  // without any manipulation
-  return text;
+  // CRITICAL FIX: Add RTL markers to ensure correct display
+  return forceRtlDirection(text);
 };
 
 /**
@@ -108,14 +111,14 @@ export const encodeHebrewText = (text: string): string => {
  * CRITICAL FIX: Never reverses text under any circumstances
  */
 export const reverseText = (text: string): string => {
-  // CRITICAL FIX: Simply return the text as is
-  return text || '';
+  // CRITICAL FIX: Simply return the text with RTL markers
+  return text ? forceRtlDirection(text) : '';
 };
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
  */
 export const prepareRtlText = (text: string): string => {
-  // CRITICAL FIX: Don't modify the text structure
-  return text;
+  // CRITICAL FIX: Add RTL markers for correct display
+  return forceRtlDirection(text);
 };

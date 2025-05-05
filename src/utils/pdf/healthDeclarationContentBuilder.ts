@@ -65,7 +65,7 @@ export const buildHealthDeclarationPDF = (
     
     // CRITICAL FIX: Create participant data table with improved formatting
     const participantData = [
-      [fullName, 'שם מלא'],
+      [`\u200F${fullName}\u200F`, 'שם מלא'],
       [forceLtrDirection(participant.idnumber || ''), 'תעודת זהות'],
       [forceLtrDirection(participant.phone || ''), 'טלפון'],
     ];
@@ -85,7 +85,7 @@ export const buildHealthDeclarationPDF = (
     
     // CRITICAL FIX: Create parent info table - using the correctly parsed parent name
     const parentData = [
-      [parentInfo.parentName || 'לא צוין', 'שם מלא'],
+      [parentInfo.parentName ? `\u200F${parentInfo.parentName}\u200F` : 'לא צוין', 'שם מלא'],
       [forceLtrDirection(parentInfo.parentId || 'לא צוין'), 'תעודת זהות'],
     ];
     
@@ -98,7 +98,11 @@ export const buildHealthDeclarationPDF = (
     pdf.setR2L(false);
     
     const declarationItems = getDeclarationItems();
-    const declarationData = declarationItems.map(item => ['•', item]);
+    // CRITICAL FIX: Properly mark each declaration item with RTL markers
+    const declarationData = declarationItems.map(item => [
+      '•', 
+      `\u200F${item}\u200F`
+    ]);
     
     console.log("Creating declaration items table");
     lastY = createPlainTextTable(pdf, declarationData, lastY + 10);
@@ -112,10 +116,10 @@ export const buildHealthDeclarationPDF = (
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
     pdf.setR2L(false);
     
-    // Display medical notes or default message
+    // Display medical notes or default message with RTL markers
     const notesText = medicalNotes && medicalNotes.trim() !== '' 
-      ? medicalNotes 
-      : 'אין הערות רפואיות נוספות';
+      ? `\u200F${medicalNotes}\u200F`
+      : '\u200Fאין הערות רפואיות נוספות\u200F';
       
     lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
@@ -126,7 +130,7 @@ export const buildHealthDeclarationPDF = (
     
     lastY = createPlainTextTable(
       pdf, 
-      [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], 
+      [['\u200Fאני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.\u200F']], 
       lastY + 10
     );
     
@@ -136,11 +140,11 @@ export const buildHealthDeclarationPDF = (
     
     const signatureY = lastY + 15;
     if (parentInfo.parentName && parentInfo.parentName.trim() !== '') {
-      // Use parent name in signature line
-      pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`, 30, signatureY);
+      // Use parent name in signature line with RTL marks
+      pdf.text(`\u200Fחתימת ההורה/אפוטרופוס: ${parentInfo.parentName}\u200F`, 30, signatureY);
     } else {
-      // Default signature line
-      pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, signatureY);
+      // Default signature line with RTL marks
+      pdf.text('\u200Fחתימת ההורה/אפוטרופוס: ________________\u200F', 30, signatureY);
     }
     
     pdf.setR2L(false); // Reset RTL setting

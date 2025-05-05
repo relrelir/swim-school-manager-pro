@@ -51,4 +51,11 @@ export function willDrawCell(data: CellHookData): void {
     // Add extra LTR mark for ID numbers
     cell.text = [`\u200E${cellContent}\u200E`];
   }
+  
+  // CRITICAL FIX: For plain Hebrew text cells, ensure RTL presentation
+  // by adding RTL markers if not already present
+  else if (/[\u0590-\u05FF]/.test(cellContent) && !/\u200F.*\u200F$/.test(cellContent)) {
+    // Add RTL mark to ensure correct rendering
+    cell.text = [`\u200F${cellContent}\u200F`];
+  }
 }

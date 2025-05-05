@@ -1,3 +1,4 @@
+
 import { processTableCellText, forceLtrDirection } from '../textDirection';
 import { containsHebrew } from '../contentDetection';
 
@@ -58,10 +59,10 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
       isCurrency: false 
     };
   }
-  // Hebrew text - CRITICAL FIX: never modify or reverse
+  // Hebrew text - CRITICAL FIX: Add RTL marker to ensure correct rendering
   else if (isHebrewContent) {
     return { 
-      text: content, // Pure unmodified text
+      text: `\u200F${content}\u200F`, // Add RTL markers to force correct rendering
       isRtl: true,
       isCurrency: false 
     };
