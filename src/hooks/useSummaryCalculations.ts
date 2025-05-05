@@ -4,7 +4,7 @@ import { Product, Registration, Payment } from '@/types';
 export const useSummaryCalculations = (registrations: Registration[], product?: Product, paymentsForRegistrations?: (registration: Registration) => Payment[]) => {
   // Calculate totals
   const totalParticipants = registrations.length;
-  const registrationsFilled = product ? (totalParticipants / product.maxParticipants) * 100 : 0;
+  const registrationsFilled = product ? (totalParticipants / (product.maxParticipants || 1)) * 100 : 0;
   
   // Calculate the total expected amount considering discounts
   const totalExpected = registrations.reduce((sum, reg) => {
