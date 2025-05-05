@@ -73,8 +73,11 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProduct) {
-      // Include price and all other necessary fields in the updated product data
+      // Include all necessary fields in the updated product data, including name, type, and startDate
       const updatedProduct: Partial<Product> = {
+        name: editingProduct.name,
+        type: editingProduct.type,
+        startDate: editingProduct.startDate,
         price: editingProduct.price,
         meetingsCount: editingProduct.meetingsCount,
         daysOfWeek: editingProduct.daysOfWeek,
