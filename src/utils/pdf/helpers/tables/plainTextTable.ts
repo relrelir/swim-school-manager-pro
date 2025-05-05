@@ -2,6 +2,7 @@
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { processCellContent } from './contentProcessing';
+import { didParseCell, willDrawCell } from './cellHooks';
 import { getPlainTextTableConfig } from './tableConfig';
 
 /**
@@ -29,6 +30,8 @@ export const createPlainTextTable = (
     autoTable(pdf, {
       ...tableConfig,
       body: processedData,
+      didParseCell,
+      willDrawCell
     });
   } catch (error) {
     console.error("Error creating plain text table:", error);
@@ -37,6 +40,8 @@ export const createPlainTextTable = (
     autoTable(pdf, {
       ...tableConfig,
       body: processedData,
+      didParseCell,
+      willDrawCell
     });
   }
 

@@ -9,7 +9,7 @@ import { formatPdfField, forceLtrDirection as forceLtrDirectionFormat, forceRtlD
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
   
-  // For numbers, dates, phone numbers, and English text, we use special handling in RTL context
+  // For numbers, dates, phone numbers, and English text, we use LTR control characters 
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text) || isEnglishOrNumber(text)) {
     // Use our utility function for numeric/LTR text in RTL context
     return forceLtrDirectionFormat(text);
@@ -61,7 +61,7 @@ export const processTableCellText = (text: string): string => {
  * Special formatter for Hebrew currency values in tables
  */
 export const processHebrewCurrencyForTable = (text: string): string => {
-  // Currency needs special handling in RTL context
+  // Currency needs special handling in RTL context with LTR numbers
   return forceLtrDirectionFormat(text);
 };
 

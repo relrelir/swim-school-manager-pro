@@ -41,6 +41,8 @@ export const createDataTable = (
         ...tableConfig,
         head: [headers],
         body: body,
+        didParseCell,
+        willDrawCell
       });
     } catch (error) {
       console.error("Error creating table with header:", error);
@@ -50,6 +52,8 @@ export const createDataTable = (
         ...tableConfig,
         head: [headers],
         body: body,
+        didParseCell,
+        willDrawCell
       });
     }
   } else {
@@ -58,6 +62,8 @@ export const createDataTable = (
       autoTable(pdf, {
         ...tableConfig,
         body: processedData,
+        didParseCell,
+        willDrawCell
       });
     } catch (error) {
       console.error("Error creating table without header:", error);
@@ -66,6 +72,8 @@ export const createDataTable = (
       autoTable(pdf, {
         ...tableConfig,
         body: processedData,
+        didParseCell,
+        willDrawCell
       });
     }
   }
