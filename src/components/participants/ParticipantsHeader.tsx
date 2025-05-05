@@ -3,17 +3,16 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Product } from '@/types';
-import { ArrowRight, Plus, FileDown } from 'lucide-react';
+import { ArrowRight, Plus } from 'lucide-react';
 
 interface ParticipantsHeaderProps {
   product: Product | undefined;
-  onExport: () => void;
+  onExport: () => void; // Keeping this prop to maintain interface compatibility
   onAddParticipant: () => void;
 }
 
 const ParticipantsHeader: React.FC<ParticipantsHeaderProps> = ({ 
   product, 
-  onExport,
   onAddParticipant 
 }) => {
   const navigate = useNavigate();
@@ -33,10 +32,6 @@ const ParticipantsHeader: React.FC<ParticipantsHeaderProps> = ({
       </div>
       
       <div className="flex gap-2">
-        <Button onClick={onExport} variant="outline" className="flex items-center gap-2">
-          <FileDown className="h-4 w-4" />
-          <span>ייצוא CSV</span>
-        </Button>
         <Button onClick={onAddParticipant} className="flex items-center gap-2">
           <Plus className="h-4 w-4" />
           <span>הוסף משתתף</span>

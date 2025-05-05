@@ -1,8 +1,8 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
-import { prepareParticipantsData, exportToCSV } from '@/utils/exportParticipants';
-import { Registration, Participant } from '@/types';
+import { Registration } from '@/types';
 
 import ParticipantsHeader from '@/components/participants/ParticipantsHeader';
 import ParticipantsContent from '@/components/participants/ParticipantsContent';
@@ -47,47 +47,6 @@ const ParticipantsPage: React.FC = () => {
     getHealthDeclarationForRegistration,
   } = useParticipants();
 
-  // Handle CSV Export
-  const handleExportToCSV = () => {
-    if (registrations.length === 0) {
-      toast({
-        title: "אין נתונים לייצוא",
-        description: "אין משתתפים רשומים למוצר זה",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    try {
-      // Create an adapter function that works with the expected interface
-      const registrationToPayments = (registration: Registration) => {
-        return getPaymentsForRegistration(registration);
-      };
-      
-      const data = prepareParticipantsData(
-        registrations, 
-        getParticipantForRegistration,
-        registrationToPayments,
-        calculatePaymentStatus
-      );
-      
-      const filename = `משתתפים_${product?.name || 'מוצר'}_${new Date().toISOString().split('T')[0]}.csv`;
-      exportToCSV(data, filename);
-      
-      toast({
-        title: "הייצוא הושלם בהצלחה",
-        description: "הנתונים יוצאו בהצלחה לקובץ CSV",
-      });
-    } catch (error) {
-      console.error('Error exporting data:', error);
-      toast({
-        title: "שגיאה בייצוא",
-        description: "אירעה שגיאה בייצוא הנתונים",
-        variant: "destructive",
-      });
-    }
-  };
-
   // Handler for opening add participant dialog
   const handleOpenAddParticipant = () => {
     resetForm();
@@ -131,7 +90,7 @@ const ParticipantsPage: React.FC = () => {
       {/* Page Header */}
       <ParticipantsHeader 
         product={product}
-        onExport={handleExportToCSV}
+        onExport={() => {}} // This is now empty as we're removing the export functionality
         onAddParticipant={handleOpenAddParticipant}
       />
 
@@ -152,7 +111,6 @@ const ParticipantsPage: React.FC = () => {
         onDeleteRegistration={handleDeleteRegistration}
         onUpdateHealthApproval={updateHealthApprovalById}
         onOpenHealthForm={handleOpenHealthForm}
-        onExport={handleExportToCSV}
       />
 
       {/* Dialogs */}

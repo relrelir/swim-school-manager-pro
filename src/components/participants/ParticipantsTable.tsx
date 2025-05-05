@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Participant, PaymentStatus, Registration, Payment, HealthDeclaration } from '@/types';
@@ -13,14 +12,15 @@ interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
   getPaymentsForRegistration: (registration: Registration) => Payment[];
-  getHealthDeclarationForRegistration?: (registrationId: string) => Promise<HealthDeclaration | undefined>;
+  getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   calculatePaymentStatus: (registration: Registration) => PaymentStatus;
-  getStatusClassName: (status: PaymentStatus) => string;
+  getStatusClassName: (status: string) => string;
   onAddPayment: (registration: Registration) => void;
-  onDeleteRegistration: (registrationId: string) => void;
+  onDeleteRegistration: (id: string) => void;
   onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
   onOpenHealthForm: (registrationId: string) => void;
-  onExport?: () => void;
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
 }
 
 const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
@@ -34,7 +34,8 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onDeleteRegistration,
   onUpdateHealthApproval,
   onOpenHealthForm,
-  onExport,
+  searchQuery,
+  setSearchQuery
 }) => {
   // Helper to calculate discount amount
   const calculateDiscountAmount = (registration: Registration) => {
@@ -48,8 +49,11 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   };
 
   return (
-    <div className="overflow-x-auto">
-      <ParticipantsTableHeader onExport={onExport} />
+    <div className="space-y-4">
+      <ParticipantsTableHeader 
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
       
       <Table>
         <TableHeader>
