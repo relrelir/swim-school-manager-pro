@@ -4,11 +4,9 @@ import { didParseCell, willDrawCell } from './cellHooks';
 
 /**
  * Returns the configuration options for data tables
- * CRITICAL FIX: Properly configured for bidirectional text with stronger RTL isolation
  */
 export const getTableConfig = (startY: number): UserOptions => ({
   startY,
-  // CRITICAL FIX: Use stronger cell processing for RTL content
   tableLineWidth: 0.5,
   margin: { top: 10, right: 15, bottom: 10, left: 15 },
   styles: { 
@@ -32,20 +30,18 @@ export const getTableConfig = (startY: number): UserOptions => ({
   },
   theme: 'grid' as 'grid',
   
-  // CRITICAL FIX: Process cells before rendering to handle bidirectional text
+  // Process cells before rendering 
   didParseCell,
   
-  // CRITICAL FIX: Final adjustments to cell rendering with stronger RTL isolation
+  // Final adjustments to cell rendering
   willDrawCell,
 });
 
 /**
  * Returns the configuration options for plain text tables
- * CRITICAL FIX: Properly configured for bidirectional text with stronger RTL isolation
  */
 export const getPlainTextTableConfig = (startY: number): UserOptions => ({
   startY,
-  // CRITICAL FIX: Use consistent cell processing for RTL content
   tableLineWidth: 0.1,
   margin: { top: 10, right: 15, bottom: 10, left: 15 },
   styles: { 
@@ -57,9 +53,9 @@ export const getPlainTextTableConfig = (startY: number): UserOptions => ({
   },
   theme: 'plain' as 'plain',
   
-  // CRITICAL FIX: Process cells before rendering with enhanced RTL handling
+  // Process cells before rendering
   didParseCell,
   
-  // CRITICAL FIX: Final adjustments to cell rendering
+  // Final adjustments to cell rendering
   willDrawCell,
 });

@@ -31,6 +31,9 @@ export const createDataTable = (
   // Get table configuration with direction control
   const tableConfig = getTableConfig(startY);
   
+  // CRITICAL FIX: Enable RTL mode before creating table
+  pdf.setR2L(true);
+  
   if (hasHeader) {
     const headers = processedData[0];
     const body = processedData.slice(1);
@@ -69,6 +72,9 @@ export const createDataTable = (
       });
     }
   }
+  
+  // CRITICAL FIX: Disable RTL mode after creating table
+  pdf.setR2L(false);
 
   // Return the new y position after the table
   let finalY = 0;

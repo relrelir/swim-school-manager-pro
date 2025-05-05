@@ -2,21 +2,20 @@ import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrN
 
 /**
  * Process text to ensure correct display direction in PDF
- * CRITICAL FIX: Ensures Hebrew text is displayed correctly with stronger RTL markers
+ * Simplified to use minimal direction markers
  */
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
   
-  // For numbers, dates, phone numbers, and English text, we need the strongest possible LTR isolation
+  // For numbers, dates, phone numbers, and English text, we use LTR
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text) || isEnglishOrNumber(text)) {
-    // Apply completely explicit LTR override with the strongest combination of controls
-    return forceLtrDirection(text);
+    // Simple LTR mark
+    return `\u200E${text}`;
   }
 
-  // CRITICAL FIX: For Hebrew or mixed content, add multiple RTL markers for maximum compatibility
+  // For Hebrew or mixed content, add simple RTL marker
   if (containsHebrew(text)) {
-    // Use strongest RTL direction control
-    return forceRtlDirection(text);
+    return `\u200F${text}`;
   }
   
   // Default - return unchanged for non-Hebrew text
@@ -24,68 +23,56 @@ export const processTextDirection = (text: string): string => {
 };
 
 /**
- * Force LTR direction with the strongest possible Unicode control characters
- * Used for critical content that must be displayed left-to-right (dates, IDs, phone numbers)
+ * Force LTR direction with simple LTR marker
  */
 export const forceLtrDirection = (text: string): string => {
   if (!text) return '';
   
-  // Use multiple LTR control characters for maximum compatibility:
-  // \u202D = Left-to-Right Override (LRO) - strongest override
-  // \u2066 = Left-to-Right Isolate (LRI) - strongest isolation
-  // \u2069 = Pop Directional Isolate (PDI)
-  // \u202C = Pop Directional Formatting (PDF)
-  
-  return `\u202D\u2066${text}\u2069\u202C`;
+  // Simple LTR mark
+  return `\u200E${text}`;
 };
 
 /**
- * Force RTL direction specifically for Hebrew text in tables
- * CRITICAL FIX: Enhanced with maximum compatibility markers
+ * Force RTL direction specifically for Hebrew text
+ * Simplified to use just RLM
  */
 export const forceRtlDirection = (text: string): string => {
   if (!text) return '';
   
-  // Use optimized combination for maximum RTL effect:
-  // \u200F = Right-to-Left Mark (RLM) - signals RTL text
-  // \u061C = Arabic Letter Mark (ALM) - strengthens RTL context
-  // \u2067 = Right-to-Left Isolate (RLI) - isolates the text
-  // \u2069 = Pop Directional Isolate (PDI) - closes isolation
-  
-  return `\u200F\u061C\u2067${text}\u2069`;
+  // Simple RTL mark
+  return `\u200F${text}`;
 };
 
 /**
  * DEPRECATED - Never use this function!
  * This function is preserved only for backward compatibility
- * CRITICAL FIX: No longer reverses strings in any circumstance
  */
 export const manuallyReverseString = (text: string): string => {
-  // CRITICAL FIX: Never reverse the string - just return it as is
+  // Never reverse the string - just return it as is
   return text;
 };
 
 /**
  * Special processor for table cells to handle mixed content
- * CRITICAL FIX: Apply stronger bidirectional control for proper handling
+ * Simplified to use minimal direction markers
  */
 export const processTableCellText = (text: string): string => {
   if (!text) return '';
   
   // Check content type to apply appropriate direction
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text)) {
-    // Numeric content always gets LTR isolation with multiple controls
-    return forceLtrDirection(text);
+    // Simple LTR mark for numeric content
+    return `\u200E${text}`;
   } else if (isHebrewCurrency(text)) {
     // Special handling for Hebrew currency
     if (containsHebrew(text)) {
-      return forceRtlDirection(text); // Use multiple RTL markers for Hebrew currency
+      return `\u200F${text}`; // Simple RTL mark
     } else {
-      return forceLtrDirection(text);
+      return `\u200E${text}`; // Simple LTR mark
     }
   } else if (containsHebrew(text)) {
-    // CRITICAL FIX: Use enhanced RTL control characters for Hebrew text
-    return forceRtlDirection(text);
+    // Simple RTL mark for Hebrew text
+    return `\u200F${text}`;
   }
   
   // Default for mixed or other content
@@ -94,38 +81,38 @@ export const processTableCellText = (text: string): string => {
 
 /**
  * Special formatter for Hebrew currency values in tables
- * CRITICAL FIX: Use stronger bidirectional control for currency values
+ * Simplified to use simple RTL mark
  */
 export const processHebrewCurrencyForTable = (text: string): string => {
-  // Use multiple RTL control characters for Hebrew currency
-  return forceRtlDirection(text);
+  // Simple RTL mark for Hebrew currency
+  return `\u200F${text}`;
 };
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * CRITICAL FIX: Use multiple bidirectional control characters for Hebrew text
+ * Simplified to use simple RTL mark
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
   
-  // CRITICAL FIX: Add multiple RTL control characters for Hebrew text
-  return forceRtlDirection(text);
+  // Simple RTL mark for Hebrew text
+  return `\u200F${text}`;
 };
 
 /**
  * Legacy helper function kept for backward compatibility
- * CRITICAL FIX: Use bidirectional isolation for Hebrew text with stronger controls
+ * Simplified to use simple RTL mark
  */
 export const reverseText = (text: string): string => {
-  // CRITICAL FIX: Apply multiple RTL control characters to text
-  return text ? forceRtlDirection(text) : '';
+  // Apply simple RTL mark to text
+  return text ? `\u200F${text}` : '';
 };
 
 /**
  * Helper function specifically for tables to ensure RTL text is displayed correctly
- * CRITICAL FIX: Use stronger bidirectional control for Hebrew text in tables
+ * Simplified to use simple RTL mark
  */
 export const prepareRtlText = (text: string): string => {
-  // CRITICAL FIX: Apply multiple RTL control characters to text
-  return forceRtlDirection(text);
+  // Simple RTL mark for Hebrew text
+  return `\u200F${text}`;
 };
