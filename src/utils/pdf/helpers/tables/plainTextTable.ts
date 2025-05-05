@@ -25,8 +25,8 @@ export const createPlainTextTable = (
   // Get plain text table configuration
   const tableConfig = getPlainTextTableConfig(startY);
   
-  // IMPORTANT: Do not use global RTL mode - let cell-level direction handling work
-  // This prevents number reversal while maintaining proper Hebrew text direction
+  // CRITICAL FIX: Enable RTL mode before creating table
+  pdf.setR2L(true);
   
   try {
     autoTable(pdf, {
@@ -42,6 +42,9 @@ export const createPlainTextTable = (
       body: processedData,
     });
   }
+  
+  // CRITICAL FIX: Disable RTL mode after creating table
+  pdf.setR2L(false);
 
   // Return the new y position after the table
   let finalY = 0;
