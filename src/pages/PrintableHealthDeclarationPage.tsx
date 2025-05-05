@@ -24,7 +24,6 @@ const PrintableHealthDeclarationPage: React.FC = () => {
       notes: string;
       parentName: string;
       parentId: string;
-      signature?: string; // Add signature field
     };
     submissionDate?: Date;
   } | null>(null);
@@ -77,8 +76,7 @@ const PrintableHealthDeclarationPage: React.FC = () => {
             agreement: true,
             notes: medicalNotes, // Use the correctly parsed medical notes
             parentName: parentInfo.parentName, // Use the correctly parsed parent name
-            parentId: parentInfo.parentId, // Use the correctly parsed parent ID
-            signature: healthDeclaration.signature || undefined // Include signature if available
+            parentId: parentInfo.parentId // Use the correctly parsed parent ID
           },
           submissionDate: healthDeclaration.submission_date ? new Date(healthDeclaration.submission_date) : new Date()
         });

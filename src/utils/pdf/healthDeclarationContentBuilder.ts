@@ -25,7 +25,6 @@ interface HealthDeclarationData {
   submission_date: string | null;
   notes: string | null;
   form_status: string;
-  signature?: string | null; // Add signature field
 }
 
 /**
@@ -121,44 +120,16 @@ export const buildHealthDeclarationPDF = (
     );
     
     // ===== SIGNATURE SECTION =====
-    addSectionTitle(pdf, 'חתימה', lastY + 5);
+    // Use the parent name in the signature line if available
+    pdf.setR2L(true); // Ensure RTL is enabled for Hebrew text
     
     const signatureY = lastY + 15;
-    
-    // Check if signature exists
-    if (healthDeclaration.signature) {
-      try {
-        // Add signature image
-        pdf.addImage(healthDeclaration.signature, 'PNG', 30, signatureY, 80, 30);
-        
-        // Add parent name below signature
-        pdf.setR2L(true); // Ensure RTL is enabled for Hebrew text
-        pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName || ''}`, 30, signatureY + 35);
-        pdf.setR2L(false);
-      } catch (error) {
-        console.error('Error adding signature to PDF:', error);
-        
-        // Fallback to text-only signature if image fails
-        pdf.setR2L(true);
-        if (parentInfo.parentName && parentInfo.parentName.trim() !== '') {
-          pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`, 30, signatureY);
-        } else {
-          pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, signatureY);
-        }
-        pdf.setR2L(false);
-      }
+    if (parentInfo.parentName && parentInfo.parentName.trim() !== '') {
+      // Use parent name in signature line
+      pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`, 30, signatureY);
     } else {
-      // Use the parent name in the signature line if available
-      pdf.setR2L(true); // Ensure RTL is enabled for Hebrew text
-      
-      if (parentInfo.parentName && parentInfo.parentName.trim() !== '') {
-        // Use parent name in signature line
-        pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`, 30, signatureY);
-      } else {
-        // Default signature line
-        pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, signatureY);
-      }
-      pdf.setR2L(false);
+      // Default signature line
+      pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, signatureY);
     }
     
     // Generate filename

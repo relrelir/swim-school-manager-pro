@@ -15,7 +15,6 @@ interface PrintableHealthDeclarationProps {
     notes: string;
     parentName: string;
     parentId: string;
-    signature?: string; // Add signature field
   };
   submissionDate?: Date;
 }
@@ -165,32 +164,20 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </div>
         </div>
 
-        {/* SECTION 4: Signature section - CLEARLY SEPARATED */}
+        {/* Signature section - more compact */}
         <div className="mt-4 pt-3 border-t">
-          <h3 className="text-lg font-semibold mb-3">חתימה</h3>
           <div className="flex flex-col gap-4 print:gap-2">
-            {formState.signature ? (
-              <div className="mb-4">
-                <p className="font-semibold mb-1">חתימת ההורה/אפוטרופוס:</p>
-                <img 
-                  src={formState.signature} 
-                  alt="חתימה" 
-                  className="border border-gray-200 p-2 max-w-[200px] max-h-[100px] object-contain bg-white" 
-                />
-              </div>
-            ) : (
-              <div>
-                <p className="font-semibold mb-1">חתימת ההורה/אפוטרופוס:</p>
-                {formState.parentName && formState.parentName.trim() !== '' ? (
-                  <p className="mb-2">{formState.parentName}</p>
-                ) : (
-                  <div className="h-8 border-b border-dashed border-gray-400 w-64"></div>
-                )}
-              </div>
-            )}
+            <div>
+              <p className="font-semibold mb-1">חתימת ההורה/אפוטרופוס:</p>
+              {formState.parentName && formState.parentName.trim() !== '' ? (
+                <p className="mb-2">{formState.parentName}</p>
+              ) : (
+                <div className="h-8 border-b border-dashed border-gray-400 w-64"></div>
+              )}
+            </div>
             <div>
               <p className="font-semibold mb-1">תאריך:</p>
-              <p>{format(submissionDate, 'dd/MM/yyyy')}</p>
+              <div className="h-8 border-b border-dashed border-gray-400 w-32"></div>
             </div>
           </div>
         </div>

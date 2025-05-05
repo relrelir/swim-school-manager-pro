@@ -9,8 +9,7 @@ import type { PostgrestResponse } from '@supabase/supabase-js';
 export const submitHealthFormService = async (
   declarationId: string, 
   agreement: boolean, 
-  notes: string | undefined,
-  signature?: string // Add signature parameter
+  notes: string | undefined
 ) => {
   try {
     if (!agreement) {
@@ -20,8 +19,7 @@ export const submitHealthFormService = async (
     const updates = {
       form_status: 'signed',
       submission_date: new Date().toISOString(),
-      notes: notes || null,
-      signature: signature || null // Add signature to updates
+      notes: notes || null
     };
     
     console.log('Submitting health form for declaration:', declarationId, 'with data:', updates);

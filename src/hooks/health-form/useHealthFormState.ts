@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { submitHealthFormService } from '@/context/data/healthDeclarations/submitHealthForm';
+import { submitHealthFormService } from '@/context/data/healthDeclarations/service';
 import { toast } from "@/components/ui/use-toast";
 
 interface FormState {
@@ -9,7 +9,6 @@ interface FormState {
   notes: string;
   parentName: string;
   parentId: string;
-  signature: string; // Added signature field
 }
 
 export const useHealthFormState = (healthDeclarationId: string | null) => {
@@ -19,8 +18,7 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     agreement: false,
     notes: '',
     parentName: '',
-    parentId: '',
-    signature: '' // Initialize signature as empty string
+    parentId: ''
   });
   
   const handleAgreementChange = (value: boolean) => {
@@ -37,11 +35,6 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
   
   const handleParentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormState(prev => ({ ...prev, parentId: e.target.value }));
-  };
-  
-  // Add signature handling function
-  const handleSignatureChange = (signatureData: string) => {
-    setFormState(prev => ({ ...prev, signature: signatureData }));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,16 +67,6 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
       return;
     }
     
-    // Check if signature is provided
-    if (!formState.signature) {
-      toast({
-        title: "שגיאה",
-        description: "יש להוסיף חתימה כדי להמשיך",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     setIsLoading(true);
     
     try {
@@ -93,8 +76,7 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
       await submitHealthFormService(
         healthDeclarationId,
         formState.agreement,
-        notesWithParentInfo,
-        formState.signature // Include signature in the submission
+        notesWithParentInfo
       );
       
       toast({
@@ -122,7 +104,6 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     handleNotesChange,
     handleParentNameChange,
     handleParentIdChange,
-    handleSignatureChange, // Export the signature handler
     handleSubmit
   };
 };
