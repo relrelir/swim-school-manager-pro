@@ -1,7 +1,7 @@
 
 import { CellHookData } from 'jspdf-autotable';
 import { processCellContent } from './contentProcessing';
-import { formatPdfField, forceLtrDirection } from '../textFormatting';
+import { formatPdfField, forceLtrDirection, reverseString } from '../textFormatting';
 
 /**
  * Parses and formats cells before rendering to handle bidirectional text

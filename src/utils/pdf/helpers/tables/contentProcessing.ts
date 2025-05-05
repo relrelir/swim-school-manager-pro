@@ -1,7 +1,7 @@
 
 import { processTableCellText, forceLtrDirection } from '../textDirection';
 import { containsHebrew } from '../contentDetection';
-import { formatPdfField } from '../textFormatting';
+import { formatPdfField, reverseString } from '../textFormatting';
 
 /**
  * Process cell text based on content type for optimal table display
@@ -62,7 +62,8 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Hebrew text - works correctly with global RTL
   else if (isHebrewContent) {
     return { 
-      text: content, // Hebrew works correctly with global RTL
+      // Apply reverseString to Hebrew text for proper display in global RTL
+      text: reverseString(content),
       isRtl: true,
       isCurrency: false 
     };
