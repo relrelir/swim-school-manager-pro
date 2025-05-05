@@ -13,9 +13,17 @@ export function didParseCell(data: CellHookData): void {
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   const processed = processCellContent(cellContent);
   
+  // Set cell content
+  cell.text = processed.text;
+  
+  // Handle IDs and numbers with special care
+  if (/^\d{5,9}$/.test(cellContent)) {
+    // ID numbers always left-aligned
+    cell.styles.halign = 'left';
+  }
   // Apply appropriate alignment based on content type
-  if (processed.isCurrency || !processed.isRtl) {
-    // Force left alignment for numbers, IDs, currency, and non-RTL text
+  else if (processed.isCurrency || !processed.isRtl) {
+    // Force left alignment for numbers, currency, and non-RTL text
     cell.styles.halign = 'left';
   } else {
     // Right alignment for Hebrew text
@@ -31,4 +39,15 @@ export function didParseCell(data: CellHookData): void {
  */
 export function willDrawCell(data: CellHookData): void {
   // Add any final adjustments to cell drawing if needed
+  // Specifically for ID numbers and phone numbers
+  const cell = data.cell;
+  if (!cell || !cell.text) return;
+  
+  const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
+  
+  // Ensure ID numbers are displayed correctly
+  if (/^\d{5,9}$/.test(cellContent)) {
+    // Add extra LTR mark for ID numbers
+    cell.text = `\u200E${cellContent}\u200E`;
+  }
 }

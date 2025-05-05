@@ -98,21 +98,26 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </p>
         </div>
 
-        {/* Health declaration content */}
-        <div className="print-content print:text-sm">
-          <HealthDeclarationContent
-            participantName={participantName}
-            participantId={participantId}
-            participantPhone={participantPhone}
-            formState={formState}
-            handleAgreementChange={() => {}}
-            handleNotesChange={() => {}}
-            handleParentNameChange={() => {}}
-            handleParentIdChange={() => {}}
-          />
+        {/* SECTION 1: Participant details - CLEARLY SEPARATED */}
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold mb-3">פרטי המשתתף</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="font-semibold mb-1">שם מלא:</p>
+              <p className="mb-2">{participantName}</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">תעודת זהות:</p>
+              <p className="mb-2 text-left">{participantId || 'לא צוין'}</p>
+            </div>
+            <div>
+              <p className="font-semibold mb-1">טלפון:</p>
+              <p className="mb-2 text-left">{participantPhone || 'לא צוין'}</p>
+            </div>
+          </div>
         </div>
 
-        {/* Parent/signer information section - now displays both fields separately */}
+        {/* SECTION 2: Parent/guardian information - CLEARLY SEPARATED */}
         <div className="mt-6 pt-4 border-t">
           <h3 className="text-lg font-semibold mb-3">פרטי ההורה/אפוטרופוס</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -122,14 +127,34 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
             </div>
             <div>
               <p className="font-semibold mb-1">תעודת זהות:</p>
-              <p className="mb-2">{formState.parentId || 'לא צוין'}</p>
+              <p className="mb-2 text-left">{formState.parentId || 'לא צוין'}</p>
             </div>
           </div>
         </div>
 
-        {/* Medical notes section - now correctly displays actual notes */}
+        {/* Health declaration content */}
+        <div className="print-content print:text-sm mt-6 pt-4 border-t">
+          <h3 className="text-lg font-semibold mb-3">תוכן ההצהרה</h3>
+          <HealthDeclarationContent
+            participantName={participantName}
+            participantId={participantId}
+            participantPhone={participantPhone}
+            formState={{
+              ...formState,
+              // Don't show notes here - they'll be in their own section
+              notes: ''
+            }}
+            handleAgreementChange={() => {}}
+            handleNotesChange={() => {}}
+            handleParentNameChange={() => {}}
+            handleParentIdChange={() => {}}
+            hideNotes={true}
+          />
+        </div>
+
+        {/* SECTION 3: Medical notes - CLEARLY SEPARATED */}
         <div className="mt-4 pt-3 border-t">
-          <p className="font-semibold mb-2">הערות רפואיות:</p>
+          <h3 className="text-lg font-semibold mb-3">הערות רפואיות</h3>
           <div className="p-3 bg-gray-50 rounded-md">
             {formState.notes ? (
               <p>{formState.notes}</p>

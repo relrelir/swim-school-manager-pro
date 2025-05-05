@@ -59,25 +59,26 @@ export const buildHealthDeclarationPDF = (
     // Process participant data with appropriate direction control
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
-    // Create participant data table - IMPORTANT: Display only participant's ID number here
+    // Create participant data table - ONLY participant info (name, ID, phone)
     const participantData = [
       [fullName, 'שם מלא'],
-      [forceLtrDirection(participant.idnumber), 'תעודת זהות'],
-      [forceLtrDirection(participant.phone), 'טלפון'],
+      [forceLtrDirection(participant.idnumber || ''), 'תעודת זהות'],
+      [forceLtrDirection(participant.phone || ''), 'טלפון'],
     ];
     
     console.log("Creating participant data table");
     lastY = createDataTable(pdf, participantData, lastY + 5);
     
-    // ===== PARENT/GUARDIAN SECTION =====
+    // ===== PARENT/GUARDIAN SECTION - SEPARATE SECTION =====
     // Parse parent info from notes field - completely separate from medical notes
     const parentInfo = parseParentInfo(healthDeclaration.notes);
     console.log("Parsed parent info:", parentInfo);
     
-    // Add parent/guardian section with optimized spacing
+    // Add parent/guardian section with optimized spacing - AS SEPARATE SECTION
     addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
     
     // Create parent info table - ensure name and ID are in separate rows
+    // ONLY parent info in this section
     const parentData = [
       [parentInfo.parentName || '', 'שם מלא'],
       [forceLtrDirection(parentInfo.parentId || ''), 'תעודת זהות'],
@@ -96,7 +97,7 @@ export const buildHealthDeclarationPDF = (
     console.log("Creating declaration items table");
     lastY = createPlainTextTable(pdf, declarationData, lastY + 10);
     
-    // ===== MEDICAL NOTES SECTION =====
+    // ===== MEDICAL NOTES SECTION - SEPARATE SECTION =====
     // Process medical notes separately from parent info
     const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
     console.log("Parsed medical notes:", medicalNotes);

@@ -16,8 +16,17 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   
   console.log(`Processing cell: ${content}, Hebrew: ${isHebrewContent}, Currency: ${isCurrency}`);
   
+  // Handle participant ID numbers and other numeric IDs
+  if (/^\d{5,9}$/.test(content)) {
+    // ID numbers need special handling - must be LTR regardless of context
+    return { 
+      text: forceLtrDirection(content),
+      isRtl: false,
+      isCurrency: false 
+    };
+  }
   // Process by content type for optimal display
-  if (isCurrency) {
+  else if (isCurrency) {
     if (isHebrewContent) {
       // Hebrew currency needs special handling
       return { 

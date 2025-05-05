@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PrintableHealthDeclaration from '@/components/health-form/PrintableHealthDeclaration';
@@ -84,13 +83,14 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         console.log("Found participant:", participantData);
 
         // Parse parent information and medical notes separately with improved parsing
+        // These functions now strictly separate parent info from medical notes
         const parentInfo = parseParentInfo(healthDeclaration.notes || '');
         const medicalNotes = parseMedicalNotes(healthDeclaration.notes || '');
         
         console.log("Parsed parent info:", parentInfo);
         console.log("Parsed medical notes:", medicalNotes);
 
-        // Set health data for display with properly separated fields
+        // Set health data with properly separated fields
         setHealthData({
           participantName: `${participantData.firstname} ${participantData.lastname}`,
           participantId: participantData.idnumber,
@@ -141,13 +141,32 @@ const PrintableHealthDeclarationPage: React.FC = () => {
 
   return (
     <div className="container py-6">
-      <PrintableHealthDeclaration
-        participantName={healthData.participantName}
-        participantId={healthData.participantId}
-        participantPhone={healthData.participantPhone}
-        formState={healthData.formState}
-        submissionDate={healthData.submissionDate}
-      />
+      {isLoading && (
+        <Card className="max-w-3xl mx-auto">
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center p-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+              <p className="mt-4">טוען הצהרת בריאות...</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {error && (
+        <Alert variant="destructive" className="max-w-3xl mx-auto">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {!isLoading && !error && healthData && (
+        <PrintableHealthDeclaration
+          participantName={healthData.participantName}
+          participantId={healthData.participantId}
+          participantPhone={healthData.participantPhone}
+          formState={healthData.formState}
+          submissionDate={healthData.submissionDate}
+        />
+      )}
     </div>
   );
 };
