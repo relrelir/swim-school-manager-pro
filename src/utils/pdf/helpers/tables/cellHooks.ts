@@ -45,7 +45,7 @@ export function willDrawCell(data: CellHookData): void {
   
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   
-  // For ID numbers, use LTR formatting
+  // For ID numbers, use LTR formatting with embedding
   if (/^\d{5,9}$/.test(cellContent)) {
     cell.text = [forceLtrDirection(cellContent)];
   }

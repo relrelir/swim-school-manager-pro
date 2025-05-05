@@ -8,13 +8,13 @@ import { formatPdfField, forceLtrDirection as forceLtrDirectionFormat, forceRtlD
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
   
-  // For numbers, dates, phone numbers, and English text, we use LTR
+  // For numbers, dates, phone numbers, and English text, we use LTR embedding
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text) || isEnglishOrNumber(text)) {
-    // Use our utility function for LTR text
+    // Use our utility function for LTR text with proper embedding
     return forceLtrDirectionFormat(text);
   }
 
-  // For Hebrew or mixed content, use our utility function
+  // For Hebrew or mixed content, use our utility function with embedding
   if (containsHebrew(text)) {
     return forceRtlDirectionFormat(text);
   }
@@ -24,14 +24,14 @@ export const processTextDirection = (text: string): string => {
 };
 
 /**
- * Force LTR direction with simple LTR marker
+ * Force LTR direction with proper LTR embedding
  */
 export const forceLtrDirection = (text: string): string => {
   return forceLtrDirectionFormat(text);
 };
 
 /**
- * Force RTL direction specifically for Hebrew text
+ * Force RTL direction specifically for Hebrew text with proper embedding
  */
 export const forceRtlDirection = (text: string): string => {
   return forceRtlDirectionFormat(text);
