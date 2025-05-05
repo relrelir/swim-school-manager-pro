@@ -4,7 +4,7 @@ import { containsHebrew } from '../contentDetection';
 
 /**
  * Process cell text based on content type for optimal table display
- * CRITICAL FIX: Use bidirectional isolation markers for Hebrew text
+ * CRITICAL FIX: Use stronger bidirectional isolation markers for Hebrew text
  */
 export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean } => {
   if (cell === null || cell === undefined) {
@@ -28,9 +28,11 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   }
   // Currency with Hebrew text
   else if (isCurrency && isHebrewContent) {
-    // CRITICAL FIX: Use strongest RTL isolation for Hebrew currency
+    // CRITICAL FIX: Use MULTIPLE RTL markers for strongest possible direction enforcement
+    // \u202B = Right-to-Left Embedding
+    // \u2067 = Right-to-Left Isolate 
     return { 
-      text: `\u2067${content}\u2069`, // RTL Isolate + content + Pop Directional Isolate
+      text: `\u202B\u2067${content}\u2069\u202C`, // Multiple RTL markers for maximum strength
       isRtl: true,
       isCurrency: true 
     };
@@ -59,10 +61,16 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
       isCurrency: false 
     };
   }
-  // Hebrew text - CRITICAL FIX: Use strongest RTL isolation
+  // Hebrew text - CRITICAL FIX: Use MULTIPLE RTL markers for strongest effect
   else if (isHebrewContent) {
+    // Use multiple RTL control characters together for maximum compatibility:
+    // \u202B = Right-to-Left Embedding (RLE)
+    // \u202E = Right-to-Left Override (RLO) - strongest manual override
+    // \u2067 = Right-to-Left Isolate (RLI)
+    // \u2069 = Pop Directional Isolate (PDI)
+    // \u202C = Pop Directional Formatting (PDF)
     return { 
-      text: `\u2067${content}\u2069`, // RTL Isolate + content + Pop Directional Isolate
+      text: `\u202B\u202E\u2067${content}\u2069\u202C`, // Multiple markers for strongest RTL effect
       isRtl: true,
       isCurrency: false 
     };
