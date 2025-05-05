@@ -21,16 +21,9 @@ export const useParticipantHandlers = (
     e: React.FormEvent,
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any,
-    productId?: string,
-    registration?: Registration | null
+    setNewPayment: any
   ) => any,
-  baseHandleApplyDiscount: (
-    amount: number, 
-    setIsAddPaymentOpen: (open: boolean) => void,
-    productId?: string,
-    registration?: Registration | null
-  ) => any,
+  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any,
   newParticipant: any,
   registrationData: any,
   getParticipantForRegistration: (registration: Registration) => Participant | undefined,
@@ -45,7 +38,6 @@ export const useParticipantHandlers = (
     getParticipantForRegistration
   );
   
-  // Use the usePaymentHandlers hook to handle payment operations
   const { handleAddPayment, handleApplyDiscount } = usePaymentHandlers(
     baseHandleAddPayment,
     baseHandleApplyDiscount

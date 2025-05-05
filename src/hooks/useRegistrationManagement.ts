@@ -103,8 +103,7 @@ export const useRegistrationManagement = (
       newPayment,
       setIsAddPaymentOpen,
       setNewPayment,
-      productId,
-      currentRegistration  // Pass the current registration
+      productId
     );
     
     if (updatedRegistrations.length > 0) {
@@ -122,8 +121,7 @@ export const useRegistrationManagement = (
     const updatedRegistrations = baseHandleApplyDiscount(
       discountAmount,
       setIsAddPaymentOpen,
-      productId,
-      currentRegistration  // Pass the current registration
+      productId
     );
     
     if (updatedRegistrations.length > 0) {

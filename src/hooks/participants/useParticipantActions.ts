@@ -22,8 +22,7 @@ export const useParticipantActions = (
   setIsAddPaymentOpen: (value: boolean) => void,
   setNewPayment: (value: any) => void,
   newPayment: any,
-  resetForm: () => void,
-  currentRegistration: Registration | null
+  resetForm: () => void
 ) => {
   const {
     updateParticipant,
@@ -126,9 +125,9 @@ export const useParticipantActions = (
     return wrapperHandleAddParticipant(e, resetForm, setIsAddParticipantOpen);
   };
 
-  // Final wrapper for handleAddPayment - pass the currentRegistration object
+  // Final wrapper for handleAddPayment
   const handleAddPayment = (e: React.FormEvent) => {
-    return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment, productId, currentRegistration);
+    return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
   };
 
   return {
