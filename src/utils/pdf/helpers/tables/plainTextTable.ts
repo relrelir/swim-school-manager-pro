@@ -25,8 +25,8 @@ export const createPlainTextTable = (
   // Get plain text table configuration
   const tableConfig = getPlainTextTableConfig(startY);
   
-  // CRITICAL FIX: Do NOT enable global RTL mode
-  // Let cell-level direction markers handle text direction instead
+  // CRITICAL FIX: Enable RTL mode before creating table
+  pdf.setR2L(true);
   
   try {
     autoTable(pdf, {
@@ -42,6 +42,9 @@ export const createPlainTextTable = (
       body: processedData,
     });
   }
+  
+  // CRITICAL FIX: Disable RTL mode after creating table
+  pdf.setR2L(false);
 
   // Return the new y position after the table
   let finalY = 0;

@@ -36,7 +36,7 @@ export function didParseCell(data: CellHookData): void {
 
 /**
  * Hook for final adjustments to cell drawing if needed
- * Enhanced to ensure numbers are correctly displayed with strong LTR embedding
+ * Enhanced to ensure numbers are correctly displayed with LTR markers
  */
 export function willDrawCell(data: CellHookData): void {
   // Add any final adjustments to cell drawing if needed
@@ -45,20 +45,20 @@ export function willDrawCell(data: CellHookData): void {
   
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   
-  // For ID numbers, use explicit LTR EMBEDDING (stronger than just mark)
+  // For ID numbers, use explicit LTR marker
   if (/^\d{5,9}$/.test(cellContent)) {
-    cell.text = [`\u202A${cellContent}\u202C`]; // LRE + PDF (Left-to-Right Embedding with Pop Directional Format)
+    cell.text = [`\u200E${cellContent}`]; // LRM (Left-to-Right Mark)
   }
-  // For phone numbers, use explicit LTR EMBEDDING
+  // For phone numbers, use explicit LTR marker
   else if (/^0\d{1,2}[\-\s]?\d{7,8}$/.test(cellContent)) {
-    cell.text = [`\u202A${cellContent}\u202C`]; // LRE + PDF
+    cell.text = [`\u200E${cellContent}`]; // LRM (Left-to-Right Mark)
   }
-  // For numbers and numeric content, use explicit LTR EMBEDDING
+  // For numbers and numeric content, use explicit LTR marker
   else if (/^[\d\.,]+$/.test(cellContent)) {
-    cell.text = [`\u202A${cellContent}\u202C`]; // LRE + PDF
+    cell.text = [`\u200E${cellContent}`]; // LRM (Left-to-Right Mark)
   }
-  // For Hebrew text cells, use explicit RTL EMBEDDING
+  // For Hebrew text cells, use simple RTL marker
   else if (/[\u0590-\u05FF]/.test(cellContent)) {
-    cell.text = [`\u202B${cellContent}\u202C`]; // RLE + PDF (Right-to-Left Embedding with Pop Directional Format)
+    cell.text = [`\u200F${cellContent}`]; // RLM (Right-to-Left Mark)
   }
 }
