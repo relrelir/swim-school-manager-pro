@@ -101,15 +101,15 @@ export const buildHealthDeclarationPDF = (
     
     // ===== MEDICAL NOTES SECTION - SEPARATE SECTION =====
     // Parse medical notes with our improved parser
-    const medicalNotes = parseMedicalNotes(healthDeclaration.notes || '');
+    const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
     console.log("Parsed medical notes:", medicalNotes);
     
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
     
-    // Display medical notes or default message - UPDATED TEXT HERE
+    // Display medical notes or default message
     const notesText = medicalNotes && medicalNotes.trim() !== '' 
       ? medicalNotes // Hebrew text - no special formatting needed with global RTL
-      : 'אין הערות נוספות';
+      : 'אין הערות רפואיות נוספות';
       
     lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
