@@ -10,6 +10,8 @@ import { useProductsTable } from '@/hooks/useProductsTable';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useSummaryCalculations } from '@/hooks/useSummaryCalculations';
+import SeasonSummaryCards from '@/components/seasons/SeasonSummaryCards';
 
 // Import newly created components
 import AddProductForm from '@/components/products/AddProductForm';
@@ -20,7 +22,17 @@ import EmptyProductsState from '@/components/products/EmptyProductsState';
 const ProductsPage: React.FC = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
-  const { seasons, products, addProduct, getProductsBySeason, updateProduct } = useData();
+  const { 
+    seasons, 
+    products, 
+    addProduct, 
+    getProductsBySeason, 
+    updateProduct, 
+    registrations,
+    getRegistrationsByProduct,
+    payments,
+    getPaymentsByRegistration 
+  } = useData();
   const isMobile = useIsMobile();
   
   const [currentSeason, setCurrentSeason] = useState(seasons.find(s => s.id === seasonId));
@@ -28,6 +40,11 @@ const ProductsPage: React.FC = () => {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [summaryData, setSummaryData] = useState({
+    registrationsCount: 0,
+    totalExpected: 0,
+    totalPaid: 0
+  });
 
   // Use our custom hook for filtering and sorting
   const { 
@@ -48,6 +65,37 @@ const ProductsPage: React.FC = () => {
       setSeasonProducts(products);
     }
   }, [seasonId, seasons, getProductsBySeason]);
+
+  // Calculate season summary data
+  useEffect(() => {
+    if (seasonProducts.length > 0) {
+      let registrationsCount = 0;
+      let totalExpected = 0;
+      let totalPaid = 0;
+      
+      seasonProducts.forEach(product => {
+        const productRegistrations = getRegistrationsByProduct(product.id);
+        registrationsCount += productRegistrations.length;
+        
+        // Calculate total expected (after discounts)
+        totalExpected += productRegistrations.reduce((sum, reg) => 
+          sum + Math.max(0, reg.requiredAmount - (reg.discountApproved ? (reg.discountAmount || 0) : 0)), 0);
+        
+        // Calculate total paid from payments
+        totalPaid += productRegistrations.reduce((sum, reg) => {
+          const regPayments = getPaymentsByRegistration(reg.id);
+          if (regPayments.length === 0) return sum + reg.paidAmount;
+          return sum + regPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
+        }, 0);
+      });
+      
+      setSummaryData({
+        registrationsCount,
+        totalExpected,
+        totalPaid
+      });
+    }
+  }, [seasonProducts, getRegistrationsByProduct, getPaymentsByRegistration]);
 
   const handleCreateProduct = (product: Omit<Product, 'id'>) => {
     addProduct(product);
@@ -107,6 +155,16 @@ const ProductsPage: React.FC = () => {
         </Button>
       </div>
       
+      {/* Add Season Summary Cards */}
+      {currentSeason && (
+        <SeasonSummaryCards
+          products={seasonProducts}
+          registrationsCount={summaryData.registrationsCount}
+          totalExpected={summaryData.totalExpected}
+          totalPaid={summaryData.totalPaid}
+        />
+      )}
+
       {/* Search and Filter */}
       <div className="mb-4">
         <Input
