@@ -1,4 +1,3 @@
-
 import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrNumber, isHebrewCurrency } from './contentDetection';
 
 /**
@@ -25,12 +24,11 @@ export const processTextDirection = (text: string): string => {
 
 /**
  * Force LTR direction with simple LTR marker
- * Enhanced to always add LTR mark for consistent LTR display
  */
 export const forceLtrDirection = (text: string): string => {
   if (!text) return '';
   
-  // Always add LTR mark for consistent direction
+  // Simple LTR mark
   return `\u200E${text}`;
 };
 
@@ -56,14 +54,14 @@ export const manuallyReverseString = (text: string): string => {
 
 /**
  * Special processor for table cells to handle mixed content
- * Enhanced to always add LTR mark for numeric content
+ * Simplified to use minimal direction markers
  */
 export const processTableCellText = (text: string): string => {
   if (!text) return '';
   
   // Check content type to apply appropriate direction
   if (isNumberOnly(text) || isDateFormat(text) || isPhoneFormat(text)) {
-    // Always add LTR mark for numeric content
+    // Simple LTR mark for numeric content
     return `\u200E${text}`;
   } else if (isHebrewCurrency(text)) {
     // Special handling for Hebrew currency

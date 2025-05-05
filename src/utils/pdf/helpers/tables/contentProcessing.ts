@@ -3,45 +3,26 @@ import { containsHebrew } from '../contentDetection';
 
 /**
  * Process cell text based on content type for optimal table display
- * Enhanced to better handle numeric content
+ * Simplified to use fewer control characters
  */
-export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean, isNumber: boolean } => {
+export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean } => {
   if (cell === null || cell === undefined) {
-    return { text: '', isRtl: false, isCurrency: false, isNumber: false };
+    return { text: '', isRtl: false, isCurrency: false };
   }
   
   const content = String(cell);
   const isHebrewContent = containsHebrew(content);
   const isCurrency = /[₪$€£]|ILS/.test(content) || /^[\d,\.]+\s*(?:[₪$€£]|ILS)/.test(content);
-  const isNumericOnly = /^[\d\.,\s\-\/]+$/.test(content);
   
-  console.log(`Processing cell: ${content}, Hebrew: ${isHebrewContent}, Currency: ${isCurrency}, Numeric: ${isNumericOnly}`);
+  console.log(`Processing cell: ${content}, Hebrew: ${isHebrewContent}, Currency: ${isCurrency}`);
   
-  // Handle ID numbers - must be LTR with explicit LTR marker
+  // Handle participant ID numbers and other numeric IDs
   if (/^\d{5,9}$/.test(content)) {
+    // ID numbers need special handling - must be LTR
     return { 
-      text: `\u200E${content}`, // Add explicit LTR mark for ID numbers
+      text: content, // Leave IDs as is - the RTL context will be set globally
       isRtl: false,
-      isCurrency: false,
-      isNumber: true 
-    };
-  }
-  // Phone numbers - must be LTR with explicit LTR marker
-  else if (/^0\d{1,2}[\-\s]?\d{7,8}$/.test(content)) {
-    return { 
-      text: `\u200E${content}`, // Add explicit LTR mark for phone numbers
-      isRtl: false,
-      isCurrency: false,
-      isNumber: true 
-    };
-  }
-  // Pure numbers - must be LTR with explicit LTR marker
-  else if (isNumericOnly) {
-    return { 
-      text: `\u200E${content}`, // Add explicit LTR mark for numbers
-      isRtl: false,
-      isCurrency: false,
-      isNumber: true 
+      isCurrency: false 
     };
   }
   // Currency with Hebrew text
@@ -50,26 +31,31 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
     return { 
       text: `\u200F${content}`,
       isRtl: true,
-      isCurrency: true,
-      isNumber: false 
+      isCurrency: true 
     };
   }
   // Non-Hebrew currency
   else if (isCurrency) {
     return { 
-      text: `\u200E${content}`, // Explicit LTR mark for non-Hebrew currency
+      text: content, // Leave as is - RTL context will handle it
       isRtl: false,
-      isCurrency: true,
-      isNumber: false 
+      isCurrency: true 
     };
   }
   // Date format - always LTR
   else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     return { 
-      text: `\u200E${content}`, // Explicit LTR mark for dates
+      text: content, // Leave as is - RTL context will handle it
       isRtl: false,
-      isCurrency: false,
-      isNumber: false 
+      isCurrency: false 
+    };
+  }
+  // Pure numbers
+  else if (/^[0-9\s\-\.\/]+$/.test(content)) {
+    return { 
+      text: content, // Leave as is - RTL context will handle it
+      isRtl: false,
+      isCurrency: false 
     };
   }
   // Hebrew text - simple RTL mark
@@ -77,8 +63,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
     return { 
       text: `\u200F${content}`, // RLM (Right-to-Left Mark)
       isRtl: true,
-      isCurrency: false,
-      isNumber: false 
+      isCurrency: false 
     };
   }
   // Other content (English, etc)
@@ -86,8 +71,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
     return { 
       text: content, // Leave as is - RTL context will handle it
       isRtl: false,
-      isCurrency: false,
-      isNumber: false 
+      isCurrency: false 
     };
   }
 };

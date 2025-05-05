@@ -39,7 +39,7 @@ export {
   processCellContent,
   createDataTable,
   createPlainTextTable
-} from './helpers/tables';
+} from './helpers/tableHelpers';
 
 // Export the legacy function 'containsHebrew' directly as an alias
 // to maintain backward compatibility with any code using hebrewTextHelper.ts

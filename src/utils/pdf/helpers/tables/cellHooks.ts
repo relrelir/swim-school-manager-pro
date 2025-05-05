@@ -17,8 +17,8 @@ export function didParseCell(data: CellHookData): void {
   cell.text = Array.isArray(processed.text) ? processed.text : [processed.text];
   
   // Apply appropriate alignment based on content type
-  if (/^\d{5,9}$/.test(cellContent) || processed.isNumber) {
-    // ID numbers and numeric content always left-aligned
+  if (/^\d{5,9}$/.test(cellContent)) {
+    // ID numbers always left-aligned
     cell.styles.halign = 'left';
   }
   // Apply appropriate alignment based on content type
@@ -36,7 +36,7 @@ export function didParseCell(data: CellHookData): void {
 
 /**
  * Hook for final adjustments to cell drawing if needed
- * Enhanced to ensure numbers are correctly displayed with LTR markers
+ * Simplified to use only the essential RTL/LTR markers
  */
 export function willDrawCell(data: CellHookData): void {
   // Add any final adjustments to cell drawing if needed
@@ -45,16 +45,8 @@ export function willDrawCell(data: CellHookData): void {
   
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   
-  // For ID numbers, use explicit LTR marker
+  // For ID numbers, use simple LTR marker
   if (/^\d{5,9}$/.test(cellContent)) {
-    cell.text = [`\u200E${cellContent}`]; // LRM (Left-to-Right Mark)
-  }
-  // For phone numbers, use explicit LTR marker
-  else if (/^0\d{1,2}[\-\s]?\d{7,8}$/.test(cellContent)) {
-    cell.text = [`\u200E${cellContent}`]; // LRM (Left-to-Right Mark)
-  }
-  // For numbers and numeric content, use explicit LTR marker
-  else if (/^[\d\.,]+$/.test(cellContent)) {
     cell.text = [`\u200E${cellContent}`]; // LRM (Left-to-Right Mark)
   }
   // For Hebrew text cells, use simple RTL marker
