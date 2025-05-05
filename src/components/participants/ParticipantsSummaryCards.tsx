@@ -8,7 +8,7 @@ interface ParticipantsSummaryCardsProps {
   totalParticipants: number;
   product: Product | undefined;
   totalExpected: number; // This should be effectiveRequired (after discounts)
-  totalPaid: number;     // This should be actual payments + discounts
+  totalPaid: number;     // This should be actual payments ONLY (excluding discounts)
   registrationsFilled: number;
 }
 
@@ -56,7 +56,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
           <div className="text-2xl font-bold">
             {formatPriceForUI(totalPaid)}
           </div>
-          <div className="text-sm text-gray-500">סכום ששולם (כולל הנחות)</div>
+          <div className="text-sm text-gray-500">סכום ששולם</div>
         </CardContent>
       </Card>
       <Card>
