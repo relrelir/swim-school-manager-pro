@@ -1,9 +1,10 @@
+
 import { processTableCellText, forceLtrDirection } from '../textDirection';
 import { containsHebrew } from '../contentDetection';
 
 /**
  * Process cell text based on content type for optimal table display
- * Simplified to use fewer control characters
+ * With stronger direction control for numeric content
  */
 export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean } => {
   if (cell === null || cell === undefined) {
@@ -16,49 +17,49 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   
   console.log(`Processing cell: ${content}, Hebrew: ${isHebrewContent}, Currency: ${isCurrency}`);
   
-  // Handle participant ID numbers and other numeric IDs
+  // Handle participant ID numbers and other numeric IDs with strong LTR control
   if (/^\d{5,9}$/.test(content)) {
-    // ID numbers need special handling - must be LTR
+    // ID numbers need strong LTR embedding
     return { 
-      text: content, // Leave IDs as is - the RTL context will be set globally
+      text: `\u202A${content}\u202C`, // LEFT-TO-RIGHT EMBEDDING + POP
       isRtl: false,
       isCurrency: false 
     };
   }
   // Currency with Hebrew text
   else if (isCurrency && isHebrewContent) {
-    // Simple RTL mark for Hebrew currency
+    // Hebrew currency with RTL marker
     return { 
       text: `\u200F${content}`,
       isRtl: true,
       isCurrency: true 
     };
   }
-  // Non-Hebrew currency
+  // Non-Hebrew currency with LTR embedding
   else if (isCurrency) {
     return { 
-      text: content, // Leave as is - RTL context will handle it
+      text: `\u202A${content}\u202C`, // LEFT-TO-RIGHT EMBEDDING + POP
       isRtl: false,
       isCurrency: true 
     };
   }
-  // Date format - always LTR
+  // Date format - always LTR with strong embedding
   else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     return { 
-      text: content, // Leave as is - RTL context will handle it
+      text: `\u202A${content}\u202C`, // LEFT-TO-RIGHT EMBEDDING + POP
       isRtl: false,
       isCurrency: false 
     };
   }
-  // Pure numbers
+  // Pure numbers - strong LTR embedding
   else if (/^[0-9\s\-\.\/]+$/.test(content)) {
     return { 
-      text: content, // Leave as is - RTL context will handle it
+      text: `\u202A${content}\u202C`, // LEFT-TO-RIGHT EMBEDDING + POP
       isRtl: false,
       isCurrency: false 
     };
   }
-  // Hebrew text - simple RTL mark
+  // Hebrew text - RTL mark
   else if (isHebrewContent) {
     return { 
       text: `\u200F${content}`, // RLM (Right-to-Left Mark)

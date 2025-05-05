@@ -28,7 +28,7 @@ interface HealthDeclarationData {
 
 /**
  * Builds the content of a health declaration PDF with enhanced bidirectional text support
- * CRITICAL FIX: Optimized to properly display Hebrew text without reversing
+ * Using stronger direction control for numeric content
  */
 export const buildHealthDeclarationPDF = (
   pdf: jsPDF, 
@@ -39,7 +39,7 @@ export const buildHealthDeclarationPDF = (
     console.log("Starting PDF generation with enhanced bidirectional text handling");
     console.log("Raw notes field:", healthDeclaration.notes);
     
-    // CRITICAL FIX: Add title with direct Hebrew support - no need for text manipulation
+    // Add title with direct Hebrew support - control RTL only for this element
     pdf.setR2L(true); // Enable RTL for Hebrew titles
     addPdfTitle(pdf, 'הצהרת בריאות');
     pdf.setR2L(false);
@@ -63,7 +63,8 @@ export const buildHealthDeclarationPDF = (
     // Process participant data
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
-    // CRITICAL FIX: Create participant data table with improved formatting
+    // Create participant data table with improved formatting
+    // ID number and phone use strong LTR embedding
     const participantData = [
       [`\u200F${fullName}\u200F`, 'שם מלא'],
       [forceLtrDirection(participant.idnumber || ''), 'תעודת זהות'],
@@ -74,7 +75,6 @@ export const buildHealthDeclarationPDF = (
     lastY = createDataTable(pdf, participantData, lastY + 5);
     
     // ===== PARENT/GUARDIAN SECTION - SEPARATE SECTION =====
-    // CRITICAL FIX: Parse parent info with our improved parser
     const parentInfo = parseParentInfo(healthDeclaration.notes);
     console.log("Parsed parent info:", parentInfo);
     
@@ -83,7 +83,7 @@ export const buildHealthDeclarationPDF = (
     addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
     pdf.setR2L(false);
     
-    // CRITICAL FIX: Create parent info table - using the correctly parsed parent name
+    // Create parent info table - using stronger direction control
     const parentData = [
       [parentInfo.parentName ? `\u200F${parentInfo.parentName}\u200F` : 'לא צוין', 'שם מלא'],
       [forceLtrDirection(parentInfo.parentId || 'לא צוין'), 'תעודת זהות'],
@@ -98,7 +98,7 @@ export const buildHealthDeclarationPDF = (
     pdf.setR2L(false);
     
     const declarationItems = getDeclarationItems();
-    // CRITICAL FIX: Properly mark each declaration item with RTL markers
+    // Mark each declaration item with RTL markers
     const declarationData = declarationItems.map(item => [
       '•', 
       `\u200F${item}\u200F`
@@ -108,7 +108,6 @@ export const buildHealthDeclarationPDF = (
     lastY = createPlainTextTable(pdf, declarationData, lastY + 10);
     
     // ===== MEDICAL NOTES SECTION - SEPARATE SECTION =====
-    // CRITICAL FIX: Parse medical notes with our improved parser
     const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
     console.log("Parsed medical notes:", medicalNotes);
     
@@ -135,7 +134,7 @@ export const buildHealthDeclarationPDF = (
     );
     
     // ===== SIGNATURE SECTION =====
-    // CRITICAL FIX: Use the parent name in the signature line if available
+    // Use the parent name in the signature line if available
     pdf.setR2L(true); // Enable RTL for Hebrew text
     
     const signatureY = lastY + 15;
