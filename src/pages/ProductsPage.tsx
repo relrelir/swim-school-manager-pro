@@ -81,11 +81,17 @@ const ProductsPage: React.FC = () => {
         totalExpected += productRegistrations.reduce((sum, reg) => 
           sum + Math.max(0, reg.requiredAmount - (reg.discountApproved ? (reg.discountAmount || 0) : 0)), 0);
         
-        // Calculate total paid from payments
+        // Calculate total paid including payments and approved discounts
         totalPaid += productRegistrations.reduce((sum, reg) => {
           const regPayments = getPaymentsByRegistration(reg.id);
-          if (regPayments.length === 0) return sum + reg.paidAmount;
-          return sum + regPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
+          // Include real payments
+          const paymentsTotal = regPayments.length === 0 ? reg.paidAmount : 
+            regPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
+          
+          // Add discount amount if approved
+          const discountAmount = reg.discountApproved ? (reg.discountAmount || 0) : 0;
+          
+          return sum + paymentsTotal + discountAmount;
         }, 0);
       });
       

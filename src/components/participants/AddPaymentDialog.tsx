@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -15,16 +16,16 @@ interface AddPaymentDialogProps {
     amount: number;
     receiptNumber: string;
     paymentDate: string;
-    registrationId?: string; // Add registrationId field
+    registrationId?: string;
   };
   setNewPayment: React.Dispatch<React.SetStateAction<{
     amount: number;
     receiptNumber: string;
     paymentDate: string;
-    registrationId?: string; // Add registrationId field
+    registrationId?: string;
   }>>;
   onSubmit: (e: React.FormEvent) => void;
-  onApplyDiscount: (amount: number, registrationId?: string) => void; // Update to accept registrationId
+  onApplyDiscount: (amount: number, registrationId?: string) => void;
 }
 
 const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
@@ -40,6 +41,13 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   const [isDiscount, setIsDiscount] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
   const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
+  // Calculate total paid including discount
+  const calculateTotalPaid = (registration: Registration) => {
+    // Add the discount amount to paid amount if approved
+    const paidWithDiscount = registration.paidAmount + (registration.discountApproved ? (registration.discountAmount || 0) : 0);
+    return paidWithDiscount;
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -66,7 +74,10 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                     <span className="font-medium">סכום לתשלום:</span> {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(currentRegistration.requiredAmount)}
                   </p>
                   <p>
-                    <span className="font-medium">סכום ששולם עד כה:</span> {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(currentRegistration.paidAmount)}
+                    <span className="font-medium">סכום ששולם עד כה:</span> {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(calculateTotalPaid(currentRegistration))}
+                    {currentRegistration.discountApproved && currentRegistration.discountAmount ? (
+                      <span className="text-sm text-green-600 mr-2">(כולל הנחה של {Intl.NumberFormat('he-IL', { style: 'currency', currency: 'ILS' }).format(currentRegistration.discountAmount)})</span>
+                    ) : null}
                   </p>
                 </div>
 
