@@ -47,7 +47,7 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         console.log("Found health declaration:", healthDeclaration);
         console.log("Raw notes field:", healthDeclaration.notes);
 
-        // Fetch registration and participant data
+        // Fetch participant data
         const { data: registrationData, error: registrationError } = await supabase
           .from('registrations')
           .select('*')
