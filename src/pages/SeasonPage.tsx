@@ -7,13 +7,15 @@ import EditProductDialog from '@/components/products/EditProductDialog';
 import AddSeasonDialog from '@/components/seasons/AddSeasonDialog';
 import SeasonSummary from '@/components/seasons/SeasonSummary';
 import SeasonProductsTable from '@/components/seasons/SeasonProductsTable';
+import SeasonSummaryCards from '@/components/seasons/SeasonSummaryCards';
 import { Plus } from 'lucide-react';
 
 export default function SeasonPage() {
   const { seasons } = useData();
   const { 
     season, 
-    seasonProducts, 
+    seasonProducts,
+    seasonSummary, 
     editingProduct, 
     isEditDialogOpen, 
     setIsEditDialogOpen, 
@@ -55,6 +57,15 @@ export default function SeasonPage() {
 
       {season && (
         <div className="bg-white rounded-lg shadow-card p-6 animate-fade-in">
+          <h2 className="text-xl font-semibold mb-4">סיכום עונה: {season.name}</h2>
+          
+          <SeasonSummaryCards 
+            products={seasonProducts}
+            registrationsCount={seasonSummary.registrationsCount}
+            totalExpected={seasonSummary.totalExpected}
+            totalPaid={seasonSummary.totalPaid}
+          />
+          
           <SeasonProductsTable 
             season={season}
             products={seasonProducts}

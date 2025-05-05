@@ -13,13 +13,22 @@ export const useSeasonProducts = () => {
     products, 
     seasons, 
     updateProduct,
-    getProductsBySeason
+    getProductsBySeason,
+    registrations,
+    getRegistrationsByProduct,
+    payments,
+    getPaymentsByRegistration
   } = useData();
   
   const [season, setSeason] = useState<Season | null>(null);
   const [seasonProducts, setSeasonProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [seasonSummary, setSeasonSummary] = useState({
+    registrationsCount: 0,
+    totalExpected: 0,
+    totalPaid: 0
+  });
 
   useEffect(() => {
     if (seasonId) {
@@ -32,8 +41,35 @@ export const useSeasonProducts = () => {
       // Get products for this season
       const productsForSeason = getProductsBySeason(seasonId);
       setSeasonProducts(productsForSeason);
+      
+      // Calculate season summary
+      let registrationsCount = 0;
+      let totalExpected = 0;
+      let totalPaid = 0;
+      
+      productsForSeason.forEach(product => {
+        const productRegistrations = getRegistrationsByProduct(product.id);
+        registrationsCount += productRegistrations.length;
+        
+        // Calculate total expected (after discounts)
+        totalExpected += productRegistrations.reduce((sum, reg) => 
+          sum + Math.max(0, reg.requiredAmount - (reg.discountApproved ? (reg.discountAmount || 0) : 0)), 0);
+        
+        // Calculate total paid from payments
+        totalPaid += productRegistrations.reduce((sum, reg) => {
+          const regPayments = getPaymentsByRegistration(reg.id);
+          if (regPayments.length === 0) return sum + reg.paidAmount;
+          return sum + regPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
+        }, 0);
+      });
+      
+      setSeasonSummary({
+        registrationsCount,
+        totalExpected,
+        totalPaid
+      });
     }
-  }, [seasonId, seasons, products, getProductsBySeason]);
+  }, [seasonId, seasons, products, registrations, payments, getProductsBySeason, getRegistrationsByProduct, getPaymentsByRegistration]);
 
   const handleEditProduct = (product: Product) => {
     setEditingProduct(product);
@@ -151,6 +187,7 @@ export const useSeasonProducts = () => {
   return {
     season,
     seasonProducts,
+    seasonSummary,
     editingProduct,
     isEditDialogOpen,
     setIsEditDialogOpen,
