@@ -40,6 +40,17 @@ export const formatCurrencyForTable = (amount: number): string => {
 };
 
 /**
+ * New formatter for currency values specifically for UI tables
+ * This doesn't apply text reversal that's used for PDFs
+ */
+export const formatCurrencyForTableUI = (amount: number): string => {
+  return new Intl.NumberFormat('he-IL', { 
+    style: 'currency', 
+    currency: 'ILS' 
+  }).format(amount);
+};
+
+/**
  * Format a date in the local format
  * Enhanced with strongest possible LTR direction control
  */

@@ -7,7 +7,7 @@ import TablePaymentInfo from './TablePaymentInfo';
 import TableReceiptNumbers from './TableReceiptNumbers';
 import TableRowActions from './TableRowActions';
 import ParticipantsTableHeader from './ParticipantsTableHeader';
-import { formatCurrencyForTable } from '@/utils/formatters';
+import { formatCurrencyForTableUI } from '@/utils/formatters';
 
 interface ParticipantsTableProps {
   registrations: Registration[];
@@ -84,10 +84,10 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 <TableCell>{participant.idNumber}</TableCell>
                 <TableCell>{participant.phone}</TableCell>
                 <TableCell>
-                  {formatCurrencyForTable(registration.requiredAmount)}
+                  {formatCurrencyForTableUI(registration.requiredAmount)}
                 </TableCell>
                 <TableCell>
-                  {formatCurrencyForTable(effectiveRequiredAmount)}
+                  {formatCurrencyForTableUI(effectiveRequiredAmount)}
                 </TableCell>
                 <TableCell>
                   <TablePaymentInfo 
@@ -101,7 +101,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 </TableCell>
                 <TableCell>
                   {registration.discountApproved && discountAmount > 0 ? 
-                    formatCurrencyForTable(discountAmount) : 
+                    formatCurrencyForTableUI(discountAmount) : 
                     'לא'}
                 </TableCell>
                 <TableCell>

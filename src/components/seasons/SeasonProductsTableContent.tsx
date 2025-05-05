@@ -2,7 +2,7 @@
 import React from 'react';
 import { TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { Product } from '@/types';
-import { formatDate, formatPrice, formatTime, formatParticipantsCount } from '@/utils/formatters';
+import { formatDate, formatPriceForUI, formatTime, formatParticipantsCount } from '@/utils/formatters';
 import SeasonProductsTableActions from './SeasonProductsTableActions';
 
 interface SeasonProductsTableContentProps {
@@ -39,10 +39,10 @@ const SeasonProductsTableContent: React.FC<SeasonProductsTableContentProps> = ({
             <TableCell className="font-medium">{product.name}</TableCell>
             <TableCell>{product.type}</TableCell>
             <TableCell>
-              {formatPrice(product.price)}
+              {formatPriceForUI(product.price)}
               {product.discountAmount && product.discountAmount > 0 && (
                 <div className="text-sm text-green-600">
-                  {formatPrice(effectivePrice)} (אחרי הנחה)
+                  {formatPriceForUI(effectivePrice)} (אחרי הנחה)
                 </div>
               )}
             </TableCell>
