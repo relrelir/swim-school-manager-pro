@@ -19,6 +19,7 @@ export const useHealthForm = () => {
     handleNotesChange,
     handleParentNameChange,
     handleParentIdChange,
+    handleSignatureChange,
     handleSubmit
   } = useHealthFormState(healthDeclarationId);
   
@@ -34,6 +35,7 @@ export const useHealthForm = () => {
     handleNotesChange,
     handleParentNameChange,
     handleParentIdChange,
+    handleSignatureChange,
     handleSubmit
   };
 };
