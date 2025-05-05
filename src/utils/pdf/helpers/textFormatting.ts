@@ -7,7 +7,7 @@
 /**
  * Format text for PDF display with appropriate direction markers
  * - Hebrew text works correctly with the global RTL setting
- * - Numbers need special handling with LTR marks to ensure correct display in RTL context
+ * - Numbers need special handling with RTL marks
  */
 export const formatPdfField = (text: string | number): string => {
   if (text === null || text === undefined) return '';
@@ -22,10 +22,10 @@ export const formatPdfField = (text: string | number): string => {
   
   // In a globally RTL document:
   // - Hebrew text already displays correctly (RTL)
-  // - Numbers need explicit LTR marks to prevent reversal
+  // - Numbers need explicit RTL marks to display correctly
   if (isNumeric && !containsHebrew) {
-    // Use LRM (U+200E) for numbers to ensure they display correctly in RTL context
-    return '\u200E' + textStr + '\u200E';
+    // Use RLM (U+200F) for numbers to ensure they display correctly in RTL context
+    return '\u200F' + textStr + '\u200F';
   } else {
     // Hebrew text or mixed content - already displays correctly with global RTL
     return textStr;
@@ -40,8 +40,8 @@ export const forceLtrDirection = (text: string | number): string => {
   
   const textStr = String(text);
   
-  // Use LRM (U+200E) to ensure proper LTR display of numeric content in RTL context
-  return '\u200E' + textStr + '\u200E';
+  // In RTL context, use RLM (U+200F) to ensure proper display of numeric content
+  return '\u200F' + textStr + '\u200F';
 };
 
 /**

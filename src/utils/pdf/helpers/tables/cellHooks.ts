@@ -46,11 +46,10 @@ export function willDrawCell(data: CellHookData): void {
   
   // For ID numbers and numbers, ensure correct direction
   if (/^\d{5,9}$/.test(cellContent) || /^[\d\s\-+()\/\.,:]+$/.test(cellContent)) {
-    // Use LRM marks for numbers to ensure correct LTR display in RTL context
     cell.text = [forceLtrDirection(cellContent)];
   }
-  // For Hebrew text cells, leave them as-is for the global RTL context
+  // For Hebrew text cells, use our formatPdfField function
   else if (/[\u0590-\u05FF]/.test(cellContent)) {
-    cell.text = [cellContent];
+    cell.text = [formatPdfField(cellContent)];
   }
 }
