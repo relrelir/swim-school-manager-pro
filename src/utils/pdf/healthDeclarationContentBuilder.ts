@@ -39,10 +39,10 @@ export const buildHealthDeclarationPDF = (
     console.log("Starting PDF generation with enhanced bidirectional text handling");
     console.log("Raw notes field:", healthDeclaration.notes);
     
-    // CRITICAL FIX: Add title with direct Hebrew support using proper RTL embedding
-    addPdfTitle(pdf, forceRtlDirection('הצהרת בריאות'));
+    // CRITICAL FIX: Add title with direct Hebrew support - no need for text manipulation
+    addPdfTitle(pdf, 'הצהרת בריאות');
     
-    // Add date with strongest possible LTR embedding
+    // Add date with strongest possible LTR control
     const formattedDate = healthDeclaration.submission_date 
       ? format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy HH:mm') 
       : format(new Date(), 'dd/MM/yyyy HH:mm');
@@ -54,16 +54,16 @@ export const buildHealthDeclarationPDF = (
     let lastY = startY;
     
     // ===== PARTICIPANT SECTION =====
-    addSectionTitle(pdf, forceRtlDirection('פרטי המשתתף'), lastY);
+    addSectionTitle(pdf, 'פרטי המשתתף', lastY);
     
     // Process participant data
     const fullName = `${participant.firstname} ${participant.lastname}`;
     
     // Create participant data table with improved formatting
     const participantData = [
-      [formatPdfField(fullName), forceRtlDirection('שם מלא')],
-      [forceLtrDirection(participant.idnumber || ''), forceRtlDirection('תעודת זהות')],
-      [forceLtrDirection(participant.phone || ''), forceRtlDirection('טלפון')],
+      [formatPdfField(fullName), 'שם מלא'],
+      [forceLtrDirection(participant.idnumber || ''), 'תעודת זהות'],
+      [forceLtrDirection(participant.phone || ''), 'טלפון'],
     ];
     
     console.log("Creating participant data table");
@@ -75,24 +75,24 @@ export const buildHealthDeclarationPDF = (
     console.log("Parsed parent info:", parentInfo);
     
     // Add parent/guardian section with optimized spacing
-    addSectionTitle(pdf, forceRtlDirection('פרטי ההורה/אפוטרופוס'), lastY + 5);
+    addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
     
     // Create parent info table - using the correctly parsed parent name
     const parentData = [
-      [parentInfo.parentName ? formatPdfField(parentInfo.parentName) : forceRtlDirection('לא צוין'), forceRtlDirection('שם מלא')],
-      [forceLtrDirection(parentInfo.parentId || 'לא צוין'), forceRtlDirection('תעודת זהות')],
+      [parentInfo.parentName ? formatPdfField(parentInfo.parentName) : 'לא צוין', 'שם מלא'],
+      [forceLtrDirection(parentInfo.parentId || 'לא צוין'), 'תעודת זהות'],
     ];
     
     console.log("Parent name being used:", parentInfo.parentName || 'לא צוין');
     lastY = createDataTable(pdf, parentData, lastY + 10);
     
     // ===== DECLARATION SECTION =====
-    addSectionTitle(pdf, forceRtlDirection('תוכן ההצהרה'), lastY + 5);
+    addSectionTitle(pdf, 'תוכן ההצהרה', lastY + 5);
     
     const declarationItems = getDeclarationItems();
-    // Properly mark each declaration item with RTL embedding
+    // Properly mark each declaration item with RTL markers
     const declarationData = declarationItems.map(item => [
-      forceRtlDirection('•'), 
+      '•', 
       formatPdfField(item)
     ]);
     
@@ -104,21 +104,21 @@ export const buildHealthDeclarationPDF = (
     const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
     console.log("Parsed medical notes:", medicalNotes);
     
-    addSectionTitle(pdf, forceRtlDirection('הערות רפואיות'), lastY + 5);
+    addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
     
-    // Display medical notes or default message with RTL embedding
+    // Display medical notes or default message with RTL markers
     const notesText = medicalNotes && medicalNotes.trim() !== '' 
       ? formatPdfField(medicalNotes)
-      : forceRtlDirection('אין הערות רפואיות נוספות');
+      : formatPdfField('אין הערות רפואיות נוספות');
       
     lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
     // ===== CONFIRMATION SECTION =====
-    addSectionTitle(pdf, forceRtlDirection('אישור'), lastY + 5);
+    addSectionTitle(pdf, 'אישור', lastY + 5);
     
     lastY = createPlainTextTable(
       pdf, 
-      [[forceRtlDirection('אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.')]], 
+      [[formatPdfField('אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.')]], 
       lastY + 10
     );
     
@@ -128,11 +128,11 @@ export const buildHealthDeclarationPDF = (
     
     const signatureY = lastY + 15;
     if (parentInfo.parentName && parentInfo.parentName.trim() !== '') {
-      // Use parent name in signature line with RTL embedding
-      pdf.text(forceRtlDirection(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`), 30, signatureY);
+      // Use parent name in signature line with RTL marks
+      pdf.text(formatPdfField(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`), 30, signatureY);
     } else {
-      // Default signature line with RTL embedding
-      pdf.text(forceRtlDirection('חתימת ההורה/אפוטרופוס: ________________'), 30, signatureY);
+      // Default signature line with RTL marks
+      pdf.text(formatPdfField('חתימת ההורה/אפוטרופוס: ________________'), 30, signatureY);
     }
     
     pdf.setR2L(false); // Reset RTL setting

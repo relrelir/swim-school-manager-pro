@@ -5,7 +5,7 @@ import { formatPdfField } from '../textFormatting';
 
 /**
  * Process cell text based on content type for optimal table display
- * Applying appropriate direction embedding for bidirectional text
+ * Applying appropriate direction markers for bidirectional text
  */
 export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean } => {
   if (cell === null || cell === undefined) {
@@ -22,7 +22,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   if (/^\d{5,9}$/.test(content)) {
     // ID numbers need special handling - must be LTR
     return { 
-      text: forceLtrDirection(content), // Apply LTR embedding to IDs
+      text: forceLtrDirection(content), // Apply LTR markers to IDs
       isRtl: false,
       isCurrency: false 
     };
@@ -38,7 +38,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Non-Hebrew currency
   else if (isCurrency) {
     return { 
-      text: forceLtrDirection(content), // Apply LTR embedding to currency
+      text: forceLtrDirection(content), // Apply LTR markers to currency
       isRtl: false,
       isCurrency: true 
     };
@@ -46,7 +46,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Date format - always LTR
   else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     return { 
-      text: forceLtrDirection(content), // Apply LTR embedding to dates
+      text: forceLtrDirection(content), // Apply LTR markers to dates
       isRtl: false,
       isCurrency: false 
     };
@@ -54,7 +54,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Pure numbers
   else if (/^[0-9\s\-\.\/]+$/.test(content)) {
     return { 
-      text: forceLtrDirection(content), // Apply LTR embedding to numbers
+      text: forceLtrDirection(content), // Apply LTR markers to numbers
       isRtl: false,
       isCurrency: false 
     };

@@ -8,8 +8,6 @@
  * Format text for PDF display with appropriate direction markers
  * - Hebrew text gets RTL marks (U+200F)
  * - Numbers get LTR marks (U+200E)
- * 
- * FIXED: Now properly handles direction embedding without text inversion
  */
 export const formatPdfField = (text: string | number): string => {
   if (text === null || text === undefined) return '';
@@ -19,13 +17,11 @@ export const formatPdfField = (text: string | number): string => {
   // Check if the text contains only numbers, spaces, hyphens, and typical numeric symbols
   const isNumeric = /^[\d\s\-+()\/\.,:]+$/.test(textStr);
   
-  if (isNumeric) {
-    // For numeric content, use LTR embedding (U+202A ... U+202C) instead of just markers
-    return '\u202A' + textStr + '\u202C'; 
-  } else {
-    // For Hebrew content, use RTL embedding (U+202B ... U+202C) instead of just markers
-    return '\u202B' + textStr + '\u202C';
-  }
+  // Use LRM (U+200E) for numbers and RLM (U+200F) for Hebrew
+  const marker = isNumeric ? '\u200E' : '\u200F';
+  
+  // Wrap text with appropriate markers at start and end
+  return marker + textStr + marker;
 };
 
 /**
@@ -36,8 +32,8 @@ export const forceLtrDirection = (text: string | number): string => {
   
   const textStr = String(text);
   
-  // Use LTR embedding (U+202A ... U+202C) instead of just markers
-  return '\u202A' + textStr + '\u202C';
+  // Always use LRM (U+200E) markers
+  return '\u200E' + textStr + '\u200E';
 };
 
 /**
@@ -46,8 +42,8 @@ export const forceLtrDirection = (text: string | number): string => {
 export const forceRtlDirection = (text: string): string => {
   if (text === null || text === undefined) return '';
   
-  // Use RTL embedding (U+202B ... U+202C) instead of just markers
-  return '\u202B' + text + '\u202C';
+  // Always use RLM (U+200F) markers
+  return '\u200F' + text + '\u200F';
 };
 
 /**
