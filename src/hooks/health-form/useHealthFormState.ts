@@ -71,7 +71,7 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     
     try {
       // Add parent information to the notes field
-      const notesWithParentInfo = '${formState.parentName}, ת.ז.: ${formState.parentId}\n\n${formState.notes || ''}`;
+      const notesWithParentInfo = `${formState.parentName}, ת.ז.: ${formState.parentId}\n\n${formState.notes || ''}`;
       
       await submitHealthFormService(
         healthDeclarationId,
