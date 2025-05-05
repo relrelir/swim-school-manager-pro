@@ -1,11 +1,9 @@
-
 import { processTableCellText, forceLtrDirection } from '../textDirection';
 import { containsHebrew } from '../contentDetection';
-import { formatPdfField } from '../textFormatting';
 
 /**
  * Process cell text based on content type for optimal table display
- * Using dedicated formatting utilities for proper direction markers
+ * Simplified to use fewer control characters
  */
 export const processCellContent = (cell: any): { text: string, isRtl: boolean, isCurrency: boolean } => {
   if (cell === null || cell === undefined) {
@@ -20,17 +18,18 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   
   // Handle participant ID numbers and other numeric IDs
   if (/^\d{5,9}$/.test(content)) {
-    // ID numbers need LTR markers
+    // ID numbers need special handling - must be LTR
     return { 
-      text: formatPdfField(content, 'number'),
+      text: content, // Leave IDs as is - the RTL context will be set globally
       isRtl: false,
       isCurrency: false 
     };
   }
   // Currency with Hebrew text
   else if (isCurrency && isHebrewContent) {
+    // Simple RTL mark for Hebrew currency
     return { 
-      text: formatPdfField(content, 'number'), // Currency should be LTR
+      text: `\u200F${content}`,
       isRtl: true,
       isCurrency: true 
     };
@@ -38,7 +37,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Non-Hebrew currency
   else if (isCurrency) {
     return { 
-      text: formatPdfField(content, 'number'), // Currency should be LTR
+      text: content, // Leave as is - RTL context will handle it
       isRtl: false,
       isCurrency: true 
     };
@@ -46,7 +45,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Date format - always LTR
   else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     return { 
-      text: formatPdfField(content, 'number'),
+      text: content, // Leave as is - RTL context will handle it
       isRtl: false,
       isCurrency: false 
     };
@@ -54,15 +53,15 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Pure numbers
   else if (/^[0-9\s\-\.\/]+$/.test(content)) {
     return { 
-      text: formatPdfField(content, 'number'),
+      text: content, // Leave as is - RTL context will handle it
       isRtl: false,
       isCurrency: false 
     };
   }
-  // Hebrew text - use RTL markers
+  // Hebrew text - simple RTL mark
   else if (isHebrewContent) {
     return { 
-      text: formatPdfField(content, 'text'), 
+      text: `\u200F${content}`, // RLM (Right-to-Left Mark)
       isRtl: true,
       isCurrency: false 
     };
@@ -70,7 +69,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Other content (English, etc)
   else {
     return { 
-      text: content, // Leave as is
+      text: content, // Leave as is - RTL context will handle it
       isRtl: false,
       isCurrency: false 
     };
