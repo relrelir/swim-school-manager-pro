@@ -39,8 +39,9 @@ export const parseParentInfo = (notes: string | null): { parentName: string; par
     const idMatch = notes.match(/(?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)[\s:="]+["']?([^",\}\r\n]+)["']?/i) || 
                     notes.match(/["'](?:תעודת[\s_]*זהות|ת\.?ז\.?|מספר[\s_]*זהות|parentId|parentid|parent[\s_]*id)["'][\s:="]+["']?([^",\}\r\n]+)["']?/i);
     
-    // If the entire notes field seems to be just the parent name (common case with simple forms)
+    // CRITICAL FIX: If the entire notes field seems to be just the parent name (like "יצחק הראל")
     // Check if the entire notes could be just a name without any prefixes
+    // This matches Hebrew names with space between words (like first and last name)
     const directNameMatch = !nameMatch && /^[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]+\s+[\u0590-\u05FF\s\u0027\u0022\u05F3\u05F4א-ת]+$/i.test(notes);
     
     const result = {
@@ -97,8 +98,7 @@ export const parseMedicalNotes = (notes: string | null): string => {
       return result;
     }
     
-    // Check for medical notes after " אני " pattern (common in health forms)
-    // This specifically targets phrases like "אני קוף" without including the parent name
+    // CRITICAL FIX: Check for specific medical phrase pattern like "אני קוף"
     const medicalPhraseMatch = notes.match(/אני\s+([^"\{\}\r\n]+)/i);
     if (medicalPhraseMatch && medicalPhraseMatch[0].trim()) {
       const result = medicalPhraseMatch[0].trim();

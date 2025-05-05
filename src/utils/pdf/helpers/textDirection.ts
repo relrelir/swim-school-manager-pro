@@ -1,8 +1,9 @@
+
 import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrNumber, isHebrewCurrency } from './contentDetection';
 
 /**
  * Process text to ensure correct display direction in PDF
- * - Apply much stronger directional control for English/numbers in RTL context
+ * - Fixed to not reverse Hebrew text
  */
 export const processTextDirection = (text: string): string => {
   if (!text) return '';
@@ -36,7 +37,7 @@ export const forceLtrDirection = (text: string): string => {
 
 /**
  * Force RTL direction specifically for Hebrew text in tables
- * This helps ensure Hebrew text renders correctly in table contexts
+ * Fixed to NOT reverse text content
  */
 export const forceRtlDirection = (text: string): string => {
   if (!text) return '';
@@ -46,18 +47,18 @@ export const forceRtlDirection = (text: string): string => {
 };
 
 /**
- * Manually reverse a string character by character
- * This is now DEPRECATED and only kept for backward compatibility
- * DO NOT USE THIS FUNCTION for new code
+ * DEPRECATED - Do not use!
+ * This function is preserved only for backward compatibility
+ * No longer used for reversing strings
  */
 export const manuallyReverseString = (text: string): string => {
-  if (!text) return '';
-  // We're keeping the original string order
+  // Critical fix: Do NOT reverse the string
   return text;
 };
 
 /**
  * Special processor for table cells to handle mixed content
+ * Fixed to maintain correct text direction for Hebrew
  */
 export const processTableCellText = (text: string): string => {
   if (!text) return '';
@@ -108,7 +109,7 @@ export const processHebrewCurrencyForTable = (text: string): string => {
 
 /**
  * Helper function to ensure Hebrew text is properly displayed in PDF
- * Now optimized for Alef font
+ * Now optimized for Alef font - doesn't modify text content
  */
 export const encodeHebrewText = (text: string): string => {
   if (!text) return '';
@@ -119,6 +120,7 @@ export const encodeHebrewText = (text: string): string => {
 
 /**
  * Legacy helper function kept for backward compatibility
+ * FIXED to not reverse text
  */
 export const reverseText = (text: string): string => {
   return text || '';
