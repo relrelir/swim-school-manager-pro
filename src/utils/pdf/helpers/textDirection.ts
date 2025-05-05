@@ -1,4 +1,3 @@
-
 import { containsHebrew, isNumberOnly, isDateFormat, isPhoneFormat, isEnglishOrNumber, isHebrewCurrency } from './contentDetection';
 
 /**
@@ -54,11 +53,13 @@ export const forceRtlDirection = (text: string): string => {
 
 /**
  * Manually reverse a string character by character
- * This is useful for Hebrew text in tables where bidirectional controls don't work properly
+ * This is now DEPRECATED and only kept for backward compatibility
+ * DO NOT USE THIS FUNCTION for new code
  */
 export const manuallyReverseString = (text: string): string => {
   if (!text) return '';
-  return [...text].reverse().join('');
+  // We're keeping the original string order now instead of reversing
+  return text;
 };
 
 /**
@@ -82,9 +83,8 @@ export const processTableCellText = (text: string): string => {
       return forceLtrDirection(text);
     }
   } else if (containsHebrew(text)) {
-    // Pure Hebrew text in tables needs RTL enforcement AND characters manually reversed
-    // This is a specific fix for tables where standard RTL controls don't work properly
-    return manuallyReverseString(text);
+    // Pure Hebrew text in tables - keep original order with RTL direction controls
+    return forceRtlDirection(text);
   }
   
   // Default for mixed content

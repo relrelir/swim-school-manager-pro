@@ -13,8 +13,8 @@ export function didParseCell(data: CellHookData): void {
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   const processed = processCellContent(cellContent);
   
-  // Set cell content
-  cell.text = processed.text;
+  // Set cell content - ensure it's always in array format as expected by jsPDF-AutoTable
+  cell.text = Array.isArray(processed.text) ? processed.text : [processed.text];
   
   // Handle IDs and numbers with special care
   if (/^\d{5,9}$/.test(cellContent)) {
@@ -47,7 +47,7 @@ export function willDrawCell(data: CellHookData): void {
   
   // Ensure ID numbers are displayed correctly
   if (/^\d{5,9}$/.test(cellContent)) {
-    // Add extra LTR mark for ID numbers
-    cell.text = `\u200E${cellContent}\u200E`;
+    // Add extra LTR mark for ID numbers - ensure it's an array
+    cell.text = [`\u200E${cellContent}\u200E`];
   }
 }

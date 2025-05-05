@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import PrintableHealthDeclaration from '@/components/health-form/PrintableHealthDeclaration';
@@ -83,7 +84,7 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         console.log("Found participant:", participantData);
 
         // Parse parent information and medical notes separately with improved parsing
-        // These functions now strictly separate parent info from medical notes
+        // Use the improved parsers to correctly extract information
         const parentInfo = parseParentInfo(healthDeclaration.notes || '');
         const medicalNotes = parseMedicalNotes(healthDeclaration.notes || '');
         
@@ -97,9 +98,9 @@ const PrintableHealthDeclarationPage: React.FC = () => {
           participantPhone: participantData.phone,
           formState: {
             agreement: true,
-            notes: medicalNotes,
-            parentName: parentInfo.parentName,
-            parentId: parentInfo.parentId
+            notes: medicalNotes, // Use the correctly parsed medical notes
+            parentName: parentInfo.parentName, // Use the correctly parsed parent name
+            parentId: parentInfo.parentId // Use the correctly parsed parent ID
           },
           submissionDate: healthDeclaration.submission_date ? new Date(healthDeclaration.submission_date) : new Date()
         });
@@ -141,23 +142,6 @@ const PrintableHealthDeclarationPage: React.FC = () => {
 
   return (
     <div className="container py-6">
-      {isLoading && (
-        <Card className="max-w-3xl mx-auto">
-          <CardContent className="pt-6">
-            <div className="flex flex-col items-center justify-center p-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-              <p className="mt-4">טוען הצהרת בריאות...</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {error && (
-        <Alert variant="destructive" className="max-w-3xl mx-auto">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
       {!isLoading && !error && healthData && (
         <PrintableHealthDeclaration
           participantName={healthData.participantName}

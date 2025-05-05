@@ -19,6 +19,7 @@ interface HealthDeclarationContentProps {
   handleNotesChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleParentNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleParentIdChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  hideNotes?: boolean; // Added optional property for hiding notes input
 }
 
 const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
@@ -29,7 +30,8 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
   handleAgreementChange,
   handleNotesChange,
   handleParentNameChange,
-  handleParentIdChange
+  handleParentIdChange,
+  hideNotes = false // Default to showing notes
 }) => {
   return (
     <div className="space-y-6 text-right" dir="rtl">
@@ -105,16 +107,19 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
         </div>
       </div>
       
-      <div className="space-y-2">
-        <Label htmlFor="notes">הערות רפואיות (אופציונלי)</Label>
-        <Textarea 
-          id="notes" 
-          placeholder="אם יש מידע רפואי נוסף שעלינו לדעת, אנא ציין כאן"
-          value={formState.notes}
-          onChange={handleNotesChange}
-          dir="rtl"
-        />
-      </div>
+      {/* Only show notes field if hideNotes is false */}
+      {!hideNotes && (
+        <div className="space-y-2">
+          <Label htmlFor="notes">הערות רפואיות (אופציונלי)</Label>
+          <Textarea 
+            id="notes" 
+            placeholder="אם יש מידע רפואי נוסף שעלינו לדעת, אנא ציין כאן"
+            value={formState.notes}
+            onChange={handleNotesChange}
+            dir="rtl"
+          />
+        </div>
+      )}
     </div>
   );
 };

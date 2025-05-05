@@ -80,8 +80,8 @@ export const buildHealthDeclarationPDF = (
     // Create parent info table - ensure name and ID are in separate rows
     // ONLY parent info in this section
     const parentData = [
-      [parentInfo.parentName || '', 'שם מלא'],
-      [forceLtrDirection(parentInfo.parentId || ''), 'תעודת זהות'],
+      [parentInfo.parentName || 'לא צוין', 'שם מלא'],
+      [forceLtrDirection(parentInfo.parentId || 'לא צוין'), 'תעודת זהות'],
     ];
     
     lastY = createDataTable(pdf, parentData, lastY + 10);
@@ -98,14 +98,15 @@ export const buildHealthDeclarationPDF = (
     lastY = createPlainTextTable(pdf, declarationData, lastY + 10);
     
     // ===== MEDICAL NOTES SECTION - SEPARATE SECTION =====
-    // Process medical notes separately from parent info
+    // Process medical notes separately from parent info with improved parsing
     const medicalNotes = parseMedicalNotes(healthDeclaration.notes);
     console.log("Parsed medical notes:", medicalNotes);
     
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
     
     // Display medical notes or default message in their own dedicated section
-    const notesText = medicalNotes ? medicalNotes : 'אין הערות רפואיות נוספות';
+    // Only show "אין הערות רפואיות נוספות" if medicalNotes is truly empty
+    const notesText = medicalNotes && medicalNotes.trim() !== '' ? medicalNotes : 'אין הערות רפואיות נוספות';
     lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
     // ===== CONFIRMATION SECTION =====
@@ -121,9 +122,9 @@ export const buildHealthDeclarationPDF = (
     // Add signature line with parent info
     pdf.setR2L(true); // Enable RTL for Hebrew text
     
-    // Add parent details to signature line if available
+    // Add parent details to signature line if available, ensure parent name is shown
     const signatureY = lastY + 15;
-    if (parentInfo.parentName) {
+    if (parentInfo.parentName && parentInfo.parentName.trim() !== '') {
       // Use compact format with parent name
       pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`, 30, signatureY);
     } else {

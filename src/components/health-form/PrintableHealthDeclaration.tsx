@@ -156,7 +156,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
         <div className="mt-4 pt-3 border-t">
           <h3 className="text-lg font-semibold mb-3">הערות רפואיות</h3>
           <div className="p-3 bg-gray-50 rounded-md">
-            {formState.notes ? (
+            {formState.notes && formState.notes.trim() !== '' ? (
               <p>{formState.notes}</p>
             ) : (
               <p>אין הערות רפואיות נוספות</p>
@@ -169,7 +169,7 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           <div className="flex flex-col gap-4 print:gap-2">
             <div>
               <p className="font-semibold mb-1">חתימת ההורה/אפוטרופוס:</p>
-              {formState.parentName ? (
+              {formState.parentName && formState.parentName.trim() !== '' ? (
                 <p className="mb-2">{formState.parentName}</p>
               ) : (
                 <div className="h-8 border-b border-dashed border-gray-400 w-64"></div>
