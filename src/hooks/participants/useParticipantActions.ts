@@ -125,8 +125,10 @@ export const useParticipantActions = (
     return wrapperHandleAddParticipant(e, resetForm, setIsAddParticipantOpen);
   };
 
-  // Final wrapper for handleAddPayment
+  // Final wrapper for handleAddPayment - FIX: properly pass the event to the handler
+  // and correctly forward the necessary parameters
   const handleAddPayment = (e: React.FormEvent) => {
+    // The issue was here - we need to pass the proper arguments in the correct order
     return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
   };
 

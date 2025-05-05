@@ -11,6 +11,7 @@ export const usePaymentAdapters = (
   ) => any,
   baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any
 ) => {
+  // Ensure we pass all parameters correctly
   const handleAddPaymentWrapper = (
     e: React.FormEvent, 
     newPayment: any,

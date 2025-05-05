@@ -38,6 +38,7 @@ export const useParticipantHandlers = (
     getParticipantForRegistration
   );
   
+  // Use the usePaymentHandlers hook to handle payment operations
   const { handleAddPayment, handleApplyDiscount } = usePaymentHandlers(
     baseHandleAddPayment,
     baseHandleApplyDiscount
