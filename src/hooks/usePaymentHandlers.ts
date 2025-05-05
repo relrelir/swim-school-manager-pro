@@ -4,7 +4,7 @@ import { toast } from "@/components/ui/use-toast";
 import { Registration, Payment } from '@/types';
 
 export const usePaymentHandlers = (
-  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined>, 
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void, 
   updateRegistration: (registration: Registration) => void, 
   getRegistrationsByProduct: (productId: string) => Registration[],
 ) => {
@@ -27,7 +27,7 @@ export const usePaymentHandlers = (
       registrationId?: string; // Added registrationId field
     }>>,
     productId?: string
-  ) => {
+  ): Promise<Registration[]> => {
     // Check if receipt number is provided
     if (!newPayment.receiptNumber) {
       toast({
@@ -86,11 +86,11 @@ export const usePaymentHandlers = (
   };
 
   // Handle applying a discount
-  const handleApplyDiscount = (
+  const handleApplyDiscount = async (
     discountAmount: number, 
     setIsAddPaymentOpen: (open: boolean) => void,
     productId?: string
-  ) => {
+  ): Promise<Registration[]> => {
     if (currentRegistration) {
       // Update the registration with discount
       const updatedRegistration: Registration = {

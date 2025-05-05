@@ -102,7 +102,7 @@ const ParticipantsPage: React.FC = () => {
       amount: 0,
       receiptNumber: '',
       paymentDate: new Date().toISOString().substring(0, 10),
-      registrationId: registration.id, // Add registration ID to newPayment
+      ...(registration.id ? { registrationId: registration.id } : {})
     });
     setIsAddPaymentOpen(true);
   };

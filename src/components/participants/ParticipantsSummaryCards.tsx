@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Product } from '@/types';
-import { formatPrice } from '@/utils/formatters';
+import { formatPriceForUI } from '@/utils/formatters';
 
 interface ParticipantsSummaryCardsProps {
   totalParticipants: number;
@@ -46,7 +46,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
           <div className="text-2xl font-bold">
-            {formatPrice(totalExpected)}
+            {formatPriceForUI(totalExpected)}
           </div>
           <div className="text-sm text-gray-500">סכום לתשלום (אחרי הנחות)</div>
         </CardContent>
@@ -54,7 +54,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
           <div className="text-2xl font-bold">
-            {formatPrice(totalPaid)}
+            {formatPriceForUI(totalPaid)}
           </div>
           <div className="text-sm text-gray-500">סכום ששולם</div>
         </CardContent>
@@ -62,7 +62,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
           <div className={`text-2xl font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {formatPrice(difference)}
+            {formatPriceForUI(difference)}
           </div>
           <div className="text-sm text-gray-500">הפרש</div>
         </CardContent>

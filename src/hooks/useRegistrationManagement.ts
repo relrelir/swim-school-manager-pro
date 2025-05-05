@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Registration, Participant } from '@/types';
+import { Registration, Participant, Payment } from '@/types';
 import { usePaymentHandlers } from './usePaymentHandlers';
 import { useRegistrationHandlers } from './useRegistrationHandlers';
 
@@ -12,7 +12,7 @@ export const useRegistrationManagement = (
   addRegistration: (registration: Omit<Registration, 'id'>) => Promise<Registration | undefined> | void,
   updateRegistration: (registration: Registration) => void,
   deleteRegistration: (id: string) => void,
-  addPayment: (payment: any) => void,
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void,
   getPaymentsByRegistration: (registrationId: string) => any[],
   getRegistrationsByProduct: (productId: string) => Registration[],
   updateParticipant: (participant: Participant) => void,
@@ -90,7 +90,7 @@ export const useRegistrationManagement = (
   };
 
   // Wrap other handlers with local state
-  const handleAddPayment = (
+  const handleAddPayment = async (
     e: React.FormEvent,
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
@@ -98,7 +98,7 @@ export const useRegistrationManagement = (
   ) => {
     e.preventDefault();
     
-    const updatedRegistrations = baseHandleAddPayment(
+    const updatedRegistrations = await baseHandleAddPayment(
       e,
       newPayment,
       setIsAddPaymentOpen,
@@ -106,7 +106,7 @@ export const useRegistrationManagement = (
       productId
     );
     
-    if (updatedRegistrations.length > 0) {
+    if (updatedRegistrations && updatedRegistrations.length > 0) {
       setRegistrations(updatedRegistrations);
       return updatedRegistrations;
     }
@@ -114,17 +114,17 @@ export const useRegistrationManagement = (
     return registrations;
   };
 
-  const handleApplyDiscount = (
+  const handleApplyDiscount = async (
     discountAmount: number,
     setIsAddPaymentOpen: (open: boolean) => void
   ) => {
-    const updatedRegistrations = baseHandleApplyDiscount(
+    const updatedRegistrations = await baseHandleApplyDiscount(
       discountAmount,
       setIsAddPaymentOpen,
       productId
     );
     
-    if (updatedRegistrations.length > 0) {
+    if (updatedRegistrations && updatedRegistrations.length > 0) {
       setRegistrations(updatedRegistrations);
       return updatedRegistrations;
     }

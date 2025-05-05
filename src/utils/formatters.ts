@@ -1,4 +1,3 @@
-
 import { processTextDirection, forceLtrDirection, processTableCellText, processHebrewCurrencyForTable } from './pdf/helpers/textDirection';
 
 /**
@@ -13,6 +12,17 @@ export const formatCurrency = (amount: number): string => {
   
   // Force LTR direction for currency values (they contain numbers)
   return forceLtrDirection(formatted);
+};
+
+/**
+ * Format currency specifically for UI display
+ * This version doesn't apply text direction changes for web UI
+ */
+export const formatCurrencyForUI = (amount: number): string => {
+  return new Intl.NumberFormat('he-IL', { 
+    style: 'currency', 
+    currency: 'ILS' 
+  }).format(amount);
 };
 
 /**
@@ -44,6 +54,13 @@ export const formatDate = (date: Date | string): string => {
  */
 export const formatPrice = (price: number): string => {
   return formatCurrency(price);
+};
+
+/**
+ * Format a price for UI display (without text direction changes)
+ */
+export const formatPriceForUI = (price: number): string => {
+  return formatCurrencyForUI(price);
 };
 
 /**
