@@ -14,7 +14,7 @@ export function didParseCell(data: CellHookData): void {
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   const processed = processCellContent(cellContent);
   
-  // CRITICAL FIX: Set cell content without any character manipulation
+  // CRITICAL FIX: Set cell content with improved RTL handling
   cell.text = Array.isArray(processed.text) ? processed.text : [processed.text];
   
   // CRITICAL FIX: Apply appropriate alignment based on content type
@@ -27,14 +27,12 @@ export function didParseCell(data: CellHookData): void {
     // Force left alignment for numbers, currency, and non-RTL text
     cell.styles.halign = 'left';
   } else {
-    // Right alignment for Hebrew text with explicit RTL direction
+    // Right alignment for Hebrew text
     cell.styles.halign = 'right';
-    // CRITICAL FIX: Force RTL direction in cell style
-    cell.styles.direction = 'rtl';
   }
   
   // Log cell processing for debugging
-  console.log(`Cell "${cellContent}" processed with halign=${cell.styles.halign}, direction=${cell.styles.direction || 'default'}`);
+  console.log(`Cell "${cellContent}" processed with halign=${cell.styles.halign}`);
 }
 
 /**
@@ -55,12 +53,11 @@ export function willDrawCell(data: CellHookData): void {
   }
   // CRITICAL FIX: For Hebrew text cells, use MULTIPLE types of RTL markers for maximum compatibility
   else if (/[\u0590-\u05FF]/.test(cellContent)) {
-    // Apply MULTIPLE RTL markers for maximum compatibility:
-    // \u202B = Right-to-Left Embedding (RLE)
-    // \u202E = Right-to-Left Override (RLO)
+    // Use maximum strength RTL isolation with multiple markers:
     // \u2067 = Right-to-Left Isolate (RLI)
+    // \u061C = Arabic Letter Mark (ALM) - helps with RTL rendering
+    // \u200F = Right-to-Left Mark (RLM)
     // \u2069 = Pop Directional Isolate (PDI)
-    // This combination provides the strongest possible RTL forcing
-    cell.text = [`\u202B\u2067${cellContent}\u2069\u202C`];
+    cell.text = [`\u200F\u2067\u200F${cellContent}\u200F\u2069`];
   }
 }

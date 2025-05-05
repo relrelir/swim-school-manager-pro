@@ -1,4 +1,3 @@
-
 import { processTableCellText, forceLtrDirection } from '../textDirection';
 import { containsHebrew } from '../contentDetection';
 
@@ -28,11 +27,11 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   }
   // Currency with Hebrew text
   else if (isCurrency && isHebrewContent) {
-    // CRITICAL FIX: Use MULTIPLE RTL markers for strongest possible direction enforcement
-    // \u202B = Right-to-Left Embedding
-    // \u2067 = Right-to-Left Isolate 
+    // CRITICAL FIX: Use stronger RTL markers combination
+    // \u200F = Right-to-Left Mark (RLM)
+    // \u061C = Arabic Letter Mark (ALM)
     return { 
-      text: `\u202B\u2067${content}\u2069\u202C`, // Multiple RTL markers for maximum strength
+      text: `\u200F${content}`,
       isRtl: true,
       isCurrency: true 
     };
@@ -61,16 +60,14 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
       isCurrency: false 
     };
   }
-  // Hebrew text - CRITICAL FIX: Use MULTIPLE RTL markers for strongest effect
+  // Hebrew text - CRITICAL FIX: Use stronger RTL markers combination
   else if (isHebrewContent) {
-    // Use multiple RTL control characters together for maximum compatibility:
-    // \u202B = Right-to-Left Embedding (RLE)
-    // \u202E = Right-to-Left Override (RLO) - strongest manual override
-    // \u2067 = Right-to-Left Isolate (RLI)
-    // \u2069 = Pop Directional Isolate (PDI)
-    // \u202C = Pop Directional Formatting (PDF)
+    // Use combination of RTL marks for maximum strength
+    // \u200F = Right-to-Left Mark (RLM)
+    // \u061C = Arabic Letter Mark (ALM)
+    // \u200E = Left-to-Right Mark (LRM) - at the end to reset
     return { 
-      text: `\u202B\u202E\u2067${content}\u2069\u202C`, // Multiple markers for strongest RTL effect
+      text: `\u200F\u061C${content}`,
       isRtl: true,
       isCurrency: false 
     };

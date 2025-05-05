@@ -31,30 +31,28 @@ export const forceLtrDirection = (text: string): string => {
   if (!text) return '';
   
   // Use multiple LTR control characters for maximum compatibility:
-  // \u202A = Left-to-Right Embedding (LRE)
   // \u202D = Left-to-Right Override (LRO) - strongest override
   // \u2066 = Left-to-Right Isolate (LRI) - strongest isolation
   // \u2069 = Pop Directional Isolate (PDI)
   // \u202C = Pop Directional Formatting (PDF)
   
-  return `\u202A\u202D\u2066${text}\u2069\u202C`;
+  return `\u202D\u2066${text}\u2069\u202C`;
 };
 
 /**
  * Force RTL direction specifically for Hebrew text in tables
- * CRITICAL FIX: Use multiple bidirectional control characters for Hebrew text
+ * CRITICAL FIX: Enhanced with maximum compatibility markers
  */
 export const forceRtlDirection = (text: string): string => {
   if (!text) return '';
   
-  // Use multiple RTL control characters for maximum compatibility:
-  // \u202B = Right-to-Left Embedding (RLE)
-  // \u202E = Right-to-Left Override (RLO) - strongest override
-  // \u2067 = Right-to-Left Isolate (RLI)
-  // \u2069 = Pop Directional Isolate (PDI)
-  // \u202C = Pop Directional Formatting (PDF)
+  // Use optimized combination for maximum RTL effect:
+  // \u200F = Right-to-Left Mark (RLM) - signals RTL text
+  // \u061C = Arabic Letter Mark (ALM) - strengthens RTL context
+  // \u2067 = Right-to-Left Isolate (RLI) - isolates the text
+  // \u2069 = Pop Directional Isolate (PDI) - closes isolation
   
-  return `\u202B\u202E\u2067${text}\u2069\u202C`;
+  return `\u200F\u061C\u2067${text}\u2069`;
 };
 
 /**
@@ -86,7 +84,7 @@ export const processTableCellText = (text: string): string => {
       return forceLtrDirection(text);
     }
   } else if (containsHebrew(text)) {
-    // CRITICAL FIX: Use multiple RTL control characters for Hebrew text
+    // CRITICAL FIX: Use enhanced RTL control characters for Hebrew text
     return forceRtlDirection(text);
   }
   
