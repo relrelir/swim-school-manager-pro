@@ -6,22 +6,30 @@
 
 /**
  * Format text for PDF display with appropriate direction markers
- * - Hebrew text gets RTL marks (U+200F)
- * - Numbers get LTR marks (U+200E)
+ * - Hebrew text works correctly with the global RTL setting
+ * - Numbers need special handling with RTL marks
  */
 export const formatPdfField = (text: string | number): string => {
   if (text === null || text === undefined) return '';
   
   const textStr = String(text);
   
+  // Check if the text contains Hebrew characters
+  const containsHebrew = /[\u0590-\u05FF]/.test(textStr);
+  
   // Check if the text contains only numbers, spaces, hyphens, and typical numeric symbols
   const isNumeric = /^[\d\s\-+()\/\.,:]+$/.test(textStr);
   
-  // Use LRM (U+200E) for numbers and RLM (U+200F) for Hebrew
-  const marker = isNumeric ? '\u200E' : '\u200F';
-  
-  // Wrap text with appropriate markers at start and end
-  return marker + textStr + marker;
+  // In a globally RTL document:
+  // - Hebrew text already displays correctly (RTL)
+  // - Numbers need explicit RTL marks to display correctly
+  if (isNumeric && !containsHebrew) {
+    // Use RLM (U+200F) for numbers to ensure they display correctly in RTL context
+    return '\u200F' + textStr + '\u200F';
+  } else {
+    // Hebrew text or mixed content - already displays correctly with global RTL
+    return textStr;
+  }
 };
 
 /**
@@ -32,8 +40,8 @@ export const forceLtrDirection = (text: string | number): string => {
   
   const textStr = String(text);
   
-  // Always use LRM (U+200E) markers
-  return '\u200E' + textStr + '\u200E';
+  // In RTL context, use RLM (U+200F) to ensure proper display of numeric content
+  return '\u200F' + textStr + '\u200F';
 };
 
 /**
@@ -42,8 +50,8 @@ export const forceLtrDirection = (text: string | number): string => {
 export const forceRtlDirection = (text: string): string => {
   if (text === null || text === undefined) return '';
   
-  // Always use RLM (U+200F) markers
-  return '\u200F' + text + '\u200F';
+  // Hebrew text already displays correctly in global RTL - no special handling needed
+  return text;
 };
 
 /**

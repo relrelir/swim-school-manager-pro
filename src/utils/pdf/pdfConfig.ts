@@ -19,7 +19,7 @@ export const createRtlPdf = async (): Promise<jsPDF> => {
     // Configure for Hebrew text support with Alef font
     await configureHebrewFont(pdf);
     
-    // CRITICAL FIX: Set Hebrew language for better bidirectional support
+    // CRITICAL: Set Hebrew language for better bidirectional support
     if (typeof pdf.setLanguage === 'function') {
       try {
         pdf.setLanguage('he');
@@ -29,7 +29,8 @@ export const createRtlPdf = async (): Promise<jsPDF> => {
       }
     }
     
-    // Default to RTL mode for the entire document
+    // IMPORTANT: Enable RTL mode for the entire document
+    // This is critical for proper text direction
     pdf.setR2L(true);
     
     console.log("PDF created successfully with Alef font and RTL mode");
@@ -64,7 +65,7 @@ export const configureDocumentStyle = (pdf: jsPDF): void => {
     pdf.setFontSize(12);
     pdf.setTextColor(0, 0, 0);
     
-    // CRITICAL FIX: Always use RTL for document styling
+    // CRITICAL: Always use RTL for document styling
     pdf.setR2L(true);
     
     console.log("Document style configured successfully with font:", pdf.getFont().fontName);

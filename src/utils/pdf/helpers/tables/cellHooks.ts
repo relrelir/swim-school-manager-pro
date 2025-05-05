@@ -19,15 +19,14 @@ export function didParseCell(data: CellHookData): void {
   
   // Apply appropriate alignment based on content type
   if (/^\d{5,9}$/.test(cellContent)) {
-    // ID numbers always left-aligned
+    // ID numbers - align left in RTL context
     cell.styles.halign = 'left';
   }
-  // Apply appropriate alignment based on content type
   else if (processed.isCurrency || !processed.isRtl) {
     // Force left alignment for numbers, currency, and non-RTL text
     cell.styles.halign = 'left';
   } else {
-    // Right alignment for Hebrew text
+    // Right alignment for Hebrew text in RTL context
     cell.styles.halign = 'right';
   }
   
@@ -45,12 +44,12 @@ export function willDrawCell(data: CellHookData): void {
   
   const cellContent = Array.isArray(cell.text) ? cell.text.join('') : cell.text;
   
-  // For ID numbers, use LTR formatting
-  if (/^\d{5,9}$/.test(cellContent)) {
+  // For ID numbers and numbers, ensure correct direction
+  if (/^\d{5,9}$/.test(cellContent) || /^[\d\s\-+()\/\.,:]+$/.test(cellContent)) {
     cell.text = [forceLtrDirection(cellContent)];
   }
   // For Hebrew text cells, use our formatPdfField function
   else if (/[\u0590-\u05FF]/.test(cellContent)) {
-    cell.text = [formatPdfField(cellContent)]; 
+    cell.text = [formatPdfField(cellContent)];
   }
 }

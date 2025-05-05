@@ -39,10 +39,10 @@ export const buildHealthDeclarationPDF = (
     console.log("Starting PDF generation with enhanced bidirectional text handling");
     console.log("Raw notes field:", healthDeclaration.notes);
     
-    // CRITICAL FIX: Add title with direct Hebrew support - no need for text manipulation
+    // Add title - Hebrew title works correctly with global RTL
     addPdfTitle(pdf, 'הצהרת בריאות');
     
-    // Add date with strongest possible LTR control
+    // Add date with proper direction control for numeric content
     const formattedDate = healthDeclaration.submission_date 
       ? format(new Date(healthDeclaration.submission_date), 'dd/MM/yyyy HH:mm') 
       : format(new Date(), 'dd/MM/yyyy HH:mm');
@@ -61,9 +61,9 @@ export const buildHealthDeclarationPDF = (
     
     // Create participant data table with improved formatting
     const participantData = [
-      [formatPdfField(fullName), 'שם מלא'],
-      [forceLtrDirection(participant.idnumber || ''), 'תעודת זהות'],
-      [forceLtrDirection(participant.phone || ''), 'טלפון'],
+      [fullName, 'שם מלא'], // Hebrew name - no special formatting needed
+      [forceLtrDirection(participant.idnumber || ''), 'תעודת זהות'], // ID number needs LTR control
+      [forceLtrDirection(participant.phone || ''), 'טלפון'], // Phone number needs LTR control
     ];
     
     console.log("Creating participant data table");
@@ -77,10 +77,10 @@ export const buildHealthDeclarationPDF = (
     // Add parent/guardian section with optimized spacing
     addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
     
-    // Create parent info table - using the correctly parsed parent name
+    // Create parent info table - Hebrew name and numeric ID
     const parentData = [
-      [parentInfo.parentName ? formatPdfField(parentInfo.parentName) : 'לא צוין', 'שם מלא'],
-      [forceLtrDirection(parentInfo.parentId || 'לא צוין'), 'תעודת זהות'],
+      [parentInfo.parentName ? parentInfo.parentName : 'לא צוין', 'שם מלא'], // Hebrew name - no special formatting
+      [forceLtrDirection(parentInfo.parentId || 'לא צוין'), 'תעודת זהות'], // ID number needs LTR control
     ];
     
     console.log("Parent name being used:", parentInfo.parentName || 'לא צוין');
@@ -90,10 +90,10 @@ export const buildHealthDeclarationPDF = (
     addSectionTitle(pdf, 'תוכן ההצהרה', lastY + 5);
     
     const declarationItems = getDeclarationItems();
-    // Properly mark each declaration item with RTL markers
+    // Hebrew declaration items with bullets
     const declarationData = declarationItems.map(item => [
       '•', 
-      formatPdfField(item)
+      item // Hebrew text - no special formatting needed with global RTL
     ]);
     
     console.log("Creating declaration items table");
@@ -106,10 +106,10 @@ export const buildHealthDeclarationPDF = (
     
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
     
-    // Display medical notes or default message with RTL markers
+    // Display medical notes or default message
     const notesText = medicalNotes && medicalNotes.trim() !== '' 
-      ? formatPdfField(medicalNotes)
-      : formatPdfField('אין הערות רפואיות נוספות');
+      ? medicalNotes // Hebrew text - no special formatting needed with global RTL
+      : 'אין הערות רפואיות נוספות';
       
     lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
@@ -118,24 +118,22 @@ export const buildHealthDeclarationPDF = (
     
     lastY = createPlainTextTable(
       pdf, 
-      [[formatPdfField('אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.')]], 
+      [['אני מאשר/ת כי קראתי והבנתי את האמור לעיל ואני מצהיר/ה כי כל הפרטים שמסרתי הם נכונים.']], 
       lastY + 10
     );
     
     // ===== SIGNATURE SECTION =====
     // Use the parent name in the signature line if available
-    pdf.setR2L(true); // Enable RTL for Hebrew text
+    pdf.setR2L(true); // Ensure RTL is enabled for Hebrew text
     
     const signatureY = lastY + 15;
     if (parentInfo.parentName && parentInfo.parentName.trim() !== '') {
-      // Use parent name in signature line with RTL marks
-      pdf.text(formatPdfField(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`), 30, signatureY);
+      // Use parent name in signature line
+      pdf.text(`חתימת ההורה/אפוטרופוס: ${parentInfo.parentName}`, 30, signatureY);
     } else {
-      // Default signature line with RTL marks
-      pdf.text(formatPdfField('חתימת ההורה/אפוטרופוס: ________________'), 30, signatureY);
+      // Default signature line
+      pdf.text('חתימת ההורה/אפוטרופוס: ________________', 30, signatureY);
     }
-    
-    pdf.setR2L(false); // Reset RTL setting
     
     // Generate filename
     const fileName = `הצהרת_בריאות_${participant.firstname}_${participant.lastname}.pdf`;

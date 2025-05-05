@@ -20,9 +20,9 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   
   // Handle participant ID numbers and other numeric IDs
   if (/^\d{5,9}$/.test(content)) {
-    // ID numbers need special handling - must be LTR
+    // ID numbers need LTR formatting in RTL context
     return { 
-      text: forceLtrDirection(content), // Apply LTR markers to IDs
+      text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: false 
     };
@@ -38,31 +38,31 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Non-Hebrew currency
   else if (isCurrency) {
     return { 
-      text: forceLtrDirection(content), // Apply LTR markers to currency
+      text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: true 
     };
   }
-  // Date format - always LTR
+  // Date format - always needs LTR in RTL context
   else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     return { 
-      text: forceLtrDirection(content), // Apply LTR markers to dates
+      text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: false 
     };
   }
-  // Pure numbers
+  // Pure numbers - need LTR in RTL context
   else if (/^[0-9\s\-\.\/]+$/.test(content)) {
     return { 
-      text: forceLtrDirection(content), // Apply LTR markers to numbers
+      text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: false 
     };
   }
-  // Hebrew text
+  // Hebrew text - works correctly with global RTL
   else if (isHebrewContent) {
     return { 
-      text: formatPdfField(content), // Apply formatPdfField to determine direction
+      text: content, // Hebrew works correctly with global RTL
       isRtl: true,
       isCurrency: false 
     };
@@ -70,7 +70,7 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Other content (English, etc)
   else {
     return { 
-      text: formatPdfField(content), // Apply formatPdfField to determine direction
+      text: forceLtrDirection(content),
       isRtl: false,
       isCurrency: false 
     };
