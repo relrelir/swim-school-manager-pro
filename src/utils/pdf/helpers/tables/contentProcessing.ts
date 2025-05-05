@@ -1,4 +1,3 @@
-
 import { processTableCellText, forceLtrDirection } from '../textDirection';
 import { containsHebrew } from '../contentDetection';
 
@@ -18,28 +17,28 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   
   console.log(`Processing cell: ${content}, Hebrew: ${isHebrewContent}, Currency: ${isCurrency}, Numeric: ${isNumericOnly}`);
   
-  // Handle ID numbers - must be LTR with explicit LTR EMBEDDING (stronger than mark)
+  // Handle ID numbers - must be LTR with explicit LTR marker
   if (/^\d{5,9}$/.test(content)) {
     return { 
-      text: `\u202A${content}\u202C`, // Add explicit LTR EMBEDDING for ID numbers
+      text: `\u200E${content}`, // Add explicit LTR mark for ID numbers
       isRtl: false,
       isCurrency: false,
       isNumber: true 
     };
   }
-  // Phone numbers - must be LTR with explicit LTR EMBEDDING (stronger than mark)
+  // Phone numbers - must be LTR with explicit LTR marker
   else if (/^0\d{1,2}[\-\s]?\d{7,8}$/.test(content)) {
     return { 
-      text: `\u202A${content}\u202C`, // Add explicit LTR EMBEDDING for phone numbers
+      text: `\u200E${content}`, // Add explicit LTR mark for phone numbers
       isRtl: false,
       isCurrency: false,
       isNumber: true 
     };
   }
-  // Pure numbers - must be LTR with explicit LTR EMBEDDING (stronger than mark)
+  // Pure numbers - must be LTR with explicit LTR marker
   else if (isNumericOnly) {
     return { 
-      text: `\u202A${content}\u202C`, // Add explicit LTR EMBEDDING for numbers
+      text: `\u200E${content}`, // Add explicit LTR mark for numbers
       isRtl: false,
       isCurrency: false,
       isNumber: true 
@@ -47,9 +46,9 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   }
   // Currency with Hebrew text
   else if (isCurrency && isHebrewContent) {
-    // RTL EMBEDDING for Hebrew currency
+    // Simple RTL mark for Hebrew currency
     return { 
-      text: `\u202B${content}\u202C`,
+      text: `\u200F${content}`,
       isRtl: true,
       isCurrency: true,
       isNumber: false 
@@ -58,25 +57,25 @@ export const processCellContent = (cell: any): { text: string, isRtl: boolean, i
   // Non-Hebrew currency
   else if (isCurrency) {
     return { 
-      text: `\u202A${content}\u202C`, // Explicit LTR EMBEDDING for non-Hebrew currency
+      text: `\u200E${content}`, // Explicit LTR mark for non-Hebrew currency
       isRtl: false,
       isCurrency: true,
       isNumber: false 
     };
   }
-  // Date format - always LTR with EMBEDDING
+  // Date format - always LTR
   else if (/^\d{1,2}\/\d{1,2}\/\d{2,4}$/.test(content)) {
     return { 
-      text: `\u202A${content}\u202C`, // Explicit LTR EMBEDDING for dates
+      text: `\u200E${content}`, // Explicit LTR mark for dates
       isRtl: false,
       isCurrency: false,
       isNumber: false 
     };
   }
-  // Hebrew text - explicit RTL EMBEDDING (stronger than mark)
+  // Hebrew text - simple RTL mark
   else if (isHebrewContent) {
     return { 
-      text: `\u202B${content}\u202C`, // RLE (Right-to-Left Embedding)
+      text: `\u200F${content}`, // RLM (Right-to-Left Mark)
       isRtl: true,
       isCurrency: false,
       isNumber: false 

@@ -31,8 +31,8 @@ export const createDataTable = (
   // Get table configuration with direction control
   const tableConfig = getTableConfig(startY);
   
-  // FIXED: Don't use global RTL settings, handle direction per cell
-  // Let individual cell hooks handle text direction
+  // CRITICAL FIX: Enable RTL mode before creating table
+  pdf.setR2L(true);
   
   if (hasHeader) {
     const headers = processedData[0];
@@ -72,6 +72,9 @@ export const createDataTable = (
       });
     }
   }
+  
+  // CRITICAL FIX: Disable RTL mode after creating table
+  pdf.setR2L(false);
 
   // Return the new y position after the table
   let finalY = 0;
