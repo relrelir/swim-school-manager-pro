@@ -21,13 +21,21 @@ export const useParticipantHandlers = (
     e: React.FormEvent,
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any
+    setNewPayment: any,
+    productId?: string,
+    registration?: Registration
   ) => any,
-  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any,
+  baseHandleApplyDiscount: (
+    amount: number, 
+    setIsAddPaymentOpen: (open: boolean) => void,
+    productId?: string,
+    registration?: Registration
+  ) => any,
   newParticipant: any,
   registrationData: any,
   getParticipantForRegistration: (registration: Registration) => Participant | undefined,
-  registrations: Registration[]
+  registrations: Registration[],
+  currentRegistration: Registration | null
 ) => {
   const { handleOpenHealthForm } = useHealthFormHandlers(baseHandleOpenHealthForm);
   

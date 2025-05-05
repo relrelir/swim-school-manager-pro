@@ -19,9 +19,13 @@ export const usePaymentHandlers = (
                              receiptNumber: string;
                              paymentDate: string;
                            }>>,
-                           productId?: string) => {
+                           productId?: string,
+                           registration?: Registration) => {
     
-    if (currentRegistration) {
+    // Use the provided registration or fall back to the state one
+    const regToUse = registration || currentRegistration;
+    
+    if (regToUse) {
       // Check if receipt number is provided
       if (!newPayment.receiptNumber) {
         toast({
@@ -34,7 +38,7 @@ export const usePaymentHandlers = (
       
       // Add the new payment
       const payment: Omit<Payment, 'id'> = {
-        registrationId: currentRegistration.id,
+        registrationId: regToUse.id,
         amount: newPayment.amount,
         receiptNumber: newPayment.receiptNumber,
         paymentDate: newPayment.paymentDate,
@@ -43,10 +47,10 @@ export const usePaymentHandlers = (
       addPayment(payment);
       
       // Update the registration's paidAmount
-      const updatedPaidAmount = currentRegistration.paidAmount + newPayment.amount;
+      const updatedPaidAmount = regToUse.paidAmount + newPayment.amount;
       
       const updatedRegistration: Registration = {
-        ...currentRegistration,
+        ...regToUse,
         paidAmount: updatedPaidAmount,
       };
       
@@ -74,14 +78,18 @@ export const usePaymentHandlers = (
   const handleApplyDiscount = (
     discountAmount: number, 
     setIsAddPaymentOpen: (open: boolean) => void,
-    productId?: string
+    productId?: string,
+    registration?: Registration
   ) => {
-    if (currentRegistration) {
+    // Use the provided registration or fall back to the state one
+    const regToUse = registration || currentRegistration;
+    
+    if (regToUse) {
       // Update the registration with discount
       const updatedRegistration: Registration = {
-        ...currentRegistration,
+        ...regToUse,
         discountApproved: true,
-        discountAmount: (currentRegistration.discountAmount || 0) + discountAmount,
+        discountAmount: (regToUse.discountAmount || 0) + discountAmount,
       };
       
       updateRegistration(updatedRegistration);

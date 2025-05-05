@@ -19,9 +19,16 @@ export const useParticipantAdapters = (
     e: React.FormEvent,
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any
+    setNewPayment: any,
+    productId?: string,
+    registration?: Registration
   ) => any,
-  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => any
+  baseHandleApplyDiscount: (
+    amount: number, 
+    setIsAddPaymentOpen: (open: boolean) => void,
+    productId?: string,
+    registration?: Registration
+  ) => any
 ) => {
   // Create an adapter for updateParticipant to match the expected signature
   const adaptedUpdateParticipant = async (id: string, data: Partial<Participant>): Promise<Participant> => {
@@ -61,13 +68,20 @@ export const useParticipantAdapters = (
     e: React.FormEvent, 
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
-    setNewPayment: any
+    setNewPayment: any,
+    productId?: string,
+    registration?: Registration
   ) => {
-    return baseHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
+    return baseHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment, productId, registration);
   };
 
-  const handleApplyDiscountAdapter = (amount: number, setIsAddPaymentOpen: (open: boolean) => void) => {
-    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen);
+  const handleApplyDiscountAdapter = (
+    amount: number, 
+    setIsAddPaymentOpen: (open: boolean) => void,
+    productId?: string,
+    registration?: Registration
+  ) => {
+    return baseHandleApplyDiscount(amount, setIsAddPaymentOpen, productId, registration);
   };
 
   return {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
@@ -123,7 +122,7 @@ const ParticipantsPage: React.FC = () => {
 
   // Create an adapter for the handleApplyDiscount function to match the expected signature
   const handleApplyDiscountWrapper = (amount: number) => {
-    handleApplyDiscount(amount, setIsAddPaymentOpen);
+    handleApplyDiscount(amount);
   };
 
   return (

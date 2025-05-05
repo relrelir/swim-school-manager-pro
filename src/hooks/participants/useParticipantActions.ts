@@ -22,7 +22,8 @@ export const useParticipantActions = (
   setIsAddPaymentOpen: (value: boolean) => void,
   setNewPayment: (value: any) => void,
   newPayment: any,
-  resetForm: () => void
+  resetForm: () => void,
+  currentRegistration: Registration | null
 ) => {
   const {
     updateParticipant,
@@ -117,7 +118,8 @@ export const useParticipantActions = (
     newParticipant,
     registrationData,
     getParticipantForRegistration,
-    registrations
+    registrations,
+    currentRegistration
   );
 
   // Final wrapper for handleAddParticipant
@@ -127,13 +129,25 @@ export const useParticipantActions = (
 
   // Final wrapper for handleAddPayment
   const handleAddPayment = (e: React.FormEvent) => {
-    return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
+    return wrapperHandleAddPayment(
+      e, 
+      newPayment, 
+      setIsAddPaymentOpen, 
+      setNewPayment, 
+      productId, 
+      currentRegistration
+    );
+  };
+
+  // Final wrapper for handleApplyDiscount
+  const handleApplyDiscountFixed = (amount: number) => {
+    return handleApplyDiscount(amount, setIsAddPaymentOpen, productId, currentRegistration);
   };
 
   return {
     handleAddParticipant,
     handleAddPayment,
-    handleApplyDiscount,
+    handleApplyDiscount: handleApplyDiscountFixed,
     handleDeleteRegistration,
     handleUpdateHealthApproval,
     handleOpenHealthForm
