@@ -1,3 +1,4 @@
+
 import { jsPDF } from 'jspdf';
 import { Registration, Participant, Payment } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
@@ -65,13 +66,29 @@ export function buildRegistrationPDF(
     // Registration information - MODIFIED as per requirements
     addSectionTitle(pdf, 'פרטי רישום:', yPosition + 15);
     
-    // Calculate payment status text
-    const paymentStatusText = registration.paidAmount >= registration.requiredAmount ? 'שולם במלואו' : 
-                              (registration.paidAmount > 0 ? 'תשלום חלקי' : 'טרם שולם');
-    
     // Calculate effective required amount (after discount)
     const discountAmount = registration.discountAmount || 0;
     const effectiveRequiredAmount = Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
+    
+    // UPDATED: Calculate payment status text taking into account discounts
+    let paymentStatusText;
+    if (registration.discountApproved) {
+      // For cases with approved discount
+      if (registration.paidAmount >= effectiveRequiredAmount) {
+        paymentStatusText = 'שולם במלואו';
+      } else {
+        paymentStatusText = 'תשלום חלקי';
+      }
+    } else {
+      // Regular calculation without discount
+      if (registration.paidAmount >= registration.requiredAmount) {
+        paymentStatusText = 'שולם במלואו';
+      } else if (registration.paidAmount > 0) {
+        paymentStatusText = 'תשלום חלקי';
+      } else {
+        paymentStatusText = 'טרם שולם';
+      }
+    }
     
     // Format the registration date with day first and explicit LTR control
     const formattedRegistrationDate = forceLtrDirection(format(new Date(registration.registrationDate), 'dd/MM/yyyy'));

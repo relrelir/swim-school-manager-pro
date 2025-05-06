@@ -115,7 +115,7 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     return registrations.filter(registration => registration.productId === productId);
   };
 
-  // Calculate payment status, properly accounting for discounts
+  // Updated calculate payment status, properly accounting for discounts
   const calculatePaymentStatus = (registration: Registration, actualPaidAmount?: number): PaymentStatus => {
     // The discountAmount is the amount of discount applied to this registration
     const discountAmount = registration.discountAmount || 0;
