@@ -41,10 +41,10 @@ export const generateHealthDeclarationPdf = async (participantId: string) => {
     
     console.log("Data fetched successfully. Participant:", participant);
     
-    // 3. Get health declaration data (if exists)
+    // 3. Get health declaration data (if exists) - now including signature field
     let { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
-      .select('id, participant_id, submission_date, notes, form_status')
+      .select('id, participant_id, submission_date, notes, form_status, signature')
       .eq('participant_id', participantId)
       .single();
     
@@ -55,7 +55,8 @@ export const generateHealthDeclarationPdf = async (participantId: string) => {
         participant_id: participantId,
         submission_date: null,
         notes: null,
-        form_status: 'pending'
+        form_status: 'pending',
+        signature: null
       };
       console.log("No health declaration found, using default object");
     } else {
