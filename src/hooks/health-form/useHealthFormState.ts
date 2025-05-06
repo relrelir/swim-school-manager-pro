@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { submitHealthFormService } from '@/context/data/healthDeclarations/submitHealthForm';
 import { toast } from "@/components/ui/use-toast";
@@ -9,7 +9,7 @@ interface FormState {
   notes: string;
   parentName: string;
   parentId: string;
-  signature: string; // Added signature field
+  signature: string;
 }
 
 export const useHealthFormState = (healthDeclarationId: string | null) => {
@@ -20,31 +20,30 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     notes: '',
     parentName: '',
     parentId: '',
-    signature: '' // Initialize signature as empty string
+    signature: ''
   });
   
-  const handleAgreementChange = (value: boolean) => {
+  const handleAgreementChange = useCallback((value: boolean) => {
     setFormState(prev => ({ ...prev, agreement: value }));
-  };
+  }, []);
   
-  const handleNotesChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleNotesChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormState(prev => ({ ...prev, notes: e.target.value }));
-  };
+  }, []);
   
-  const handleParentNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleParentNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setFormState(prev => ({ ...prev, parentName: e.target.value }));
-  };
+  }, []);
   
-  const handleParentIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleParentIdChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setFormState(prev => ({ ...prev, parentId: e.target.value }));
-  };
+  }, []);
   
-  // Add signature handling function
-  const handleSignatureChange = (signatureData: string) => {
+  const handleSignatureChange = useCallback((signatureData: string) => {
     setFormState(prev => ({ ...prev, signature: signatureData }));
-  };
+  }, []);
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!healthDeclarationId) {
@@ -74,7 +73,6 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
       return;
     }
     
-    // Check if signature is provided
     if (!formState.signature) {
       toast({
         title: "שגיאה",
@@ -94,7 +92,7 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
         healthDeclarationId,
         formState.agreement,
         notesWithParentInfo,
-        formState.signature // Include signature in the submission
+        formState.signature
       );
       
       toast({
@@ -113,7 +111,7 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [healthDeclarationId, formState, navigate]);
   
   return {
     isLoading,
@@ -122,7 +120,7 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
     handleNotesChange,
     handleParentNameChange,
     handleParentIdChange,
-    handleSignatureChange, // Export the signature handler
+    handleSignatureChange,
     handleSubmit
   };
 };

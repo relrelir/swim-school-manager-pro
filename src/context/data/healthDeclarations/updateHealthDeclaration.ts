@@ -13,7 +13,13 @@ export const updateHealthDeclarationService = async (id: string, updates: Partia
   try {
     const dbUpdates = mapHealthDeclarationToDB(updates);
     
-    console.log('Updating health declaration with id:', id, 'and data:', dbUpdates);
+    // Log the update operation without exposing potentially large signature data
+    const logUpdates = { ...dbUpdates };
+    if (logUpdates.signature) {
+      logUpdates.signature = '[Signature data present]';
+    }
+    
+    console.log('Updating health declaration with id:', id, 'and data:', logUpdates);
     
     // Breaking down the query chain and using explicit typing
     const response: PostgrestResponse<any> = await supabase

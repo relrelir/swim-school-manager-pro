@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { 
@@ -38,7 +38,7 @@ export function useHealthDeclarationsProvider() {
   }, []);
 
   // Add a health declaration
-  const addHealthDeclaration = async (healthDeclaration: Omit<HealthDeclaration, 'id'>) => {
+  const addHealthDeclaration = useCallback(async (healthDeclaration: Omit<HealthDeclaration, 'id'>) => {
     try {
       const newHealthDeclaration = await addHealthDeclarationService(healthDeclaration);
       if (newHealthDeclaration) {
@@ -50,10 +50,10 @@ export function useHealthDeclarationsProvider() {
       console.error("Error adding health declaration:", error);
       throw error;
     }
-  };
+  }, []);
 
   // Update a health declaration
-  const updateHealthDeclaration = async (id: string, updates: Partial<HealthDeclaration>) => {
+  const updateHealthDeclaration = useCallback(async (id: string, updates: Partial<HealthDeclaration>) => {
     try {
       await updateHealthDeclarationService(id, updates);
       setHealthDeclarations(declarations => 
@@ -66,24 +66,34 @@ export function useHealthDeclarationsProvider() {
       console.error("Error updating health declaration:", error);
       throw error;
     }
-  };
+  }, []);
 
   // Get health declaration for a specific registration
-  const getHealthDeclarationForRegistration = async (registrationId: string) => {
-    return await findDeclarationByRegistrationId(registrationId);
-  };
+  const getHealthDeclarationForRegistration = useCallback(async (registrationId: string) => {
+    return findDeclarationByRegistrationId(registrationId);
+  }, [findDeclarationByRegistrationId]);
 
   // Get health declaration by participant ID
-  const getHealthDeclarationByParticipantId = async (participantId: string) => {
-    return await findDeclarationByParticipantId(participantId);
-  };
+  const getHealthDeclarationByParticipantId = useCallback(async (participantId: string) => {
+    return findDeclarationByParticipantId(participantId);
+  }, [findDeclarationByParticipantId]);
 
-  return {
+  // Memoize the context value
+  const contextValue = useMemo(() => ({
     healthDeclarations,
     addHealthDeclaration,
     updateHealthDeclaration,
     getHealthDeclarationForRegistration,
     getHealthDeclarationByParticipantId,
     loading
-  };
+  }), [
+    healthDeclarations, 
+    addHealthDeclaration, 
+    updateHealthDeclaration, 
+    getHealthDeclarationForRegistration, 
+    getHealthDeclarationByParticipantId, 
+    loading
+  ]);
+
+  return contextValue;
 }

@@ -19,7 +19,7 @@ interface HealthDeclarationContentProps {
   handleNotesChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   handleParentNameChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleParentIdChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  hideNotes?: boolean; // Added optional property for hiding notes input
+  hideNotes?: boolean;
 }
 
 const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
@@ -31,8 +31,15 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
   handleNotesChange,
   handleParentNameChange,
   handleParentIdChange,
-  hideNotes = false // Default to showing notes
+  hideNotes = false
 }) => {
+  const declarationPoints = [
+    "המשתתף נמצא/ת בכושר ובמצב בריאותי תקין המאפשר השתתפות בפעילות.",
+    "לא ידוע לי על מגבלות רפואיות המונעות להשתתף בפעילות.",
+    "לא ידוע לי על רגישויות, מחלות או בעיות רפואיות אחרות שעלולות להשפיע על ההשתתפות בפעילות.",
+    "אני מתחייב/ת להודיע למדריכים על כל שינוי במצבו הבריאותי."
+  ];
+
   return (
     <div className="space-y-6 text-right" dir="rtl">
       {/* Participant Information */}
@@ -85,10 +92,9 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
         </div>
         
         <div className="text-sm space-y-2 rounded-md border p-4">
-          <p>• המשתתף נמצא/ת בכושר ובמצב בריאותי תקין המאפשר השתתפות בפעילות.</p>
-          <p>• לא ידוע לי על מגבלות רפואיות המונעות להשתתף בפעילות.</p>
-          <p>• לא ידוע לי על רגישויות, מחלות או בעיות רפואיות אחרות שעלולות להשפיע על ההשתתפות בפעילות.</p>
-          <p>• אני מתחייב/ת להודיע למדריכים על כל שינוי במצבו הבריאותי.</p>
+          {declarationPoints.map((point, index) => (
+            <p key={`declaration-point-${index}`}>• {point}</p>
+          ))}
         </div>
         
         <div className="flex items-center space-x-2 space-y-0 pt-2">

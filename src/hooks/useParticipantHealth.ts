@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { HealthDeclaration, Participant, Registration } from '@/types';
 import { useHealthDeclarationHandling } from './participants/health/useHealthDeclarationHandling';
 import { useHealthDeclarationActions } from './participants/health/useHealthDeclarationActions';
@@ -36,12 +36,22 @@ export const useParticipantHealth = (
     setIsLinkDialogOpen
   );
 
-  return {
+  // Memoize the returned object to prevent unnecessary re-renders
+  const hookResult = useMemo(() => ({
     isLinkDialogOpen,
     setIsLinkDialogOpen,
     currentHealthDeclaration,
     setCurrentHealthDeclaration,
     handleOpenHealthForm,
     handleUpdateHealthApproval
-  };
+  }), [
+    isLinkDialogOpen,
+    setIsLinkDialogOpen,
+    currentHealthDeclaration,
+    setCurrentHealthDeclaration,
+    handleOpenHealthForm,
+    handleUpdateHealthApproval
+  ]);
+
+  return hookResult;
 };
