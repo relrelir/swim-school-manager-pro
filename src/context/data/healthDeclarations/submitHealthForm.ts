@@ -10,7 +10,7 @@ export const submitHealthFormService = async (
   declarationId: string, 
   agreement: boolean, 
   notes: string | undefined,
-  signature?: string // Add signature parameter
+  signature?: string // Signature parameter
 ) => {
   try {
     if (!agreement) {
@@ -24,7 +24,10 @@ export const submitHealthFormService = async (
       signature: signature || null // Add signature to updates
     };
     
-    console.log('Submitting health form for declaration:', declarationId, 'with data:', updates);
+    console.log('Submitting health form for declaration:', declarationId, 'with data:', {
+      ...updates,
+      signature: signature ? '[Signature data present]' : null // Log indicator without the full data
+    });
     
     // Breaking down the query chain and using explicit typing
     const response: PostgrestResponse<any> = await supabase
