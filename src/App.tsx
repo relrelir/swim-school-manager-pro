@@ -14,8 +14,8 @@ import HealthFormPage from "./pages/HealthFormPage";
 import FormSuccessPage from "./pages/FormSuccessPage";
 import PrintableHealthDeclarationPage from "./pages/PrintableHealthDeclarationPage";
 import NotFound from "./pages/NotFound";
-import { AuthProvider } from "@/context/AuthContext";
-import { DataProvider } from "@/context/DataContext";
+import { AuthProvider } from "./context/AuthContext";
+import { DataProvider } from "./context/DataContext";
 
 // יצירת לקוח עבור React Query
 const queryClient = new QueryClient({
