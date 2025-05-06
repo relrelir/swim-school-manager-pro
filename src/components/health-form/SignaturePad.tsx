@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import SignaturePad from 'signature_pad';
 import { Button } from '@/components/ui/button';
 import { PenIcon, RotateCcwIcon, CheckIcon } from 'lucide-react';
@@ -78,14 +78,14 @@ const SignaturePadComponent: React.FC<SignaturePadProps> = ({
     };
   }, [signaturePad]);
 
-  const clearSignature = useCallback(() => {
+  const clearSignature = () => {
     if (signaturePad) {
       signaturePad.clear();
       setError(null);
     }
-  }, [signaturePad]);
+  };
 
-  const confirmSignature = useCallback(() => {
+  const confirmSignature = () => {
     if (!signaturePad) {
       setError('שגיאה בטעינת שדה החתימה');
       return;
@@ -99,11 +99,7 @@ const SignaturePadComponent: React.FC<SignaturePadProps> = ({
     // Get signature as data URL and pass to parent component
     const dataUrl = signaturePad.toDataURL('image/png');
     onSignatureConfirm(dataUrl);
-  }, [signaturePad, onSignatureConfirm]);
-
-  const handleCancelClick = useCallback(() => {
-    onCancel();
-  }, [onCancel]);
+  };
 
   return (
     <div className="flex flex-col items-center">
@@ -150,7 +146,7 @@ const SignaturePadComponent: React.FC<SignaturePadProps> = ({
         <Button 
           type="button" 
           variant="ghost" 
-          onClick={handleCancelClick}
+          onClick={onCancel}
         >
           חזור לטופס
         </Button>

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -43,7 +43,7 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     }
   }, [isOpen, healthDeclaration]);
 
-  const handleCreateHealthDeclaration = useCallback(async () => {
+  const handleCreateHealthDeclaration = async () => {
     setIsLoading(true);
     
     try {
@@ -86,7 +86,7 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [healthDeclaration, registrationId, addHealthDeclaration, afterSubmit]);
+  };
 
   const isFormSigned = Boolean(
     healthDeclaration && 

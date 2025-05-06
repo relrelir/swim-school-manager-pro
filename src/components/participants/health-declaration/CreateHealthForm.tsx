@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { LinkIcon } from "lucide-react";
 
@@ -14,30 +14,10 @@ const CreateHealthForm: React.FC<CreateHealthFormProps> = ({
   isLoading,
   onSubmit
 }) => {
-  const [copySuccess, setCopySuccess] = useState(false);
-  
-  // Reset copy success message after a delay
-  useEffect(() => {
-    let timerId: number | undefined;
-    
-    if (copySuccess) {
-      timerId = window.setTimeout(() => {
-        setCopySuccess(false);
-      }, 3000);
-    }
-    
-    // Clean up timer when component unmounts or copySuccess changes
-    return () => {
-      if (timerId) {
-        window.clearTimeout(timerId);
-      }
-    };
-  }, [copySuccess]);
-  
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit(e);
-  }, [onSubmit]);
+  };
   
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

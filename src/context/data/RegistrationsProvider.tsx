@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useContext, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { PaymentStatus, Registration } from '@/types';
 import { RegistrationsContextType } from './types';
 import { handleSupabaseError, mapRegistrationFromDB, mapRegistrationToDB } from './utils';
@@ -49,8 +49,8 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     fetchRegistrations();
   }, []);
 
-  // Registrations functions with useCallback
-  const addRegistration = useCallback(async (registration: Omit<Registration, 'id'>) => {
+  // Registrations functions
+  const addRegistration = async (registration: Omit<Registration, 'id'>) => {
     try {
       const dbRegistration = mapRegistrationToDB(registration);
 
@@ -66,15 +66,15 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
 
       if (data) {
         const newRegistration = mapRegistrationFromDB(data);
-        setRegistrations(prevRegistrations => [...prevRegistrations, newRegistration]);
+        setRegistrations([...registrations, newRegistration]);
         return newRegistration;
       }
     } catch (error) {
       console.error('Error adding registration:', error);
     }
-  }, []);
+  };
 
-  const updateRegistration = useCallback(async (registration: Registration) => {
+  const updateRegistration = async (registration: Registration) => {
     try {
       const { id, ...registrationData } = registration;
       const dbRegistration = mapRegistrationToDB(registrationData);
@@ -88,15 +88,13 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
         handleSupabaseError(error, 'updating registration');
       }
 
-      setRegistrations(prevRegistrations => 
-        prevRegistrations.map(r => r.id === registration.id ? registration : r)
-      );
+      setRegistrations(registrations.map(r => r.id === registration.id ? registration : r));
     } catch (error) {
       console.error('Error updating registration:', error);
     }
-  }, []);
+  };
 
-  const deleteRegistration = useCallback(async (id: string) => {
+  const deleteRegistration = async (id: string) => {
     try {
       const { error } = await supabase
         .from('registrations')
@@ -107,18 +105,18 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
         handleSupabaseError(error, 'deleting registration');
       }
 
-      setRegistrations(prevRegistrations => prevRegistrations.filter(r => r.id !== id));
+      setRegistrations(registrations.filter(r => r.id !== id));
     } catch (error) {
       console.error('Error deleting registration:', error);
     }
-  }, []);
+  };
 
-  const getRegistrationsByProduct = useCallback((productId: string) => {
+  const getRegistrationsByProduct = (productId: string) => {
     return registrations.filter(registration => registration.productId === productId);
-  }, [registrations]);
+  };
 
   // Updated calculate payment status, properly accounting for discounts
-  const calculatePaymentStatus = useCallback((registration: Registration, actualPaidAmount?: number): PaymentStatus => {
+  const calculatePaymentStatus = (registration: Registration, actualPaidAmount?: number): PaymentStatus => {
     // The discountAmount is the amount of discount applied to this registration
     const discountAmount = registration.discountAmount || 0;
     const paidWithoutDiscount = actualPaidAmount !== undefined ? actualPaidAmount : registration.paidAmount;
@@ -141,9 +139,9 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     }
     
     return 'מלא' as PaymentStatus;
-  }, []);
+  };
 
-  const contextValue = useMemo<RegistrationsContextType>(() => ({
+  const contextValue: RegistrationsContextType = {
     registrations,
     addRegistration,
     updateRegistration,
@@ -151,15 +149,7 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
     getRegistrationsByProduct,
     calculatePaymentStatus,
     loading
-  }), [
-    registrations,
-    addRegistration,
-    updateRegistration,
-    deleteRegistration,
-    getRegistrationsByProduct,
-    calculatePaymentStatus,
-    loading
-  ]);
+  };
 
   return (
     <RegistrationsContext.Provider value={contextValue}>
