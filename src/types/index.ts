@@ -80,6 +80,7 @@ export interface HealthDeclaration {
   submission_date?: string;
   created_at: string;
   notes?: string;
+  signature?: string; // Added signature field
   
   // These fields are used in our TypeScript code but mapped differently when sending to the database
   registrationId?: string; // For convenience in our code

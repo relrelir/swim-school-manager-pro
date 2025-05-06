@@ -60,8 +60,11 @@ const HealthFormPage: React.FC = () => {
     // Update form state with signature
     handleSignatureChange(signatureData);
     
-    // Submit the form
-    handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+    // Use setTimeout to ensure state is updated before submitting
+    setTimeout(() => {
+      // Submit the form
+      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+    }, 0);
   };
 
   const handleCancelSignature = () => {

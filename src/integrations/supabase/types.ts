@@ -41,6 +41,7 @@ export type Database = {
           notes: string | null
           participant_id: string
           phone_sent_to: string
+          signature: string | null
           submission_date: string | null
           token: string
           updated_at: string
@@ -52,6 +53,7 @@ export type Database = {
           notes?: string | null
           participant_id: string
           phone_sent_to: string
+          signature?: string | null
           submission_date?: string | null
           token: string
           updated_at?: string
@@ -63,6 +65,7 @@ export type Database = {
           notes?: string | null
           participant_id?: string
           phone_sent_to?: string
+          signature?: string | null
           submission_date?: string | null
           token?: string
           updated_at?: string
