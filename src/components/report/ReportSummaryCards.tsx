@@ -17,10 +17,8 @@ const ReportSummaryCards: React.FC<ReportSummaryCardsProps> = ({ registrations }
     sum + Math.max(0, reg.requiredAmount - (reg.discountApproved ? (reg.discountAmount || 0) : 0)), 0);
   
   // Calculate total paid from payments (or fallback to paidAmount)
-  // IMPORTANT: This excludes the discount amounts
   const totalPaidAmount = registrations.reduce((sum, reg) => {
     if (!reg.payments) return sum + reg.paidAmount;
-    // Only sum the actual payment amounts, excluding discounts
     return sum + reg.payments.reduce((pSum, payment) => pSum + payment.amount, 0);
   }, 0);
   

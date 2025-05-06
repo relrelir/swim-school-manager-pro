@@ -52,14 +52,17 @@ export function useProductPageData(seasonId: string | undefined) {
         totalExpected += productRegistrations.reduce((sum, reg) => 
           sum + Math.max(0, reg.requiredAmount - (reg.discountApproved ? (reg.discountAmount || 0) : 0)), 0);
         
-        // Calculate total paid from actual payments only (excluding discounts)
+        // Calculate total paid including payments and approved discounts
         totalPaid += productRegistrations.reduce((sum, reg) => {
           const regPayments = getPaymentsByRegistration(reg.id);
-          // Only include real payments, not discounts
+          // Include real payments
           const paymentsTotal = regPayments.length === 0 ? reg.paidAmount : 
             regPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
           
-          return sum + paymentsTotal;
+          // Add discount amount if approved
+          const discountAmount = reg.discountApproved ? (reg.discountAmount || 0) : 0;
+          
+          return sum + paymentsTotal + discountAmount;
         }, 0);
       });
       
