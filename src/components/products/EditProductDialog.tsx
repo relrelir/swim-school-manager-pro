@@ -96,7 +96,7 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-[95%] w-full sm:max-w-lg p-4 sm:p-6 overflow-y-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>עריכת מוצר</DialogTitle>
           <DialogDescription>

@@ -30,7 +30,7 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
   if (!editingProduct) return null;
 
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} className="space-y-4">
       <ProductFormFields
         productName={editingProduct.name}
         productType={editingProduct.type}
@@ -53,8 +53,8 @@ const EditProductForm: React.FC<EditProductFormProps> = ({
         onMaxParticipantsChange={(value) => handleChange('maxParticipants', value)}
         onNotesChange={(value) => handleChange('notes', value)}
       />
-      <DialogFooter className="mt-4">
-        <Button type="submit">שמור שינויים</Button>
+      <DialogFooter className="mt-6 pt-4 pb-2 sticky bottom-0 bg-background z-10">
+        <Button type="submit" className="w-full sm:w-auto">שמור שינויים</Button>
       </DialogFooter>
     </form>
   );
