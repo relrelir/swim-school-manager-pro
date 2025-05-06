@@ -1,22 +1,19 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Product } from '@/types';
 import { addDays } from 'date-fns';
 import EditProductForm from './EditProductForm';
-
 interface EditProductDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   product: Product | null;
   onSubmit: (productData: Partial<Product>) => void;
 }
-
 const EditProductDialog: React.FC<EditProductDialogProps> = ({
   isOpen,
   onOpenChange,
   product,
-  onSubmit,
+  onSubmit
 }) => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [calculatedEndDate, setCalculatedEndDate] = useState<string | null>(null);
@@ -41,26 +38,20 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
         'שישי': 5,
         'שבת': 6
       };
-  
       const selectedDayNumbers = editingProduct.daysOfWeek.map(day => dayNameToNumber[day]).sort();
-      
       if (selectedDayNumbers.length > 0) {
         const start = new Date(editingProduct.startDate);
         let currentDate = new Date(start);
         let meetingsLeft = editingProduct.meetingsCount || 1;
-        
         while (meetingsLeft > 0) {
           const currentDayOfWeek = currentDate.getDay();
-          
           if (selectedDayNumbers.includes(currentDayOfWeek)) {
             meetingsLeft--;
           }
-          
           if (meetingsLeft > 0) {
             currentDate = addDays(currentDate, 1);
           }
         }
-        
         setCalculatedEndDate(currentDate.toISOString().split('T')[0]);
       } else {
         setCalculatedEndDate(null);
@@ -69,7 +60,6 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
       setCalculatedEndDate(null);
     }
   }, [editingProduct?.daysOfWeek, editingProduct?.meetingsCount, editingProduct?.startDate]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingProduct) {
@@ -89,31 +79,19 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
         effectivePrice: editingProduct.effectivePrice,
         active: editingProduct.active // Include active field
       };
-      
       onSubmit(updatedProduct);
     }
   };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+  return <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg px-[51px] my-0 py-[147px]">
         <DialogHeader>
           <DialogTitle>עריכת מוצר</DialogTitle>
           <DialogDescription>
             שינוי במפגשים או בימי הפעילות ישנה את תאריך הסיום המחושב.
           </DialogDescription>
         </DialogHeader>
-        {editingProduct && (
-          <EditProductForm
-            editingProduct={editingProduct}
-            setEditingProduct={setEditingProduct}
-            onSubmit={handleSubmit}
-            calculatedEndDate={calculatedEndDate}
-          />
-        )}
+        {editingProduct && <EditProductForm editingProduct={editingProduct} setEditingProduct={setEditingProduct} onSubmit={handleSubmit} calculatedEndDate={calculatedEndDate} />}
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default EditProductDialog;
