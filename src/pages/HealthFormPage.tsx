@@ -38,7 +38,7 @@ const HealthFormPage: React.FC = () => {
     return <LoadingState />;
   }
 
- const handleFormSubmit = (e: React.FormEvent) => {
+ const handleFormSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
 
   if (!formState.agreement) {
@@ -54,7 +54,11 @@ const HealthFormPage: React.FC = () => {
   if (isSubmitting) return;
   setIsSubmitting(true);
 
-  handleSubmit().finally(() => setIsSubmitting(false));
+  try {
+    await handleSubmit(e);
+  } finally {
+    setIsSubmitting(false);
+  }
 };
 
 
