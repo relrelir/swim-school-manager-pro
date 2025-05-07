@@ -58,6 +58,7 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
               onChange={handleParentNameChange}
               required
               dir="rtl"
+              required
             />
           </div>
           <div className="space-y-2">
@@ -69,6 +70,7 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
               onChange={handleParentIdChange}
               required
               dir="rtl"
+              required
             />
           </div>
         </div>
