@@ -118,9 +118,7 @@ export const buildHealthDeclarationPDF = (
 //const notesText = rawNotes && rawNotes !== ''
 //  ? rawNotes
  // : 'אין הערות רפואיות נוספות';
-const notesText = healthDeclaration.notes && healthDeclaration.notes.trim() !== ''
-  ? healthDeclaration.notes.trim()
-  : 'אין הערות רפואיות נוספות';
+
 
 lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
 
