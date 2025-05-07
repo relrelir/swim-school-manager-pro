@@ -8,7 +8,7 @@ import {
   createDataTable,
   createPlainTextTable
 } from './pdfHelpers';
-import { parseParentInfo, parseMedicalNotes, getDeclarationItems } from './healthDeclarationParser';
+import { parseMedicalNotes, getDeclarationItems } from './healthDeclarationParser';
 import { forceLtrDirection } from './helpers/textDirection';
 import { formatPdfField, forceRtlDirection } from './helpers/textFormatting';
 
@@ -27,6 +27,9 @@ interface HealthDeclarationData {
   notes: string | null;
   form_status: string;
   signature?: string | null; // Add signature field
+  parent_name?: string;
+parent_id?: string;
+
 }
 
 /**
@@ -70,7 +73,11 @@ export const buildHealthDeclarationPDF = (
     
     // ===== PARENT/GUARDIAN SECTION - SEPARATE SECTION =====
     // Parse parent info with our improved parser - parseParentInfo is now more efficient
-    const parentInfo = parseParentInfo(healthDeclaration.notes);
+ const parentInfo = {
+  parentName: healthDeclaration.parent_name || '',
+  parentId: healthDeclaration.parent_id || ''
+};
+
     
     // Add parent/guardian section with optimized spacing
     addSectionTitle(pdf, 'פרטי ההורה/אפוטרופוס', lastY + 5);
