@@ -10,7 +10,11 @@ export const submitHealthFormService = async (
   declarationId: string, 
   agreement: boolean, 
   notes: string | undefined,
-  signature?: string // Add signature parameter
+  signature?: string,
+  parentName?: string,
+  parentId?: string
+)
+
 ) => {
   try {
     if (!agreement) {
