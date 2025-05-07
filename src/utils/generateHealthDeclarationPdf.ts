@@ -38,6 +38,13 @@ export const generateHealthDeclarationPdf = async (participantId: string) => {
       console.error("Participant details not found:", participantError);
       throw new Error('פרטי המשתתף לא נמצאו');
     }
+
+    if (!participant.firstname || !participant.lastname) {
+  throw new Error("חסר שם פרטי או שם משפחה למשתתף");
+}
+
+const fullName = `${participant.firstname} ${participant.lastname}`.trim();
+
     
     console.log("Data fetched successfully. Participant:", participant);
     
