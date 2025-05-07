@@ -9,7 +9,7 @@ interface ParticipantsContextType {
   participants: Participant[];
   addParticipant: (participant: Omit<Participant, 'id'>) => Promise<Participant | undefined> | void;
   updateParticipant: (participant: Participant) => void;
-  deleteParticipant: (id: string) => void;
+  deleteParticipant: (id: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -89,6 +89,29 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  // Delete a participant
+  const deleteParticipant = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('participants')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        handleSupabaseError(error, 'deleting participant');
+      }
+
+      setParticipants(participants.filter(p => p.id !== id));
+    } catch (error) {
+      console.error("Error deleting participant:", error);
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה במחיקת משתתף",
+        variant: "destructive",
+      });
+    }
+  };
+
   const contextValue: ParticipantsContextType = {
     participants,
     addParticipant,
@@ -115,26 +138,7 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         });
       }
     },
-    deleteParticipant: async (id: string) => {
-      try {
-        const { error } = await supabase
-          .from('participants')
-          .delete()
-          .eq('id', id);
-
-        if (error) {
-          handleSupabaseError(error, 'deleting participant');
-        }
-
-        setParticipants(participants.filter(p => p.id !== id));
-      } catch (error) {
-        toast({
-          title: "שגיאה",
-          description: "אירעה שגיאה במחיקת משתתף",
-          variant: "destructive",
-        });
-      }
-    },
+    deleteParticipant,
     loading
   };
 

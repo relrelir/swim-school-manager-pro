@@ -4,6 +4,7 @@ import { useParticipantHandlers } from '../useParticipantHandlers';
 import { useRegistrationManagement } from '../useRegistrationManagement';
 import { useParticipantHealth } from '../useParticipantHealth';
 import { useParticipantAdapters } from '../useParticipantAdapters';
+import { toast } from "@/components/ui/use-toast";
 
 /**
  * Hook for participant-related actions and handlers
@@ -31,12 +32,14 @@ export const useParticipantActions = (
     addRegistration,
     updateRegistration,
     deleteRegistration,
+    deleteParticipant,
     addPayment,
     getPaymentsByRegistration,
     getRegistrationsByProduct,
     addHealthDeclaration,
     updateHealthDeclaration: baseUpdateHealthDeclaration,
-    getHealthDeclarationForRegistration
+    getHealthDeclarationForRegistration,
+    deleteHealthDeclaration
   } = dataContext;
 
   // Create an adapter for updateHealthDeclaration to match expected signature
@@ -74,7 +77,7 @@ export const useParticipantActions = (
     handleAddParticipant: baseHandleAddParticipant,
     handleAddPayment: baseHandleAddPayment,
     handleApplyDiscount: baseHandleApplyDiscount,
-    handleDeleteRegistration
+    handleDeleteRegistration: managementHandleDeleteRegistration
   } = useRegistrationManagement(
     product,
     productId,
@@ -129,6 +132,60 @@ export const useParticipantActions = (
   // Final wrapper for handleAddPayment
   const handleAddPayment = (e: React.FormEvent) => {
     return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
+  };
+
+  // Implement the missing handleDeleteRegistration function
+  const handleDeleteRegistration = async (registrationId: string) => {
+    try {
+      // Check if the registration has any payments
+      const payments = await getPaymentsByRegistration(registrationId);
+      if (payments.length > 0) {
+        toast({
+          title: "לא ניתן למחוק",
+          description: "לא ניתן למחוק רישום שבוצע עבורו תשלום",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Find the registration to get the participant ID
+      const registration = registrations.find(r => r.id === registrationId);
+      if (!registration) {
+        console.error("Registration not found:", registrationId);
+        return;
+      }
+      
+      const participantId = registration.participantId;
+      
+      // Check if there's a health declaration to delete
+      const healthDecl = await getHealthDeclarationForRegistration(registrationId);
+      if (healthDecl) {
+        await deleteHealthDeclaration(healthDecl.id);
+      }
+      
+      // Delete the registration first
+      await deleteRegistration(registrationId);
+      
+      // Check if the participant has other registrations before deleting
+      const otherRegistrations = registrations.filter(
+        r => r.participantId === participantId && r.id !== registrationId
+      );
+      
+      if (otherRegistrations.length === 0) {
+        // Only delete the participant if they have no other registrations
+        await deleteParticipant(participantId);
+      }
+      
+      // Trigger a refresh to update the UI
+      setRefreshTrigger(prev => prev + 1);
+    } catch (error) {
+      console.error("Error deleting registration:", error);
+      toast({
+        title: "שגיאה במחיקת רישום",
+        description: "אירעה שגיאה בעת מחיקת הרישום",
+        variant: "destructive",
+      });
+    }
   };
 
   return {
