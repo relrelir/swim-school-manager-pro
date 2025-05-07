@@ -117,7 +117,7 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
             id="notes" 
             placeholder="אם יש מידע רפואי נוסף שעלינו לדעת, אנא ציין כאן"
             value={formState.notes}
-            onChange={handleNotesChange}
+             onChange={(e) => handleNotesChange(e.target.value)}
             dir="rtl"
           />
         </div>
