@@ -38,21 +38,13 @@ export const generateHealthDeclarationPdf = async (participantId: string) => {
       console.error("Participant details not found:", participantError);
       throw new Error('פרטי המשתתף לא נמצאו');
     }
-
-    if (!participant.firstname || !participant.lastname) {
-  throw new Error("חסר שם פרטי או שם משפחה למשתתף");
-}
-
-const fullName = `${participant.firstname} ${participant.lastname}`.trim();
-
     
     console.log("Data fetched successfully. Participant:", participant);
     
     // 3. Get health declaration data (if exists) - now including signature field
     let { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
-    .select('id, participant_id, submission_date, notes, form_status, signature, parent_name, parent_id')
-
+      .select('id, participant_id, submission_date, notes, form_status, signature')
       .eq('participant_id', participantId)
       .single();
     
@@ -79,11 +71,7 @@ const fullName = `${participant.firstname} ${participant.lastname}`.trim();
       
       // Build the PDF content with improved layout
       console.log("Building PDF content");
-     const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, {
-  ...participant,
-  fullName,
-});
-
+      const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
       console.log("PDF content built successfully, filename:", fileName);
       
       // Save the PDF
