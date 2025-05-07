@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ErrorState, LoadingState } from '@/components/health-form/HealthFormStates';
@@ -28,6 +28,29 @@ const HealthFormPage: React.FC = () => {
 
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAwaitingSignatureSubmit, setIsAwaitingSignatureSubmit] = useState(false);
+
+  // Effect to listen for signature changes and submit form when signature is received
+  useEffect(() => {
+    // Only proceed if we're waiting for a signature submission and have a signature
+    if (formState.signature && isAwaitingSignatureSubmit && !isSubmitting) {
+      const submitForm = async () => {
+        try {
+          setIsSubmitting(true);
+          // Create a fake event object for the form submission
+          const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+          await handleSubmit(fakeEvent);
+        } catch (error) {
+          console.error("Error submitting form:", error);
+        } finally {
+          setIsSubmitting(false);
+          setIsAwaitingSignatureSubmit(false);
+        }
+      };
+      
+      submitForm();
+    }
+  }, [formState.signature, isAwaitingSignatureSubmit, handleSubmit, isSubmitting]);
 
   // Show error state
   if (error) {
@@ -57,21 +80,10 @@ const HealthFormPage: React.FC = () => {
     setShowSignaturePad(true);
   };
 
-  const handleSignatureConfirm = async (signatureData: string) => {
-    // Update form state with signature
+  const handleSignatureConfirm = (signatureData: string) => {
+    // Update form state with signature and flag that we're awaiting submission
     handleSignatureChange(signatureData);
-    
-    // Submit the form with setTimeout to ensure state update has completed
-    try {
-      setIsSubmitting(true);
-      // Create a synthetic event
-      const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
-      await handleSubmit(syntheticEvent);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    setIsAwaitingSignatureSubmit(true);
   };
 
   const handleCancelSignature = () => {
