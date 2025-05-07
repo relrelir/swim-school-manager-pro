@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ interface PrintableHealthDeclarationProps {
     parentName: string;
     parentId: string;
     signature?: string; // Add signature field
+    formStatus?: 'pending' | 'signed' | 'expired' | 'completed';
   };
   submissionDate?: Date;
 }
@@ -30,30 +30,25 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
   const { toast } = useToast();
   const printRef = useRef<HTMLDivElement>(null);
 
-  // Function to handle printing
   const handlePrint = () => {
     window.print();
   };
 
-  // Function to export as image (fallback solution)
   const handleExportImage = async () => {
     try {
-      // Dynamic import to avoid server-side rendering issues
       const htmlToImage = await import('html-to-image');
-      
+
       if (!printRef.current) {
         throw new Error("Could not find the declaration content");
       }
 
-      // Create a downloadable image
       const dataUrl = await htmlToImage.toPng(printRef.current, { quality: 1 });
-      
-      // Create download link
+
       const link = document.createElement('a');
       link.download = `הצהרת_בריאות_${participantName.replace(/\s+/g, '_')}.png`;
       link.href = dataUrl;
       link.click();
-      
+
       toast({
         title: "התמונה נוצרה בהצלחה",
         description: "הצהרת הבריאות נשמרה כתמונה"
@@ -70,16 +65,18 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
 
   return (
     <div className="p-4 max-w-3xl mx-auto" dir="rtl">
-      {/* Control buttons - hidden when printing */}
       <div className="flex justify-between mb-6 print:hidden">
         <h1 className="text-2xl font-bold">הצהרת בריאות</h1>
         <div className="flex gap-2">
-         <Button 
-  onClick={handlePrint} 
-  className="flex items-center gap-2"
-  disabled={formState.formStatus !== 'completed'}
-  title={formState.formStatus !== 'completed' ? "הצהרת הבריאות טרם הושלמה" : ""}
->
+          <Button 
+            onClick={handlePrint} 
+            className="flex items-center gap-2"
+            disabled={formState.formStatus !== 'completed'}
+            title={formState.formStatus !== 'completed' ? "הצהרת הבריאות טרם הושלמה" : ""}
+          >
+            <Printer className="h-4 w-4" />
+            הדפסה
+          </Button>
           <Button onClick={handleExportImage} variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
             שמירה כתמונה
@@ -87,13 +84,11 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
         </div>
       </div>
 
-      {/* Printable content */}
       <div 
         ref={printRef} 
         className="bg-white p-6 border rounded-md shadow-sm print:shadow-none print:border-none print:p-0 print:max-w-full"
         dir="rtl"
       >
-        {/* Header with title - visible when printing */}
         <div className="mb-6 text-center border-b pb-4">
           <h1 className="text-2xl font-bold mb-2">הצהרת בריאות</h1>
           <p className="text-sm text-gray-500">
@@ -101,7 +96,6 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </p>
         </div>
 
-        {/* SECTION 1: Participant details - CLEARLY SEPARATED */}
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3">פרטי המשתתף</h3>
           <div className="grid grid-cols-2 gap-4">
@@ -120,7 +114,6 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </div>
         </div>
 
-        {/* SECTION 2: Parent/guardian information - CLEARLY SEPARATED */}
         <div className="mt-6 pt-4 border-t">
           <h3 className="text-lg font-semibold mb-3">פרטי ההורה/אפוטרופוס</h3>
           <div className="grid grid-cols-2 gap-4 mb-4">
@@ -135,7 +128,6 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </div>
         </div>
 
-        {/* Health declaration content */}
         <div className="print-content print:text-sm mt-6 pt-4 border-t">
           <h3 className="text-lg font-semibold mb-3">תוכן ההצהרה</h3>
           <HealthDeclarationContent
@@ -144,7 +136,6 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
             participantPhone={participantPhone}
             formState={{
               ...formState,
-              // Don't show notes here - they'll be in their own section
               notes: ''
             }}
             handleAgreementChange={() => {}}
@@ -155,7 +146,6 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           />
         </div>
 
-        {/* SECTION 3: Medical notes - CLEARLY SEPARATED */}
         <div className="mt-4 pt-3 border-t">
           <h3 className="text-lg font-semibold mb-3">הערות רפואיות</h3>
           <div className="p-3 bg-gray-50 rounded-md">
@@ -167,7 +157,6 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           </div>
         </div>
 
-        {/* SECTION 4: Signature section - CLEARLY SEPARATED */}
         <div className="mt-4 pt-3 border-t">
           <h3 className="text-lg font-semibold mb-3">חתימה</h3>
           <div className="flex flex-col gap-4 print:gap-2">
