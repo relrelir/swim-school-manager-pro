@@ -38,23 +38,25 @@ const HealthFormPage: React.FC = () => {
     return <LoadingState />;
   }
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate form before showing signature pad
-    if (!formState.agreement) {
-      alert("יש לאשר את הצהרת הבריאות כדי להמשיך");
-      return;
-    }
-    
-    if (!formState.parentName || !formState.parentId) {
-      alert("יש למלא את פרטי ההורה/אפוטרופוס");
-      return;
-    }
-    
-    // Show signature pad
-    setShowSignaturePad(true);
-  };
+ const handleFormSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!formState.agreement) {
+    alert("יש לאשר את הצהרת הבריאות כדי להמשיך");
+    return;
+  }
+
+  if (!formState.parentName || !formState.parentId) {
+    alert("יש למלא את פרטי ההורה");
+    return;
+  }
+
+  if (isSubmitting) return;
+  setIsSubmitting(true);
+
+  handleSubmit().finally(() => setIsSubmitting(false));
+};
+
 
   const handleSignatureConfirm = (signatureData: string) => {
     // Update form state with signature
