@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { fetchHealthDeclarations } from './fetchHealthDeclarations';
 import { addHealthDeclarationService } from './addHealthDeclaration';
 import { updateHealthDeclarationService } from './updateHealthDeclaration';
-import { getHealthDeclarationById } from './getHealthDeclaration';
+import { getHealthDeclarationById, getHealthDeclarationByToken } from './getHealthDeclaration';
 import { createHealthDeclarationLink as createHealthDeclarationLinkService } from './createHealthDeclarationLink';
 import { HealthDeclarationsContextType } from './context';
 
@@ -51,6 +51,7 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
         variant: "destructive",
       });
     }
+    return undefined;
   };
 
   // Update a health declaration
@@ -71,6 +72,7 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
         variant: "destructive",
       });
     }
+    return undefined;
   };
 
   // Delete a health declaration
@@ -102,6 +104,7 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
       return await getHealthDeclarationById(registrationId);
     } catch (error) {
       console.error('Error getting health declaration:', error);
+      return undefined;
     }
   };
 
@@ -116,21 +119,14 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
         description: "אירעה שגיאה ביצירת קישור להצהרת בריאות",
         variant: "destructive",
       });
+      return undefined;
     }
   };
 
   // Get a health declaration by token
-  const getHealthDeclarationByToken = async (token: string) => {
+  const getHealthDeclarationByTokenHandler = async (token: string) => {
     try {
-      const { data, error } = await supabase
-        .from('health_declarations')
-        .select('*')
-        .eq('token', token)
-        .single();
-
-      if (error) throw error;
-      
-      return data as HealthDeclaration;
+      return await getHealthDeclarationByToken(token);
     } catch (error) {
       console.error('Error getting health declaration by token:', error);
       return undefined;
@@ -144,7 +140,7 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
     deleteHealthDeclaration,
     getHealthDeclarationForRegistration,
     createHealthDeclarationLink,
-    getHealthDeclarationByToken,
+    getHealthDeclarationByToken: getHealthDeclarationByTokenHandler,
     loading
   };
 };
