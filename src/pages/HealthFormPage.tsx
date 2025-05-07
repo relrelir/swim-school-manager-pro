@@ -6,7 +6,7 @@ import { ErrorState, LoadingState } from '@/components/health-form/HealthFormSta
 import { useHealthForm } from '@/hooks/useHealthForm';
 import SignaturePadComponent from '@/components/health-form/SignaturePad';
 
-// אופטימיזציה: שימוש ב-lazy loading לטעינת תוכן הטופס רק כשנדרש
+// ׳׳•׳₪׳˜׳™׳׳™׳–׳¦׳™׳”: ׳©׳™׳׳•׳© ׳‘-lazy loading ׳׳˜׳¢׳™׳ ׳× ׳×׳•׳›׳ ׳”׳˜׳•׳₪׳¡ ׳¨׳§ ׳›׳©׳ ׳“׳¨׳©
 const HealthDeclarationContent = lazy(() => import('@/components/health-form/HealthDeclarationContent'));
 
 const HealthFormPage: React.FC = () => {
@@ -42,12 +42,12 @@ const HealthFormPage: React.FC = () => {
   e.preventDefault();
 
   if (!formState.agreement) {
-    alert("יש לאשר את הצהרת הבריאות כדי להמשיך");
+    alert("׳™׳© ׳׳׳©׳¨ ׳׳× ׳”׳¦׳”׳¨׳× ׳”׳‘׳¨׳™׳׳•׳× ׳›׳“׳™ ׳׳”׳׳©׳™׳");
     return;
   }
 
   if (!formState.parentName || !formState.parentId) {
-    alert("יש למלא את פרטי ההורה");
+    alert("׳™׳© ׳׳׳׳ ׳׳× ׳₪׳¨׳˜׳™ ׳”׳”׳•׳¨׳”");
     return;
   }
 
@@ -69,7 +69,12 @@ const HealthFormPage: React.FC = () => {
     // Use setTimeout to ensure state is updated before submitting
     setTimeout(() => {
       // Submit the form
-      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+      setIsSubmitting(true);
+    try {
+      await handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+    } finally {
+      setIsSubmitting(false);
+    }
     }, 0);
   };
 
@@ -81,9 +86,9 @@ const HealthFormPage: React.FC = () => {
     <div className="container mx-auto py-10 px-4">
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle>הצהרת בריאות</CardTitle>
+          <CardTitle>׳”׳¦׳”׳¨׳× ׳‘׳¨׳™׳׳•׳×</CardTitle>
           <CardDescription>
-            {participantName ? `עבור ${participantName}` : 'אנא מלא את הפרטים הבאים והצהר על בריאות המשתתף'}
+            {participantName ? `׳¢׳‘׳•׳¨ ${participantName}` : '׳׳ ׳ ׳׳׳ ׳׳× ׳”׳₪׳¨׳˜׳™׳ ׳”׳‘׳׳™׳ ׳•׳”׳¦׳”׳¨ ׳¢׳ ׳‘׳¨׳™׳׳•׳× ׳”׳׳©׳×׳×׳£'}
           </CardDescription>
         </CardHeader>
         
@@ -97,7 +102,7 @@ const HealthFormPage: React.FC = () => {
         ) : (
           <form onSubmit={handleFormSubmit}>
             <CardContent>
-              <Suspense fallback={<div className="p-4 text-center">טוען תוכן טופס...</div>}>
+              <Suspense fallback={<div className="p-4 text-center">׳˜׳•׳¢׳ ׳×׳•׳›׳ ׳˜׳•׳₪׳¡...</div>}>
                 <HealthDeclarationContent 
                   participantName={participantName}
                   participantId={participantId}
@@ -113,7 +118,7 @@ const HealthFormPage: React.FC = () => {
             
             <CardFooter>
               <Button type="submit" className="w-full" disabled={isLoading || isSubmitting}>
-  {isLoading || isSubmitting ? 'שולח...' : 'אישור הצהרה'}
+  {isLoading || isSubmitting ? '׳©׳•׳׳—...' : '׳׳™׳©׳•׳¨ ׳”׳¦׳”׳¨׳”'}
 </Button>
 
             </CardFooter>
