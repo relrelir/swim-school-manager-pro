@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Product } from '@/types';
 import ProductsTable from './ProductsTable';
@@ -10,6 +9,7 @@ interface ProductTableSectionProps {
   sortDirection: 'asc' | 'desc';
   handleSort: (field: keyof Product) => void;
   onEditProduct: (product: Product) => void;
+  onDeleteProduct: (product: Product) => void; // חדש
 }
 
 const ProductTableSection: React.FC<ProductTableSectionProps> = ({
@@ -17,7 +17,8 @@ const ProductTableSection: React.FC<ProductTableSectionProps> = ({
   sortField,
   sortDirection,
   handleSort,
-  onEditProduct
+  onEditProduct,
+  onDeleteProduct // חדש
 }) => {
   return (
     <div className="overflow-x-auto">
@@ -30,10 +31,9 @@ const ProductTableSection: React.FC<ProductTableSectionProps> = ({
           sortDirection={sortDirection} 
           handleSort={handleSort}
           onEditProduct={onEditProduct}
+          onDeleteProduct={onDeleteProduct} // חדש
         />
       )}
     </div>
   );
 };
-
-export default ProductTableSection;
