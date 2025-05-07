@@ -29,6 +29,12 @@ const ParticipantsHeader: React.FC<ParticipantsHeaderProps> = ({
         <h1 className="text-2xl font-bold font-alef">
           {product ? `משתתפים ב${product.name}` : 'משתתפים'}
         </h1>
+        {product?.notes && (
+  <div className="text-sm text-muted-foreground mt-1">
+    <strong>הערות:</strong> {product.notes}
+  </div>
+)}
+
       </div>
       
       <div className="flex gap-2">
