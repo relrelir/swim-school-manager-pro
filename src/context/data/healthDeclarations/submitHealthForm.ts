@@ -21,12 +21,13 @@ export const submitHealthFormService = async (
       throw new Error('Must agree to health declaration');
     }
     
-    const updates = {
-      form_status: 'signed',
-      submission_date: new Date().toISOString(),
-      notes: notes || null,
-      signature: signature || null // Add signature to updates
-    };
+   const updates = {
+  form_status: 'signed',
+  submission_date: new Date().toISOString(),
+  notes: notes || null,
+  signature: signature || null
+};
+
     
     console.log('Submitting health form for declaration:', declarationId, 'with data:', updates);
     
