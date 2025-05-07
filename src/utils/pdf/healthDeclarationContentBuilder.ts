@@ -114,9 +114,15 @@ export const buildHealthDeclarationPDF = (
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
     
     // Display medical notes or default message
-    const notesText = medicalNotes && medicalNotes.trim() !== '' 
-      ? medicalNotes // Hebrew text - no special formatting needed with global RTL
-      : 'אין הערות רפואיות נוספות';
+   const rawNotes = healthDeclaration.notes || '';
+const cleanedText = rawNotes.replace(/הורה\/אפוטרופוס:?/g, '');
+
+const medicalNotes = parseMedicalNotes(cleanedText);
+
+const notesText = medicalNotes && medicalNotes.trim() !== '' 
+  ? medicalNotes 
+  : 'אין הערות רפואיות נוספות';
+
       
     lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
