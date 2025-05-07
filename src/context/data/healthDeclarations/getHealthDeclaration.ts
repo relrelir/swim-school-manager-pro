@@ -1,43 +1,35 @@
 
 import { HealthDeclaration } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
 import { mapHealthDeclarationFromDB } from './mappers';
-import { 
-  getHealthDeclarationByTokenRaw, 
-  getHealthDeclarationByIdRaw 
-} from './getHealthDeclarationRaw.js';
 
 /**
- * Get a health declaration by its ID
+ * Get health declaration by registration ID
  */
-export const getHealthDeclarationById = async (id: string): Promise<HealthDeclaration | null> => {
+export const getHealthDeclarationById = async (registrationId: string): Promise<HealthDeclaration | undefined> => {
   try {
-    const rawDeclaration = await getHealthDeclarationByIdRaw(id);
+    console.log('Getting health declaration for registration:', registrationId);
     
-    if (!rawDeclaration) {
-      return null;
+    const { data, error } = await supabase
+      .from('health_declarations')
+      .select('*')
+      .eq('participant_id', registrationId)
+      .maybeSingle();
+      
+    if (error) {
+      console.error('Error fetching health declaration:', error);
+      throw error;
     }
     
-    return mapHealthDeclarationFromDB(rawDeclaration);
-  } catch (error) {
-    console.error('Error getting health declaration by ID:', error);
-    return null;
-  }
-};
-
-/**
- * Get a health declaration by its token
- */
-export const getHealthDeclarationByToken = async (token: string): Promise<HealthDeclaration | null> => {
-  try {
-    const rawDeclaration = await getHealthDeclarationByTokenRaw(token);
-    
-    if (!rawDeclaration) {
-      return null;
+    if (data) {
+      console.log('Found health declaration for registration:', registrationId);
+      return mapHealthDeclarationFromDB(data);
     }
     
-    return mapHealthDeclarationFromDB(rawDeclaration);
+    console.log('No health declaration found for registration:', registrationId);
+    return undefined;
   } catch (error) {
-    console.error('Error getting health declaration by token:', error);
-    return null;
+    console.error('Error in getHealthDeclarationById:', error);
+    return undefined;
   }
 };

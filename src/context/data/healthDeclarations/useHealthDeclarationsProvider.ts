@@ -4,9 +4,9 @@ import { HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { fetchHealthDeclarations } from './fetchHealthDeclarations';
-import { addHealthDeclaration as addHealthDeclarationService } from './addHealthDeclaration';
-import { updateHealthDeclaration as updateHealthDeclarationService } from './updateHealthDeclaration';
-import { getHealthDeclaration as getHealthDeclarationService } from './getHealthDeclaration';
+import { addHealthDeclarationService } from './addHealthDeclaration';
+import { updateHealthDeclarationService } from './updateHealthDeclaration';
+import { getHealthDeclarationById } from './getHealthDeclaration';
 import { createHealthDeclarationLink as createHealthDeclarationLinkService } from './createHealthDeclarationLink';
 import { HealthDeclarationsContextType } from './context';
 
@@ -99,7 +99,7 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
   // Get a health declaration for a registration
   const getHealthDeclarationForRegistration = async (registrationId: string) => {
     try {
-      return await getHealthDeclarationService(registrationId);
+      return await getHealthDeclarationById(registrationId);
     } catch (error) {
       console.error('Error getting health declaration:', error);
     }
