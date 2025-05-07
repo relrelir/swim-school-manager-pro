@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ErrorState, LoadingState } from '@/components/health-form/HealthFormStates';
@@ -27,17 +27,6 @@ const HealthFormPage: React.FC = () => {
   } = useHealthForm();
 
   const [showSignaturePad, setShowSignaturePad] = useState(false);
-  const [shouldSubmitForm, setShouldSubmitForm] = useState(false);
-  
-  // Effect to submit the form when signature is updated and shouldSubmitForm is true
-  useEffect(() => {
-    if (shouldSubmitForm && formState.signature) {
-      // Reset the flag first to prevent multiple submissions
-      setShouldSubmitForm(false);
-      // Submit the form
-      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
-    }
-  }, [formState.signature, shouldSubmitForm, handleSubmit]);
 
   // Show error state
   if (error) {
@@ -70,10 +59,12 @@ const HealthFormPage: React.FC = () => {
   const handleSignatureConfirm = (signatureData: string) => {
     // Update form state with signature
     handleSignatureChange(signatureData);
-    // Hide signature pad and show form again
-    setShowSignaturePad(false);
-    // Set flag to submit the form after signature state is updated
-    setShouldSubmitForm(true);
+    
+    // Use setTimeout to ensure state is updated before submitting
+    setTimeout(() => {
+      // Submit the form
+      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+    }, 0);
   };
 
   const handleCancelSignature = () => {
