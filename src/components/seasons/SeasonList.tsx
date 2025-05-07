@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -8,9 +7,10 @@ import { Season } from '@/types';
 interface SeasonListProps {
   seasons: Season[];
   seasonProducts: Record<string, number>;
+  onDeleteSeason: (seasonId: string) => void;
 }
 
-const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts }) => {
+const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDeleteSeason }) => {
   const navigate = useNavigate();
 
   const handleViewProducts = (seasonId: string) => {
@@ -30,7 +30,7 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {seasons.map((season) => {
         const productCount = seasonProducts[season.id] || 0;
-        
+
         return (
           <Card key={season.id} className="bg-white shadow-md hover:shadow-lg transition-shadow">
             <CardContent className="pt-6">
@@ -50,9 +50,19 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts }) => {
                 </p>
               </div>
             </CardContent>
-            <CardFooter className="bg-gray-50 flex justify-end p-4">
-              <Button variant="secondary" onClick={() => handleViewProducts(season.id)}>
-                צפה במוצרים
+            <CardFooter className="bg-gray-50 flex justify-between">
+              <Button onClick={() => handleViewProducts(season.id)}>צפייה במוצרים</Button>
+              <Button
+                variant="destructive"
+                disabled={productCount > 0}
+                onClick={() => {
+                  const confirmDelete = window.confirm("האם אתה בטוח שברצונך למחוק את העונה?");
+                  if (confirmDelete) {
+                    onDeleteSeason(season.id);
+                  }
+                }}
+              >
+                מחק
               </Button>
             </CardFooter>
           </Card>
