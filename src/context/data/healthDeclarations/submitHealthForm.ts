@@ -13,9 +13,8 @@ export const submitHealthFormService = async (
   signature?: string,
   parentName?: string,
   parentId?: string
-)
-
 ) => {
+
   try {
     if (!agreement) {
       throw new Error('Must agree to health declaration');
