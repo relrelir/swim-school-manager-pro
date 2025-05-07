@@ -4,9 +4,9 @@ import { HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { fetchHealthDeclarations } from './fetchHealthDeclarations';
-import { addHealthDeclarationService } from './addHealthDeclaration';
-import { updateHealthDeclarationService } from './updateHealthDeclaration';
-import { getHealthDeclarationById, getHealthDeclarationByToken } from './getHealthDeclaration';
+import { addHealthDeclaration as addHealthDeclarationService } from './addHealthDeclaration';
+import { updateHealthDeclaration as updateHealthDeclarationService } from './updateHealthDeclaration';
+import { getHealthDeclaration as getHealthDeclarationService } from './getHealthDeclaration';
 import { createHealthDeclarationLink as createHealthDeclarationLinkService } from './createHealthDeclarationLink';
 import { HealthDeclarationsContextType } from './context';
 
@@ -51,7 +51,6 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
         variant: "destructive",
       });
     }
-    return undefined;
   };
 
   // Update a health declaration
@@ -72,7 +71,6 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
         variant: "destructive",
       });
     }
-    return undefined;
   };
 
   // Delete a health declaration
@@ -101,10 +99,9 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
   // Get a health declaration for a registration
   const getHealthDeclarationForRegistration = async (registrationId: string) => {
     try {
-      return await getHealthDeclarationById(registrationId);
+      return await getHealthDeclarationService(registrationId);
     } catch (error) {
       console.error('Error getting health declaration:', error);
-      return undefined;
     }
   };
 
@@ -119,14 +116,21 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
         description: "אירעה שגיאה ביצירת קישור להצהרת בריאות",
         variant: "destructive",
       });
-      return undefined;
     }
   };
 
   // Get a health declaration by token
-  const getHealthDeclarationByTokenHandler = async (token: string) => {
+  const getHealthDeclarationByToken = async (token: string) => {
     try {
-      return await getHealthDeclarationByToken(token);
+      const { data, error } = await supabase
+        .from('health_declarations')
+        .select('*')
+        .eq('token', token)
+        .single();
+
+      if (error) throw error;
+      
+      return data as HealthDeclaration;
     } catch (error) {
       console.error('Error getting health declaration by token:', error);
       return undefined;
@@ -140,7 +144,7 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
     deleteHealthDeclaration,
     getHealthDeclarationForRegistration,
     createHealthDeclarationLink,
-    getHealthDeclarationByToken: getHealthDeclarationByTokenHandler,
+    getHealthDeclarationByToken,
     loading
   };
 };

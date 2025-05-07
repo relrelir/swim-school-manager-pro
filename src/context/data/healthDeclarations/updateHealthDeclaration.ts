@@ -1,41 +1,42 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from "@/components/ui/use-toast";
 import { HealthDeclaration } from '@/types';
-import { mapHealthDeclarationFromDB, mapHealthDeclarationToDB } from './mappers';
+import { mapHealthDeclarationToDB } from './mappers';
 import { handleSupabaseError } from '../utils';
+import type { PostgrestResponse } from '@supabase/supabase-js';
 
-export const updateHealthDeclarationService = async (
-  id: string,
-  declaration: Partial<HealthDeclaration>
-): Promise<HealthDeclaration | undefined> => {
+/**
+ * Updates an existing health declaration
+ */
+export const updateHealthDeclarationService = async (id: string, updates: Partial<HealthDeclaration>) => {
   try {
-    console.log('Updating health declaration:', id, 'with data:', declaration);
+    const dbUpdates = mapHealthDeclarationToDB(updates);
     
-    // Convert to DB field names format for the update
-    const dbDeclaration = mapHealthDeclarationToDB(declaration);
+    console.log('Updating health declaration with id:', id, 'and data:', dbUpdates);
     
-    const { data, error } = await supabase
+    // Breaking down the query chain and using explicit typing
+    const response: PostgrestResponse<any> = await supabase
       .from('health_declarations')
-      .update(dbDeclaration)
-      .eq('id', id)
-      .select()
-      .single();
-      
+      .update(dbUpdates)
+      .eq('id', id);
+    
+    const { error } = response;
+
     if (error) {
+      console.error('Supabase error during health declaration update:', error);
       handleSupabaseError(error, 'updating health declaration');
-      return undefined;
+      return false;
     }
     
-    if (data) {
-      console.log('Health declaration updated successfully:', data);
-      // Convert back to our TypeScript model format
-      return mapHealthDeclarationFromDB(data);
-    }
-    
-    console.error('No data returned from health declaration update');
-    return undefined;
+    return true;
   } catch (error) {
     console.error('Error updating health declaration:', error);
-    return undefined;
+    toast({
+      title: "שגיאה",
+      description: "אירעה שגיאה בעדכון הצהרת בריאות",
+      variant: "destructive",
+    });
+    throw error;
   }
 };

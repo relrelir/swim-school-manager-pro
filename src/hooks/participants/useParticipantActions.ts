@@ -134,7 +134,7 @@ export const useParticipantActions = (
     return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
   };
 
-  // Implement the handleDeleteRegistration function according to requirements
+  // Implement the missing handleDeleteRegistration function
   const handleDeleteRegistration = async (registrationId: string) => {
     try {
       // Check if the registration has any payments

@@ -76,17 +76,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       return;
     }
     
-    // Check again if health declaration exists before attempting to print
-    const healthDeclaration = await getHealthDeclarationForRegistration(registrationId);
-    if (!healthDeclaration || !healthDeclaration.id) {
-      toast({
-        title: "הצהרת בריאות חסרה",
-        description: "לא קיימת הצהרת בריאות למשתתף זה",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     setIsGeneratingHealthPdf(true);
     try {
       await generateHealthDeclarationPdf(participantId);
@@ -105,7 +94,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     } finally {
       setIsGeneratingHealthPdf(false);
     }
-  }, [registrationId, participantId, registration, getHealthDeclarationForRegistration]);
+  }, [registrationId, participantId, registration]);
   
   // Handle delete registration with confirmation - optimized with useCallback
   const handleDeleteRegistration = useCallback(() => {
@@ -162,7 +151,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
             size="icon"
             onClick={handlePrintHealthDeclaration}
             disabled={isGeneratingHealthPdf || !hasHealthDeclaration}
-            className={!hasHealthDeclaration ? "opacity-50 cursor-not-allowed" : ""}
           >
             {isGeneratingHealthPdf ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />

@@ -38,29 +38,23 @@ const HealthFormPage: React.FC = () => {
     return <LoadingState />;
   }
 
- const handleFormSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-
-  if (!formState.agreement) {
-    alert("יש לאשר את הצהרת הבריאות כדי להמשיך");
-    return;
-  }
-
-  if (!formState.parentName || !formState.parentId) {
-    alert("יש למלא את פרטי ההורה");
-    return;
-  }
-
-  if (isSubmitting) return;
-  setIsSubmitting(true);
-
-  try {
-    await handleSubmit(e);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form before showing signature pad
+    if (!formState.agreement) {
+      alert("יש לאשר את הצהרת הבריאות כדי להמשיך");
+      return;
+    }
+    
+    if (!formState.parentName || !formState.parentId) {
+      alert("יש למלא את פרטי ההורה/אפוטרופוס");
+      return;
+    }
+    
+    // Show signature pad
+    setShowSignaturePad(true);
+  };
 
   const handleSignatureConfirm = (signatureData: string) => {
     // Update form state with signature
@@ -112,10 +106,9 @@ const HealthFormPage: React.FC = () => {
             </CardContent>
             
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading || isSubmitting}>
-  {isLoading || isSubmitting ? 'שולח...' : 'אישור הצהרה'}
-</Button>
-
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'שולח...' : 'אישור הצהרה'}
+              </Button>
             </CardFooter>
           </form>
         )}

@@ -1,66 +1,43 @@
 
 import { HealthDeclaration } from '@/types';
-import { supabase } from '@/integrations/supabase/client';
 import { mapHealthDeclarationFromDB } from './mappers';
+import { 
+  getHealthDeclarationByTokenRaw, 
+  getHealthDeclarationByIdRaw 
+} from './getHealthDeclarationRaw.js';
 
 /**
- * Get health declaration by registration ID
+ * Get a health declaration by its ID
  */
-export const getHealthDeclarationById = async (registrationId: string): Promise<HealthDeclaration | undefined> => {
+export const getHealthDeclarationById = async (id: string): Promise<HealthDeclaration | null> => {
   try {
-    console.log('Getting health declaration for registration:', registrationId);
+    const rawDeclaration = await getHealthDeclarationByIdRaw(id);
     
-    const { data, error } = await supabase
-      .from('health_declarations')
-      .select('*')
-      .eq('participant_id', registrationId)
-      .maybeSingle();
-      
-    if (error) {
-      console.error('Error fetching health declaration:', error);
-      throw error;
+    if (!rawDeclaration) {
+      return null;
     }
     
-    if (data) {
-      console.log('Found health declaration for registration:', registrationId);
-      return mapHealthDeclarationFromDB(data);
-    }
-    
-    console.log('No health declaration found for registration:', registrationId);
-    return undefined;
+    return mapHealthDeclarationFromDB(rawDeclaration);
   } catch (error) {
-    console.error('Error in getHealthDeclarationById:', error);
-    return undefined;
+    console.error('Error getting health declaration by ID:', error);
+    return null;
   }
 };
 
 /**
- * Get health declaration by token
+ * Get a health declaration by its token
  */
-export const getHealthDeclarationByToken = async (token: string): Promise<HealthDeclaration | undefined> => {
+export const getHealthDeclarationByToken = async (token: string): Promise<HealthDeclaration | null> => {
   try {
-    console.log('Getting health declaration by token:', token);
+    const rawDeclaration = await getHealthDeclarationByTokenRaw(token);
     
-    const { data, error } = await supabase
-      .from('health_declarations')
-      .select('*')
-      .eq('token', token)
-      .maybeSingle();
-      
-    if (error) {
-      console.error('Error fetching health declaration by token:', error);
-      throw error;
+    if (!rawDeclaration) {
+      return null;
     }
     
-    if (data) {
-      console.log('Found health declaration for token:', token);
-      return mapHealthDeclarationFromDB(data);
-    }
-    
-    console.log('No health declaration found for token:', token);
-    return undefined;
+    return mapHealthDeclarationFromDB(rawDeclaration);
   } catch (error) {
-    console.error('Error in getHealthDeclarationByToken:', error);
-    return undefined;
+    console.error('Error getting health declaration by token:', error);
+    return null;
   }
 };
