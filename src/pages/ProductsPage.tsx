@@ -26,6 +26,30 @@ const ProductsPage: React.FC = () => {
     setSeasonProducts
   } = useProductPageData(seasonId);
 
+  const handleDeleteProduct = (product: Product) => {
+  const hasRegistrations = product.registrationCount && product.registrationCount > 0;
+  if (hasRegistrations) {
+    toast({
+      title: "לא ניתן למחוק",
+      description: "לא ניתן למחוק מוצר עם נרשמים",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  const confirmDelete = window.confirm("האם אתה בטוח שברצונך למחוק את המוצר?");
+  if (!confirmDelete) return;
+
+  // מחיקה מה-Database
+  if (product.id) {
+    dataContext.deleteProduct(product.id);
+    if (seasonId) {
+      setSeasonProducts(getProductsBySeason(seasonId)); // רענון רשימה
+    }
+  }
+};
+
+  
   // Use our custom hook for filtering and sorting
   const { 
     filter, 
