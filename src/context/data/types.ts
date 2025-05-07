@@ -16,7 +16,8 @@ export interface ProductsContextType {
   products: Product[];
   addProduct: (product: Omit<Product, 'id'>) => Promise<Product | undefined> | undefined;
   updateProduct: (product: Product) => Promise<void>;
-  deleteProduct: (id: string) => void;
+ // deleteProduct: (id: string) => void;
+    deleteProduct: (productId: string) => Promise<void>;
   getProductsBySeason: (seasonId: string) => Product[];
   loading: boolean;
 }
