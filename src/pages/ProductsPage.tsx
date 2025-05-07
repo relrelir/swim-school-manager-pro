@@ -15,6 +15,8 @@ import { toast } from '@/components/ui/use-toast';
 const ProductsPage: React.FC = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
   const { addProduct, getProductsBySeason, updateProduct, deleteProduct } = useData();
+
+  //const { addProduct, getProductsBySeason, updateProduct, deleteProduct } = useData();
   const isMobile = useIsMobile();
 
   const {
