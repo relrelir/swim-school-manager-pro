@@ -75,7 +75,7 @@ export const createHealthDeclarationLink = async (registrationId: string): Promi
         token,
         form_status: 'pending',
         created_at: new Date().toISOString(),
-        phone_sent_to: '' // Required by the database schema but we don't use it
+      //  phone_sent_to: '' // Required by the database schema but we don't use it
       };
       
       console.log('Creating new health declaration:', newDeclaration);
