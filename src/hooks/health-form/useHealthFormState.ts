@@ -92,9 +92,11 @@ export const useHealthFormState = (healthDeclarationId: string | null) => {
       
       await submitHealthFormService(
         healthDeclarationId,
-        formState.agreement,
-        notesWithParentInfo,
-        formState.signature // Include signature in the submission
+  formState.agreement,
+  formState.notes,
+  formState.signature,
+  formState.parentName,
+  formState.parentId
       );
       
       toast({

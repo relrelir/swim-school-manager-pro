@@ -10,19 +10,26 @@ export const submitHealthFormService = async (
   declarationId: string, 
   agreement: boolean, 
   notes: string | undefined,
-  signature?: string // Add signature parameter
+  signature?: string,
+  parentName?: string,
+  parentId?: string
 ) => {
+
   try {
     if (!agreement) {
       throw new Error('Must agree to health declaration');
     }
     
-    const updates = {
-      form_status: 'signed',
-      submission_date: new Date().toISOString(),
-      notes: notes || null,
-      signature: signature || null // Add signature to updates
-    };
+ const updates = {
+  form_status: 'signed',
+  submission_date: new Date().toISOString(),
+  notes: notes || null,
+  signature: signature || null,
+  parent_name: parentName || null,
+  parent_id: parentId || null
+};
+
+
     
     console.log('Submitting health form for declaration:', declarationId, 'with data:', updates);
     
