@@ -96,6 +96,20 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     }
   }, [registrationId, participantId, registration]);
   
+  // Handle delete registration with confirmation - optimized with useCallback
+  const handleDeleteRegistration = useCallback(() => {
+    if (hasPayments) {
+      toast({
+        title: "לא ניתן למחוק",
+        description: "לא ניתן למחוק רישום שבוצע עבורו תשלום",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    onDeleteRegistration(registration.id);
+  }, [hasPayments, onDeleteRegistration, registration.id]);
+  
   return (
     <div className="flex gap-2 justify-end">
       <Tooltip>
@@ -155,7 +169,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => onDeleteRegistration(registration.id)}
+            onClick={handleDeleteRegistration}
             disabled={hasPayments}
             className={hasPayments ? "opacity-50 cursor-not-allowed" : ""}
           >
