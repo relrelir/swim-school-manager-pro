@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table } from '@/components/ui/table';
 import { Product } from '@/types';
@@ -12,6 +11,7 @@ interface ProductsTableProps {
   sortDirection: 'asc' | 'desc';
   handleSort: (field: keyof Product) => void;
   onEditProduct: (product: Product) => void;
+  onDeleteProduct: (product: Product) => void; // חדש
 }
 
 const ProductsTable: React.FC<ProductsTableProps> = ({ 
@@ -19,11 +19,11 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
   sortField, 
   sortDirection, 
   handleSort,
-  onEditProduct
+  onEditProduct,
+  onDeleteProduct // חדש
 }) => {
   const { getRegistrationsByProduct } = useData();
-  
-  // Get participants count for a product
+
   const getParticipantsCount = (productId: string) => {
     const registrations = getRegistrationsByProduct(productId);
     return registrations.length;
@@ -40,6 +40,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({
         products={products} 
         getParticipantsCount={getParticipantsCount}
         onEditProduct={onEditProduct}
+        onDeleteProduct={onDeleteProduct} // חדש
       />
     </Table>
   );
