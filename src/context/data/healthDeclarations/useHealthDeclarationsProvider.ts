@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { fetchHealthDeclarations } from './fetchHealthDeclarations';
 import { addHealthDeclaration } from './addHealthDeclaration';
-import { updateHealthDeclaration as updateHealthDeclarationService } from './updateHealthDeclaration';
+import { updateHealthDeclarationService } from './updateHealthDeclaration';
 import { getHealthDeclarationById, getHealthDeclarationByToken } from './getHealthDeclaration';
 import { createHealthDeclarationLink as createHealthDeclarationLinkService } from './createHealthDeclarationLink';
 import { HealthDeclarationsContextType } from './context';
@@ -63,6 +62,7 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
         );
         return updatedDeclaration;
       }
+      return undefined;
     } catch (error) {
       console.error('Error updating health declaration:', error);
       toast({
@@ -70,6 +70,7 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
         description: "אירעה שגיאה בעדכון הצהרת בריאות",
         variant: "destructive",
       });
+      return undefined;
     }
   };
 

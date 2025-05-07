@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { HealthDeclaration } from '@/types';
 
 export interface HealthDeclarationsContextType {

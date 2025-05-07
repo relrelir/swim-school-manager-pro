@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
 import { HealthDeclaration } from '@/types';
-import { mapHealthDeclarationToDB } from './mappers';
+import { mapHealthDeclarationToDB, mapHealthDeclarationFromDB } from './mappers';
 import { handleSupabaseError } from '../utils';
 import type { PostgrestResponse } from '@supabase/supabase-js';
 
@@ -19,17 +19,23 @@ export const updateHealthDeclarationService = async (id: string, updates: Partia
     const response: PostgrestResponse<any> = await supabase
       .from('health_declarations')
       .update(dbUpdates)
-      .eq('id', id);
+      .eq('id', id)
+      .select();  // Add select() to return updated data
     
-    const { error } = response;
+    const { data, error } = response;
 
     if (error) {
       console.error('Supabase error during health declaration update:', error);
       handleSupabaseError(error, 'updating health declaration');
-      return false;
+      return undefined;
     }
     
-    return true;
+    if (data && data.length > 0) {
+      // Map from DB format to our TS model
+      return mapHealthDeclarationFromDB(data[0]);
+    }
+    
+    return undefined;
   } catch (error) {
     console.error('Error updating health declaration:', error);
     toast({
@@ -40,3 +46,6 @@ export const updateHealthDeclarationService = async (id: string, updates: Partia
     throw error;
   }
 };
+
+// Export with alias for backward compatibility
+export const updateHealthDeclaration = updateHealthDeclarationService;

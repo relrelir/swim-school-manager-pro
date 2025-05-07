@@ -57,25 +57,21 @@ const HealthFormPage: React.FC = () => {
     setShowSignaturePad(true);
   };
 
-  const handleSignatureConfirm = (signatureData: string) => {
+  const handleSignatureConfirm = async (signatureData: string) => {
     // Update form state with signature
     handleSignatureChange(signatureData);
     
     // Submit the form with setTimeout to ensure state update has completed
-    setTimeout(async () => {
-      if (isSubmitting) return;
-      
+    try {
       setIsSubmitting(true);
-      try {
-        // Create a synthetic event
-        const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
-        await handleSubmit(syntheticEvent);
-      } catch (error) {
-        console.error("Error submitting form:", error);
-      } finally {
-        setIsSubmitting(false);
-      }
-    }, 0);
+      // Create a synthetic event
+      const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+      await handleSubmit(syntheticEvent);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancelSignature = () => {

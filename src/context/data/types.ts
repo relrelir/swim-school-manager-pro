@@ -1,3 +1,4 @@
+
 import { Participant, Product, Registration, Season, Payment, PaymentStatus, HealthDeclaration } from '@/types';
 
 // Import the DailyActivity type or define it here
@@ -50,8 +51,11 @@ export interface PaymentsContextType {
 export interface HealthDeclarationsContextType {
   healthDeclarations: HealthDeclaration[];
   addHealthDeclaration: (healthDeclaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>;
-  updateHealthDeclaration: (id: string, updates: Partial<HealthDeclaration>) => Promise<void>;
+  updateHealthDeclaration: (id: string, updates: Partial<HealthDeclaration>) => Promise<HealthDeclaration | undefined>;
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
+  deleteHealthDeclaration: (id: string) => Promise<void>;
+  createHealthDeclarationLink: (registrationId: string) => Promise<string | undefined>;
+  getHealthDeclarationByToken: (token: string) => Promise<HealthDeclaration | undefined>;
   loading: boolean;
 }
 
