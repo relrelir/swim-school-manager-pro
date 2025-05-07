@@ -27,6 +27,7 @@ const HealthFormPage: React.FC = () => {
   } = useHealthForm();
 
   const [showSignaturePad, setShowSignaturePad] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Show error state
   if (error) {
@@ -38,7 +39,7 @@ const HealthFormPage: React.FC = () => {
     return <LoadingState />;
   }
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form before showing signature pad
@@ -60,10 +61,20 @@ const HealthFormPage: React.FC = () => {
     // Update form state with signature
     handleSignatureChange(signatureData);
     
-    // Use setTimeout to ensure state is updated before submitting
-    setTimeout(() => {
-      // Submit the form
-      handleSubmit({ preventDefault: () => {} } as React.FormEvent);
+    // Submit the form with setTimeout to ensure state update has completed
+    setTimeout(async () => {
+      if (isSubmitting) return;
+      
+      setIsSubmitting(true);
+      try {
+        // Create a synthetic event
+        const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+        await handleSubmit(syntheticEvent);
+      } catch (error) {
+        console.error("Error submitting form:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }, 0);
   };
 
@@ -106,8 +117,12 @@ const HealthFormPage: React.FC = () => {
             </CardContent>
             
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'שולח...' : 'אישור הצהרה'}
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading || isSubmitting}
+              >
+                {isLoading || isSubmitting ? 'שולח...' : 'אישור הצהרה'}
               </Button>
             </CardFooter>
           </form>

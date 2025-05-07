@@ -64,3 +64,6 @@ export const addHealthDeclarationService = async (healthDeclaration: Omit<Health
     return undefined;
   }
 };
+
+// Add this export to fix the import error
+export const addHealthDeclaration = addHealthDeclarationService;

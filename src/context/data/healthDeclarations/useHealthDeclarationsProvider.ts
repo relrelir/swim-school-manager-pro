@@ -4,9 +4,9 @@ import { HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { fetchHealthDeclarations } from './fetchHealthDeclarations';
-import { addHealthDeclaration as addHealthDeclarationService } from './addHealthDeclaration';
+import { addHealthDeclaration } from './addHealthDeclaration';
 import { updateHealthDeclaration as updateHealthDeclarationService } from './updateHealthDeclaration';
-import { getHealthDeclaration as getHealthDeclarationService } from './getHealthDeclaration';
+import { getHealthDeclarationById, getHealthDeclarationByToken } from './getHealthDeclaration';
 import { createHealthDeclarationLink as createHealthDeclarationLinkService } from './createHealthDeclarationLink';
 import { HealthDeclarationsContextType } from './context';
 
@@ -36,9 +36,9 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
   }, []);
 
   // Add a health declaration
-  const addHealthDeclaration = async (declaration: Omit<HealthDeclaration, 'id'>) => {
+  const addHealthDeclarationHandler = async (declaration: Omit<HealthDeclaration, 'id'>) => {
     try {
-      const newDeclaration = await addHealthDeclarationService(declaration);
+      const newDeclaration = await addHealthDeclaration(declaration);
       if (newDeclaration) {
         setHealthDeclarations([...healthDeclarations, newDeclaration]);
         return newDeclaration;
@@ -99,7 +99,7 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
   // Get a health declaration for a registration
   const getHealthDeclarationForRegistration = async (registrationId: string) => {
     try {
-      return await getHealthDeclarationService(registrationId);
+      return await getHealthDeclarationById(registrationId);
     } catch (error) {
       console.error('Error getting health declaration:', error);
     }
@@ -119,18 +119,10 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
     }
   };
 
-  // Get a health declaration by token
-  const getHealthDeclarationByToken = async (token: string) => {
+  // Get a health declaration by token - use the imported function
+  const getHealthDeclarationByTokenHandler = async (token: string) => {
     try {
-      const { data, error } = await supabase
-        .from('health_declarations')
-        .select('*')
-        .eq('token', token)
-        .single();
-
-      if (error) throw error;
-      
-      return data as HealthDeclaration;
+      return await getHealthDeclarationByToken(token);
     } catch (error) {
       console.error('Error getting health declaration by token:', error);
       return undefined;
@@ -139,12 +131,12 @@ export const useHealthDeclarationsProvider = (): HealthDeclarationsContextType =
 
   return {
     healthDeclarations,
-    addHealthDeclaration,
+    addHealthDeclaration: addHealthDeclarationHandler,
     updateHealthDeclaration,
     deleteHealthDeclaration,
     getHealthDeclarationForRegistration,
     createHealthDeclarationLink,
-    getHealthDeclarationByToken,
+    getHealthDeclarationByToken: getHealthDeclarationByTokenHandler,
     loading
   };
 };
