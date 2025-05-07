@@ -78,7 +78,11 @@ const fullName = `${participant.firstname} ${participant.lastname}`.trim();
       
       // Build the PDF content with improved layout
       console.log("Building PDF content");
-      const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, participant);
+     const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, {
+  ...participant,
+  fullName,
+});
+
       console.log("PDF content built successfully, filename:", fileName);
       
       // Save the PDF
