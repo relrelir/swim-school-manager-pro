@@ -74,10 +74,12 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
       <div className="flex justify-between mb-6 print:hidden">
         <h1 className="text-2xl font-bold">הצהרת בריאות</h1>
         <div className="flex gap-2">
-          <Button onClick={handlePrint} className="flex items-center gap-2">
-            <Printer className="h-4 w-4" />
-            הדפסה
-          </Button>
+         <Button 
+  onClick={handlePrint} 
+  className="flex items-center gap-2"
+  disabled={formState.formStatus !== 'completed'}
+  title={formState.formStatus !== 'completed' ? "הצהרת הבריאות טרם הושלמה" : ""}
+>
           <Button onClick={handleExportImage} variant="outline" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
             שמירה כתמונה
