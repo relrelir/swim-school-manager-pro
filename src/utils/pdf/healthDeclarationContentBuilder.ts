@@ -121,11 +121,7 @@ export const buildHealthDeclarationPDF = (
 const notesText = healthDeclaration.notes && healthDeclaration.notes.trim() !== ''
   ? healthDeclaration.notes.trim()
   : 'אין הערות רפואיות נוספות';
-
-lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
-
-      
-    lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
+  lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
     // ===== CONFIRMATION SECTION =====
     addSectionTitle(pdf, 'אישור', lastY + 5);
