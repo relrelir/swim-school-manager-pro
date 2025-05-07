@@ -1,16 +1,13 @@
-
-import React from 'react';
-import { Season } from '@/types';
-import SeasonList from '@/components/seasons/SeasonList';
-
 interface SeasonSummaryProps {
   seasons: Season[];
   seasonProducts: Record<string, number>;
+  onDeleteSeason: (seasonId: string) => void;
 }
 
 const SeasonSummary: React.FC<SeasonSummaryProps> = ({ 
   seasons, 
-  seasonProducts
+  seasonProducts,
+  onDeleteSeason
 }) => {
   return (
     <div>
@@ -20,10 +17,9 @@ const SeasonSummary: React.FC<SeasonSummaryProps> = ({
       
       <SeasonList 
         seasons={seasons} 
-        seasonProducts={seasonProducts} 
+        seasonProducts={seasonProducts}
+        onDeleteSeason={onDeleteSeason}
       />
     </div>
   );
 };
-
-export default SeasonSummary;
