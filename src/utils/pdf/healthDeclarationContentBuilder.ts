@@ -17,6 +17,7 @@ interface ParticipantData {
   lastname: string;
   idnumber: string;
   phone: string;
+  fullName?: string; // שדה אופציונלי שיתווסף בקובץ הקודם
 }
 
 interface HealthDeclarationData {
@@ -55,7 +56,8 @@ export const buildHealthDeclarationPDF = (
     addSectionTitle(pdf, 'פרטי המשתתף', lastY);
     
     // Process participant data
-    const fullName = `${participant.firstname} ${participant.lastname}`;
+    const fullName = participant.fullName || `${participant.firstname} ${participant.lastname}`.trim();
+
     
     // Create participant data table with improved formatting
     const participantData = [
