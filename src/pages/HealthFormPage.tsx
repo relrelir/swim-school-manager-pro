@@ -106,10 +106,9 @@ const HealthFormPage: React.FC = () => {
             </CardContent>
             
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading || isSubmitting}>
-  {isLoading || isSubmitting ? 'שולח...' : 'אישור הצהרה'}
-</Button>
-
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'שולח...' : 'אישור הצהרה'}
+              </Button>
             </CardFooter>
           </form>
         )}
