@@ -51,7 +51,8 @@ const fullName = `${participant.firstname} ${participant.lastname}`.trim();
     // 3. Get health declaration data (if exists) - now including signature field
     let { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
-      .select('id, participant_id, submission_date, notes, form_status, signature')
+    .select('id, participant_id, submission_date, notes, form_status, signature, parent_name, parent_id')
+
       .eq('participant_id', participantId)
       .single();
     
