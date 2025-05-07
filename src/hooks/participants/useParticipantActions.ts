@@ -1,4 +1,3 @@
-
 import { Registration, Participant } from '@/types';
 import { useParticipantHandlers } from '../useParticipantHandlers';
 import { useRegistrationManagement } from '../useRegistrationManagement';
@@ -42,12 +41,10 @@ export const useParticipantActions = (
     deleteHealthDeclaration
   } = dataContext;
 
-  // Create an adapter for updateHealthDeclaration to match expected signature
   const updateHealthDeclaration = (declaration: any) => {
     return baseUpdateHealthDeclaration(declaration.id, declaration);
   };
 
-  // Import participant health hook with adapted update function
   const {
     handleOpenHealthForm: baseHandleOpenHealthForm,
     handleUpdateHealthApproval
@@ -64,7 +61,7 @@ export const useParticipantActions = (
         idNumber: data.idNumber || '',
         ...data
       } as Participant;
-      
+
       await updateParticipant(participantToUpdate);
       return participantToUpdate;
     },
@@ -72,7 +69,6 @@ export const useParticipantActions = (
     registrations
   );
 
-  // Import registration management hook
   const {
     handleAddParticipant: baseHandleAddParticipant,
     handleAddPayment: baseHandleAddPayment,
@@ -93,7 +89,6 @@ export const useParticipantActions = (
     addHealthDeclaration
   );
 
-  // Create adapters for various function signatures
   const {
     adaptedHandleOpenHealthForm,
     handleAddParticipantWrapper,
@@ -107,7 +102,6 @@ export const useParticipantActions = (
     baseHandleApplyDiscount
   );
 
-  // Import participant handlers with actual implementations
   const {
     handleOpenHealthForm,
     handleAddParticipant: wrapperHandleAddParticipant,
@@ -124,20 +118,16 @@ export const useParticipantActions = (
     registrations
   );
 
-  // Final wrapper for handleAddParticipant
   const handleAddParticipant = (e: React.FormEvent) => {
     return wrapperHandleAddParticipant(e, resetForm, setIsAddParticipantOpen);
   };
 
-  // Final wrapper for handleAddPayment
   const handleAddPayment = (e: React.FormEvent) => {
     return wrapperHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
   };
 
-  // Implement the missing handleDeleteRegistration function
   const handleDeleteRegistration = async (registrationId: string) => {
     try {
-      // Check if the registration has any payments
       const payments = await getPaymentsByRegistration(registrationId);
       if (payments.length > 0) {
         toast({
@@ -147,36 +137,35 @@ export const useParticipantActions = (
         });
         return;
       }
-      
-      // Find the registration to get the participant ID
+
+      const confirmDelete = window.confirm("האם אתה בטוח שברצונך למחוק את המשתתף?");
+      if (!confirmDelete) {
+        return;
+      }
+
       const registration = registrations.find(r => r.id === registrationId);
       if (!registration) {
         console.error("Registration not found:", registrationId);
         return;
       }
-      
+
       const participantId = registration.participantId;
-      
-      // Check if there's a health declaration to delete
+
       const healthDecl = await getHealthDeclarationForRegistration(registrationId);
       if (healthDecl) {
         await deleteHealthDeclaration(healthDecl.id);
       }
-      
-      // Delete the registration first
+
       await deleteRegistration(registrationId);
-      
-      // Check if the participant has other registrations before deleting
+
       const otherRegistrations = registrations.filter(
         r => r.participantId === participantId && r.id !== registrationId
       );
-      
+
       if (otherRegistrations.length === 0) {
-        // Only delete the participant if they have no other registrations
         await deleteParticipant(participantId);
       }
-      
-      // Trigger a refresh to update the UI
+
       setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       console.error("Error deleting registration:", error);
