@@ -6,7 +6,7 @@ import { Trash2Icon, FileDownIcon, CreditCardIcon, PrinterIcon } from 'lucide-re
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { generateRegistrationPdf } from '@/utils/generateRegistrationPdf';
 import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
-import { useHealthDeclarationsContext } from '@/context/data/HealthDeclarationsProvider';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
 
 interface TableRowActionsProps {
@@ -25,36 +25,49 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   const [isGeneratingRegPdf, setIsGeneratingRegPdf] = useState(false);
   const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = useState(false);
   const [hasHealthDeclaration, setHasHealthDeclaration] = useState(false);
-  const { getHealthDeclarationForRegistration } = useHealthDeclarationsContext();
+  const [isCheckingDeclaration, setIsCheckingDeclaration] = useState(false);
   
-  // אופטימיזציה: יצירת registrationId וparticipantId כ-useMemo למניעת חישובים מיותרים
+  // Optimization: Create registrationId and participantId as useMemo to prevent unnecessary calculations
   const registrationId = useMemo(() => registration?.id, [registration?.id]);
   const participantId = useMemo(() => registration?.participantId, [registration?.participantId]);
   
-  // אופטימיזציה: שימוש ב-useCallback למניעת רינדורים מיותרים
+  // Optimization: Use useCallback to prevent unnecessary rerenders
   const checkForHealthDeclaration = useCallback(async () => {
-    if (!registrationId) return;
+    if (!registrationId || !participantId || isCheckingDeclaration) return;
     
     try {
-      // Get health declaration and check if it exists
-      const healthDeclaration = await getHealthDeclarationForRegistration(registrationId);
-      const declarationExists = Boolean(healthDeclaration && healthDeclaration.id);
+      setIsCheckingDeclaration(true);
+      
+      // Direct Supabase query to get the latest health declaration status
+      const { data, error } = await supabase
+        .from('health_declarations')
+        .select('id')
+        .eq('participant_id', participantId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error checking for health declaration:", error);
+        return;
+      }
       
       // Update state only if changed
+      const declarationExists = Boolean(data?.id);
       if (hasHealthDeclaration !== declarationExists) {
         setHasHealthDeclaration(declarationExists);
       }
     } catch (error) {
       console.error("Error checking for health declaration:", error);
+    } finally {
+      setIsCheckingDeclaration(false);
     }
-  }, [registrationId, getHealthDeclarationForRegistration, hasHealthDeclaration]);
+  }, [registrationId, participantId, hasHealthDeclaration, isCheckingDeclaration]);
   
-  // אופטימיזציה: שימוש ב-useEffect עם תלויות נכונות
+  // Optimization: Use useEffect with correct dependencies
   useEffect(() => {
     checkForHealthDeclaration();
   }, [checkForHealthDeclaration]);
 
-  // אופטימיזציה: שימוש ב-useCallback למניעת רינדורים מיותרים
+  // Optimization: Use useCallback to prevent unnecessary rerenders
   const handleGenerateRegPdf = useCallback(async () => {
     setIsGeneratingRegPdf(true);
     try {
@@ -64,7 +77,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     }
   }, [registrationId]);
   
-  // אופטימיזציה: שימוש ב-useCallback למניעת רינדורים מיותרים
+  // Optimization: Use useCallback to prevent unnecessary rerenders
   const handlePrintHealthDeclaration = useCallback(async () => {
     if (!registration || !registrationId || !participantId) {
       console.error("Cannot generate PDF: Invalid registration", registration);
