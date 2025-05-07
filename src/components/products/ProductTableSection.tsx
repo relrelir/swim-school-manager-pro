@@ -37,3 +37,4 @@ const ProductTableSection: React.FC<ProductTableSectionProps> = ({
     </div>
   );
 };
+export default ProductTableSection;
