@@ -14,7 +14,7 @@ import ProductDialogs from '@/components/products/ProductDialogs';
 
 const ProductsPage: React.FC = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
-  const { addProduct, getProductsBySeason, updateProduct } = useData();
+  const { addProduct, getProductsBySeason, updateProduct, ProductsPage } = useData();
   const isMobile = useIsMobile();
   
   // Get product page data using the custom hook
