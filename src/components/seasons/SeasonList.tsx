@@ -57,9 +57,7 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDele
             </CardContent>
             <CardFooter className="bg-gray-50 flex flex-wrap gap-2">
               <Button onClick={() => handleViewPools(season.id)}>בריכות</Button>
-           //   <Button onClick={() => handleViewProducts(season.id)}>מוצרים</Button>
-
-              
+         
               <Button
                 variant="destructive"
                 disabled={productCount > 0}
