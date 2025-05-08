@@ -1,45 +1,66 @@
-
-import React, { useState } from 'react';
+import React, { useState, FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
 import { usePools } from '@/hooks/usePools';
 import { Pool } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription
+} from '@/components/ui/card';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell
+} from '@/components/ui/table';
 
 const PoolsPage: React.FC = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
   const { seasons } = useData();
-  const { 
-    pools, 
-    isAddPoolDialogOpen, 
-    setIsAddPoolDialogOpen, 
+
+  const {
+    pools,
+    loading,
+    isAddPoolDialogOpen,
+    setIsAddPoolDialogOpen,
     editingPool,
     setEditingPool,
-    handleAddPool, 
+    handleAddPool,
     handleUpdatePool,
     handleDeletePool
   } = usePools(seasonId);
-  
+
   const [newPoolName, setNewPoolName] = useState('');
   const [editPoolName, setEditPoolName] = useState('');
   const [isEditPoolDialogOpen, setIsEditPoolDialogOpen] = useState(false);
-  
+
   const currentSeason = seasons.find(s => s.id === seasonId);
-  
+
   const openEditDialog = (pool: Pool) => {
     setEditingPool(pool);
     setEditPoolName(pool.name);
     setIsEditPoolDialogOpen(true);
   };
-  
-  const handleEditSubmit = (e: React.FormEvent) => {
+
+  const handleEditSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (editingPool) {
       handleUpdatePool({
@@ -49,22 +70,26 @@ const PoolsPage: React.FC = () => {
       setIsEditPoolDialogOpen(false);
     }
   };
-  
-  const handleAddSubmit = (e: React.FormEvent) => {
+
+  const handleAddSubmit = (e: FormEvent) => {
     e.preventDefault();
     handleAddPool(newPoolName);
     setNewPoolName('');
   };
-  
+
   const handleNavigateToProducts = (poolId: string) => {
     navigate(`/season/${seasonId}/pool/${poolId}/products`);
   };
+
+  if (loading) {
+    return <div>טוען בריכות...</div>;
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold font-alef mb-2">
+          <h1 className="text-2xl font-bold mb-2">
             בריכות - {currentSeason?.name || ''}
           </h1>
           <p className="text-gray-500">
@@ -84,11 +109,7 @@ const PoolsPage: React.FC = () => {
             <CardDescription>
               לא נמצאו בריכות בעונה זו. הוסף בריכה חדשה כדי להתחיל.
             </CardDescription>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => setIsAddPoolDialogOpen(true)}
-            >
+            <Button variant="outline" className="mt-4" onClick={() => setIsAddPoolDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               הוסף בריכה
             </Button>
@@ -104,31 +125,19 @@ const PoolsPage: React.FC = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {pools.map((pool) => (
+              {pools.map(pool => (
                 <TableRow key={pool.id}>
                   <TableCell className="font-medium">{pool.name}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleNavigateToProducts(pool.id)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleNavigateToProducts(pool.id)}>
                         מוצרים
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => openEditDialog(pool)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => openEditDialog(pool)}>
                         <Edit className="h-4 w-4 ml-1" />
                         ערוך
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => handleDeletePool(pool.id)}
-                      >
+                      <Button variant="outline" size="sm" onClick={() => handleDeletePool(pool.id)}>
                         <Trash2 className="h-4 w-4 ml-1" />
                         מחק
                       </Button>
@@ -157,7 +166,7 @@ const PoolsPage: React.FC = () => {
                 <Input
                   id="pool-name"
                   value={newPoolName}
-                  onChange={(e) => setNewPoolName(e.target.value)}
+                  onChange={e => setNewPoolName(e.target.value)}
                   placeholder="לדוגמה: בריכה ראשית"
                   required
                 />
@@ -175,9 +184,7 @@ const PoolsPage: React.FC = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>ערוך בריכה</DialogTitle>
-            <DialogDescription>
-              שינוי פרטי הבריכה
-            </DialogDescription>
+            <DialogDescription>שינוי פרטי הבריכה</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditSubmit}>
             <div className="space-y-4 py-2">
@@ -186,7 +193,7 @@ const PoolsPage: React.FC = () => {
                 <Input
                   id="edit-pool-name"
                   value={editPoolName}
-                  onChange={(e) => setEditPoolName(e.target.value)}
+                  onChange={e => setEditPoolName(e.target.value)}
                   required
                 />
               </div>
