@@ -1,3 +1,8 @@
+
+import React from 'react';
+import { Season } from '@/types';
+import SeasonList from './SeasonList';
+
 interface SeasonSummaryProps {
   seasons: Season[];
   seasonProducts: Record<string, number>;
@@ -23,3 +28,5 @@ const SeasonSummary: React.FC<SeasonSummaryProps> = ({
     </div>
   );
 };
+
+export default SeasonSummary;

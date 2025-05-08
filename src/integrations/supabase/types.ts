@@ -39,8 +39,9 @@ export type Database = {
           form_status: string
           id: string
           notes: string | null
+          parent_id: string | null
+          parent_name: string | null
           participant_id: string
-          phone_sent_to: string
           signature: string | null
           submission_date: string | null
           token: string
@@ -51,8 +52,9 @@ export type Database = {
           form_status?: string
           id?: string
           notes?: string | null
+          parent_id?: string | null
+          parent_name?: string | null
           participant_id: string
-          phone_sent_to: string
           signature?: string | null
           submission_date?: string | null
           token: string
@@ -63,8 +65,9 @@ export type Database = {
           form_status?: string
           id?: string
           notes?: string | null
+          parent_id?: string | null
+          parent_name?: string | null
           participant_id?: string
-          phone_sent_to?: string
           signature?: string | null
           submission_date?: string | null
           token?: string
