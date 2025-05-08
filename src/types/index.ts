@@ -35,13 +35,28 @@ export interface Season {
   endDate: string;
 }
 
+export interface SeasonPool {
+  seasonId: string;
+  poolId:   string;
+}
+
+
 export interface Pool {
   id: string;
   name: string;
-  seasonId: string;
+-// seasonId: string;
   createdAt: string;
   updatedAt: string;
 }
+
+
+//export interface Pool {
+  //id: string;
+  //name: string;
+  //seasonId: string;
+  //createdAt: string;
+  //updatedAt: string;
+//}
 
 export interface Participant {
   id: string;
