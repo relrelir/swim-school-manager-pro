@@ -15,7 +15,7 @@ import { toast } from '@/components/ui/use-toast';
 
 const ProductsPage: React.FC = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
-  const { addProduct, getProductsBySeason, updateProduct, deleteProduct } = useData();
+  const { addProduct, getProductsBySeason, updateProduct, deleteProduct, getRegistrationsByProduct } = useData();
 
   const isMobile = useIsMobile();
 
@@ -28,8 +28,7 @@ const ProductsPage: React.FC = () => {
   } = useProductPageData(seasonId);
 
   const handleDeleteProduct = (product: Product) => {
-    // Get registrations for this product to check if it has any
-    const { getRegistrationsByProduct } = useData();
+    // Using getRegistrationsByProduct from component level
     const productRegistrations = getRegistrationsByProduct(product.id);
     const hasRegistrations = productRegistrations && productRegistrations.length > 0;
     
