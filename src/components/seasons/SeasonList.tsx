@@ -34,7 +34,7 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDele
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {seasons.map((season) => {
-        const productCount = seasonProducts[season.id] || 0;
+        const poolCount = seasonPools[season.id] || 0;
 
         return (
           <Card key={season.id} className="bg-white shadow-md hover:shadow-lg transition-shadow">
@@ -51,7 +51,7 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDele
                 </p>
                 <p className="flex justify-between">
                   <span className="text-gray-500">מוצרים:</span>
-                  <span>{productCount}</span>
+                  <span>{poolCount}</span>
                 </p>
               </div>
             </CardContent>
@@ -60,7 +60,7 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDele
          
               <Button
                 variant="destructive"
-                disabled={productCount > 0}
+                disabled={ > 0}
                 onClick={() => {
                   const confirmDelete = window.confirm("האם אתה בטוח שברצונך למחוק את העונה?");
                   if (confirmDelete) {
