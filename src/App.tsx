@@ -46,7 +46,7 @@ const App = () => (
                 {/* App routes wrapped in layout */}
                 <Route path="/" element={<Layout><Outlet /></Layout>}>
                   <Route index element={<SeasonPage />} />
-                  <Route path="/season/:seasonId/products" element={<ProductsPage />} />
+                
                   <Route path="/product/:productId/participants" element={<ParticipantsPage />} />
                   <Route path="/report" element={<ReportPage />} />
                   <Route path="/daily-activity" element={<DailyActivityPage />} />
