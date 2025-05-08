@@ -41,7 +41,8 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             // Ensure the active field is set
             return {
               ...mappedProduct,
-              active: true // Set default value directly instead of using non-existent p.active
+              active: true, // Set default value directly instead of using non-existent p.active
+              poolId: product.poolid // Include the new poolId field
             };
           });
           
@@ -74,6 +75,11 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       // Convert to DB field names format (lowercase)
       const dbProduct = mapProductToDB(fullProduct);
       
+      // Add the poolId field if it exists
+      if (product.poolId) {
+        dbProduct.poolid = product.poolId;
+      }
+      
       const { data, error } = await supabase
         .from('products')
         .insert([dbProduct])
@@ -88,7 +94,8 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Convert back to our TypeScript model format (camelCase)
         const newProduct = {
           ...mapProductFromDB(data),
-          active: true // Set default value directly
+          active: true, // Set default value directly
+          poolId: data.poolid // Include the new poolId field
         };
         setProducts([...products, newProduct]);
         return newProduct;
@@ -107,10 +114,15 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const updateProduct = async (product: Product) => {
     try {
       // Convert to DB field names format (lowercase)
-      const { id, ...productData } = product;
+      const { id, poolId, ...productData } = product;
       const dbProduct = mapProductToDB(productData);
       
-      console.log("Updating product with data:", dbProduct); // Add debug log
+      // Add poolId to the database update if it exists
+      if (poolId !== undefined) {
+        dbProduct.poolid = poolId;
+      }
+      
+      console.log("Updating product with data:", dbProduct);
       
       const { error } = await supabase
         .from('products')
@@ -159,6 +171,11 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const getProductsBySeason = (seasonId: string) => {
     return products.filter(product => product.seasonId === seasonId);
   };
+  
+  // Get products by pool
+  const getProductsByPool = (poolId: string) => {
+    return products.filter(product => product.poolId === poolId);
+  };
 
   const contextValue: ProductsContextType = {
     products,
@@ -166,6 +183,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     updateProduct,
     deleteProduct,
     getProductsBySeason,
+    getProductsByPool,
     loading
   };
 

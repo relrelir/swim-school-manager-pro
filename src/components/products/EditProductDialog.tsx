@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Product } from '@/types';
+import { Product, Pool } from '@/types';
 import { addDays } from 'date-fns';
 import EditProductForm from './EditProductForm';
 
@@ -10,6 +10,7 @@ interface EditProductDialogProps {
   onOpenChange: (open: boolean) => void;
   product: Product | null;
   onSubmit: (productData: Partial<Product>) => void;
+  currentPool?: Pool | undefined;
 }
 
 const EditProductDialog: React.FC<EditProductDialogProps> = ({
@@ -17,6 +18,7 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
   onOpenChange,
   product,
   onSubmit,
+  currentPool
 }) => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [calculatedEndDate, setCalculatedEndDate] = useState<string | null>(null);
@@ -24,9 +26,12 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
   // Update form when product changes
   useEffect(() => {
     if (product) {
-      setEditingProduct(product);
+      setEditingProduct({
+        ...product,
+        poolId: product.poolId || currentPool?.id // Ensure poolId is set
+      });
     }
-  }, [product]);
+  }, [product, currentPool]);
 
   // Calculate estimated end date when days or meetings count change
   useEffect(() => {
@@ -87,7 +92,8 @@ const EditProductDialog: React.FC<EditProductDialogProps> = ({
         endDate: calculatedEndDate || editingProduct.endDate,
         discountAmount: editingProduct.discountAmount,
         effectivePrice: editingProduct.effectivePrice,
-        active: editingProduct.active // Include active field
+        active: editingProduct.active, // Include active field
+        poolId: editingProduct.poolId || currentPool?.id // Include poolId
       };
       
       onSubmit(updatedProduct);

@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +15,7 @@ import PrintableHealthDeclarationPage from "./pages/PrintableHealthDeclarationPa
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./context/AuthContext";
 import { DataProvider } from "./context/DataContext";
+import PoolsPage from "./pages/PoolsPage";
 
 // יצירת לקוח עבור React Query
 const queryClient = new QueryClient({
@@ -50,6 +50,8 @@ const App = () => (
                   <Route path="/product/:productId/participants" element={<ParticipantsPage />} />
                   <Route path="/report" element={<ReportPage />} />
                   <Route path="/daily-activity" element={<DailyActivityPage />} />
+                  <Route path="/season/:seasonId/pools" element={<PoolsPage />} />
+                  <Route path="/season/:seasonId/pool/:poolId/products" element={<ProductsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>

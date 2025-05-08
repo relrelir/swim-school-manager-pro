@@ -148,6 +148,38 @@ export type Database = {
           },
         ]
       }
+      pools: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          seasonid: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          seasonid?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          seasonid?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pools_seasonid_fkey"
+            columns: ["seasonid"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           created_at: string
@@ -159,6 +191,7 @@ export type Database = {
           maxparticipants: number
           meetingscount: number | null
           name: string
+          poolid: string | null
           price: number
           seasonid: string
           startdate: string
@@ -174,6 +207,7 @@ export type Database = {
           maxparticipants?: number
           meetingscount?: number | null
           name: string
+          poolid?: string | null
           price: number
           seasonid: string
           startdate: string
@@ -189,12 +223,20 @@ export type Database = {
           maxparticipants?: number
           meetingscount?: number | null
           name?: string
+          poolid?: string | null
           price?: number
           seasonid?: string
           startdate?: string
           starttime?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "products_poolid_fkey"
+            columns: ["poolid"]
+            isOneToOne: false
+            referencedRelation: "pools"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_seasonid_fkey"
             columns: ["seasonid"]

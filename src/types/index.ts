@@ -17,6 +17,7 @@ export interface Product {
   maxParticipants: number;
   notes?: string;
   seasonId: string;
+  poolId?: string; // New field to reference a pool
   type: ProductType;
   meetingsCount?: number;
   startTime?: string;
@@ -32,6 +33,14 @@ export interface Season {
   name: string;
   startDate: string;
   endDate: string;
+}
+
+export interface Pool {
+  id: string;
+  name: string;
+  seasonId: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Participant {

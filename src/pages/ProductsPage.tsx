@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
-import { Product } from '@/types';
+import { Product, Pool } from '@/types';
 import { useProductsTable } from '@/hooks/useProductsTable';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useProductPageData } from '@/hooks/useProductPageData';
@@ -14,8 +14,16 @@ import ProductDialogs from '@/components/products/ProductDialogs';
 import { toast } from '@/components/ui/use-toast';
 
 const ProductsPage: React.FC = () => {
-  const { seasonId } = useParams<{ seasonId: string }>();
-  const { addProduct, getProductsBySeason, updateProduct, deleteProduct, getRegistrationsByProduct } = useData();
+  const { seasonId, poolId } = useParams<{ seasonId: string; poolId: string }>();
+  const { 
+    addProduct, 
+    getProductsBySeason, 
+    getProductsByPool, 
+    updateProduct, 
+    deleteProduct, 
+    getRegistrationsByProduct,
+    pools
+  } = useData();
 
   const isMobile = useIsMobile();
 
@@ -25,7 +33,17 @@ const ProductsPage: React.FC = () => {
     summaryData,
     formatDate,
     setSeasonProducts
-  } = useProductPageData(seasonId);
+  } = useProductPageData(seasonId, poolId); // Updated to include poolId
+
+  // Find current pool if poolId is provided
+  const [currentPool, setCurrentPool] = useState<Pool | undefined>(undefined);
+  
+  useEffect(() => {
+    if (poolId) {
+      const pool = pools.find(p => p.id === poolId);
+      setCurrentPool(pool);
+    }
+  }, [poolId, pools]);
 
   const handleDeleteProduct = (product: Product) => {
     // Using getRegistrationsByProduct from component level
@@ -46,7 +64,9 @@ const ProductsPage: React.FC = () => {
 
     if (product.id) {
       deleteProduct(product.id).then(() => {
-        if (seasonId) {
+        if (poolId) {
+          setSeasonProducts(getProductsByPool(poolId));
+        } else if (seasonId) {
           setSeasonProducts(getProductsBySeason(seasonId));
         }
       });
@@ -67,9 +87,18 @@ const ProductsPage: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const handleCreateProduct = (product: Omit<Product, 'id'>) => {
-    addProduct(product);
+    // Add poolId to product if we're in pool context
+    const productWithPool = poolId 
+      ? { ...product, poolId } 
+      : product;
+      
+    addProduct(productWithPool);
     setIsAddProductOpen(false);
-    if (seasonId) {
+    
+    // Refresh products list based on context
+    if (poolId) {
+      setSeasonProducts(getProductsByPool(poolId));
+    } else if (seasonId) {
       setSeasonProducts(getProductsBySeason(seasonId));
     }
   };
@@ -81,10 +110,21 @@ const ProductsPage: React.FC = () => {
 
   const handleUpdateProduct = (updatedData: Partial<Product>) => {
     if (editingProduct) {
-      updateProduct({ ...editingProduct, ...updatedData });
+      // Preserve poolId in update data
+      const productUpdate = {
+        ...editingProduct,
+        ...updatedData,
+        poolId: poolId || editingProduct.poolId
+      };
+      
+      updateProduct(productUpdate);
       setIsEditProductOpen(false);
       setEditingProduct(null);
-      if (seasonId) {
+      
+      // Refresh products list based on context
+      if (poolId) {
+        setSeasonProducts(getProductsByPool(poolId));
+      } else if (seasonId) {
         setSeasonProducts(getProductsBySeason(seasonId));
       }
     }
@@ -93,7 +133,8 @@ const ProductsPage: React.FC = () => {
   return (
     <div className="container mx-auto">
       <ProductPageHeader 
-        currentSeason={currentSeason} 
+        currentSeason={currentSeason}
+        currentPool={currentPool} 
         formatDate={formatDate}
         onAddProduct={() => setIsAddProductOpen(true)} 
       />
@@ -126,6 +167,7 @@ const ProductsPage: React.FC = () => {
         setIsEditProductOpen={setIsEditProductOpen}
         editingProduct={editingProduct}
         currentSeason={currentSeason}
+        currentPool={currentPool}
         onCreateProduct={handleCreateProduct}
         onUpdateProduct={handleUpdateProduct}
       />

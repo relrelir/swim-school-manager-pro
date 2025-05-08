@@ -9,11 +9,13 @@ interface ProductPageSummary {
   totalPaid: number;
 }
 
-export function useProductPageData(seasonId: string | undefined) {
+export function useProductPageData(seasonId: string | undefined, poolId?: string | undefined) {
   const { 
     seasons, 
+    pools,
     products, 
     getProductsBySeason, 
+    getProductsByPool,
     getRegistrationsByProduct,
     getPaymentsByRegistration 
   } = useData();
@@ -26,16 +28,27 @@ export function useProductPageData(seasonId: string | undefined) {
     totalPaid: 0
   });
 
-  // Load season and products data
+  // Load season, pool, and products data
   useEffect(() => {
-    if (seasonId) {
+    if (poolId) {
+      // If poolId is provided, get products by pool
+      const productsInPool = getProductsByPool(poolId);
+      setSeasonProducts(productsInPool);
+      
+      // Still set currentSeason if seasonId is provided
+      if (seasonId) {
+        const season = seasons.find(s => s.id === seasonId);
+        setCurrentSeason(season);
+      }
+    } else if (seasonId) {
+      // If only seasonId is provided, get products by season
       const season = seasons.find(s => s.id === seasonId);
       setCurrentSeason(season);
       
-      const products = getProductsBySeason(seasonId);
-      setSeasonProducts(products);
+      const productsForSeason = getProductsBySeason(seasonId);
+      setSeasonProducts(productsForSeason);
     }
-  }, [seasonId, seasons, getProductsBySeason]);
+  }, [seasonId, poolId, seasons, pools, getProductsBySeason, getProductsByPool]);
 
   // Calculate season summary data
   useEffect(() => {

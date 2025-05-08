@@ -2,6 +2,7 @@
 import React from 'react';
 import { Product } from '@/types';
 import { Season } from '@/types';
+import { Pool } from '@/types';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import AddProductForm from '@/components/products/AddProductForm';
@@ -15,6 +16,7 @@ interface ProductDialogsProps {
   setIsEditProductOpen: (open: boolean) => void;
   editingProduct: Product | null;
   currentSeason: Season | undefined;
+  currentPool?: Pool | undefined;
   onCreateProduct: (product: Omit<Product, 'id'>) => void;
   onUpdateProduct: (product: Partial<Product>) => void;
 }
@@ -27,6 +29,7 @@ const ProductDialogs: React.FC<ProductDialogsProps> = ({
   setIsEditProductOpen,
   editingProduct,
   currentSeason,
+  currentPool,
   onCreateProduct,
   onUpdateProduct
 }) => {
@@ -34,6 +37,7 @@ const ProductDialogs: React.FC<ProductDialogsProps> = ({
     <AddProductForm 
       onSubmit={onCreateProduct} 
       currentSeason={currentSeason}
+      currentPool={currentPool}
     />
   );
 
@@ -73,6 +77,7 @@ const ProductDialogs: React.FC<ProductDialogsProps> = ({
                 onOpenChange={setIsEditProductOpen}
                 product={editingProduct}
                 onSubmit={onUpdateProduct}
+                currentPool={currentPool}
               />
             )}
           </SheetContent>
@@ -89,6 +94,7 @@ const ProductDialogs: React.FC<ProductDialogsProps> = ({
                 onOpenChange={setIsEditProductOpen}
                 product={editingProduct}
                 onSubmit={onUpdateProduct}
+                currentPool={currentPool}
               />
             )}
           </DialogContent>

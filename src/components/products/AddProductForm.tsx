@@ -2,16 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
-import { Product, ProductType, Season } from '@/types';
+import { Product, ProductType, Season, Pool } from '@/types';
 import { useSeasonProducts } from '@/hooks/useSeasonProducts';
 import ProductFormFields from './ProductFormFields';
 
 interface AddProductFormProps {
   onSubmit: (product: Omit<Product, 'id'>) => void;
   currentSeason: Season | undefined;
+  currentPool?: Pool | undefined;
 }
 
-const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason }) => {
+const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason, currentPool }) => {
   const { calculateEndDate } = useSeasonProducts();
   const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
   
@@ -24,14 +25,15 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
     maxParticipants: 10,
     notes: '',
     seasonId: currentSeason?.id || '',
+    poolId: currentPool?.id, // Include pool ID if available
     meetingsCount: 1,
     daysOfWeek: [],
     startTime: '',
-    active: true // Add the required active field
+    active: true
   });
   const [calculatedEndDate, setCalculatedEndDate] = useState<string | null>(null);
 
-  // Update defaults if season changes
+  // Update defaults if season or pool changes
   useEffect(() => {
     if (currentSeason) {
       // Use the later date between today and season start date
@@ -42,9 +44,10 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
         startDate: startDate,
         endDate: currentSeason.endDate,
         seasonId: currentSeason.id,
+        poolId: currentPool?.id
       }));
     }
-  }, [currentSeason, today]);
+  }, [currentSeason, currentPool, today]);
 
   // Calculate end date when relevant fields change
   useEffect(() => {
@@ -74,10 +77,11 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSubmit, currentSeason
       maxParticipants: 10,
       notes: '',
       seasonId: currentSeason?.id || '',
+      poolId: currentPool?.id,
       meetingsCount: 1,
       daysOfWeek: [],
       startTime: '',
-      active: true // Include active field in reset
+      active: true
     });
   };
 

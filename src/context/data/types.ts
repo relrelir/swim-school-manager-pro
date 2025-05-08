@@ -1,5 +1,4 @@
-
-import { Participant, Product, Registration, Season, Payment, PaymentStatus, HealthDeclaration } from '@/types';
+import { Participant, Product, Registration, Season, Pool, Payment, PaymentStatus, HealthDeclaration } from '@/types';
 
 // Import the DailyActivity type or define it here
 import { DailyActivity, RegistrationWithDetails } from '@/types';
@@ -12,13 +11,22 @@ export interface SeasonsContextType {
   loading: boolean;
 }
 
+export interface PoolsContextType {
+  pools: Pool[];
+  addPool: (pool: Omit<Pool, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Pool | undefined> | undefined;
+  updatePool: (pool: Pool) => void;
+  deletePool: (id: string) => Promise<void>;
+  getPoolsBySeason: (seasonId: string) => Pool[];
+  loading: boolean;
+}
+
 export interface ProductsContextType {
   products: Product[];
   addProduct: (product: Omit<Product, 'id'>) => Promise<Product | undefined> | undefined;
   updateProduct: (product: Product) => Promise<void>;
- // deleteProduct: (id: string) => void;
-    deleteProduct: (productId: string) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
   getProductsBySeason: (seasonId: string) => Product[];
+  getProductsByPool: (poolId: string) => Product[];
   loading: boolean;
 }
 
@@ -60,7 +68,7 @@ export interface HealthDeclarationsContextType {
   loading: boolean;
 }
 
-export interface CombinedDataContextType extends SeasonsContextType, ProductsContextType, ParticipantsContextType, RegistrationsContextType, PaymentsContextType, HealthDeclarationsContextType {
+export interface CombinedDataContextType extends SeasonsContextType, PoolsContextType, ProductsContextType, ParticipantsContextType, RegistrationsContextType, PaymentsContextType, HealthDeclarationsContextType {
   getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
   calculateMeetingProgress: (product: Product) => { current: number; total: number };
   getDailyActivities: (date: string) => DailyActivity[];

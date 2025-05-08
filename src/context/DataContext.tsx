@@ -1,6 +1,7 @@
 
 import React, { useContext } from 'react';
 import { SeasonsProvider, useSeasonsContext } from './data/SeasonsProvider';
+import { PoolsProvider, usePoolsContext } from './data/PoolsProvider';
 import { ProductsProvider, useProductsContext } from './data/ProductsProvider';
 import { ParticipantsProvider, useParticipantsContext } from './data/ParticipantsProvider';
 import { RegistrationsProvider, useRegistrationsContext } from './data/RegistrationsProvider';
@@ -24,6 +25,7 @@ export const useData = () => {
 // Internal component to combine all context data
 const DataConsumer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const seasonsContext = useSeasonsContext();
+  const poolsContext = usePoolsContext();
   const productsContext = useProductsContext();
   const participantsContext = useParticipantsContext();
   const registrationsContext = useRegistrationsContext();
@@ -152,6 +154,7 @@ const DataConsumer: React.FC<{ children: React.ReactNode }> = ({ children }) => 
   const contextValue: CombinedDataContextType = {
     // Spread all individual contexts
     ...seasonsContext,
+    ...poolsContext,
     ...productsContext,
     ...participantsContext,
     ...registrationsContext,
@@ -175,19 +178,21 @@ const DataConsumer: React.FC<{ children: React.ReactNode }> = ({ children }) => 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <SeasonsProvider>
-      <ProductsProvider>
-        <ParticipantsProvider>
-          <RegistrationsProvider>
-            <PaymentsProvider>
-              <HealthDeclarationsProvider>
-                <DataConsumer>
-                  {children}
-                </DataConsumer>
-              </HealthDeclarationsProvider>
-            </PaymentsProvider>
-          </RegistrationsProvider>
-        </ParticipantsProvider>
-      </ProductsProvider>
+      <PoolsProvider>
+        <ProductsProvider>
+          <ParticipantsProvider>
+            <RegistrationsProvider>
+              <PaymentsProvider>
+                <HealthDeclarationsProvider>
+                  <DataConsumer>
+                    {children}
+                  </DataConsumer>
+                </HealthDeclarationsProvider>
+              </PaymentsProvider>
+            </RegistrationsProvider>
+          </ParticipantsProvider>
+        </ProductsProvider>
+      </PoolsProvider>
     </SeasonsProvider>
   );
 };
