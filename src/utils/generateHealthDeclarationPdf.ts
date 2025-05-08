@@ -40,19 +40,17 @@ export const generateHealthDeclarationPdf = async (participantId: string) => {
     }
 
     if (!participant.firstname || !participant.lastname) {
-  throw new Error("חסר שם פרטי או שם משפחה למשתתף");
-}
+      throw new Error("חסר שם פרטי או שם משפחה למשתתף");
+    }
 
-const fullName = `${participant.firstname} ${participant.lastname}`.trim();
-
+    const fullName = `${participant.firstname} ${participant.lastname}`.trim();
     
     console.log("Data fetched successfully. Participant:", participant);
     
-    // 3. Get health declaration data (if exists) - now including signature field
+    // 3. Get health declaration data (if exists)
     let { data: healthDeclaration, error: healthDeclarationError } = await supabase
       .from('health_declarations')
-    .select('id, participant_id, submission_date, notes, form_status, signature, parent_name, parent_id')
-
+      .select('id, participant_id, submission_date, notes, form_status, signature, parent_name, parent_id')
       .eq('participant_id', participantId)
       .single();
     
@@ -64,7 +62,9 @@ const fullName = `${participant.firstname} ${participant.lastname}`.trim();
         submission_date: null,
         notes: null,
         form_status: 'pending',
-        signature: null
+        signature: null,
+        parent_name: null,
+        parent_id: null
       };
       console.log("No health declaration found, using default object");
     } else {
@@ -79,10 +79,10 @@ const fullName = `${participant.firstname} ${participant.lastname}`.trim();
       
       // Build the PDF content with improved layout
       console.log("Building PDF content");
-     const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, {
-  ...participant,
-  fullName,
-});
+      const fileName = buildHealthDeclarationPDF(pdf, healthDeclaration, {
+        ...participant,
+        fullName,
+      });
 
       console.log("PDF content built successfully, filename:", fileName);
       

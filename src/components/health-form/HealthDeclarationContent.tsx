@@ -58,7 +58,6 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
               onChange={handleParentNameChange}
               required
               dir="rtl"
-              required
             />
           </div>
           <div className="space-y-2">
@@ -70,7 +69,6 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
               onChange={handleParentIdChange}
               required
               dir="rtl"
-              required
             />
           </div>
         </div>
@@ -117,7 +115,7 @@ const HealthDeclarationContent: React.FC<HealthDeclarationContentProps> = ({
             id="notes" 
             placeholder="אם יש מידע רפואי נוסף שעלינו לדעת, אנא ציין כאן"
             value={formState.notes}
-           onChange={handleNotesChange}
+            onChange={handleNotesChange}
             dir="rtl"
           />
         </div>

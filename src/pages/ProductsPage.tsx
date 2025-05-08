@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
@@ -16,7 +17,6 @@ const ProductsPage: React.FC = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
   const { addProduct, getProductsBySeason, updateProduct, deleteProduct } = useData();
 
-  //const { addProduct, getProductsBySeason, updateProduct, deleteProduct } = useData();
   const isMobile = useIsMobile();
 
   const {
@@ -28,7 +28,11 @@ const ProductsPage: React.FC = () => {
   } = useProductPageData(seasonId);
 
   const handleDeleteProduct = (product: Product) => {
-    const hasRegistrations = product.registrationCount && product.registrationCount > 0;
+    // Get registrations for this product to check if it has any
+    const { getRegistrationsByProduct } = useData();
+    const productRegistrations = getRegistrationsByProduct(product.id);
+    const hasRegistrations = productRegistrations && productRegistrations.length > 0;
+    
     if (hasRegistrations) {
       toast({
         title: "לא ניתן למחוק",
@@ -112,7 +116,7 @@ const ProductsPage: React.FC = () => {
         sortDirection={sortDirection}
         handleSort={handleSort}
         onEditProduct={handleEditProduct}
-        onDeleteProduct={handleDeleteProduct} // ⬅️ חדש
+        onDeleteProduct={handleDeleteProduct}
       />
 
       <ProductDialogs 
