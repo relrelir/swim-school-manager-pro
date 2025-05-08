@@ -7,7 +7,7 @@ import { Season } from '@/types';
 
 interface SeasonListProps {
   seasons: Season[];
-  seasonProducts: Record<string, number>;
+  seasonPools: Record<string, number>;
   onDeleteSeason: (seasonId: string) => void;
 }
 
@@ -50,7 +50,7 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDele
                   <span>{new Date(season.endDate).toLocaleDateString('he-IL')}</span>
                 </p>
                 <p className="flex justify-between">
-                  <span className="text-gray-500">מוצרים:</span>
+                  <span className="text-gray-500">בריכות:</span>
                   <span>{poolCount}</span>
                 </p>
               </div>
