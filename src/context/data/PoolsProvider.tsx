@@ -187,10 +187,20 @@ export const PoolsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+const getPoolsBySeason = async (seasonId: string) => {
+  const { data, error } = await supabase
+    .from<SeasonPool & Pool>('season_pools')
+    .select('pool!inner(*)')
+    .eq('seasonId', seasonId);
+  if (error) { toast({ title: error.message }); return []; }
+  return data.map(r => r.pool);
+};
+
+  
   // Get pools by season
-  const getPoolsBySeason = (seasonId: string) => {
-    return pools.filter(pool => pool.seasonId === seasonId);
-  };
+//  const getPoolsBySeason = (seasonId: string) => {
+ //   return pools.filter(pool => pool.seasonId === seasonId);
+ // };
 
   const contextValue: PoolsContextType = {
     pools,
