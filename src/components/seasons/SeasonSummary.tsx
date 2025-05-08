@@ -1,5 +1,8 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Season } from '@/types';
 import SeasonList from './SeasonList';
 
@@ -11,19 +14,16 @@ interface SeasonSummaryProps {
 
 const SeasonSummary: React.FC<SeasonSummaryProps> = ({ 
   seasons, 
-  seasonProducts,
-  onDeleteSeason
+  seasonProducts, 
+  onDeleteSeason 
 }) => {
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold font-alef">עונות שחייה</h1>
-      </div>
-      
+    <div className="space-y-4">
+      <h2 className="text-xl font-semibold">עונות פעילות</h2>
       <SeasonList 
         seasons={seasons} 
-        seasonProducts={seasonProducts}
-        onDeleteSeason={onDeleteSeason}
+        seasonProducts={seasonProducts} 
+        onDeleteSeason={onDeleteSeason} 
       />
     </div>
   );

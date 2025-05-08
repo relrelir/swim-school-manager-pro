@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -15,6 +16,10 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDele
 
   const handleViewProducts = (seasonId: string) => {
     navigate(`/season/${seasonId}/products`);
+  };
+  
+  const handleViewPools = (seasonId: string) => {
+    navigate(`/season/${seasonId}/pools`);
   };
 
   if (seasons.length === 0) {
@@ -50,8 +55,9 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDele
                 </p>
               </div>
             </CardContent>
-            <CardFooter className="bg-gray-50 flex justify-between">
-              <Button onClick={() => handleViewProducts(season.id)}>צפייה במוצרים</Button>
+            <CardFooter className="bg-gray-50 flex flex-wrap gap-2">
+              <Button onClick={() => handleViewPools(season.id)}>בריכות</Button>
+              <Button onClick={() => handleViewProducts(season.id)}>מוצרים</Button>
               <Button
                 variant="destructive"
                 disabled={productCount > 0}

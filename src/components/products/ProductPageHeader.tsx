@@ -22,7 +22,7 @@ const ProductPageHeader: React.FC<ProductPageHeaderProps> = ({
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
       <div>
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
-          <Link to="/seasons" className="hover:text-primary">עונות</Link>
+          <Link to="/" className="hover:text-primary">עונות</Link>
           {currentSeason && (
             <>
               <span>&lt;</span>
