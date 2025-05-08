@@ -7,7 +7,6 @@ import AddSeasonDialog from '@/components/seasons/AddSeasonDialog';
 import SeasonSummary from '@/components/seasons/SeasonSummary';
 import SeasonProductsTable from '@/components/seasons/SeasonProductsTable';
 import SeasonSummaryCards from '@/components/seasons/SeasonSummaryCards';
-import SeasonList from '@/components/seasons/SeasonList';
 import { Plus } from 'lucide-react';
 
 export default function SeasonPage() {
@@ -54,11 +53,6 @@ export default function SeasonPage() {
       </div>
 
       <SeasonSummary 
-        seasons={seasons}
-        seasonProducts={seasonProductCounts}
-      />
-
-      <SeasonList
         seasons={seasons}
         seasonProducts={seasonProductCounts}
         onDeleteSeason={handleDeleteSeason}
