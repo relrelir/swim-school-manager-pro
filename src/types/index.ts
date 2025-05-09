@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email: string;
@@ -40,23 +41,24 @@ export interface SeasonPool {
   poolId:   string;
 }
 
-
 export interface Pool {
   id: string;
   name: string;
--// seasonId: string;
+  // seasonId: string; - removed as per requirements
   createdAt: string;
   updatedAt: string;
 }
 
-
-//export interface Pool {
-  //id: string;
-  //name: string;
-  //seasonId: string;
-  //createdAt: string;
-  //updatedAt: string;
-//}
+// Commented code below:
+/*
+export interface Pool {
+  id: string;
+  name: string;
+  seasonId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+*/
 
 export interface Participant {
   id: string;

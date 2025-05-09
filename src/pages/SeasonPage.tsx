@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { useData } from "@/context/DataContext";
@@ -38,8 +39,7 @@ export default function SeasonPage() {
 
       <SeasonSummary
         seasons={seasons}
--       seasonProducts={seasonPoolCounts}
-+       seasonPools={seasonPoolCounts}
+        seasonPools={seasonPoolCounts}
         onDeleteSeason={handleDeleteSeason}
       />
 

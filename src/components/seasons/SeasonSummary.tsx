@@ -8,13 +8,13 @@ import SeasonList from './SeasonList';
 
 interface SeasonSummaryProps {
   seasons: Season[];
-  seasonProducts: Record<string, number>;
+  seasonPools: Record<string, number>;
   onDeleteSeason: (seasonId: string) => void;
 }
 
 const SeasonSummary: React.FC<SeasonSummaryProps> = ({ 
   seasons, 
-  seasonProducts, 
+  seasonPools, 
   onDeleteSeason 
 }) => {
   return (
@@ -22,7 +22,7 @@ const SeasonSummary: React.FC<SeasonSummaryProps> = ({
       <h2 className="text-xl font-semibold">עונות פעילות</h2>
       <SeasonList 
         seasons={seasons} 
-        seasonProducts={seasonProducts} 
+        seasonPools={seasonPools} 
         onDeleteSeason={onDeleteSeason} 
       />
     </div>
