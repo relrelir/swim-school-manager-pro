@@ -300,6 +300,36 @@ export type Database = {
           },
         ]
       }
+      season_pools: {
+        Row: {
+          pool_id: string
+          season_id: string
+        }
+        Insert: {
+          pool_id: string
+          season_id: string
+        }
+        Update: {
+          pool_id?: string
+          season_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "season_pools_pool_id_fkey"
+            columns: ["pool_id"]
+            isOneToOne: false
+            referencedRelation: "pools"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "season_pools_season_id_fkey"
+            columns: ["season_id"]
+            isOneToOne: false
+            referencedRelation: "seasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seasons: {
         Row: {
           created_at: string

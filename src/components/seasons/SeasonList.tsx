@@ -11,13 +11,9 @@ interface SeasonListProps {
   onDeleteSeason: (seasonId: string) => void;
 }
 
-const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDeleteSeason }) => {
+const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonPools, onDeleteSeason }) => {
   const navigate = useNavigate();
 
-  const handleViewProducts = (seasonId: string) => {
-    navigate(`/season/${seasonId}/products`);
-  };
-  
   const handleViewPools = (seasonId: string) => {
     navigate(`/season/${seasonId}/pools`);
   };
@@ -60,7 +56,7 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonProducts, onDele
          
               <Button
                 variant="destructive"
-                disabled={ > 0}
+                disabled={poolCount > 0}
                 onClick={() => {
                   const confirmDelete = window.confirm("האם אתה בטוח שברצונך למחוק את העונה?");
                   if (confirmDelete) {
