@@ -1,3 +1,4 @@
+
 import { Participant, Product, Registration, Season, Pool, Payment, PaymentStatus, HealthDeclaration } from '@/types';
 
 // Import the DailyActivity type or define it here
@@ -13,8 +14,8 @@ export interface SeasonsContextType {
 
 export interface PoolsContextType {
   pools: Pool[];
-  addPool: (pool: Omit<Pool, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Pool | undefined> | undefined;
-  updatePool: (pool: Pool) => void;
+  addPool: (pool: Omit<Pool, 'id' | 'createdAt' | 'updatedAt'> & { seasonId?: string; seasonIds?: string[] }) => Promise<Pool | undefined> | undefined;
+  updatePool: (pool: Pool) => Promise<void>;
   deletePool: (id: string) => Promise<void>;
   getPoolsBySeason: (seasonId: string) => Pool[];
   loading: boolean;

@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,10 +28,10 @@ export const PoolsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       try {
         const [{ data: pData, error: pErr }, { data: spData, error: spErr }] = await Promise.all([
           supabase
-            .from<Pool>('pools')
+            .from('pools')
             .select('id, name, created_at, updated_at'),
           supabase
-            .from<SeasonPool>('season_pools')
+            .from('season_pools')
             .select('season_id, pool_id')
         ]);
 
@@ -81,9 +82,12 @@ export const PoolsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Add a new pool and link to seasons
   const addPool = async (
-    pool: Omit<Pool, 'id' | 'createdAt' | 'updatedAt'> & { seasonIds: string[] }
+    pool: Omit<Pool, 'id' | 'createdAt' | 'updatedAt'> & { seasonId?: string; seasonIds?: string[] }
   ): Promise<Pool | undefined> => {
     try {
+      // Ensure we have seasonIds array to work with
+      const seasonIdsArray = pool.seasonIds || (pool.seasonId ? [pool.seasonId] : []);
+      
       // 1. Create pool
       const { data: created, error: createErr } = await supabase
         .from('pools')
@@ -105,7 +109,7 @@ export const PoolsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       };
 
       // 2. Link to seasons
-      for (const seasonId of pool.seasonIds) {
+      for (const seasonId of seasonIdsArray) {
         const { error: linkErr } = await supabase
           .from('season_pools')
           .insert({ season_id: seasonId, pool_id: newPool.id });
@@ -115,7 +119,7 @@ export const PoolsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setPools(prev => [...prev, newPool]);
       setSeasonPools(prev => [
         ...prev,
-        ...pool.seasonIds.map(id => ({ seasonId: id, poolId: newPool.id }))
+        ...seasonIdsArray.map(id => ({ seasonId: id, poolId: newPool.id }))
       ]);
 
       toast({
@@ -135,38 +139,21 @@ export const PoolsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Update pool name and season links
-  const updatePool = async (
-    id: string,
-    name: string,
-    seasonIds: string[]
-  ) => {
+  const updatePool = async (pool: Pool): Promise<void> => {
     try {
       // Update name
       const { error: updErr } = await supabase
         .from('pools')
-        .update({ name, updated_at: new Date().toISOString() })
-        .eq('id', id);
+        .update({ name: pool.name, updated_at: new Date().toISOString() })
+        .eq('id', pool.id);
       if (updErr) throw updErr;
 
-      // Sync season links: remove old and insert new
-      await supabase.from('season_pools').delete().eq('pool_id', id);
-      for (const seasonId of seasonIds) {
-        const { error: linkErr } = await supabase
-          .from('season_pools')
-          .insert({ season_id: seasonId, pool_id: id });
-        if (linkErr) throw linkErr;
-      }
-
       // Update local state
-      setPools(prev => prev.map(p => (p.id === id ? { ...p, name } : p)));
-      setSeasonPools(prev => [
-        ...prev.filter(sp => sp.poolId !== id),
-        ...seasonIds.map(seasonId => ({ seasonId, poolId: id }))
-      ]);
+      setPools(prev => prev.map(p => (p.id === pool.id ? { ...p, name: pool.name } : p)));
 
       toast({
         title: 'בריכה עודכנה',
-        description: `הבריכה ${name} עודכנה בהצלחה`
+        description: `הבריכה ${pool.name} עודכנה בהצלחה`
       });
     } catch (error) {
       console.error('Error updating pool:', error);
@@ -179,7 +166,7 @@ export const PoolsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Delete pool after validation
-  const deletePool = async (id: string) => {
+  const deletePool = async (id: string): Promise<void> => {
     try {
       // Prevent deletion if products exist
       const { data: prod, error: prodErr } = await supabase

@@ -57,12 +57,7 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonPools, onDeleteS
               <Button
                 variant="destructive"
                 disabled={poolCount > 0}
-                onClick={() => {
-                  const confirmDelete = window.confirm("האם אתה בטוח שברצונך למחוק את העונה?");
-                  if (confirmDelete) {
-                    onDeleteSeason(season.id);
-                  }
-                }}
+                onClick={() => onDeleteSeason(season.id)}
               >
                 מחק
               </Button>
