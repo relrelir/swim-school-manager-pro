@@ -1,4 +1,3 @@
-
 import { Product } from "@/types";
 
 export const handleSupabaseError = (error: any, operation: string) => {
@@ -74,7 +73,6 @@ export const mapParticipantFromDB = (dbParticipant: any) => {
     id: dbParticipant.id,
     firstName: dbParticipant.firstname,
     lastName: dbParticipant.lastname,
-    email: dbParticipant.email,
     phone: dbParticipant.phone,
     healthApproval: dbParticipant.healthapproval,
     idNumber: dbParticipant.idnumber
@@ -85,7 +83,6 @@ export const mapParticipantToDB = (participant: any) => {
   return {
     firstname: participant.firstName,
     lastname: participant.lastName,
-    email: participant.email,
     phone: participant.phone,
     healthapproval: participant.healthApproval,
     idnumber: participant.idNumber
