@@ -24,7 +24,7 @@ const PrintableHealthDeclarationPage: React.FC = () => {
       notes: string;
       parentName: string;
       parentId: string;
-      signature?: string; // Add signature field
+      signature?: string; // Make sure signature field is included
     };
     submissionDate?: Date;
   } | null>(null);
@@ -43,6 +43,8 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         if (!healthDeclaration) {
           throw new Error('לא נמצאה הצהרת בריאות');
         }
+
+        console.log("Loaded health declaration:", healthDeclaration);
 
         // Fetch participant data
         const { data: participant, error: participantError } = await supabase
@@ -67,6 +69,8 @@ const PrintableHealthDeclarationPage: React.FC = () => {
         // Parse parent information and medical notes separately with improved parsing
         const parentInfo = parseParentInfo(rawNotes);
         const medicalNotes = parseMedicalNotes(cleanedText);
+
+        console.log("Signature data available:", !!healthDeclaration.signature);
 
         // Set health data with properly separated fields
         setHealthData({

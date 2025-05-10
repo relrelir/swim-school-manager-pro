@@ -28,8 +28,7 @@ interface HealthDeclarationData {
   form_status: string;
   signature?: string | null; // Add signature field
   parent_name?: string;
-parent_id?: string;
-
+  parent_id?: string;
 }
 
 /**
@@ -73,10 +72,10 @@ export const buildHealthDeclarationPDF = (
     
     // ===== PARENT/GUARDIAN SECTION - SEPARATE SECTION =====
     // Parse parent info with our improved parser - parseParentInfo is now more efficient
- const parentInfo = {
-  parentName: healthDeclaration.parent_name || '',
-  parentId: healthDeclaration.parent_id || ''
-};
+    const parentInfo = {
+      parentName: healthDeclaration.parent_name || '',
+      parentId: healthDeclaration.parent_id || ''
+    };
 
     
     // Add parent/guardian section with optimized spacing
@@ -114,14 +113,10 @@ export const buildHealthDeclarationPDF = (
     addSectionTitle(pdf, 'הערות רפואיות', lastY + 5);
     
     // Display medical notes or default message
-// const rawNotes = healthDeclaration.notes?.trim();
-//const notesText = rawNotes && rawNotes !== ''
-//  ? rawNotes
- // : 'אין הערות רפואיות נוספות';
-const notesText = healthDeclaration.notes && healthDeclaration.notes.trim() !== ''
-  ? healthDeclaration.notes.trim()
-  : 'אין הערות רפואיות נוספות';
-  lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
+    const notesText = healthDeclaration.notes && healthDeclaration.notes.trim() !== ''
+      ? healthDeclaration.notes.trim()
+      : 'אין הערות רפואיות נוספות';
+    lastY = createPlainTextTable(pdf, [[notesText]], lastY + 10);
     
     // ===== CONFIRMATION SECTION =====
     addSectionTitle(pdf, 'אישור', lastY + 5);
