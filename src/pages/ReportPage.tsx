@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useData } from '@/context/DataContext';
@@ -11,13 +12,14 @@ import { FileDown, Filter } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const ReportPage: React.FC = () => {
-  const { seasons, products, getAllRegistrationsWithDetails } = useData();
+  const { seasons, products, getAllRegistrationsWithDetails, pools } = useData();
   const [filters, setFilters] = useState<ReportFilters>({
     search: '',
     receiptNumber: '',
     seasonId: 'all',
     productId: 'all',
     paymentStatus: 'all',
+    poolId: 'all', // Added poolId filter with default 'all'
   });
   const [showFilters, setShowFilters] = useState(false);
   
@@ -85,7 +87,8 @@ const ReportPage: React.FC = () => {
             filters={filters} 
             setFilters={setFilters} 
             seasons={seasons} 
-            products={products} 
+            products={products}
+            pools={pools} // Added pools data
           />
         </div>
       )}
