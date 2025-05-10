@@ -9,14 +9,22 @@ import { calculateMeetingNumberForDate } from '@/utils/meetingCalculations';
 import DailyActivitySummaryCards from '@/components/daily-activity/DailyActivitySummaryCards';
 import DateSelector from '@/components/daily-activity/DateSelector';
 import ActivitiesTable from '@/components/daily-activity/ActivitiesTable';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pool } from '@/types';
 
 const DailyActivityPage: React.FC = () => {
-  const { getDailyActivities } = useData();
+  const { getDailyActivities, pools } = useData();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedPoolId, setSelectedPoolId] = useState<string>("all");
 
   // Convert the date to a string format for the getDailyActivities function
   const dateString = format(selectedDate, 'yyyy-MM-dd');
-  const activities = getDailyActivities(dateString);
+  let activities = getDailyActivities(dateString);
+  
+  // Filter activities by pool if a pool is selected
+  if (selectedPoolId !== "all") {
+    activities = activities.filter(activity => activity.product.poolId === selectedPoolId);
+  }
 
   // Format the activities with the required data for export
   const getFormattedActivities = () => {
@@ -51,6 +59,20 @@ const DailyActivityPage: React.FC = () => {
             selectedDate={selectedDate}
             onDateChange={setSelectedDate}
           />
+          <Select
+            value={selectedPoolId}
+            onValueChange={setSelectedPoolId}
+          >
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="בחר בריכה" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">כל הבריכות</SelectItem>
+              {pools.map((pool: Pool) => (
+                <SelectItem key={pool.id} value={pool.id}>{pool.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button 
             variant="outline" 
             onClick={handleExport} 
