@@ -12,6 +12,7 @@ export const useParticipantData = (productId?: string) => {
     getRegistrationsByProduct,
     getPaymentsByRegistration,
     addParticipant,
+    addRegistration,
     updateParticipant,
     deleteParticipant
   } = useData();
@@ -100,13 +101,40 @@ export const useParticipantData = (productId?: string) => {
     setSearchString(value);
   };
   
-  const handleAddParticipant = async (newParticipant: Omit<Participant, 'id'>, registrationData: any) => {
+  const handleAddParticipant = async (e: React.FormEvent, newParticipantData: Omit<Participant, 'id'>, registrationData: any, resetForm: () => void) => {
+    e.preventDefault();
+    
     try {
-      const participant = await addParticipant(newParticipant);
+      // Add participant first
+      const participant = await addParticipant(newParticipantData);
       if (participant && productId) {
-        // Add registration logic here if needed
-        console.log('Participant added successfully:', participant);
+        // Then add registration
+        const newRegistration: Omit<Registration, 'id'> = {
+          productId: productId,
+          participantId: participant.id,
+          requiredAmount: registrationData.requiredAmount,
+          paidAmount: registrationData.paidAmount,
+          receiptNumber: registrationData.receiptNumber,
+          discountApproved: registrationData.discountApproved,
+          registrationDate: new Date().toISOString(),
+        };
+        
+        await addRegistration(newRegistration);
+        
+        // Reset form and close dialog
+        resetForm();
         setAddDialogOpen(false);
+        
+        // Refresh participant data
+        const updatedRegs = getRegistrationsByProduct(productId);
+        setProductRegistrations(updatedRegs);
+        
+        const updatedParts = updatedRegs
+          .map(reg => participants.find(p => p.id === reg.participantId))
+          .filter(Boolean) as Participant[];
+          
+        setProductParticipants(updatedParts);
+        
         return participant;
       }
     } catch (error) {

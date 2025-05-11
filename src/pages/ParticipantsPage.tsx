@@ -15,7 +15,9 @@ import {
 // Import components
 import ParticipantsHeader from "@/components/participants/ParticipantsHeader";
 import ParticipantsSummaryCards from "@/components/participants/ParticipantsSummaryCards";
-import { useParticipantData } from "@/hooks/useParticipantData";
+import ParticipantsDialogs from "@/components/participants/ParticipantsDialogs";
+import ParticipantsContent from "@/components/participants/ParticipantsContent";
+import { useParticipants } from "@/hooks/useParticipants";
 
 const ParticipantsPage = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -28,34 +30,48 @@ const ParticipantsPage = () => {
   // Get pool information if product has poolId
   const currentPool = currentProduct?.poolId ? getPoolById(currentProduct.poolId) : undefined;
 
-  // Use participant data hook to get all participant-related data and functions
+  // Use the useParticipants hook instead of useParticipantData
   const {
     loading,
+    product,
     participants,
-    addDialogOpen,
-    setAddDialogOpen,
-    filteredParticipants,
-    searchString,
-    handleSearch,
+    registrations,
+    isAddParticipantOpen,
+    setIsAddParticipantOpen,
+    isAddPaymentOpen,
+    setIsAddPaymentOpen,
+    isLinkDialogOpen,
+    setIsLinkDialogOpen,
+    currentHealthDeclaration,
+    setCurrentHealthDeclaration,
+    newParticipant,
+    setNewParticipant,
+    currentRegistration,
+    setCurrentRegistration,
+    registrationData,
+    setRegistrationData,
+    newPayment,
+    setNewPayment,
+    totalParticipants,
+    registrationsFilled,
+    totalExpected,
+    totalPaid,
     handleAddParticipant,
-    handleHealthFormOpen,
-    handleDeleteParticipant,
-    statusSummary,
-    paymentSummary,
-  } = useParticipantData(productId);
+    handleAddPayment,
+    handleApplyDiscount,
+    handleDeleteRegistration,
+    handleUpdateHealthApproval,
+    handleOpenHealthForm,
+    resetForm,
+    getParticipantForRegistration,
+    getPaymentsForRegistration,
+    getStatusClassName,
+    calculatePaymentStatus,
+    getHealthDeclarationForRegistration
+  } = useParticipants();
   
-  // Match the expected variables for components
-  const isLoading = loading;
-  const isAddDialogOpen = addDialogOpen;
-  const setIsAddDialogOpen = setAddDialogOpen;
-  const searchTerm = searchString;
-  const handleSearchChange = handleSearch;
-  const handleNavigateToHealth = handleHealthFormOpen;
-  const statusCounts = statusSummary;
-  const paymentInfo = paymentSummary;
-  
-  const [healthFormOpen, setHealthFormOpen] = useState(false);
-  const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
+  // State for health form dialog
+  const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
 
   // Handle back navigation to products
   const handleBackToProducts = () => {
@@ -68,9 +84,49 @@ const ParticipantsPage = () => {
     }
   };
 
-  if (isLoading || !currentProduct) {
+  if (loading || !currentProduct) {
     return <div className="flex justify-center items-center h-screen">טוען...</div>;
   }
+  
+  // Props for ParticipantsContent
+  const contentProps = {
+    participants,
+    registrations,
+    product: currentProduct,
+    setIsAddPaymentOpen,
+    setCurrentRegistration,
+    setIsHealthFormOpen,
+    handleDeleteRegistration,
+    handleUpdateHealthApproval,
+    handleOpenHealthForm,
+    getParticipantForRegistration,
+    getPaymentsForRegistration,
+    getStatusClassName,
+    calculatePaymentStatus
+  };
+
+  // Props for ParticipantsDialogs
+  const dialogsProps = {
+    isAddParticipantOpen,
+    setIsAddParticipantOpen,
+    isAddPaymentOpen,
+    setIsAddPaymentOpen,
+    isHealthFormOpen: isHealthFormOpen,
+    setIsHealthFormOpen: setIsHealthFormOpen,
+    newParticipant,
+    setNewParticipant,
+    registrationData,
+    setRegistrationData,
+    currentRegistration,
+    participants,
+    newPayment,
+    setNewPayment,
+    currentHealthDeclaration,
+    setCurrentHealthDeclaration,
+    handleAddParticipant,
+    handleAddPayment,
+    handleApplyDiscount
+  };
   
   return (
     <div className="p-6">
@@ -112,7 +168,7 @@ const ParticipantsPage = () => {
       <div className="flex justify-between items-center mb-6">
         <ParticipantsHeader 
           product={currentProduct}
-          onAddParticipant={() => setIsAddDialogOpen(true)}
+          onAddParticipant={() => setIsAddParticipantOpen(true)}
         />
         <Button variant="outline" onClick={handleBackToProducts} className="flex items-center gap-2">
           <ChevronLeft className="h-4 w-4" />
@@ -122,22 +178,15 @@ const ParticipantsPage = () => {
 
       <ParticipantsSummaryCards 
         product={currentProduct}
-        activeCount={statusCounts?.active || 0}
-        inactiveCount={statusCounts?.inactive || 0}
-        totalExpectedPayment={paymentInfo?.totalExpected || 0}
-        totalPaid={paymentInfo?.totalPaid || 0}
+        activeCount={totalParticipants - (participants.filter(p => !p.healthApproval).length)}
+        inactiveCount={participants.filter(p => !p.healthApproval).length}
+        totalExpectedPayment={totalExpected}
+        totalPaid={totalPaid}
       />
 
-      {/* For simplicity, we'll just display a message instead of trying to fix components with deeply nested props */}
-      <div className="bg-white rounded-lg shadow p-6 text-center">
-        <p className="text-lg">לצפייה ברשימת המשתתפים, אנא רענן את הדף</p>
-        <Button className="mt-4" onClick={() => window.location.reload()}>רענן</Button>
-      </div>
-
-      {/* We're temporarily hiding these components until we fix them properly
+      {/* Now uncommented and using proper props */}
       <ParticipantsContent {...contentProps} />
       <ParticipantsDialogs {...dialogsProps} />
-      */}
     </div>
   );
 };
