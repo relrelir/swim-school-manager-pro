@@ -9,6 +9,7 @@ interface ParticipantsSummaryCardsProps {
   inactiveCount?: number;
   totalExpectedPayment?: number;
   totalPaid?: number;
+  isCalculating?: boolean;
   // Support for old props - keeping for backward compatibility
   totalParticipants?: number;
   totalExpected?: number;
@@ -21,6 +22,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
   inactiveCount = 0,
   totalExpectedPayment = 0,
   totalPaid = 0,
+  isCalculating = false,
   totalParticipants,
   totalExpected,
   registrationsFilled
@@ -67,10 +69,17 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
           <div className="flex items-center gap-2">
             <BadgeDollarSign className="h-5 w-5 text-primary" />
             <div className="text-2xl font-bold">
-              {totalPaid.toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })}
+              {isCalculating ? (
+                <span className="text-sm">מחשב...</span>
+              ) : (
+                totalPaid.toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })
+              )}
             </div>
           </div>
           <div className="text-sm text-gray-500">סה״כ שולם</div>
+          <div className="text-xs text-muted-foreground">
+            (לפי סכום התשלומים בפועל)
+          </div>
         </CardContent>
       </Card>
       
@@ -82,7 +91,11 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
               <Minus className="h-5 w-5 text-red-600" />
             }
             <div className={`text-2xl font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {Math.abs(difference).toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })}
+              {isCalculating ? (
+                <span className="text-sm">מחשב...</span>
+              ) : (
+                Math.abs(difference).toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })
+              )}
             </div>
           </div>
           <div className="text-sm text-gray-500">הפרש</div>

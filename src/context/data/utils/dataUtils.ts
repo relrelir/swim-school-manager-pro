@@ -1,6 +1,27 @@
 
 import { Season, Product, Participant, Registration, Payment, RegistrationWithDetails, Pool, HealthDeclaration, DailyActivity } from '@/types';
-import { calculateCurrentMeeting } from './';
+
+// Create a utility function to calculate current meeting for a product
+export const calculateCurrentMeeting = (product: Product) => {
+  if (!product.meetingsCount) return { current: 0, total: 0 };
+  
+  const today = new Date();
+  const startDate = new Date(product.startDate);
+  const endDate = new Date(product.endDate);
+  
+  if (today < startDate) return { current: 0, total: product.meetingsCount };
+  if (today > endDate) return { current: product.meetingsCount, total: product.meetingsCount };
+  
+  // Calculate progress based on date range
+  const totalDays = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
+  const elapsedDays = (today.getTime() - startDate.getTime()) / (1000 * 3600 * 24);
+  
+  const currentMeeting = Math.ceil((elapsedDays / totalDays) * product.meetingsCount);
+  return {
+    current: Math.min(currentMeeting, product.meetingsCount),
+    total: product.meetingsCount
+  };
+};
 
 export const buildAllRegistrationsWithDetails = async (
   registrations: Registration[], 
@@ -32,15 +53,11 @@ export const buildAllRegistrationsWithDetails = async (
     // Create enriched registration object
     const registrationWithDetails: RegistrationWithDetails = {
       ...reg,
-      productName: product.name,
-      productType: product.poolId ? 'pool' : 'course',
-      seasonName: season.name,
-      participantName: `${participant.firstName} ${participant.lastName}`,
-      phoneNumber: participant.phone,
-      idNumber: participant.idNumber,
-      healthApproval: participant.healthApproval,
+      participant,
+      product,
+      season,
       payments: regPayments,
-      totalPaid: regPayments.reduce((sum, p) => sum + p.amount, 0)
+      paymentStatus: 'חלקי' // This will be calculated by the consumer using calculatePaymentStatus
     };
 
     result.push(registrationWithDetails);
@@ -60,7 +77,7 @@ export const getHealthDeclarationByParticipant = (
   healthDeclarations: HealthDeclaration[],
   participantId: string
 ): HealthDeclaration | undefined => {
-  return healthDeclarations.find(h => h.participantId === participantId);
+  return healthDeclarations.find(h => h.participant_id === participantId);
 };
 
 export const getPoolById = (
@@ -102,14 +119,11 @@ export const getDailyActivities = (
     const meetingInfo = calculateCurrentMeeting(product);
     
     return {
-      id: product.id,
-      name: product.name,
-      time: product.startTime || '00:00',
-      instructor: product.instructor || 'לא צוין',
-      participantsRegistered: registrations.length,
-      participantsMax: product.maxParticipants,
-      meetingNumber: meetingInfo.current,
-      totalMeetings: meetingInfo.total,
+      product,
+      startTime: product.startTime || '00:00',
+      numParticipants: registrations.length,
+      currentMeetingNumber: meetingInfo.current,
+      totalMeetings: meetingInfo.total
     };
   });
 };

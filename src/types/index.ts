@@ -88,6 +88,7 @@ export interface HealthDeclaration {
   form_status: 'pending' | 'signed' | 'expired' | 'completed';
   submission_date?: string;
   created_at: string;
+  updated_at: string;
   notes?: string;
   signature?: string; // Signature field is already defined here
   
