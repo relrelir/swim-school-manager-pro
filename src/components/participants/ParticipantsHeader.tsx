@@ -7,13 +7,14 @@ import { ArrowRight, Plus } from 'lucide-react';
 
 interface ParticipantsHeaderProps {
   product: Product | undefined;
-  onExport: () => void; // Keeping this prop to maintain interface compatibility
+  onExport?: () => void; // Made optional
   onAddParticipant: () => void;
 }
 
 const ParticipantsHeader: React.FC<ParticipantsHeaderProps> = ({ 
   product, 
-  onAddParticipant 
+  onAddParticipant,
+  onExport 
 }) => {
   const navigate = useNavigate();
   
@@ -42,6 +43,11 @@ const ParticipantsHeader: React.FC<ParticipantsHeaderProps> = ({
           <Plus className="h-4 w-4" />
           <span>הוסף משתתף</span>
         </Button>
+        {onExport && (
+          <Button variant="outline" onClick={onExport}>
+            ייצוא
+          </Button>
+        )}
       </div>
     </div>
   );

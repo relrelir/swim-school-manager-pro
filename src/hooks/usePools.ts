@@ -1,7 +1,7 @@
 
 import { useMemo, useState } from 'react';
 import { Pool } from '@/types';
-import { usePoolsContext } from '@/context/data/PoolsProvider';
+import { usePoolsContext } from '@/context/data/pools/usePoolsContext';
 import { toast } from '@/components/ui/use-toast';
 
 export function usePools(seasonId?: string) {

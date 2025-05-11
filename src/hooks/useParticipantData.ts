@@ -82,7 +82,7 @@ export const useParticipantData = (productId?: string) => {
     
     productRegistrations.forEach(reg => {
       const regPayments = getPaymentsByRegistration(reg.id);
-      const paidAmount = regPayments.reduce((sum, pay) => sum + pay.amount, 0);
+      const paidAmount = regPayments.reduce((sum, pay) => sum + Number(pay.amount), 0);
       
       totalExpected += reg.requiredAmount;
       totalPaid += paidAmount;
@@ -125,10 +125,13 @@ export const useParticipantData = (productId?: string) => {
       try {
         await deleteParticipant(id);
         console.log('Participant deleted successfully');
+        return true;
       } catch (error) {
         console.error('Error deleting participant:', error);
+        return false;
       }
     }
+    return false;
   };
   
   return {

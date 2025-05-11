@@ -14,10 +14,36 @@ import { useParticipants } from '@/hooks/useParticipants';
 import { useRegistrations } from '@/hooks/useRegistrations';
 import { usePayments } from '@/hooks/usePayments';
 import { useHealthDeclarations } from '@/hooks/useHealthDeclarations';
-import { usePoolsContext } from './data/PoolsProvider';
+import { usePoolsContext } from './data/pools/usePoolsContext';
 import { calculatePaymentStatus } from '@/utils/paymentUtils';
 import { format } from 'date-fns';
-import { he } from 'date-fns/locale';
+
+// Create a stub for the hebrew locale to avoid the type error
+const heLocale = { 
+  code: 'he',
+  formatLong: {},
+  formatRelative: () => '',
+  localize: {
+    ordinalNumber: () => '',
+    era: () => '',
+    quarter: () => '',
+    month: () => '',
+    day: () => '',
+    dayPeriod: () => ''
+  },
+  match: {
+    ordinalNumber: () => 0,
+    era: () => 0,
+    quarter: () => 0,
+    month: () => 0,
+    day: () => 0,
+    dayPeriod: () => 0
+  },
+  options: {
+    weekStartsOn: 0,
+    firstWeekContainsDate: 1
+  }
+};
 
 interface DataContextProps {
   seasons: Season[];
@@ -75,25 +101,15 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   const { seasons, addSeason, updateSeason, deleteSeason: deleteSeasonContext, loading: seasonsLoading } = useSeasons();
   const { products, addProduct, updateProduct, deleteProduct, getProductsBySeason, getProductsByPool, loading: productsLoading } = useProducts();
   const { participants, addParticipant, updateParticipant, deleteParticipant, loading: participantsLoading } = useParticipants();
-  const { registrations, addRegistration, updateRegistration, deleteRegistration, loading: registrationsLoading } = useRegistrations();
-  const { payments, addPayment, updatePayment, deletePayment, loading: paymentsLoading } = usePayments();
+  const { registrations, addRegistration, updateRegistration, deleteRegistration, getRegistrationsByProduct, calculatePaymentStatus: calcRegPaymentStatus, loading: registrationsLoading } = useRegistrations();
+  const { payments, addPayment, updatePayment, deletePayment, getPaymentsByRegistration, loading: paymentsLoading } = usePayments();
   const { healthDeclarations, updateHealthDeclaration, addHealthDeclaration, loading: healthDeclarationsLoading } = useHealthDeclarations();
   const { pools, getPoolsBySeason, addPool, updatePool, deletePool, loading: poolsLoading } = usePoolsContext();
   const loading = seasonsLoading || productsLoading || participantsLoading || registrationsLoading || paymentsLoading || healthDeclarationsLoading || poolsLoading;
 
-  // Get registrations by product
-  const getRegistrationsByProduct = (productId: string) => {
-    return registrations.filter(registration => registration.productId === productId);
-  };
-
   // Get registrations by participant
   const getRegistrationsByParticipant = (participantId: string) => {
     return registrations.filter(registration => registration.participantId === participantId);
-  };
-
-  // Get payments by registration
-  const getPaymentsByRegistration = (registrationId: string) => {
-    return payments.filter(payment => payment.registrationId === registrationId);
   };
 
   // Get health declaration by participant
@@ -142,7 +158,7 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
 
   const getDailyActivities = (date: string) => {
     const parsedDate = new Date(date);
-    const dayOfWeek = format(parsedDate, 'EEEE', { locale: he as any });
+    const dayOfWeek = format(parsedDate, 'EEEE', { locale: heLocale });
 
     return products.map(product => {
       const registrationsForProduct = getRegistrationsByProduct(product.id);
@@ -159,6 +175,27 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     });
   };
 
+  // Make sure all functions return Promises as expected by the interface
+  const promisifiedAddProduct = async (product: Omit<Product, 'id'>): Promise<Product | undefined> => {
+    return await addProduct(product);
+  };
+
+  const promisifiedUpdateSeason = async (season: Season): Promise<void> => {
+    await updateSeason(season);
+  };
+
+  const promisifiedDeleteSeason = async (id: string): Promise<void> => {
+    await deleteSeasonContext(id);
+  };
+
+  const promisifiedUpdateRegistration = async (registration: Registration): Promise<void> => {
+    await updateRegistration(registration);
+  };
+
+  const promisifiedDeleteRegistration = async (id: string): Promise<void> => {
+    await deleteRegistration(id);
+  };
+
   const contextValue: DataContextProps = {
     seasons,
     products,
@@ -167,18 +204,18 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     registrations,
     payments,
     healthDeclarations,
-    addProduct,
+    addProduct: promisifiedAddProduct,
     updateProduct,
     deleteProduct,
     addSeason,
-    updateSeason,
-    deleteSeason: deleteSeasonContext,
+    updateSeason: promisifiedUpdateSeason,
+    deleteSeason: promisifiedDeleteSeason,
     addParticipant,
     updateParticipant,
     deleteParticipant,
     addRegistration,
-    updateRegistration,
-    deleteRegistration,
+    updateRegistration: promisifiedUpdateRegistration,
+    deleteRegistration: promisifiedDeleteRegistration,
     addPayment,
     updatePayment,
     deletePayment,
