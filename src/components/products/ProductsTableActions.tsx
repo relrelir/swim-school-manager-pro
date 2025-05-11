@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Edit, Users } from 'lucide-react';
 import { Product } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 interface ProductsTableActionsProps {
   product: Product;
@@ -15,6 +16,7 @@ const ProductsTableActions: React.FC<ProductsTableActionsProps> = ({
   onEditProduct
 }) => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   
   return (
     <div className="flex space-x-2">
@@ -22,10 +24,13 @@ const ProductsTableActions: React.FC<ProductsTableActionsProps> = ({
         <Users className="h-4 w-4 ml-1" />
         צפה במשתתפים
       </Button>
-      <Button variant="outline" size="sm" onClick={() => onEditProduct(product)}>
-        <Edit className="h-4 w-4 ml-1" />
-        ערוך
-      </Button>
+      
+      {isAdmin() && (
+        <Button variant="outline" size="sm" onClick={() => onEditProduct(product)}>
+          <Edit className="h-4 w-4 ml-1" />
+          ערוך
+        </Button>
+      )}
     </div>
   );
 };

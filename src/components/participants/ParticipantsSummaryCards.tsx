@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Product } from '@/types';
 import { formatPriceForUI } from '@/utils/formatters';
+import { useAuth } from '@/context/AuthContext';
 
 interface ParticipantsSummaryCardsProps {
   totalParticipants: number;
@@ -19,6 +20,8 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
   totalPaid,
   registrationsFilled,
 }) => {
+  const { isAdmin } = useAuth();
+  
   // Calculate the difference between paid and expected (considering discounts)
   const difference = totalPaid - totalExpected;
   
@@ -43,30 +46,35 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
           </div>
         </CardContent>
       </Card>
-      <Card>
-        <CardContent className="p-4 flex flex-col items-center">
-          <div className="text-2xl font-bold">
-            {formatPriceForUI(totalExpected)}
-          </div>
-          <div className="text-sm text-gray-500">סכום לתשלום (אחרי הנחות)</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4 flex flex-col items-center">
-          <div className="text-2xl font-bold">
-            {formatPriceForUI(totalPaid)}
-          </div>
-          <div className="text-sm text-gray-500">סכום ששולם</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4 flex flex-col items-center">
-          <div className={`text-2xl font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {formatPriceForUI(difference)}
-          </div>
-          <div className="text-sm text-gray-500">הפרש</div>
-        </CardContent>
-      </Card>
+      
+      {isAdmin() && (
+        <>
+          <Card>
+            <CardContent className="p-4 flex flex-col items-center">
+              <div className="text-2xl font-bold">
+                {formatPriceForUI(totalExpected)}
+              </div>
+              <div className="text-sm text-gray-500">סכום לתשלום (אחרי הנחות)</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex flex-col items-center">
+              <div className="text-2xl font-bold">
+                {formatPriceForUI(totalPaid)}
+              </div>
+              <div className="text-sm text-gray-500">סכום ששולם</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 flex flex-col items-center">
+              <div className={`text-2xl font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatPriceForUI(difference)}
+              </div>
+              <div className="text-sm text-gray-500">הפרש</div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 };

@@ -1,15 +1,22 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Calendar, FileText, Home, BarChart3 } from 'lucide-react';
+import { Calendar, FileText, Home } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { useAuth } from '@/context/AuthContext';
 
 const Navigation: React.FC = () => {
-  const navItems = [
+  const { isAdmin } = useAuth();
+  
+  // Define all navigation items
+  const allNavItems = [
     { path: '/', icon: <Home className="h-5 w-5" />, label: 'עונות' },
-    { path: '/report', icon: <FileText className="h-5 w-5" />, label: 'דו"ח רישומים' },
+    { path: '/report', icon: <FileText className="h-5 w-5" />, label: 'דו"ח רישומים', adminOnly: true },
     { path: '/daily-activity', icon: <Calendar className="h-5 w-5" />, label: 'פעילות יומית' },
   ];
+  
+  // Filter items based on user role
+  const navItems = allNavItems.filter(item => !item.adminOnly || isAdmin());
   
   return (
     <nav className="flex flex-col p-1 border-b bg-white shadow-navbar">

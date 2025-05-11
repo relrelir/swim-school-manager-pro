@@ -5,10 +5,10 @@ import { useAuth } from '@/context/AuthContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, User, Key } from 'lucide-react';
+import { LogOut, Key } from 'lucide-react';
 
 const Header = () => {
-  const { logout, changePassword, user } = useAuth();
+  const { logout, changePassword, user, isAdmin } = useAuth();
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [newPassword, setNewPassword] = useState("");
 
@@ -33,15 +33,17 @@ const Header = () => {
           </div>
           <div>
             <h1 className="text-xl font-alef font-bold">בית ספר לשחייה - ניהול</h1>
-            {user && <p className="text-xs text-white/80">שלום, {user.displayName || 'מנהל'}</p>}
+            {user && <p className="text-xs text-white/80">שלום, {user.displayName}</p>}
           </div>
         </div>
         
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setIsPasswordDialogOpen(true)} className="bg-white/10 text-white border-white/20 hover:bg-white/20">
-            <Key className="h-4 w-4" />
-            <span className="hidden sm:inline">החלפת סיסמה</span>
-          </Button>
+          {isAdmin() && (
+            <Button variant="outline" size="sm" onClick={() => setIsPasswordDialogOpen(true)} className="bg-white/10 text-white border-white/20 hover:bg-white/20">
+              <Key className="h-4 w-4" />
+              <span className="hidden sm:inline">החלפת סיסמה</span>
+            </Button>
+          )}
           <Button variant="destructive" size="sm" onClick={logout} className="bg-white/10 text-white border-white/20 hover:bg-white/20">
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">התנתקות</span>

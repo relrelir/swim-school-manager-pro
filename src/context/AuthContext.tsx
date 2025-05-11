@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface User {
   id: string;
   displayName: string;
+  role: 'admin' | 'viewer'; // Added role field
 }
 
 interface AuthContextType {
@@ -15,6 +16,7 @@ interface AuthContextType {
   logout: () => void;
   changePassword: (newPassword: string) => Promise<boolean>;
   user: User | null;
+  isAdmin: () => boolean; // Helper function to check if user is admin
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   logout: () => {},
   changePassword: async () => false,
   user: null,
+  isAdmin: () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -35,12 +38,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check if there's a saved auth state
   useEffect(() => {
     const savedAuth = localStorage.getItem('swimSchoolAuth');
+    const savedRole = localStorage.getItem('swimSchoolUserRole');
+    
     if (savedAuth === 'true') {
       setIsAuthenticated(true);
       // Create a default user when authenticated
       setUser({
         id: '1',
-        displayName: 'מנהל'
+        displayName: savedRole === 'viewer' ? 'צופה' : 'מנהל',
+        role: (savedRole === 'viewer' ? 'viewer' : 'admin') as 'admin' | 'viewer'
       });
     }
   }, []);
@@ -69,11 +75,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (data && data.password === password) {
         setIsAuthenticated(true);
+        
+        // Save auth state with role
         localStorage.setItem('swimSchoolAuth', 'true');
+        localStorage.setItem('swimSchoolUserRole', data.role || 'admin');
+        
         // Set user data when logging in
         setUser({
           id: data.id,
-          displayName: 'מנהל'
+          displayName: data.role === 'viewer' ? 'צופה' : 'מנהל',
+          role: (data.role || 'admin') as 'admin' | 'viewer'
         });
         
         return true;
@@ -101,9 +112,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(false);
     setUser(null);
     localStorage.removeItem('swimSchoolAuth');
+    localStorage.removeItem('swimSchoolUserRole');
+  };
+
+  // Helper function to check if user is admin
+  const isAdmin = (): boolean => {
+    return user?.role === 'admin';
   };
 
   const changePassword = async (newPassword: string): Promise<boolean> => {
+    // Only admins can change passwords
+    if (!isAdmin()) {
+      toast({
+        title: "אין הרשאה",
+        description: "אין לך הרשאה לשנות סיסמה",
+        variant: "destructive",
+      });
+      return false;
+    }
+    
     try {
       const { error } = await supabase
         .from('admin_credentials')
@@ -140,7 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, changePassword, user }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, changePassword, user, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

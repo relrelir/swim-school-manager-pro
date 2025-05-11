@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { Link, CheckCircle } from "lucide-react";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
+import { useAuth } from '@/context/AuthContext';
 
 interface HealthFormLinkProps {
   registrationId: string;
@@ -14,6 +15,12 @@ interface HealthFormLinkProps {
 const HealthFormLink = ({ registrationId, isDisabled, className }: HealthFormLinkProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const { isAdmin } = useAuth();
+  
+  // Only admins can generate links
+  if (!isAdmin()) {
+    return null;
+  }
   
   const handleGenerateLink = async () => {
     setIsGenerating(true);

@@ -8,6 +8,7 @@ import { generateRegistrationPdf } from '@/utils/generateRegistrationPdf';
 import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from '@/context/AuthContext';
 
 interface TableRowActionsProps {
   registration: Registration;
@@ -22,6 +23,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   onAddPayment,
   onDeleteRegistration,
 }) => {
+  const { isAdmin } = useAuth();
   const [isGeneratingRegPdf, setIsGeneratingRegPdf] = useState(false);
   const [isGeneratingHealthPdf, setIsGeneratingHealthPdf] = useState(false);
   const [hasHealthDeclaration, setHasHealthDeclaration] = useState(false);
@@ -125,18 +127,20 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   
   return (
     <div className="flex gap-2 justify-end">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onAddPayment(registration)}
-          >
-            <CreditCardIcon className="h-4 w-4" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>הוסף תשלום</TooltipContent>
-      </Tooltip>
+      {isAdmin() && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onAddPayment(registration)}
+            >
+              <CreditCardIcon className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>הוסף תשלום</TooltipContent>
+        </Tooltip>
+      )}
       
       <Tooltip>
         <TooltipTrigger asChild>
@@ -177,24 +181,26 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
         </TooltipContent>
       </Tooltip>
       
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleDeleteRegistration}
-            disabled={hasPayments}
-            className={hasPayments ? "opacity-50 cursor-not-allowed" : ""}
-          >
-            <Trash2Icon className="h-4 w-4 text-red-500" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          {hasPayments
-            ? "לא ניתן למחוק רישום עם תשלומים"
-            : "מחק רישום"}
-        </TooltipContent>
-      </Tooltip>
+      {isAdmin() && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleDeleteRegistration}
+              disabled={hasPayments}
+              className={hasPayments ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              <Trash2Icon className="h-4 w-4 text-red-500" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {hasPayments
+              ? "לא ניתן למחוק רישום עם תשלומים"
+              : "מחק רישום"}
+          </TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 };
