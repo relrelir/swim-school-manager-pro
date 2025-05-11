@@ -144,6 +144,7 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                         })}
                         required
                       />
+                      <p className="text-sm text-gray-500">* מספר קבלה הוא שדה חובה</p>
                     </div>
                     
                     <div className="space-y-2">
