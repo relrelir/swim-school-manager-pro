@@ -10,7 +10,7 @@ export const usePaymentHandlers = (
   getRegistrationsByProduct: (productId: string) => Registration[],
 ) => {
   const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
-  const { refreshPayments } = usePaymentsContext();
+  const { refreshPayments, getPaymentsByRegistration } = usePaymentsContext();
 
   // Handle adding a new payment
   const handleAddPayment = async (
@@ -77,23 +77,26 @@ export const usePaymentHandlers = (
     // Make sure to refresh payments data in the context
     await refreshPayments();
     
-    // Update the registration's paidAmount
+    // Update the registration's paidAmount based on all payments
     let updatedRegistrations: Registration[] = [];
     if (productId) {
       const regs = getRegistrationsByProduct(productId);
       const reg = regs.find(r => r.id === registrationId);
       
       if (reg) {
-        const updatedPaidAmount = reg.paidAmount + newPayment.amount;
-        console.log(`Updating registration ${reg.id} paidAmount from ${reg.paidAmount} to ${updatedPaidAmount}`);
+        // Get all payments for this registration after the new one was added
+        const allPayments = await getPaymentsByRegistration(registrationId);
+        const totalPaidAmount = allPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+        
+        console.log(`Updating registration ${reg.id} paidAmount to ${totalPaidAmount} based on ${allPayments.length} payments`);
         
         const updatedReg: Registration = {
           ...reg,
-          paidAmount: updatedPaidAmount,
+          paidAmount: totalPaidAmount,
         };
         
         await updateRegistration(updatedReg);
-        console.log("Registration updated with new payment amount:", updatedReg);
+        console.log("Registration updated with new total payment amount:", updatedReg);
       } else {
         console.error(`Registration with id ${registrationId} not found in product ${productId}`);
       }
@@ -181,6 +184,7 @@ export const usePaymentHandlers = (
     currentRegistration,
     setCurrentRegistration,
     handleAddPayment,
-    handleApplyDiscount
+    handleApplyDiscount,
+    getPaymentsByRegistration
   };
 };

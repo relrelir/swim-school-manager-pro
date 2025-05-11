@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Payment } from '@/types';
@@ -10,7 +9,7 @@ interface PaymentsContextType {
   addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined>;
   updatePayment: (payment: Payment) => void;
   deletePayment: (id: string) => void;
-  getPaymentsByRegistration: (registrationId: string) => Payment[];
+  getPaymentsByRegistration: (registrationId: string) => Promise<Payment[]>;
   refreshPayments: () => Promise<void>;
   loading: boolean;
 }
@@ -73,6 +72,17 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
     await fetchPayments();
     console.log("Payments refreshed, total payments:", payments.length);
     return;
+  };
+
+  // Get payments for a specific registration - now async to ensure fresh data
+  const getPaymentsByRegistration = async (registrationId: string): Promise<Payment[]> => {
+    // Refresh payments first to ensure we have the latest data
+    await refreshPayments();
+    
+    // Now filter the refreshed payments
+    const registrationPayments = payments.filter(payment => payment.registrationId === registrationId);
+    console.log(`Getting ${registrationPayments.length} payments for registration ${registrationId}`);
+    return registrationPayments;
   };
 
   const addPayment = async (payment: Omit<Payment, 'id'>) => {
@@ -185,12 +195,6 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
         variant: "destructive",
       });
     }
-  };
-
-  const getPaymentsByRegistration = (registrationId: string) => {
-    const registrationPayments = payments.filter(payment => payment.registrationId === registrationId);
-    console.log(`Getting payments for registration ${registrationId}:`, registrationPayments);
-    return registrationPayments;
   };
 
   const contextValue: PaymentsContextType = {

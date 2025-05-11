@@ -14,7 +14,7 @@ interface ParticipantsTableProps {
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
   getPaymentsForRegistration: (registration: Registration | string) => Payment[];
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
-  calculatePaymentStatus: (registration: Registration) => PaymentStatusDetails;
+  calculatePaymentStatus: (registration: Registration, payments: Payment[]) => PaymentStatusDetails;
   getStatusClassName: (status: string) => string;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (id: string) => void;
@@ -78,7 +78,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             const registrationPayments = getPaymentsForRegistration(registration);
             const discountAmount = calculateDiscountAmount(registration);
             const effectiveRequiredAmount = calculateEffectiveRequiredAmount(registration);
-            const paymentDetails = calculatePaymentStatus(registration);
+            const paymentDetails = calculatePaymentStatus(registration, registrationPayments);
             const status = paymentDetails.status;
             const hasPayments = registrationPayments.length > 0;
             
