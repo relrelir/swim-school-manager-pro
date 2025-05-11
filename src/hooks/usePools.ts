@@ -8,6 +8,7 @@ export function usePools(seasonId?: string) {
   const { pools, addPool, updatePool, deletePool, getPoolsBySeason, loading } = usePoolsContext();
   const [isAddPoolDialogOpen, setIsAddPoolDialogOpen] = useState(false);
   const [editingPool, setEditingPool] = useState<Pool | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Filter pools by season if seasonId is provided
   const seasonPools = useMemo(() => {
@@ -44,17 +45,28 @@ export function usePools(seasonId?: string) {
     const confirmDelete = window.confirm("האם אתה בטוח שברצונך למחוק את הבריכה?");
     if (confirmDelete) {
       console.log('Delete confirmed for pool ID:', id);
-      const success = await deletePool(id);
+      setIsDeleting(true);
       
-      if (!success) {
-        console.log('Delete pool failed for ID:', id);
-        toast({
-          title: "לא ניתן למחוק",
-          description: "לא ניתן למחוק בריכה עם מוצרים",
-          variant: "destructive",
-        });
-      } else {
-        console.log('Delete pool succeeded for ID:', id);
+      try {
+        const success = await deletePool(id);
+        
+        if (!success) {
+          console.log('Delete pool failed for ID:', id);
+          toast({
+            title: "לא ניתן למחוק",
+            description: "לא ניתן למחוק בריכה עם מוצרים",
+            variant: "destructive",
+          });
+        } else {
+          console.log('Delete pool succeeded for ID:', id);
+          
+          // Force refetch of pools to ensure UI is in sync with database
+          const { fetchPools } = await import('@/context/data/pools/poolsService');
+          const updatedPools = await fetchPools();
+          console.log('Fetched updated pools after deletion:', updatedPools);
+        }
+      } finally {
+        setIsDeleting(false);
       }
     } else {
       console.log('Delete cancelled for pool ID:', id);
@@ -63,7 +75,7 @@ export function usePools(seasonId?: string) {
 
   return {
     pools: seasonPools,
-    loading,
+    loading: loading || isDeleting,
     isAddPoolDialogOpen,
     setIsAddPoolDialogOpen,
     editingPool,

@@ -79,18 +79,17 @@ export const updatePoolName = async (id: string, name: string): Promise<boolean>
 
 // Check if pool has associated products
 export const hasPoolProducts = async (poolId: string): Promise<boolean> => {
-  const { data, error } = await supabase
+  const { data, error, count } = await supabase
     .from('products')
-    .select('id')
-    .eq('poolid', poolId)
-    .limit(1);
+    .select('id', { count: 'exact', head: true })
+    .eq('poolid', poolId);
   
   if (error) {
     console.error('Error checking pool products:', error);
     return true; // Return true to prevent deletion in case of error
   }
 
-  return data && data.length > 0;
+  return count ? count > 0 : false;
 };
 
 // Delete a pool
@@ -98,14 +97,43 @@ export const deletePool = async (poolId: string): Promise<boolean> => {
   console.log('Attempting to delete pool with ID:', poolId);
   
   try {
-    // Delete the pool from Supabase
-    const { error } = await supabase
+    // First verify the pool exists
+    const { data: existingPool, error: checkError } = await supabase
+      .from('pools')
+      .select('id')
+      .eq('id', poolId)
+      .single();
+      
+    if (checkError) {
+      console.error('Error checking if pool exists:', checkError);
+      // If the error is that the pool doesn't exist, we'll consider the deletion successful
+      if (checkError.code === 'PGRST116') {
+        console.log('Pool already does not exist:', poolId);
+        return true;
+      }
+      
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה בבדיקת הבריכה',
+        variant: 'destructive'
+      });
+      return false;
+    }
+    
+    if (!existingPool) {
+      console.log('Pool does not exist:', poolId);
+      // Pool doesn't exist, consider deletion successful
+      return true;
+    }
+    
+    // Now attempt to delete the pool
+    const { error: deleteError } = await supabase
       .from('pools')
       .delete()
       .eq('id', poolId);
     
-    if (error) {
-      console.error('Error deleting pool:', error);
+    if (deleteError) {
+      console.error('Error deleting pool:', deleteError);
       toast({
         title: 'שגיאה',
         description: 'אירעה שגיאה במחיקת הבריכה',
@@ -114,8 +142,26 @@ export const deletePool = async (poolId: string): Promise<boolean> => {
       return false;
     }
     
+    // Verify the pool was actually deleted
+    const { data: checkDeleted, error: verifyError } = await supabase
+      .from('pools')
+      .select('id')
+      .eq('id', poolId);
+      
+    if (verifyError) {
+      console.error('Error verifying pool deletion:', verifyError);
+    } else if (checkDeleted && checkDeleted.length > 0) {
+      console.error('Pool still exists after deletion attempt:', poolId);
+      toast({
+        title: 'שגיאה',
+        description: 'הבריכה לא נמחקה מהמסד נתונים',
+        variant: 'destructive'
+      });
+      return false;
+    }
+    
     // Successfully deleted the pool
-    console.log('Pool deleted successfully:', poolId);
+    console.log('Pool deleted successfully from Supabase:', poolId);
     toast({
       title: 'בריכה נמחקה',
       description: 'הבריכה נמחקה בהצלחה',

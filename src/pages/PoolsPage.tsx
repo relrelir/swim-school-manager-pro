@@ -16,7 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Plus, Edit, Trash2, ChevronLeft } from 'lucide-react';
+import { Plus, Edit, Trash2, ChevronLeft, Loader2 } from 'lucide-react';
 import { 
   Breadcrumb, 
   BreadcrumbItem, 
@@ -45,6 +45,7 @@ const PoolsPage: React.FC = () => {
   const [newPoolName, setNewPoolName] = useState('');
   const [editPoolName, setEditPoolName] = useState('');
   const [isEditPoolDialogOpen, setIsEditPoolDialogOpen] = useState(false);
+  const [deletingPoolId, setDeletingPoolId] = useState<string | null>(null);
 
   const currentSeason = seasons.find(s => s.id === seasonId);
 
@@ -79,8 +80,19 @@ const PoolsPage: React.FC = () => {
     navigate('/');
   };
 
-  if (loading) {
-    return <div>טוען בריכות...</div>;
+  const handlePoolDelete = async (poolId: string) => {
+    setDeletingPoolId(poolId);
+    await handleDeletePool(poolId);
+    setDeletingPoolId(null);
+  };
+
+  if (loading && pools.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="mr-2">טוען בריכות...</span>
+      </div>
+    );
   }
 
   return (
@@ -142,9 +154,23 @@ const PoolsPage: React.FC = () => {
                   <Edit className="h-4 w-4 ml-1" />
                   ערוך
                 </Button>
-                <Button variant="outline" size="sm" onClick={() => handleDeletePool(pool.id)}>
-                  <Trash2 className="h-4 w-4 ml-1" />
-                  מחק
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handlePoolDelete(pool.id)}
+                  disabled={loading || deletingPoolId === pool.id}
+                >
+                  {deletingPoolId === pool.id ? (
+                    <>
+                      <Loader2 className="h-4 w-4 ml-1 animate-spin" />
+                      מוחק...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 ml-1" />
+                      מחק
+                    </>
+                  )}
                 </Button>
               </CardFooter>
             </Card>
