@@ -43,7 +43,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
               ...mappedProduct,
               active: true, // Set default value directly instead of using non-existent p.active
               poolId: product.poolid, // Include the poolId field
-              type: product.type || 'קורס' // Ensure type has a default value
+              type: mappedProduct.type || 'קורס' // Use mappedProduct.type if it exists, otherwise use default
             };
           });
           
@@ -98,7 +98,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           ...mapProductFromDB(data),
           active: true, // Set default value directly
           poolId: data.poolid, // Include the poolId field
-          type: data.type || 'קורס' // Ensure type has a default value
+          type: product.type || 'קורס' // Use product.type or default value since data might not have type
         };
         setProducts([...products, newProduct]);
         return newProduct;
