@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,21 +13,24 @@ import {
 } from '@/components/ui/card';
 import BackButton from '@/components/ui/back-button';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import AddPoolDialog from '@/components/pools/AddPoolDialog';
+import { usePools } from '@/hooks/usePools';
 
 const PoolsPage = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
-  const { seasons, getPoolsBySeason } = useData();
+  const { seasons } = useData();
   const [isAddPoolDialogOpen, setIsAddPoolDialogOpen] = useState(false);
+  
+  // Use the existing hooks
+  const { 
+    pools: seasonPools,
+    handleAddPool
+  } = usePools(seasonId);
 
   const currentSeason = useMemo(
     () => seasons.find(s => s.id === seasonId),
     [seasons, seasonId]
-  );
-
-  const pools = useMemo(
-    () => seasonId ? getPoolsBySeason(seasonId) : [],
-    [getPoolsBySeason, seasonId]
   );
 
   if (!currentSeason) {
@@ -68,7 +72,7 @@ const PoolsPage = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {pools.map(pool => (
+        {seasonPools.map(pool => (
           <Card key={pool.id} className="overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle>{pool.name}</CardTitle>
@@ -88,14 +92,22 @@ const PoolsPage = () => {
           </Card>
         ))}
         
-        {pools.length === 0 && (
+        {seasonPools.length === 0 && (
           <div className="col-span-full text-center py-10 bg-muted/40 rounded-lg">
             <p className="text-muted-foreground">לא נמצאו בריכות, אנא הוסף בריכה חדשה</p>
           </div>
         )}
       </div>
 
-      {/* צריך להוסיף דיאלוג להוספת בריכה */}
+      {/* Add Pool Dialog */}
+      <AddPoolDialog 
+        isOpen={isAddPoolDialogOpen} 
+        onOpenChange={setIsAddPoolDialogOpen} 
+        onAddPool={(name) => {
+          handleAddPool(name);
+          setIsAddPoolDialogOpen(false);
+        }}
+      />
     </div>
   );
 };
