@@ -17,6 +17,7 @@ import { useHealthDeclarations } from '@/hooks/useHealthDeclarations';
 import { usePoolsContext } from './data/pools/usePoolsContext';
 import { calculatePaymentStatus } from '@/utils/paymentUtils';
 import { format } from 'date-fns';
+import { Day } from 'date-fns';
 
 // Create a stub for the hebrew locale to avoid the type error
 const heLocale = { 
@@ -40,7 +41,7 @@ const heLocale = {
     dayPeriod: () => 0
   },
   options: {
-    weekStartsOn: 0,
+    weekStartsOn: 0 as Day,
     firstWeekContainsDate: 1
   }
 };
@@ -99,11 +100,41 @@ export const useData = () => {
 
 export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   const { seasons, addSeason, updateSeason, deleteSeason: deleteSeasonContext, loading: seasonsLoading } = useSeasons();
-  const { products, addProduct, updateProduct, deleteProduct, getProductsBySeason, getProductsByPool, loading: productsLoading } = useProducts();
-  const { participants, addParticipant, updateParticipant, deleteParticipant, loading: participantsLoading } = useParticipants();
+  
+  // Explicitly define the type for useProducts
+  const productsContext = useProducts();
+  const { 
+    products, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct, 
+    getProductsBySeason, 
+    getProductsByPool, // Now correctly typed
+    loading: productsLoading 
+  } = productsContext;
+  
+  // Explicitly define the type for useParticipants
+  const participantsContext = useParticipants();
+  const { 
+    participants, 
+    addParticipant, 
+    updateParticipant, 
+    deleteParticipant, 
+    loading: participantsLoading 
+  } = participantsContext;
+  
   const { registrations, addRegistration, updateRegistration, deleteRegistration, getRegistrationsByProduct, calculatePaymentStatus: calcRegPaymentStatus, loading: registrationsLoading } = useRegistrations();
   const { payments, addPayment, updatePayment, deletePayment, getPaymentsByRegistration, loading: paymentsLoading } = usePayments();
-  const { healthDeclarations, updateHealthDeclaration, addHealthDeclaration, loading: healthDeclarationsLoading } = useHealthDeclarations();
+  
+  // Explicitly define the type for useHealthDeclarations
+  const healthContext = useHealthDeclarations();
+  const { 
+    healthDeclarations, 
+    updateHealthDeclaration, 
+    addHealthDeclaration, 
+    loading: healthDeclarationsLoading 
+  } = healthContext;
+  
   const { pools, getPoolsBySeason, addPool, updatePool, deletePool, loading: poolsLoading } = usePoolsContext();
   const loading = seasonsLoading || productsLoading || participantsLoading || registrationsLoading || paymentsLoading || healthDeclarationsLoading || poolsLoading;
 
@@ -196,6 +227,26 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     await deleteRegistration(id);
   };
 
+  const promisifiedUpdateParticipant = async (participant: Participant): Promise<void> => {
+    await updateParticipant(participant);
+  };
+
+  const promisifiedDeleteParticipant = async (id: string): Promise<void> => {
+    await deleteParticipant(id);
+  };
+
+  const promisifiedUpdatePayment = async (payment: Payment): Promise<void> => {
+    await updatePayment(payment);
+  };
+
+  const promisifiedDeletePayment = async (id: string): Promise<void> => {
+    await deletePayment(id);
+  };
+
+  const promisifiedUpdateHealthDeclaration = async (healthDeclaration: HealthDeclaration): Promise<void> => {
+    await updateHealthDeclaration(healthDeclaration);
+  };
+
   const contextValue: DataContextProps = {
     seasons,
     products,
@@ -211,15 +262,15 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     updateSeason: promisifiedUpdateSeason,
     deleteSeason: promisifiedDeleteSeason,
     addParticipant,
-    updateParticipant,
-    deleteParticipant,
+    updateParticipant: promisifiedUpdateParticipant,
+    deleteParticipant: promisifiedDeleteParticipant,
     addRegistration,
     updateRegistration: promisifiedUpdateRegistration,
     deleteRegistration: promisifiedDeleteRegistration,
     addPayment,
-    updatePayment,
-    deletePayment,
-    updateHealthDeclaration,
+    updatePayment: promisifiedUpdatePayment,
+    deletePayment: promisifiedDeletePayment,
+    updateHealthDeclaration: promisifiedUpdateHealthDeclaration,
     addHealthDeclaration,
     getRegistrationsByProduct,
     getRegistrationsByParticipant,
