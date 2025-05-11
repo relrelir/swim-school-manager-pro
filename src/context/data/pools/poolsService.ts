@@ -95,14 +95,36 @@ export const hasPoolProducts = async (poolId: string): Promise<boolean> => {
 
 // Delete a pool
 export const deletePool = async (poolId: string): Promise<boolean> => {
-  // Delete the pool from Supabase
-  const { error } = await supabase
-    .from('pools')
-    .delete()
-    .eq('id', poolId);
+  console.log('Attempting to delete pool with ID:', poolId);
   
-  if (error) {
-    console.error('Error deleting pool:', error);
+  try {
+    // Delete the pool from Supabase
+    const { error } = await supabase
+      .from('pools')
+      .delete()
+      .eq('id', poolId);
+    
+    if (error) {
+      console.error('Error deleting pool:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה במחיקת הבריכה',
+        variant: 'destructive'
+      });
+      return false;
+    }
+    
+    // Successfully deleted the pool
+    console.log('Pool deleted successfully:', poolId);
+    toast({
+      title: 'בריכה נמחקה',
+      description: 'הבריכה נמחקה בהצלחה',
+      variant: 'default'
+    });
+    
+    return true;
+  } catch (e) {
+    console.error('Exception in deletePool:', e);
     toast({
       title: 'שגיאה',
       description: 'אירעה שגיאה במחיקת הבריכה',
@@ -110,13 +132,4 @@ export const deletePool = async (poolId: string): Promise<boolean> => {
     });
     return false;
   }
-  
-  // Successfully deleted the pool
-  toast({
-    title: 'בריכה נמחקה',
-    description: 'הבריכה נמחקה בהצלחה',
-    variant: 'default'
-  });
-  
-  return true;
 };

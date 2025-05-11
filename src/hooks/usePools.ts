@@ -39,16 +39,25 @@ export function usePools(seasonId?: string) {
   };
 
   const handleDeletePool = async (id: string) => {
+    console.log('Delete pool requested for ID:', id);
+    
     const confirmDelete = window.confirm("האם אתה בטוח שברצונך למחוק את הבריכה?");
     if (confirmDelete) {
+      console.log('Delete confirmed for pool ID:', id);
       const success = await deletePool(id);
+      
       if (!success) {
+        console.log('Delete pool failed for ID:', id);
         toast({
           title: "לא ניתן למחוק",
           description: "לא ניתן למחוק בריכה עם מוצרים",
           variant: "destructive",
         });
+      } else {
+        console.log('Delete pool succeeded for ID:', id);
       }
+    } else {
+      console.log('Delete cancelled for pool ID:', id);
     }
   };
 

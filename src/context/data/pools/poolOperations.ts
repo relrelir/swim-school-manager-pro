@@ -36,10 +36,13 @@ export const createDeletePoolOperation = (
   setPools: React.Dispatch<React.SetStateAction<Pool[]>>
 ) => {
   return async (id: string): Promise<boolean> => {
+    console.log('Delete pool operation called for ID:', id);
+    
     // Check if pool has products
     const hasProducts = await poolsService.hasPoolProducts(id);
     
     if (hasProducts) {
+      console.log('Cannot delete pool, has products:', id);
       return false;
     }
     
@@ -47,6 +50,7 @@ export const createDeletePoolOperation = (
     const success = await poolsService.deletePool(id);
     
     if (success) {
+      console.log('Pool deleted successfully, updating state:', id);
       setPools(prev => prev.filter(p => p.id !== id));
       return true;
     }
