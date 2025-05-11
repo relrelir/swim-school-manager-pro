@@ -122,8 +122,12 @@ export const useParticipants = () => {
     }
   };
 
-  // Updated version of handleApplyDiscount that matches the interface in ParticipantsDialogsProps
-  const handleApplyDiscount = (amount: number, setIsAddPaymentOpenFn: (open: boolean) => void, registrationId?: string) => {
+  // Updated version of handleApplyDiscount that matches the interface expected in ParticipantsPage.tsx
+  const handleApplyDiscount = (
+    amount: number, 
+    setIsAddPaymentOpenFn: (open: boolean) => void, 
+    registrationId?: string
+  ) => {
     if (!productId) return;
     
     try {

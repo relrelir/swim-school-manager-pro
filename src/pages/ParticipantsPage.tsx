@@ -87,6 +87,11 @@ const ParticipantsPage = () => {
   if (loading || !currentProduct) {
     return <div className="flex justify-center items-center h-screen">טוען...</div>;
   }
+
+  // Define a custom handler that adapts the signature for the dialogsProps
+  const adaptedApplyDiscount = (amount: number, registrationId?: string) => {
+    handleApplyDiscount(amount, setIsAddPaymentOpen, registrationId);
+  };
   
   // Props for ParticipantsContent
   const contentProps = {
@@ -97,17 +102,11 @@ const ParticipantsPage = () => {
     totalExpected,
     totalPaid,
     registrationsFilled,
-    setIsAddPaymentOpen,
-    setCurrentRegistration,
-    setIsHealthFormOpen,
-    handleDeleteRegistration,
-    handleUpdateHealthApproval,
-    handleOpenHealthForm,
     getParticipantForRegistration,
     getPaymentsForRegistration,
-    getStatusClassName,
-    calculatePaymentStatus,
     getHealthDeclarationForRegistration,
+    calculatePaymentStatus,
+    getStatusClassName,
     onAddPayment: (registration: any) => {
       setCurrentRegistration(registration);
       setIsAddPaymentOpen(true);
@@ -123,8 +122,8 @@ const ParticipantsPage = () => {
     setIsAddParticipantOpen,
     isAddPaymentOpen,
     setIsAddPaymentOpen,
-    isHealthFormOpen: isHealthFormOpen,
-    setIsHealthFormOpen: setIsHealthFormOpen,
+    isHealthFormOpen,
+    setIsHealthFormOpen,
     newParticipant,
     setNewParticipant,
     registrationData,
@@ -137,9 +136,7 @@ const ParticipantsPage = () => {
     setCurrentHealthDeclaration,
     handleAddParticipant,
     handleAddPayment,
-    handleApplyDiscount: (amount: number, registrationId?: string) => {
-      handleApplyDiscount(amount, setIsAddPaymentOpen, registrationId);
-    }
+    handleApplyDiscount: adaptedApplyDiscount
   };
   
   return (

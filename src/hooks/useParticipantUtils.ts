@@ -11,9 +11,10 @@ export const useParticipantUtils = (
     return participants.find(p => p.id === registration.participantId);
   };
 
-  // Get payments for a registration
-  const getPaymentsForRegistration = (registration: Registration): Payment[] => {
-    return payments.filter(payment => payment.registrationId === registration.id);
+  // Get payments for a registration - accepting either Registration object or string ID
+  const getPaymentsForRegistration = (registration: Registration | string): Payment[] => {
+    const registrationId = typeof registration === 'string' ? registration : registration.id;
+    return payments.filter(payment => payment.registrationId === registrationId);
   };
 
   // Get appropriate CSS class for payment status
