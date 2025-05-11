@@ -17,14 +17,14 @@ export const usePaymentHandlers = (
       amount: number; 
       receiptNumber: string; 
       paymentDate: string;
-      registrationId?: string; 
+      registrationId?: string; // Added registrationId field
     },
     setIsAddPaymentOpen: (open: boolean) => void,
     setNewPayment: React.Dispatch<React.SetStateAction<{
       amount: number;
       receiptNumber: string;
       paymentDate: string;
-      registrationId?: string; 
+      registrationId?: string; // Added registrationId field
     }>>,
     productId?: string
   ): Promise<Registration[]> => {
@@ -69,16 +69,9 @@ export const usePaymentHandlers = (
           ...reg,
           paidAmount: updatedPaidAmount,
         };
-        await updateRegistration(updatedReg);
-
-        // Get fresh registrations after update
-        updatedRegistrations = getRegistrationsByProduct(productId);
-
-        toast({
-          title: "תשלום התווסף בהצלחה",
-          description: `תשלום על סך ${newPayment.amount} ש"ח התווסף בהצלחה`,
-        });
+        updateRegistration(updatedReg);
       }
+      updatedRegistrations = regs;
     }
     
     // Reset form and close dialog
@@ -127,7 +120,7 @@ export const usePaymentHandlers = (
         discountAmount: (targetRegistration.discountAmount || 0) + discountAmount,
       };
       
-      await updateRegistration(updatedRegistration);
+      updateRegistration(updatedRegistration);
       
       toast({
         title: "הנחה אושרה",

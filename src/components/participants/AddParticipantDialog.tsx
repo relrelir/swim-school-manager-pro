@@ -4,8 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Participant } from '@/types';
-
 interface AddParticipantDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -25,7 +25,6 @@ interface AddParticipantDialogProps {
   }>>;
   onSubmit: (e: React.FormEvent) => void;
 }
-
 const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   isOpen,
   onOpenChange,
@@ -74,6 +73,10 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
               })} required />
               </div>
             </div>
+            <div className="flex items-center space-x-2">
+              
+              
+            </div>
             
             <div className="space-y-4 pt-4 border-t">
               <h3 className="font-semibold">פרטי תשלום</h3>
@@ -99,7 +102,7 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                 ...registrationData,
                 receiptNumber: e.target.value,
                 discountApproved: registrationData.discountApproved
-              })} required={registrationData.paidAmount > 0} />
+              })} required />
               </div>
             </div>
           </div>
@@ -110,5 +113,4 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
       </DialogContent>
     </Dialog>;
 };
-
 export default AddParticipantDialog;

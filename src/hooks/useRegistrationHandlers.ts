@@ -29,7 +29,7 @@ export const useRegistrationHandlers = (
     if (!productId) return [];
     
     // Check if receipt number is provided
-    if (!registrationData.receiptNumber && registrationData.paidAmount > 0) {
+    if (!registrationData.receiptNumber) {
       toast({
         title: "שגיאה",
         description: "מספר קבלה הוא שדה חובה",
@@ -56,8 +56,7 @@ export const useRegistrationHandlers = (
         productId: productId,
         participantId: addedParticipant.id,
         requiredAmount: registrationData.requiredAmount,
-        // Always start with 0 as we'll add the payment separately
-        paidAmount: 0,
+        paidAmount: registrationData.paidAmount,
         receiptNumber: registrationData.receiptNumber,
         discountApproved: registrationData.discountApproved,
         registrationDate: new Date().toISOString(),
@@ -75,12 +74,6 @@ export const useRegistrationHandlers = (
         };
         
         await addPayment(initialPayment);
-        
-        // Update registration with paid amount
-        await updateRegistration({
-          ...addedRegistration,
-          paidAmount: registrationData.paidAmount
-        });
       }
       
       // Add success toast notification
