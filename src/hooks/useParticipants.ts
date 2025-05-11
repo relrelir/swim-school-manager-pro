@@ -4,6 +4,7 @@ import { useData } from '@/context/DataContext';
 import { Registration } from '@/types';
 import { useParticipantCore } from './participants/useParticipantCore';
 import { useParticipantActions } from './participants/useParticipantActions';
+import { useParticipantsContext } from '@/context/data/ParticipantsProvider';
 
 /**
  * Main hook for participants management - now acts as a composition layer
@@ -12,6 +13,15 @@ import { useParticipantActions } from './participants/useParticipantActions';
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
   const dataContext = useData();
+  
+  // Get participants context directly for the missing properties
+  const { 
+    participants: allParticipants, 
+    addParticipant,
+    updateParticipant,
+    deleteParticipant,
+    loading: participantsLoading
+  } = useParticipantsContext();
   
   // Separate core functionality (data loading, state management)
   const core = useParticipantCore(productId, dataContext);
@@ -32,7 +42,7 @@ export const useParticipants = () => {
     core.setNewPayment,
     core.newPayment,
     core.resetForm,
-    core.currentRegistration // Add the missing argument
+    core.currentRegistration
   );
 
   return {
@@ -76,5 +86,11 @@ export const useParticipants = () => {
     getStatusClassName: core.getStatusClassName,
     calculatePaymentStatus: core.calculatePaymentStatus,
     getHealthDeclarationForRegistration: core.getHealthDeclarationForRegistration,
+    
+    // Add missing properties from participants context
+    addParticipant,
+    updateParticipant,
+    deleteParticipant,
+    loading: participantsLoading
   };
 };

@@ -17,13 +17,13 @@ import { useHealthDeclarations } from '@/hooks/useHealthDeclarations';
 import { usePoolsContext } from './data/pools/usePoolsContext';
 import { calculatePaymentStatus } from '@/utils/paymentUtils';
 import { format } from 'date-fns';
-import { Day } from 'date-fns';
+
+// Import from date-fns
+import type { Day, FirstWeekContainsDate, Locale } from 'date-fns';
 
 // Create a stub for the hebrew locale to avoid the type error
-const heLocale = { 
-  code: 'he',
+const heLocale: Pick<Locale, "options" | "localize" | "formatLong"> = { 
   formatLong: {},
-  formatRelative: () => '',
   localize: {
     ordinalNumber: () => '',
     era: () => '',
@@ -32,17 +32,9 @@ const heLocale = {
     day: () => '',
     dayPeriod: () => ''
   },
-  match: {
-    ordinalNumber: () => 0,
-    era: () => 0,
-    quarter: () => 0,
-    month: () => 0,
-    day: () => 0,
-    dayPeriod: () => 0
-  },
   options: {
     weekStartsOn: 0 as Day,
-    firstWeekContainsDate: 1
+    firstWeekContainsDate: 1 as FirstWeekContainsDate
   }
 };
 
@@ -109,17 +101,17 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     updateProduct, 
     deleteProduct, 
     getProductsBySeason, 
-    getProductsByPool, // Now correctly typed
+    getProductsByPool,
     loading: productsLoading 
   } = productsContext;
   
-  // Explicitly define the type for useParticipants
+  // Get participant context data correctly
   const participantsContext = useParticipants();
   const { 
-    participants, 
-    addParticipant, 
-    updateParticipant, 
-    deleteParticipant, 
+    participants,
+    addParticipant,
+    updateParticipant,
+    deleteParticipant,
     loading: participantsLoading 
   } = participantsContext;
   
@@ -131,7 +123,8 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   const { 
     healthDeclarations, 
     updateHealthDeclaration, 
-    addHealthDeclaration, 
+    addHealthDeclaration,
+    deleteHealthDeclaration,
     loading: healthDeclarationsLoading 
   } = healthContext;
   
@@ -219,12 +212,8 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     await deleteSeasonContext(id);
   };
 
-  const promisifiedUpdateRegistration = async (registration: Registration): Promise<void> => {
-    await updateRegistration(registration);
-  };
-
-  const promisifiedDeleteRegistration = async (id: string): Promise<void> => {
-    await deleteRegistration(id);
+  const promisifiedAddParticipant = async (participant: Omit<Participant, 'id'>): Promise<Participant | undefined> => {
+    return await addParticipant(participant);
   };
 
   const promisifiedUpdateParticipant = async (participant: Participant): Promise<void> => {
@@ -233,6 +222,14 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
 
   const promisifiedDeleteParticipant = async (id: string): Promise<void> => {
     await deleteParticipant(id);
+  };
+
+  const promisifiedUpdateRegistration = async (registration: Registration): Promise<void> => {
+    await updateRegistration(registration);
+  };
+
+  const promisifiedDeleteRegistration = async (id: string): Promise<void> => {
+    await deleteRegistration(id);
   };
 
   const promisifiedUpdatePayment = async (payment: Payment): Promise<void> => {
@@ -244,7 +241,8 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   };
 
   const promisifiedUpdateHealthDeclaration = async (healthDeclaration: HealthDeclaration): Promise<void> => {
-    await updateHealthDeclaration(healthDeclaration);
+    // Pass id and healthDeclaration for the update function - this fixes the argument count error
+    await updateHealthDeclaration(healthDeclaration.id, healthDeclaration);
   };
 
   const contextValue: DataContextProps = {
@@ -261,7 +259,7 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     addSeason,
     updateSeason: promisifiedUpdateSeason,
     deleteSeason: promisifiedDeleteSeason,
-    addParticipant,
+    addParticipant: promisifiedAddParticipant,
     updateParticipant: promisifiedUpdateParticipant,
     deleteParticipant: promisifiedDeleteParticipant,
     addRegistration,

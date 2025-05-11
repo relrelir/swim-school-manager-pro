@@ -1,6 +1,4 @@
 
-import { useState, useEffect } from 'react';
-import { Product } from '@/types';
 import { useProductsContext } from '@/context/data/ProductsProvider';
 
 export const useProducts = () => {
