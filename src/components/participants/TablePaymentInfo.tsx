@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { Payment, Registration } from '@/types';
 import { formatCurrencyForTableUI } from '@/utils/formatters';
 
@@ -16,28 +16,25 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
   discountApproved,
   registration
 }) => {
-  // Debug info
-  useEffect(() => {
-    console.log("TablePaymentInfo rendering with payments:", payments);
-    if (registration) {
-      console.log("TablePaymentInfo has registration data:", registration);
-    }
-  }, [payments, registration]);
-  
   // Filter to only show payments that have receipt numbers (actual payments)
-  const actualPayments = payments.filter(p => p.receiptNumber !== undefined && p.receiptNumber !== '');
-  
-  // If we have a registration with paid amount but no payment records, 
-  // create a synthetic payment entry from registration data
-  const displayPayments = actualPayments.length === 0 && registration && registration.paidAmount > 0
-    ? [{
+  // Using useMemo to prevent unnecessary re-calculations
+  const displayPayments = useMemo(() => {
+    const actualPayments = payments.filter(p => p.receiptNumber !== undefined && p.receiptNumber !== '');
+    
+    // If we have a registration with paid amount but no payment records, 
+    // create a synthetic payment entry from registration data
+    if (actualPayments.length === 0 && registration && registration.paidAmount > 0) {
+      return [{
         id: 'initial-payment', // Use a placeholder ID
         registrationId: registration.id,
         amount: registration.paidAmount,
         receiptNumber: registration.receiptNumber || 'Initial Payment',
         paymentDate: registration.registrationDate
-      } as Payment]
-    : actualPayments;
+      } as Payment];
+    }
+    
+    return actualPayments;
+  }, [payments, registration]);
   
   if (displayPayments.length === 0) {
     return <span className="text-gray-500">-</span>;
