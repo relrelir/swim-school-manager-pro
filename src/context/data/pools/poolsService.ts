@@ -1,13 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Pool, SeasonPool } from '@/types';
+import { Pool } from '@/types';
 import { toast } from '@/components/ui/use-toast';
 
 // Fetch all pools from the database
 export const fetchPools = async (): Promise<Pool[]> => {
   const { data, error } = await supabase
     .from('pools')
-    .select('id, name, created_at, updated_at');
+    .select('id, name, seasonid, created_at, updated_at');
   
   if (error) {
     console.error('Error fetching pools:', error);
@@ -22,39 +22,18 @@ export const fetchPools = async (): Promise<Pool[]> => {
   return data.map(row => ({
     id: row.id,
     name: row.name,
+    seasonId: row.seasonid,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   }));
 };
 
-// Fetch all season-pool mappings
-export const fetchSeasonPools = async (): Promise<SeasonPool[]> => {
-  const { data, error } = await supabase
-    .from('season_pools')
-    .select('season_id, pool_id');
-
-  if (error) {
-    console.error('Error fetching season pools mappings:', error);
-    toast({
-      title: 'שגיאה',
-      description: 'אירעה שגיאה בטעינת מיפוי עונות-בריכות',
-      variant: 'destructive'
-    });
-    return [];
-  }
-
-  return data.map(row => ({
-    seasonId: row.season_id,
-    poolId: row.pool_id
-  }));
-};
-
 // Create a new pool
-export const createPool = async (name: string): Promise<Pool | null> => {
+export const createPool = async (name: string, seasonId: string): Promise<Pool | null> => {
   const { data, error } = await supabase
     .from('pools')
-    .insert([{ name }])
-    .select('id, name, created_at, updated_at')
+    .insert([{ name, seasonid: seasonId }])
+    .select('id, name, seasonid, created_at, updated_at')
     .single();
 
   if (error) {
@@ -72,28 +51,10 @@ export const createPool = async (name: string): Promise<Pool | null> => {
   return {
     id: data.id,
     name: data.name,
+    seasonId: data.seasonid,
     createdAt: data.created_at,
     updatedAt: data.updated_at
   };
-};
-
-// Link a pool to a season
-export const linkPoolToSeason = async (poolId: string, seasonId: string): Promise<boolean> => {
-  const { error } = await supabase
-    .from('season_pools')
-    .insert({ season_id: seasonId, pool_id: poolId });
-  
-  if (error) {
-    console.error('Error linking pool to season:', error);
-    toast({
-      title: 'שגיאה',
-      description: 'אירעה שגיאה בקישור הבריכה לעונה',
-      variant: 'destructive'
-    });
-    return false;
-  }
-
-  return true;
 };
 
 // Update a pool's name
@@ -131,20 +92,9 @@ export const hasPoolProducts = async (poolId: string): Promise<boolean> => {
   return data && data.length > 0;
 };
 
-// Delete a pool and its season links
+// Delete a pool
 export const deletePoolAndLinks = async (poolId: string): Promise<boolean> => {
-  // Delete season links first
-  const { error: linkError } = await supabase
-    .from('season_pools')
-    .delete()
-    .eq('pool_id', poolId);
-  
-  if (linkError) {
-    console.error('Error deleting pool season links:', linkError);
-    return false;
-  }
-  
-  // Then delete the pool itself
+  // Delete the pool itself
   const { error: poolError } = await supabase
     .from('pools')
     .delete()

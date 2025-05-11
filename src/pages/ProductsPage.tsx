@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
 import { Product, Pool } from '@/types';
 import { useProductsTable } from '@/hooks/useProductsTable';
@@ -12,9 +12,19 @@ import ProductFilter from '@/components/products/ProductFilter';
 import ProductTableSection from '@/components/products/ProductTableSection';
 import ProductDialogs from '@/components/products/ProductDialogs';
 import { toast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft } from 'lucide-react';
+import { 
+  Breadcrumb, 
+  BreadcrumbItem, 
+  BreadcrumbLink, 
+  BreadcrumbList, 
+  BreadcrumbSeparator 
+} from '@/components/ui/breadcrumb';
 
 const ProductsPage: React.FC = () => {
   const { seasonId, poolId } = useParams<{ seasonId: string; poolId: string }>();
+  const navigate = useNavigate();
   const { 
     addProduct, 
     getProductsBySeason, 
@@ -22,7 +32,8 @@ const ProductsPage: React.FC = () => {
     updateProduct, 
     deleteProduct, 
     getRegistrationsByProduct,
-    pools
+    pools,
+    seasons
   } = useData();
 
   const isMobile = useIsMobile();
@@ -33,7 +44,7 @@ const ProductsPage: React.FC = () => {
     summaryData,
     formatDate,
     setSeasonProducts
-  } = useProductPageData(seasonId, poolId); // Updated to include poolId
+  } = useProductPageData(seasonId, poolId);
 
   // Find current pool if poolId is provided
   const [currentPool, setCurrentPool] = useState<Pool | undefined>(undefined);
@@ -129,15 +140,65 @@ const ProductsPage: React.FC = () => {
       }
     }
   };
+  
+  const handleBackNavigation = () => {
+    if (poolId) {
+      navigate(`/season/${seasonId}/pools`);
+    } else if (seasonId) {
+      navigate('/');
+    }
+  };
+
+  // Build breadcrumb navigation
+  const renderBreadcrumbs = () => {
+    return (
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">עונות</BreadcrumbLink>
+          </BreadcrumbItem>
+          {seasonId && (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink href={`/season/${seasonId}/pools`}>
+                  בריכות - {currentSeason?.name || ''}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            </>
+          )}
+          {poolId && currentPool && (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <span className="font-bold">מוצרים - {currentPool.name}</span>
+              </BreadcrumbItem>
+            </>
+          )}
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  };
 
   return (
     <div className="container mx-auto">
-      <ProductPageHeader 
-        currentSeason={currentSeason}
-        currentPool={currentPool} 
-        formatDate={formatDate}
-        onAddProduct={() => setIsAddProductOpen(true)} 
-      />
+      <div className="mb-4">
+        {renderBreadcrumbs()}
+      </div>
+      
+      <div className="flex justify-between items-center mb-6">
+        <ProductPageHeader 
+          currentSeason={currentSeason}
+          currentPool={currentPool} 
+          formatDate={formatDate}
+          onAddProduct={() => setIsAddProductOpen(true)} 
+        />
+        
+        <Button variant="outline" onClick={handleBackNavigation} className="flex items-center gap-2">
+          <ChevronLeft className="h-4 w-4" />
+          <span>חזרה {poolId ? 'לבריכות' : 'לעונות'}</span>
+        </Button>
+      </div>
 
       {currentSeason && (
         <SeasonSummaryCards

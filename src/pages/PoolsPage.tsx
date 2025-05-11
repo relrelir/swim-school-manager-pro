@@ -1,3 +1,4 @@
+
 import React, { useState, FormEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
@@ -14,22 +15,15 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription
-} from '@/components/ui/card';
-import { Plus, Edit, Trash2 } from 'lucide-react';
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell
-} from '@/components/ui/table';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Plus, Edit, Trash2, ChevronLeft } from 'lucide-react';
+import { 
+  Breadcrumb, 
+  BreadcrumbItem, 
+  BreadcrumbLink, 
+  BreadcrumbList, 
+  BreadcrumbSeparator 
+} from '@/components/ui/breadcrumb';
 
 const PoolsPage: React.FC = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
@@ -80,6 +74,10 @@ const PoolsPage: React.FC = () => {
   const handleNavigateToProducts = (poolId: string) => {
     navigate(`/season/${seasonId}/pool/${poolId}/products`);
   };
+  
+  const handleBackToSeasons = () => {
+    navigate('/');
+  };
 
   if (loading) {
     return <div>טוען בריכות...</div>;
@@ -89,64 +87,68 @@ const PoolsPage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold mb-2">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/">עונות</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <span className="font-bold">בריכות - {currentSeason?.name || ''}</span>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <h1 className="text-2xl font-bold mt-2">
             בריכות - {currentSeason?.name || ''}
           </h1>
-          <p className="text-gray-500">
-            ניהול בריכות בעונה {currentSeason?.name || ''}
-          </p>
         </div>
-        <Button onClick={() => setIsAddPoolDialogOpen(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          <span>הוסף בריכה</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleBackToSeasons} className="flex items-center gap-2">
+            <ChevronLeft className="h-4 w-4" />
+            <span>חזרה לעונות</span>
+          </Button>
+          <Button onClick={() => setIsAddPoolDialogOpen(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            <span>הוסף בריכה</span>
+          </Button>
+        </div>
       </div>
 
       {pools.length === 0 ? (
         <Card className="bg-gray-50">
           <CardContent className="p-6 flex flex-col items-center justify-center min-h-[200px]">
-            <CardTitle className="text-xl font-medium mb-2">אין בריכות</CardTitle>
-            <CardDescription>
+            <h3 className="text-xl font-medium mb-2">אין בריכות</h3>
+            <p className="text-gray-500 mb-4">
               לא נמצאו בריכות בעונה זו. הוסף בריכה חדשה כדי להתחיל.
-            </CardDescription>
-            <Button variant="outline" className="mt-4" onClick={() => setIsAddPoolDialogOpen(true)}>
+            </p>
+            <Button variant="outline" onClick={() => setIsAddPoolDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               הוסף בריכה
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="bg-white rounded-lg shadow-md">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>שם</TableHead>
-                <TableHead>פעולות</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pools.map(pool => (
-                <TableRow key={pool.id}>
-                  <TableCell className="font-medium">{pool.name}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => handleNavigateToProducts(pool.id)}>
-                        מוצרים
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(pool)}>
-                        <Edit className="h-4 w-4 ml-1" />
-                        ערוך
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleDeletePool(pool.id)}>
-                        <Trash2 className="h-4 w-4 ml-1" />
-                        מחק
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {pools.map(pool => (
+            <Card key={pool.id} className="bg-white shadow-md hover:shadow-lg transition-shadow">
+              <CardContent className="pt-6">
+                <h2 className="text-xl font-semibold">{pool.name}</h2>
+              </CardContent>
+              <CardFooter className="bg-gray-50 flex flex-wrap gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => handleNavigateToProducts(pool.id)}>
+                  מוצרים
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => openEditDialog(pool)}>
+                  <Edit className="h-4 w-4 ml-1" />
+                  ערוך
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleDeletePool(pool.id)}>
+                  <Trash2 className="h-4 w-4 ml-1" />
+                  מחק
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
         </div>
       )}
 

@@ -1,19 +1,61 @@
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Season, Product, Registration, Participant, Payment, RegistrationWithDetails, Pool, HealthDeclaration, DailyActivity } from '@/types';
+import { SeasonsProvider } from './data/SeasonsProvider';
+import { ProductsProvider } from './data/ProductsProvider';
+import { ParticipantsProvider } from './data/ParticipantsProvider';
+import { RegistrationsProvider } from './data/RegistrationsProvider';
+import { PaymentsProvider } from './data/PaymentsProvider';
+import { HealthDeclarationsProvider } from './data/HealthDeclarationsProvider';
+import { PoolsProvider } from './data/PoolsProvider';
+import { useSeasons } from '@/hooks/useSeasons';
+import { useProducts } from '@/hooks/useProducts';
+import { useParticipants } from '@/hooks/useParticipants';
+import { useRegistrations } from '@/hooks/useRegistrations';
+import { usePayments } from '@/hooks/usePayments';
+import { useHealthDeclarations } from '@/hooks/useHealthDeclarations';
+import { usePoolsContext } from './data/PoolsProvider';
+import { calculatePaymentStatus } from '@/utils/paymentUtils';
+import { format } from 'date-fns';
 
-import React, { useContext } from 'react';
-import { SeasonsProvider, useSeasonsContext } from './data/SeasonsProvider';
-import { PoolsProvider, usePoolsContext } from './data/PoolsProvider';
-import { ProductsProvider, useProductsContext } from './data/ProductsProvider';
-import { ParticipantsProvider, useParticipantsContext } from './data/ParticipantsProvider';
-import { RegistrationsProvider, useRegistrationsContext } from './data/RegistrationsProvider';
-import { PaymentsProvider, usePaymentsContext } from './data/PaymentsProvider';
-import { HealthDeclarationsProvider, useHealthDeclarationsContext } from './data/HealthDeclarationsProvider';
-import { CombinedDataContextType } from './data/types';
-import { Product } from '@/types';
+interface DataContextProps {
+  seasons: Season[];
+  products: Product[];
+  pools: Pool[];
+  participants: Participant[];
+  registrations: Registration[];
+  payments: Payment[];
+  healthDeclarations: HealthDeclaration[];
+  addProduct: (product: Omit<Product, 'id'>) => Promise<Product | undefined>;
+  updateProduct: (product: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  addSeason: (season: Omit<Season, 'id'>) => Promise<Season | undefined>;
+  updateSeason: (season: Season) => Promise<void>;
+  deleteSeason: (id: string) => Promise<void>;
+  addParticipant: (participant: Omit<Participant, 'id'>) => Promise<Participant | undefined>;
+  updateParticipant: (participant: Participant) => Promise<void>;
+  deleteParticipant: (id: string) => Promise<void>;
+  addRegistration: (registration: Omit<Registration, 'id'>) => Promise<Registration | undefined>;
+  updateRegistration: (registration: Registration) => Promise<void>;
+  deleteRegistration: (id: string) => Promise<void>;
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined>;
+  updatePayment: (payment: Payment) => Promise<void>;
+  deletePayment: (id: string) => Promise<void>;
+  updateHealthDeclaration: (healthDeclaration: HealthDeclaration) => Promise<void>;
+  getRegistrationsByProduct: (productId: string) => Registration[];
+  getRegistrationsByParticipant: (participantId: string) => Registration[];
+  getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
+  getPaymentsByRegistration: (registrationId: string) => Payment[];
+  getProductsBySeason: (seasonId: string) => Product[];
+  getProductsByPool: (poolId: string) => Product[];
+  getHealthDeclarationByParticipant: (participantId: string) => HealthDeclaration | undefined;
+  getPoolsBySeason: (seasonId: string) => Pool[];
+  getPoolById: (id: string) => Pool | undefined;
+  getDailyActivities: (date: string) => DailyActivity[];
+  loading: boolean;
+}
 
-// Create a context for combined data
-const DataContext = React.createContext<CombinedDataContextType | null>(null);
+const DataContext = createContext<DataContextProps | null>(null);
 
-// Custom hook to access the combined data context
 export const useData = () => {
   const context = useContext(DataContext);
   if (!context) {
@@ -22,177 +64,141 @@ export const useData = () => {
   return context;
 };
 
-// Internal component to combine all context data
-const DataConsumer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const seasonsContext = useSeasonsContext();
-  const poolsContext = usePoolsContext();
-  const productsContext = useProductsContext();
-  const participantsContext = useParticipantsContext();
-  const registrationsContext = useRegistrationsContext();
-  const paymentsContext = usePaymentsContext();
-  const healthDeclarationsContext = useHealthDeclarationsContext();
+export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+  const { seasons, addSeason, updateSeason, deleteSeason: deleteSeasonContext, loading: seasonsLoading } = useSeasons();
+  const { products, addProduct, updateProduct, deleteProduct, getProductsBySeason, getProductsByPool, loading: productsLoading } = useProducts();
+  const { participants, addParticipant, updateParticipant, deleteParticipant, loading: participantsLoading } = useParticipants();
+  const { registrations, addRegistration, updateRegistration, deleteRegistration, loading: registrationsLoading } = useRegistrations();
+  const { payments, addPayment, updatePayment, deletePayment, loading: paymentsLoading } = usePayments();
+  const { healthDeclarations, updateHealthDeclaration, loading: healthDeclarationsLoading } = useHealthDeclarations();
+  const { pools, getPoolsBySeason, loading: poolsLoading } = usePoolsContext();
+  const loading = seasonsLoading || productsLoading || participantsLoading || registrationsLoading || paymentsLoading || healthDeclarationsLoading || poolsLoading;
 
-  // Function to get all registrations with additional details
-  const getAllRegistrationsWithDetails = () => {
-    const { registrations } = registrationsContext;
-    const { products } = productsContext;
-    const { seasons } = seasonsContext;
-    const { participants } = participantsContext;
-    const { payments } = paymentsContext;
+  // Get registrations by product
+  const getRegistrationsByProduct = useCallback((productId: string) => {
+    return registrations.filter(registration => registration.productId === productId);
+  }, [registrations]);
 
+  // Get registrations by participant
+  const getRegistrationsByParticipant = useCallback((participantId: string) => {
+    return registrations.filter(registration => registration.participantId === participantId);
+  }, [registrations]);
+
+  // Get payments by registration
+  const getPaymentsByRegistration = useCallback((registrationId: string) => {
+    return payments.filter(payment => payment.registrationId === registrationId);
+  }, [payments]);
+
+  // Get health declaration by participant
+  const getHealthDeclarationByParticipant = useCallback((participantId: string) => {
+    return healthDeclarations.find(healthDeclaration => healthDeclaration.participant_id === participantId);
+  }, [healthDeclarations]);
+
+  // Get all registrations with details
+  const getAllRegistrationsWithDetails = useCallback(() => {
     return registrations.map(registration => {
-      const product = products.find(p => p.id === registration.productId);
       const participant = participants.find(p => p.id === registration.participantId);
-      const season = product ? seasons.find(s => s.id === product.seasonId) : undefined;
-      const registrationPayments = payments.filter(p => p.registrationId === registration.id);
-      const paymentStatus = registrationsContext.calculatePaymentStatus(registration);
+      const product = products.find(p => p.id === registration.productId);
+      const season = seasons.find(s => s.id === product?.seasonId);
+      const paymentsForRegistration = payments.filter(payment => payment.registrationId === registration.id);
+
+      if (!participant || !product || !season) {
+        console.error('Missing data for registration:', registration);
+        return null;
+      }
+
+      const { paid, expected, status } = calculatePaymentStatus(registration, paymentsForRegistration);
 
       return {
         ...registration,
-        product: product!,
-        participant: participant!,
-        season: season!,
-        paymentStatus,
-        payments: registrationPayments
-      };
-    }).filter(reg => reg.product && reg.participant && reg.season);
-  };
-
-  // Calculate meeting progress for a product
-  const calculateMeetingProgress = (product: Product) => {
-    // If the product is missing necessary fields, return default values
-    if (!product.startDate || !product.meetingsCount || !product.daysOfWeek || product.daysOfWeek.length === 0) {
-      return { current: 0, total: product.meetingsCount || 10 };
-    }
-
-    const startDate = new Date(product.startDate);
-    const today = new Date();
-    
-    // If today is before the start date, return 0
-    if (today < startDate) {
-      return { current: 0, total: product.meetingsCount };
-    }
-
-    // Map Hebrew days to JS day numbers (0 = Sunday, 6 = Saturday)
-    const dayMap: { [key: string]: number } = {
-      'ראשון': 0,
-      'שני': 1,
-      'שלישי': 2,
-      'רביעי': 3,
-      'חמישי': 4,
-      'שישי': 5,
-      'שבת': 6
-    };
-    
-    // Convert Hebrew days to JS day numbers
-    const activityDays = product.daysOfWeek.map(day => dayMap[day]).sort();
-    
-    let meetingCount = 0;
-    let currentDate = new Date(startDate);
-    
-    // Count meetings until today
-    while (currentDate <= today) {
-      const dayOfWeek = currentDate.getDay();
-      
-      if (activityDays.includes(dayOfWeek)) {
-        meetingCount++;
-        
-        // If we've counted all meetings, stop
-        if (meetingCount >= product.meetingsCount) {
-          break;
-        }
-      }
-      
-      // Move to next day
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-    
-    return { 
-      current: Math.min(meetingCount, product.meetingsCount), 
-      total: product.meetingsCount 
-    };
-  };
-
-  // Function to get daily activities for a specific date
-  const getDailyActivities = (date: string) => {
-    const selectedDate = new Date(date);
-    const dayOfWeekNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
-    const dayOfWeek = dayOfWeekNames[selectedDate.getDay()];
-    
-    // Get products active on this date and day of week
-    const activeProducts = productsContext.products.filter(product => {
-      // Check if product is active on this date
-      const productStartDate = new Date(product.startDate);
-      const productEndDate = new Date(product.endDate);
-      
-      // Check if selected date is between product start and end dates
-      const isDateInRange = selectedDate >= productStartDate && selectedDate <= productEndDate;
-      
-      // Check if product runs on this day of the week
-      const isOnDayOfWeek = product.daysOfWeek?.includes(dayOfWeek);
-      
-      return isDateInRange && isOnDayOfWeek;
-    });
-    
-    return activeProducts.map(product => {
-      // Count registrations for this product
-      const productRegistrations = registrationsContext.getRegistrationsByProduct(product.id);
-      
-      // Calculate meeting number
-      const progress = calculateMeetingProgress(product);
-      
-      return {
+        participant,
         product,
-        startTime: product.startTime,
-        numParticipants: productRegistrations.length,
-        currentMeetingNumber: progress.current,
-        totalMeetings: progress.total
+        season,
+        payments: paymentsForRegistration,
+        paymentStatus: status as any,
+      };
+    }).filter(Boolean) as RegistrationWithDetails[];
+  }, [registrations, participants, products, seasons, payments]);
+
+  // Get pool by ID
+  const getPoolById = useCallback((id: string) => {
+    return pools.find(pool => pool.id === id);
+  }, [pools]);
+
+  const getDailyActivities = useCallback((date: string) => {
+    const parsedDate = new Date(date);
+    const dayOfWeek = format(parsedDate, 'EEEE', { locale: 'he' });
+
+    return products.map(product => {
+      const registrationsForProduct = getRegistrationsByProduct(product.id);
+      const numParticipants = registrationsForProduct.length;
+
+      return {
+        product: product,
+        startTime: product.startTime || '00:00',
+        numParticipants: numParticipants,
+        currentMeetingNumber: 1, // Replace with actual calculation
+        totalMeetings: product.meetingsCount || 1, // Replace with actual calculation
       };
     });
-  };
+  }, [products, getRegistrationsByProduct]);
 
-  const contextValue: CombinedDataContextType = {
-    // Spread all individual contexts
-    ...seasonsContext,
-    ...poolsContext,
-    ...productsContext,
-    ...participantsContext,
-    ...registrationsContext,
-    ...paymentsContext,
-    ...healthDeclarationsContext,
-    
-    // Add combined functions
+  const contextValue: DataContextProps = {
+    seasons,
+    products,
+    pools,
+    participants,
+    registrations,
+    payments,
+    healthDeclarations,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    addSeason,
+    updateSeason,
+    deleteSeason: deleteSeasonContext,
+    addParticipant,
+    updateParticipant,
+    deleteParticipant,
+    addRegistration,
+    updateRegistration,
+    deleteRegistration,
+    addPayment,
+    updatePayment,
+    deletePayment,
+    updateHealthDeclaration,
+    getRegistrationsByProduct,
+    getRegistrationsByParticipant,
     getAllRegistrationsWithDetails,
-    calculateMeetingProgress,
-    getDailyActivities
+    getPaymentsByRegistration,
+    getProductsBySeason,
+    getProductsByPool,
+    getHealthDeclarationByParticipant,
+    getPoolsBySeason,
+    getPoolById,
+    getDailyActivities,
+    loading,
   };
 
   return (
     <DataContext.Provider value={contextValue}>
-      {children}
-    </DataContext.Provider>
-  );
-};
-
-// Main data provider component
-export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <SeasonsProvider>
-      <PoolsProvider>
+      <SeasonsProvider>
         <ProductsProvider>
           <ParticipantsProvider>
             <RegistrationsProvider>
               <PaymentsProvider>
                 <HealthDeclarationsProvider>
-                  <DataConsumer>
+                  <PoolsProvider>
                     {children}
-                  </DataConsumer>
+                  </PoolsProvider>
                 </HealthDeclarationsProvider>
               </PaymentsProvider>
             </RegistrationsProvider>
           </ParticipantsProvider>
         </ProductsProvider>
-      </PoolsProvider>
-    </SeasonsProvider>
+      </SeasonsProvider>
+    </DataContext.Provider>
   );
 };
+
+export default DataContext;

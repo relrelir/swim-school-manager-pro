@@ -41,7 +41,14 @@ export function usePools(seasonId?: string) {
   const handleDeletePool = async (id: string) => {
     const confirmDelete = window.confirm("האם אתה בטוח שברצונך למחוק את הבריכה?");
     if (confirmDelete) {
-      await deletePool(id);
+      const success = await deletePool(id);
+      if (!success) {
+        toast({
+          title: "לא ניתן למחוק",
+          description: "לא ניתן למחוק בריכה עם מוצרים",
+          variant: "destructive",
+        });
+      }
     }
   };
 
