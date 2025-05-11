@@ -1,7 +1,7 @@
 
 import { Pool, Product } from "@/types";
 
-export function mapProductsToPoolCounts(products: Product[], pools: Pool[]): Record<string, number> {
+export function mapProductsToPools(products: Product[], pools: Pool[]): Record<string, number> {
   const poolCounts: Record<string, number> = {};
   
   // Initialize with zero counts for all pools

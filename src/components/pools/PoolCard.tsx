@@ -4,11 +4,13 @@ import { Pool } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Edit, Trash2, Loader2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface PoolCardProps {
   pool: Pool;
   deletingPoolId: string | null;
   loading: boolean;
+  hasProducts: boolean;
   onNavigateToProducts: (poolId: string) => void;
   onEdit: (pool: Pool) => void;
   onDelete: (poolId: string) => void;
@@ -18,10 +20,14 @@ const PoolCard: React.FC<PoolCardProps> = ({
   pool,
   deletingPoolId,
   loading,
+  hasProducts,
   onNavigateToProducts,
   onEdit,
   onDelete
 }) => {
+  const isDeleting = deletingPoolId === pool.id;
+  const isDisabled = loading || isDeleting || hasProducts;
+  
   return (
     <Card key={pool.id} className="bg-white shadow-md hover:shadow-lg transition-shadow">
       <CardContent className="pt-6">
@@ -35,24 +41,37 @@ const PoolCard: React.FC<PoolCardProps> = ({
           <Edit className="h-4 w-4 ml-1" />
           ערוך
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={() => onDelete(pool.id)}
-          disabled={loading || deletingPoolId === pool.id}
-        >
-          {deletingPoolId === pool.id ? (
-            <>
-              <Loader2 className="h-4 w-4 ml-1 animate-spin" />
-              מוחק...
-            </>
-          ) : (
-            <>
-              <Trash2 className="h-4 w-4 ml-1" />
-              מחק
-            </>
-          )}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => onDelete(pool.id)}
+                  disabled={isDisabled}
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 ml-1 animate-spin" />
+                      מוחק...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4 ml-1" />
+                      מחק
+                    </>
+                  )}
+                </Button>
+              </div>
+            </TooltipTrigger>
+            {hasProducts && (
+              <TooltipContent side="bottom">
+                <p>לא ניתן למחוק בריכה עם מוצרים</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </CardFooter>
     </Card>
   );

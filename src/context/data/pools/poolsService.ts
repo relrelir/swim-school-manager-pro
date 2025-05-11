@@ -79,17 +79,33 @@ export const updatePoolName = async (id: string, name: string): Promise<boolean>
 
 // Check if pool has associated products
 export const hasPoolProducts = async (poolId: string): Promise<boolean> => {
-  const { data, error, count } = await supabase
-    .from('products')
-    .select('id', { count: 'exact', head: true })
-    .eq('poolid', poolId);
-  
-  if (error) {
-    console.error('Error checking pool products:', error);
-    return true; // Return true to prevent deletion in case of error
-  }
+  try {
+    console.log('Checking if pool has products:', poolId);
+    
+    const { data, error, count } = await supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('poolid', poolId);
+    
+    if (error) {
+      console.error('Error checking pool products:', error);
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה בבדיקת מוצרים לבריכה',
+        variant: 'destructive'
+      });
+      // In case of error, we return true to prevent deletion as a safety measure
+      return true;
+    }
 
-  return count ? count > 0 : false;
+    const hasProducts = count ? count > 0 : false;
+    console.log(`Pool ${poolId} has products: ${hasProducts}, count: ${count}`);
+    return hasProducts;
+  } catch (e) {
+    console.error('Exception in hasPoolProducts:', e);
+    // In case of exception, we return true to prevent deletion as a safety measure
+    return true;
+  }
 };
 
 // Delete a pool
@@ -97,7 +113,20 @@ export const deletePool = async (poolId: string): Promise<boolean> => {
   console.log('Attempting to delete pool with ID:', poolId);
   
   try {
-    // First verify the pool exists
+    // First check if the pool has products
+    const hasProducts = await hasPoolProducts(poolId);
+    
+    if (hasProducts) {
+      console.log('Cannot delete pool with products:', poolId);
+      toast({
+        title: 'לא ניתן למחוק',
+        description: 'לא ניתן למחוק בריכה עם מוצרים',
+        variant: 'destructive'
+      });
+      return false;
+    }
+    
+    // Verify the pool exists
     const { data: existingPool, error: checkError } = await supabase
       .from('pools')
       .select('id')

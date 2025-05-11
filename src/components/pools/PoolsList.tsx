@@ -10,6 +10,7 @@ interface PoolsListProps {
   pools: Pool[];
   loading: boolean;
   deletingPoolId: string | null;
+  poolsWithProducts: Record<string, boolean>;
   onNavigateToProducts: (poolId: string) => void;
   onEdit: (pool: Pool) => void;
   onDelete: (poolId: string) => void;
@@ -20,6 +21,7 @@ const PoolsList: React.FC<PoolsListProps> = ({
   pools,
   loading,
   deletingPoolId,
+  poolsWithProducts,
   onNavigateToProducts,
   onEdit,
   onDelete,
@@ -59,6 +61,7 @@ const PoolsList: React.FC<PoolsListProps> = ({
           pool={pool}
           deletingPoolId={deletingPoolId}
           loading={loading}
+          hasProducts={poolsWithProducts[pool.id] || false}
           onNavigateToProducts={onNavigateToProducts}
           onEdit={onEdit}
           onDelete={onDelete}

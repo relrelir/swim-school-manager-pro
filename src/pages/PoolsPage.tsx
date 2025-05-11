@@ -17,6 +17,7 @@ const PoolsPage: React.FC = () => {
     setIsEditPoolDialogOpen,
     editingPool,
     deletingPoolId,
+    poolsWithProducts,
     handleAddPool,
     handleEditSubmit,
     handlePoolDelete,
@@ -37,6 +38,7 @@ const PoolsPage: React.FC = () => {
         pools={pools}
         loading={loading}
         deletingPoolId={deletingPoolId}
+        poolsWithProducts={poolsWithProducts}
         onNavigateToProducts={handleNavigateToProducts}
         onEdit={openEditDialog}
         onDelete={handlePoolDelete}
