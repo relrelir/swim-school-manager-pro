@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useData } from '@/context/DataContext';
 import { 
   Card, 
@@ -19,19 +19,26 @@ import { usePools } from '@/hooks/usePools';
 const PoolsPage = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
-  const { seasons } = useData();
+  const { seasons, getProductsByPool } = useData();
   const [isAddPoolDialogOpen, setIsAddPoolDialogOpen] = useState(false);
   
   // Use the existing hooks
   const { 
     pools: seasonPools,
-    handleAddPool
+    handleAddPool,
+    handleDeletePool
   } = usePools(seasonId);
 
   const currentSeason = useMemo(
     () => seasons.find(s => s.id === seasonId),
     [seasons, seasonId]
   );
+
+  // Check if pool has products
+  const hasPoolProducts = (poolId: string) => {
+    const products = getProductsByPool(poolId);
+    return products.length > 0;
+  };
 
   if (!currentSeason) {
     return <div className="text-center py-10">העונה לא נמצאה</div>;
@@ -72,25 +79,39 @@ const PoolsPage = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {seasonPools.map(pool => (
-          <Card key={pool.id} className="overflow-hidden">
-            <CardHeader className="pb-2">
-              <CardTitle>{pool.name}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* תוכן נוסף של הבריכה יכול להיות כאן */}
-            </CardContent>
-            <CardFooter className="bg-muted/40 pt-4">
-              <Button 
-                variant="default" 
-                className="w-full"
-                onClick={() => navigate(`/season/${seasonId}/pool/${pool.id}/products`)}
-              >
-                צפה במוצרים
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+        {seasonPools.map(pool => {
+          const hasProducts = hasPoolProducts(pool.id);
+          
+          return (
+            <Card key={pool.id} className="overflow-hidden">
+              <CardHeader className="pb-2">
+                <CardTitle>{pool.name}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* תוכן נוסף של הבריכה יכול להיות כאן */}
+              </CardContent>
+              <CardFooter className="bg-muted/40 pt-4 flex flex-col gap-2">
+                <Button 
+                  variant="default" 
+                  className="w-full"
+                  onClick={() => navigate(`/season/${seasonId}/pool/${pool.id}/products`)}
+                >
+                  צפה במוצרים
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  className="w-full"
+                  onClick={() => handleDeletePool(pool.id)}
+                  disabled={hasProducts}
+                  title={hasProducts ? "לא ניתן למחוק בריכה עם מוצרים" : "מחק בריכה"}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  מחק בריכה
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        })}
         
         {seasonPools.length === 0 && (
           <div className="col-span-full text-center py-10 bg-muted/40 rounded-lg">
