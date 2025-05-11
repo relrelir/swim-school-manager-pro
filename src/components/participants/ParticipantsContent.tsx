@@ -7,8 +7,9 @@ import EmptyParticipantsState from '@/components/participants/EmptyParticipantsS
 
 interface ParticipantsContentProps {
   registrations: Registration[];
-  totalParticipants: number;
+  participants: Participant[];
   product: any;
+  totalParticipants: number;
   totalExpected: number;
   totalPaid: number;
   registrationsFilled: number;
@@ -21,12 +22,16 @@ interface ParticipantsContentProps {
   onDeleteRegistration: (id: string) => void;
   onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
   onOpenHealthForm: (registrationId: string) => void;
+  setIsAddPaymentOpen?: (open: boolean) => void;
+  setCurrentRegistration?: (registration: Registration | null) => void;
+  setIsHealthFormOpen?: (open: boolean) => void;
 }
 
 const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
   registrations,
-  totalParticipants,
+  participants,
   product,
+  totalParticipants,
   totalExpected,
   totalPaid,
   registrationsFilled,
@@ -58,40 +63,22 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
       return fullName.includes(query) || idNumber.includes(query) || phone.includes(query);
     });
   }, [registrations, searchQuery, getParticipantForRegistration]);
-  
-  // Create adapter functions to handle the type conversion
-  const getPaymentsAdapter = (registration: Registration) => {
-    return getPaymentsForRegistration(registration.id);
-  };
-  
-  // Fixed: The adapter now correctly expects a registrationId string
-  const updateHealthApprovalAdapter = (registrationId: string, isApproved: boolean) => {
-    onUpdateHealthApproval(registrationId, isApproved);
-  };
 
   return (
     <>
-      <ParticipantsSummaryCards 
-        totalParticipants={totalParticipants}
-        product={product}
-        totalExpected={totalExpected}
-        totalPaid={totalPaid}
-        registrationsFilled={registrationsFilled}
-      />
-
       {registrations.length === 0 ? (
         <EmptyParticipantsState />
       ) : (
         <ParticipantsTable
           registrations={filteredRegistrations}
           getParticipantForRegistration={getParticipantForRegistration}
-          getPaymentsForRegistration={getPaymentsAdapter}
+          getPaymentsForRegistration={getPaymentsForRegistration}
           getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
           calculatePaymentStatus={calculatePaymentStatus}
           getStatusClassName={getStatusClassName}
           onAddPayment={onAddPayment}
           onDeleteRegistration={onDeleteRegistration}
-          onUpdateHealthApproval={updateHealthApprovalAdapter}
+          onUpdateHealthApproval={onUpdateHealthApproval}
           onOpenHealthForm={onOpenHealthForm}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}

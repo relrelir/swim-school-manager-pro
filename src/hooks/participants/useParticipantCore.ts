@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Registration, Participant, HealthDeclaration, PaymentStatus } from '@/types';
 import { useParticipantUtils } from '../useParticipantUtils';
 import { useParticipantEffects } from '../useParticipantEffects';
@@ -21,6 +21,8 @@ export const useParticipantCore = (
     calculatePaymentStatus,
     getHealthDeclarationForRegistration
   } = dataContext;
+  
+  const [loading, setLoading] = useState(true);
 
   // Import participant utilities
   const {
@@ -40,6 +42,13 @@ export const useParticipantCore = (
     totalExpected,
     totalPaid
   } = useParticipantEffects(productId, products, undefined, getRegistrationsByProduct);
+  
+  // Set loading to false when product and registrations are loaded
+  useEffect(() => {
+    if (product) {
+      setLoading(false);
+    }
+  }, [product, registrations]);
 
   // Import participant state management
   const {
@@ -73,6 +82,7 @@ export const useParticipantCore = (
     registrationsFilled, 
     totalExpected,
     totalPaid,
+    loading,
 
     // State
     isAddParticipantOpen,

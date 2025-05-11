@@ -93,6 +93,10 @@ const ParticipantsPage = () => {
     participants,
     registrations,
     product: currentProduct,
+    totalParticipants,
+    totalExpected,
+    totalPaid,
+    registrationsFilled,
     setIsAddPaymentOpen,
     setCurrentRegistration,
     setIsHealthFormOpen,
@@ -102,7 +106,15 @@ const ParticipantsPage = () => {
     getParticipantForRegistration,
     getPaymentsForRegistration,
     getStatusClassName,
-    calculatePaymentStatus
+    calculatePaymentStatus,
+    getHealthDeclarationForRegistration,
+    onAddPayment: (registration: any) => {
+      setCurrentRegistration(registration);
+      setIsAddPaymentOpen(true);
+    },
+    onDeleteRegistration: handleDeleteRegistration,
+    onUpdateHealthApproval: handleUpdateHealthApproval,
+    onOpenHealthForm: handleOpenHealthForm
   };
 
   // Props for ParticipantsDialogs
@@ -125,7 +137,9 @@ const ParticipantsPage = () => {
     setCurrentHealthDeclaration,
     handleAddParticipant,
     handleAddPayment,
-    handleApplyDiscount
+    handleApplyDiscount: (amount: number, registrationId?: string) => {
+      handleApplyDiscount(amount, setIsAddPaymentOpen, registrationId);
+    }
   };
   
   return (
@@ -184,7 +198,6 @@ const ParticipantsPage = () => {
         totalPaid={totalPaid}
       />
 
-      {/* Now uncommented and using proper props */}
       <ParticipantsContent {...contentProps} />
       <ParticipantsDialogs {...dialogsProps} />
     </div>

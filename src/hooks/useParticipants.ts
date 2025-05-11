@@ -122,6 +122,56 @@ export const useParticipants = () => {
     }
   };
 
+  // Updated version of handleApplyDiscount that matches the interface in ParticipantsDialogsProps
+  const handleApplyDiscount = (amount: number, setIsAddPaymentOpenFn: (open: boolean) => void, registrationId?: string) => {
+    if (!productId) return;
+    
+    try {
+      // Use the registration ID from params if provided, otherwise use the current registration
+      const targetRegistrationId = registrationId || core.currentRegistration?.id;
+      
+      if (!targetRegistrationId) {
+        toast({
+          variant: "destructive",
+          title: "שגיאה",
+          description: "לא נמצא רישום להחלת ההנחה",
+        });
+        return;
+      }
+      
+      // Find the registration to update
+      const registration = core.registrations.find(r => r.id === targetRegistrationId);
+      
+      if (registration) {
+        // Create an updated registration with the discount
+        const updatedRegistration = {
+          ...registration,
+          discountApproved: true,
+          discountAmount: amount
+        };
+        
+        // Update the registration
+        dataContext.updateRegistration(updatedRegistration);
+        
+        toast({
+          title: "הנחה הוחלה בהצלחה",
+          description: `הנחה בסך ${amount} ש"ח הוחלה בהצלחה`,
+        });
+        
+        // Close dialog and refresh data
+        setIsAddPaymentOpenFn(false);
+        core.setRefreshTrigger(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error('Error applying discount:', error);
+      toast({
+        variant: "destructive",
+        title: "שגיאה",
+        description: "אירעה שגיאה בהחלת ההנחה",
+      });
+    }
+  };
+
   return {
     // Core data and state
     product: core.product,
@@ -152,9 +202,11 @@ export const useParticipants = () => {
     // Override handleAddParticipant with our simplified version
     handleAddParticipant,
     
+    // Override handleApplyDiscount with the corrected version
+    handleApplyDiscount,
+    
     // Actions and handlers
     handleAddPayment: actions.handleAddPayment,
-    handleApplyDiscount: actions.handleApplyDiscount,
     handleDeleteRegistration: actions.handleDeleteRegistration,
     handleUpdateHealthApproval: actions.handleUpdateHealthApproval,
     handleOpenHealthForm: actions.handleOpenHealthForm,
