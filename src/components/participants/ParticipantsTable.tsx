@@ -12,7 +12,7 @@ import { formatCurrencyForTableUI } from '@/utils/formatters';
 interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>; // This is now Promise<Payment[]>
+  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>;
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   calculatePaymentStatus: (registration: Registration, payments: Payment[]) => PaymentStatusDetails;
   getStatusClassName: (status: string) => string;
@@ -22,6 +22,7 @@ interface ParticipantsTableProps {
   onOpenHealthForm: (registrationId: string) => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
+  onPaymentTotalsCalculated?: (total: number) => void;
 }
 
 const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
@@ -36,26 +37,41 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onUpdateHealthApproval,
   onOpenHealthForm,
   searchQuery,
-  setSearchQuery
+  setSearchQuery,
+  onPaymentTotalsCalculated
 }) => {
   // Store payments for each registration
   const [registrationPayments, setRegistrationPayments] = useState<Record<string, Payment[]>>({});
   // Track loading state for payments
   const [isLoadingPayments, setIsLoadingPayments] = useState(true);
+  // Track the total actual amount paid across all registrations
+  const [totalActualPaid, setTotalActualPaid] = useState(0);
   
   // Fetch payments for all registrations when component mounts or registrations change
   useEffect(() => {
     const fetchPaymentsForRegistrations = async () => {
       setIsLoadingPayments(true);
       const paymentsMap: Record<string, Payment[]> = {};
+      let totalPaid = 0;
       
       try {
         for (const registration of registrations) {
           const payments = await getPaymentsForRegistration(registration);
           paymentsMap[registration.id] = payments;
+          
+          // Calculate actual paid amount from payments (not from registration.paidAmount)
+          const regPaidAmount = payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
+          totalPaid += regPaidAmount;
         }
         
+        console.log(`Total actual paid amount from all payments: ${totalPaid}`);
         setRegistrationPayments(paymentsMap);
+        setTotalActualPaid(totalPaid);
+        
+        // Pass the calculated total back to parent if callback provided
+        if (onPaymentTotalsCalculated) {
+          onPaymentTotalsCalculated(totalPaid);
+        }
       } catch (error) {
         console.error('Failed to fetch payments for registrations:', error);
       } finally {
@@ -64,7 +80,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
     };
     
     fetchPaymentsForRegistrations();
-  }, [registrations, getPaymentsForRegistration]);
+  }, [registrations, getPaymentsForRegistration, onPaymentTotalsCalculated]);
   
   // Helper to calculate discount amount
   const calculateDiscountAmount = (registration: Registration) => {

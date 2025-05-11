@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Product } from '@/types';
@@ -70,7 +71,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
             <BadgeDollarSign className="h-5 w-5 text-primary" />
             <div className="text-2xl font-bold">
               {isCalculating ? (
-                <span className="text-sm">מחשב...</span>
+                <span className="text-sm animate-pulse">מחשב...</span>
               ) : (
                 totalPaid.toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })
               )}
@@ -92,7 +93,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
             }
             <div className={`text-2xl font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {isCalculating ? (
-                <span className="text-sm">מחשב...</span>
+                <span className="text-sm animate-pulse">מחשב...</span>
               ) : (
                 Math.abs(difference).toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })
               )}

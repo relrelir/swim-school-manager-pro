@@ -46,7 +46,7 @@ const ParticipantsPage: React.FC = () => {
         inactiveCount={contentProps.participants.filter(p => !p.healthApproval).length}
         totalExpectedPayment={contentProps.totalExpected}
         totalPaid={contentProps.totalPaid}
-        isCalculating={contentProps.isCalculating || false}
+        isCalculating={contentProps.isCalculating}
       />
 
       <ParticipantsContent {...contentProps} />
