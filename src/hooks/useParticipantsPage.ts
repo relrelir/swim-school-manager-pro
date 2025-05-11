@@ -47,6 +47,7 @@ export const useParticipantsPage = () => {
     totalExpected: participantsData.totalExpected,
     totalPaid: participantsData.totalPaid,
     registrationsFilled: participantsData.registrationsFilled,
+    isCalculating: participantsData.isCalculating || false, // Ensure isCalculating is included
     getParticipantForRegistration: participantsData.getParticipantForRegistration,
     getPaymentsForRegistration: participantsData.getPaymentsForRegistration,
     getHealthDeclarationForRegistration: participantsData.getHealthDeclarationForRegistration,

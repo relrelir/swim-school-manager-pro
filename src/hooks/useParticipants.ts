@@ -55,6 +55,7 @@ export const useParticipants = () => {
     totalParticipants, 
     totalExpected, 
     totalPaid, 
+    isCalculating, // Make sure to extract isCalculating
     calculatePaymentStatus 
   } = useParticipantCalculations(
     registrations,
@@ -110,6 +111,7 @@ export const useParticipants = () => {
     totalExpected,
     totalPaid,
     registrationsFilled,
+    isCalculating, // Include isCalculating in return
     
     // Utility functions
     getParticipantForRegistration,
