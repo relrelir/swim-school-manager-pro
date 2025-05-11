@@ -8,15 +8,13 @@ import { useAuth } from '@/context/AuthContext';
 const Navigation: React.FC = () => {
   const { isAdmin } = useAuth();
   
-  // Define all navigation items
-  const allNavItems = [
+  // Define all navigation items - now showing Report link to all users
+  // (access control happens when trying to access the page)
+  const navItems = [
     { path: '/', icon: <Home className="h-5 w-5" />, label: 'עונות' },
-    { path: '/report', icon: <FileText className="h-5 w-5" />, label: 'דו"ח רישומים', adminOnly: true },
+    { path: '/report', icon: <FileText className="h-5 w-5" />, label: 'דו"ח רישומים' },
     { path: '/daily-activity', icon: <Calendar className="h-5 w-5" />, label: 'פעילות יומית' },
   ];
-  
-  // Filter items based on user role
-  const navItems = allNavItems.filter(item => !item.adminOnly || isAdmin());
   
   return (
     <nav className="flex flex-col p-1 border-b bg-white shadow-navbar">

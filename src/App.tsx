@@ -32,8 +32,13 @@ const ProtectedRoute = ({
     return <Navigate to="/" replace />;
   }
   
-  // If a specific role is required and user doesn't have it
+  // For the reports page, we handle access control at the component level
+  // This allows us to show the access code dialog for viewers
   if (requiredRole === 'admin' && user?.role !== 'admin') {
+    // Report page has its own access control mechanism
+    if (element.type === ReportPage) {
+      return element;
+    }
     return <Navigate to="/" replace />;
   }
   
