@@ -7,6 +7,7 @@ import { useProductsTable } from '@/hooks/useProductsTable';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useProductPageData } from '@/hooks/useProductPageData';
 import SeasonSummaryCards from '@/components/seasons/SeasonSummaryCards';
+import PoolProductSummaryCards from '@/components/pools/PoolProductSummaryCards';
 import ProductPageHeader from '@/components/products/ProductPageHeader';
 import ProductFilter from '@/components/products/ProductFilter';
 import ProductTableSection from '@/components/products/ProductTableSection';
@@ -200,7 +201,13 @@ const ProductsPage: React.FC = () => {
         </Button>
       </div>
 
-      {currentSeason && (
+      {currentSeason && poolId && currentPool ? (
+        <PoolProductSummaryCards
+          registrationsCount={summaryData.registrationsCount}
+          totalExpected={summaryData.totalExpected}
+          totalPaid={summaryData.totalPaid}
+        />
+      ) : currentSeason && (
         <SeasonSummaryCards
           products={seasonProducts}
           registrationsCount={summaryData.registrationsCount}
