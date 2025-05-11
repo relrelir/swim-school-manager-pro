@@ -26,7 +26,7 @@ export const promisifyDeleteSeason = async (
 };
 
 export const promisifyAddParticipant = async (
-  addParticipant: (participant: Omit<Participant, 'id'>) => Promise<Participant | undefined> | void
+  addParticipant: (participant: Omit<Participant, 'id'>) => Promise<Participant | undefined> | undefined
 ): Promise<(participant: Omit<Participant, 'id'>) => Promise<Participant | undefined>> => {
   return async (participant: Omit<Participant, 'id'>): Promise<Participant | undefined> => {
     return await addParticipant(participant);

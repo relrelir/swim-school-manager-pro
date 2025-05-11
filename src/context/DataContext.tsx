@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext } from 'react';
 import { Season, Product, Registration, Participant, Payment, RegistrationWithDetails, Pool, HealthDeclaration, DailyActivity } from '@/types';
 import { SeasonsProvider } from './data/SeasonsProvider';
@@ -86,7 +85,7 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   } = productsContext;
   
   // Get participant context data correctly
-  const participantsContext = useParticipants();
+  const participantsContext = useParticipantsContext();
   const { 
     participants,
     addParticipant,
