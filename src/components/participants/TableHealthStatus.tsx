@@ -7,6 +7,7 @@ import { Participant, Registration, HealthDeclaration } from '@/types';
 import { toast } from "@/components/ui/use-toast";
 import { createHealthDeclarationLink } from '@/context/data/healthDeclarations/createHealthDeclarationLink';
 import { useHealthDeclarationsContext } from '@/context/data/HealthDeclarationsProvider';
+import { useAuth } from '@/context/AuthContext';
 
 interface TableHealthStatusProps {
   registration: Registration;
@@ -26,6 +27,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
   const [healthDeclaration, setHealthDeclaration] = useState<HealthDeclaration | undefined>(undefined);
   const [isFormSigned, setIsFormSigned] = useState(false);
   const { getHealthDeclarationForRegistration } = useHealthDeclarationsContext();
+  const { isAdmin } = useAuth();
 
   // אופטימיזציה: שימוש ב-useMemo ותנאי מחמיר יותר
   const registrationId = useMemo(() => registration?.id, [registration?.id]);
@@ -122,7 +124,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
         </Tooltip>
       )}
       
-      {/* Link Button - Always visible */}
+      {/* Link Button - Now checks if user is admin */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -130,7 +132,7 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
             size="sm"
             className="text-blue-500 hover:text-blue-600 flex items-center border-blue-200 hover:border-blue-400"
             onClick={handleGenerateLink}
-            disabled={isGeneratingLink}
+            disabled={isGeneratingLink || !isAdmin()}
           >
             {isGeneratingLink ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent ml-1" />
@@ -143,7 +145,9 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          צור וקבל קישור להצהרת בריאות
+          {isAdmin() 
+            ? "צור וקבל קישור להצהרת בריאות" 
+            : "רק מנהל יכול ליצור קישור להצהרת בריאות"}
         </TooltipContent>
       </Tooltip>
     </div>

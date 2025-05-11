@@ -19,7 +19,16 @@ const HealthFormLink = ({ registrationId, isDisabled, className }: HealthFormLin
   
   // Only admins can generate links
   if (!isAdmin()) {
-    return null;
+    return (
+      <Button
+        variant="default"
+        className={className || "w-full"}
+        disabled={true}
+      >
+        <Link className="h-4 w-4 mr-2" />
+        צור קישור להצהרת בריאות
+      </Button>
+    );
   }
   
   const handleGenerateLink = async () => {

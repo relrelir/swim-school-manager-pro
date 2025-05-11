@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Participant, Registration } from '@/types';
+import { useAuth } from '@/context/AuthContext';
 
 interface AddPaymentDialogProps {
   isOpen: boolean;
@@ -41,6 +42,7 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   const [isDiscount, setIsDiscount] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
   const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  const { isAdmin } = useAuth();
 
   // Calculate total paid including discount
   const calculateTotalPaid = (registration: Registration) => {
@@ -81,16 +83,19 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                   </p>
                 </div>
 
-                <div className="flex items-center space-x-2 mb-2">
-                  <Checkbox
-                    id="is-discount"
-                    checked={isDiscount}
-                    onCheckedChange={(checked) => setIsDiscount(checked as boolean)}
-                  />
-                  <Label htmlFor="is-discount" className="mr-2">הנחה</Label>
-                </div>
+                {/* Only show discount checkbox for admins */}
+                {isAdmin() && (
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Checkbox
+                      id="is-discount"
+                      checked={isDiscount}
+                      onCheckedChange={(checked) => setIsDiscount(checked as boolean)}
+                    />
+                    <Label htmlFor="is-discount" className="mr-2">הנחה</Label>
+                  </div>
+                )}
                 
-                {isDiscount ? (
+                {isDiscount && isAdmin() ? (
                   <div className="space-y-2">
                     <Label htmlFor="discount-amount">סכום הנחה</Label>
                     <Input
@@ -146,7 +151,7 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
           </div>
           <DialogFooter className="mt-4">
             <Button type="submit">
-              {isDiscount ? 'אשר הנחה' : 'הוסף תשלום'}
+              {isDiscount && isAdmin() ? 'אשר הנחה' : 'הוסף תשלום'}
             </Button>
           </DialogFooter>
         </form>
