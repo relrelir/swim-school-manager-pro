@@ -91,7 +91,7 @@ export const mapParticipantToDB = (participant: any) => {
 };
 
 // Mapping functions for Registration objects
-export const mapRegistrationFromDB = (dbRegistration: any) => {
+export const mapRegistrationFromDB = (dbRegistration: any): Registration => {
   return {
     id: dbRegistration.id,
     productId: dbRegistration.productid,
@@ -101,20 +101,33 @@ export const mapRegistrationFromDB = (dbRegistration: any) => {
     paidAmount: dbRegistration.paidamount,
     discountApproved: dbRegistration.discountapproved,
     discountAmount: dbRegistration.discountamount,
-    receiptNumber: dbRegistration.receiptnumber
+    receiptNumber: dbRegistration.receiptnumber,
   };
 };
 
-export const mapRegistrationToDB = (registration: any) => {
+export const mapRegistrationToDB = (registration: Partial<Registration>) => {
+  const { 
+    productId, 
+    participantId, 
+    registrationDate, 
+    requiredAmount,
+    paidAmount, 
+    discountApproved,
+    discountAmount,
+    receiptNumber,
+    ...rest 
+  } = registration;
+
   return {
-    productid: registration.productId,
-    participantid: registration.participantId,
-    registrationdate: registration.registrationDate,
-    requiredamount: registration.requiredAmount,
-    paidAmount: registration.paidAmount,
-    discountapproved: registration.discountApproved,
-    discountamount: registration.discountAmount,
-    receiptnumber: registration.receiptNumber
+    productid: productId,
+    participantid: participantId,
+    registrationdate: registrationDate,
+    requiredamount: requiredAmount,
+    paidamount: paidAmount, // Fix: camelCase to lowercase
+    discountapproved: discountApproved,
+    discountamount: discountAmount,
+    receiptnumber: receiptNumber,
+    ...rest
   };
 };
 

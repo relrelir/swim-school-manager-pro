@@ -196,6 +196,7 @@ export type Database = {
           seasonid: string
           startdate: string
           starttime: string | null
+          type: string | null
         }
         Insert: {
           created_at?: string
@@ -212,6 +213,7 @@ export type Database = {
           seasonid: string
           startdate: string
           starttime?: string | null
+          type?: string | null
         }
         Update: {
           created_at?: string
@@ -228,6 +230,7 @@ export type Database = {
           seasonid?: string
           startdate?: string
           starttime?: string | null
+          type?: string | null
         }
         Relationships: [
           {
