@@ -2,7 +2,7 @@ import React, { createContext, useContext } from 'react';
 import { Season, Product, Registration, Participant, Payment, RegistrationWithDetails, Pool, HealthDeclaration, DailyActivity } from '@/types';
 import { SeasonsProvider } from './data/SeasonsProvider';
 import { ProductsProvider } from './data/ProductsProvider';
-import { ParticipantsProvider } from './data/ParticipantsProvider';
+import { ParticipantsProvider, useParticipantsContext } from './data/ParticipantsProvider';
 import { RegistrationsProvider } from './data/RegistrationsProvider';
 import { PaymentsProvider } from './data/PaymentsProvider';
 import { HealthDeclarationsProvider } from './data/HealthDeclarationsProvider';
@@ -84,15 +84,14 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     loading: productsLoading 
   } = productsContext;
   
-  // Get participant context data correctly
-  const participantsContext = useParticipantsContext();
+  // Get participant context data directly from the context
   const { 
     participants,
     addParticipant,
     updateParticipant,
     deleteParticipant,
     loading: participantsLoading 
-  } = participantsContext;
+  } = useParticipantsContext();
   
   const { registrations, addRegistration, updateRegistration, deleteRegistration, getRegistrationsByProduct, loading: registrationsLoading } = useRegistrations();
   const { payments, addPayment, updatePayment, deletePayment, getPaymentsByRegistration, loading: paymentsLoading } = usePayments();
