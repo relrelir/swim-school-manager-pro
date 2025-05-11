@@ -1,4 +1,3 @@
-
 import { Product } from "@/types";
 
 export const handleSupabaseError = (error: any, operation: string) => {
@@ -41,7 +40,7 @@ export const mapProductFromDB = (dbProduct: any): Product => {
     maxParticipants: dbProduct.maxparticipants,
     notes: dbProduct.notes,
     seasonId: dbProduct.seasonid,
-    type: dbProduct.type,
+    type: dbProduct.type || 'קורס', // Provide a default value if type is missing
     meetingsCount: dbProduct.meetingscount,
     startTime: dbProduct.starttime,
     daysOfWeek: dbProduct.daysofweek,
@@ -64,7 +63,8 @@ export const mapProductToDB = (product: any) => {
     maxparticipants: product.maxParticipants,
     instructor: product.instructor,
     meetingscount: product.meetingsCount,
-    poolid: product.poolId
+    poolid: product.poolId,
+    type: product.type // Add the type field to the database mapping
   };
 };
 
@@ -111,7 +111,7 @@ export const mapRegistrationToDB = (registration: any) => {
     participantid: registration.participantId,
     registrationdate: registration.registrationDate,
     requiredamount: registration.requiredAmount,
-    paidamount: registration.paidAmount,
+    paidAmount: registration.paidAmount,
     discountapproved: registration.discountApproved,
     discountamount: registration.discountAmount,
     receiptnumber: registration.receiptNumber
