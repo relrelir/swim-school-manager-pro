@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+
+import React, { createContext, useContext } from 'react';
 import { Season, Product, Registration, Participant, Payment, RegistrationWithDetails, Pool, HealthDeclaration, DailyActivity } from '@/types';
 import { SeasonsProvider } from './data/SeasonsProvider';
 import { ProductsProvider } from './data/ProductsProvider';
@@ -16,6 +17,7 @@ import { useHealthDeclarations } from '@/hooks/useHealthDeclarations';
 import { usePoolsContext } from './data/PoolsProvider';
 import { calculatePaymentStatus } from '@/utils/paymentUtils';
 import { format } from 'date-fns';
+import { he } from 'date-fns/locale';
 
 interface DataContextProps {
   seasons: Season[];
@@ -41,6 +43,7 @@ interface DataContextProps {
   updatePayment: (payment: Payment) => Promise<void>;
   deletePayment: (id: string) => Promise<void>;
   updateHealthDeclaration: (healthDeclaration: HealthDeclaration) => Promise<void>;
+  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>;
   getRegistrationsByProduct: (productId: string) => Registration[];
   getRegistrationsByParticipant: (participantId: string) => Registration[];
   getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
@@ -51,6 +54,10 @@ interface DataContextProps {
   getPoolsBySeason: (seasonId: string) => Pool[];
   getPoolById: (id: string) => Pool | undefined;
   getDailyActivities: (date: string) => DailyActivity[];
+  calculateMeetingProgress: (product: Product) => { current: number; total: number };
+  addPool: (pool: { name: string; seasonId: string }) => Promise<Pool | null>;
+  updatePool: (pool: Pool) => Promise<boolean>;
+  deletePool: (id: string) => Promise<boolean>;
   loading: boolean;
 }
 
@@ -70,32 +77,40 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   const { participants, addParticipant, updateParticipant, deleteParticipant, loading: participantsLoading } = useParticipants();
   const { registrations, addRegistration, updateRegistration, deleteRegistration, loading: registrationsLoading } = useRegistrations();
   const { payments, addPayment, updatePayment, deletePayment, loading: paymentsLoading } = usePayments();
-  const { healthDeclarations, updateHealthDeclaration, loading: healthDeclarationsLoading } = useHealthDeclarations();
-  const { pools, getPoolsBySeason, loading: poolsLoading } = usePoolsContext();
+  const { healthDeclarations, updateHealthDeclaration, addHealthDeclaration, loading: healthDeclarationsLoading } = useHealthDeclarations();
+  const { pools, getPoolsBySeason, addPool, updatePool, deletePool, loading: poolsLoading } = usePoolsContext();
   const loading = seasonsLoading || productsLoading || participantsLoading || registrationsLoading || paymentsLoading || healthDeclarationsLoading || poolsLoading;
 
   // Get registrations by product
-  const getRegistrationsByProduct = useCallback((productId: string) => {
+  const getRegistrationsByProduct = (productId: string) => {
     return registrations.filter(registration => registration.productId === productId);
-  }, [registrations]);
+  };
 
   // Get registrations by participant
-  const getRegistrationsByParticipant = useCallback((participantId: string) => {
+  const getRegistrationsByParticipant = (participantId: string) => {
     return registrations.filter(registration => registration.participantId === participantId);
-  }, [registrations]);
+  };
 
   // Get payments by registration
-  const getPaymentsByRegistration = useCallback((registrationId: string) => {
+  const getPaymentsByRegistration = (registrationId: string) => {
     return payments.filter(payment => payment.registrationId === registrationId);
-  }, [payments]);
+  };
 
   // Get health declaration by participant
-  const getHealthDeclarationByParticipant = useCallback((participantId: string) => {
+  const getHealthDeclarationByParticipant = (participantId: string) => {
     return healthDeclarations.find(healthDeclaration => healthDeclaration.participant_id === participantId);
-  }, [healthDeclarations]);
+  };
+
+  // Calculate meeting progress for a product
+  const calculateMeetingProgress = (product: Product) => {
+    const total = product.meetingsCount || 10;
+    // For now, just return a simple calculation. This can be enhanced later.
+    const current = 1; // Default to first meeting
+    return { current, total };
+  };
 
   // Get all registrations with details
-  const getAllRegistrationsWithDetails = useCallback(() => {
+  const getAllRegistrationsWithDetails = () => {
     return registrations.map(registration => {
       const participant = participants.find(p => p.id === registration.participantId);
       const product = products.find(p => p.id === registration.productId);
@@ -115,33 +130,34 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
         product,
         season,
         payments: paymentsForRegistration,
-        paymentStatus: status as any,
+        paymentStatus: status,
       };
     }).filter(Boolean) as RegistrationWithDetails[];
-  }, [registrations, participants, products, seasons, payments]);
+  };
 
   // Get pool by ID
-  const getPoolById = useCallback((id: string) => {
+  const getPoolById = (id: string) => {
     return pools.find(pool => pool.id === id);
-  }, [pools]);
+  };
 
-  const getDailyActivities = useCallback((date: string) => {
+  const getDailyActivities = (date: string) => {
     const parsedDate = new Date(date);
-    const dayOfWeek = format(parsedDate, 'EEEE', { locale: 'he' });
+    const dayOfWeek = format(parsedDate, 'EEEE', { locale: he as any });
 
     return products.map(product => {
       const registrationsForProduct = getRegistrationsByProduct(product.id);
       const numParticipants = registrationsForProduct.length;
+      const progress = calculateMeetingProgress(product);
 
       return {
         product: product,
         startTime: product.startTime || '00:00',
         numParticipants: numParticipants,
-        currentMeetingNumber: 1, // Replace with actual calculation
-        totalMeetings: product.meetingsCount || 1, // Replace with actual calculation
+        currentMeetingNumber: progress.current,
+        totalMeetings: progress.total,
       };
     });
-  }, [products, getRegistrationsByProduct]);
+  };
 
   const contextValue: DataContextProps = {
     seasons,
@@ -167,6 +183,7 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     updatePayment,
     deletePayment,
     updateHealthDeclaration,
+    addHealthDeclaration,
     getRegistrationsByProduct,
     getRegistrationsByParticipant,
     getAllRegistrationsWithDetails,
@@ -177,6 +194,10 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     getPoolsBySeason,
     getPoolById,
     getDailyActivities,
+    calculateMeetingProgress,
+    addPool,
+    updatePool,
+    deletePool,
     loading,
   };
 

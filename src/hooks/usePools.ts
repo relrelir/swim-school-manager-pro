@@ -1,11 +1,11 @@
 
 import { useMemo, useState } from 'react';
 import { Pool } from '@/types';
-import { useData } from '@/context/DataContext';
+import { usePoolsContext } from '@/context/data/PoolsProvider';
 import { toast } from '@/components/ui/use-toast';
 
 export function usePools(seasonId?: string) {
-  const { pools, addPool, updatePool, deletePool, getPoolsBySeason, loading } = useData();
+  const { pools, addPool, updatePool, deletePool, getPoolsBySeason, loading } = usePoolsContext();
   const [isAddPoolDialogOpen, setIsAddPoolDialogOpen] = useState(false);
   const [editingPool, setEditingPool] = useState<Pool | null>(null);
 

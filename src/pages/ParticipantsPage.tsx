@@ -17,7 +17,7 @@ import ParticipantsContent from "@/components/participants/ParticipantsContent";
 import ParticipantsDialogs from "@/components/participants/ParticipantsDialogs";
 import ParticipantsHeader from "@/components/participants/ParticipantsHeader";
 import ParticipantsSummaryCards from "@/components/participants/ParticipantsSummaryCards";
-import { useParticipants } from "@/hooks/useParticipants";
+import { useParticipantData } from "@/hooks/useParticipantData";
 
 const ParticipantsPage = () => {
   const { productId } = useParams<{ productId: string }>();
@@ -30,20 +30,21 @@ const ParticipantsPage = () => {
   // Get pool information if product has poolId
   const currentPool = currentProduct?.poolId ? getPoolById(currentProduct.poolId) : undefined;
 
+  // Use participant data hook to get all participant-related data and functions
   const {
-    isLoading,
+    loading: isLoading,
     participants,
-    isAddDialogOpen,
-    setIsAddDialogOpen,
+    addDialogOpen: isAddDialogOpen,
+    setAddDialogOpen: setIsAddDialogOpen,
     filteredParticipants,
-    searchTerm,
-    handleSearchChange,
+    searchString: searchTerm,
+    handleSearch: handleSearchChange,
     handleAddParticipant,
-    handleNavigateToHealth,
+    handleHealthFormOpen: handleNavigateToHealth,
     handleDeleteParticipant,
-    statusCounts,
-    paymentInfo
-  } = useParticipants(productId);
+    statusSummary: statusCounts,
+    paymentSummary: paymentInfo,
+  } = useParticipantData(productId);
   
   const [healthFormOpen, setHealthFormOpen] = useState(false);
   const [selectedParticipantId, setSelectedParticipantId] = useState<string | null>(null);
@@ -62,6 +63,42 @@ const ParticipantsPage = () => {
   if (isLoading || !currentProduct) {
     return <div className="flex justify-center items-center h-screen">טוען...</div>;
   }
+  
+  // Prepare props for ParticipantsHeader
+  const headerProps = {
+    product: currentProduct,
+    onAddParticipant: () => setIsAddDialogOpen(true),
+  };
+  
+  // Prepare props for ParticipantsSummaryCards
+  const summaryCardsProps = {
+    product: currentProduct,
+    activeCount: statusCounts?.active || 0,
+    inactiveCount: statusCounts?.inactive || 0,
+    totalExpectedPayment: paymentInfo?.totalExpected || 0,
+    totalPaid: paymentInfo?.totalPaid || 0,
+  };
+  
+  // Prepare props for ParticipantsContent
+  const contentProps = {
+    product: currentProduct,
+    participants: filteredParticipants,
+    onNavigateToHealth: handleNavigateToHealth,
+    onDeleteParticipant: handleDeleteParticipant,
+    setHealthFormOpen,
+    setSelectedParticipantId,
+  };
+  
+  // Prepare props for ParticipantsDialogs
+  const dialogsProps = {
+    product: currentProduct,
+    isAddDialogOpen,
+    setIsAddDialogOpen,
+    onAddParticipant: handleAddParticipant,
+    healthFormOpen,
+    setHealthFormOpen,
+    selectedParticipantId,
+  };
   
   return (
     <div className="p-6">
@@ -101,42 +138,16 @@ const ParticipantsPage = () => {
       </div>
 
       <div className="flex justify-between items-center mb-6">
-        <ParticipantsHeader 
-          product={currentProduct}
-          onAddParticipant={() => setIsAddDialogOpen(true)}
-          searchTerm={searchTerm}
-          onSearchChange={handleSearchChange}
-        />
+        <ParticipantsHeader {...headerProps} />
         <Button variant="outline" onClick={handleBackToProducts} className="flex items-center gap-2">
           <ChevronLeft className="h-4 w-4" />
           <span>חזרה למוצרים</span>
         </Button>
       </div>
 
-      <ParticipantsSummaryCards 
-        statusCounts={statusCounts}
-        paymentInfo={paymentInfo}
-        product={currentProduct}
-      />
-
-      <ParticipantsContent 
-        product={currentProduct}
-        participants={filteredParticipants}
-        onNavigateToHealth={handleNavigateToHealth}
-        onDeleteParticipant={handleDeleteParticipant}
-        setHealthFormOpen={setHealthFormOpen}
-        setSelectedParticipantId={setSelectedParticipantId}
-      />
-
-      <ParticipantsDialogs 
-        product={currentProduct}
-        isAddDialogOpen={isAddDialogOpen}
-        setIsAddDialogOpen={setIsAddDialogOpen}
-        onAddParticipant={handleAddParticipant}
-        healthFormOpen={healthFormOpen}
-        setHealthFormOpen={setHealthFormOpen}
-        selectedParticipantId={selectedParticipantId}
-      />
+      <ParticipantsSummaryCards {...summaryCardsProps} />
+      <ParticipantsContent {...contentProps} />
+      <ParticipantsDialogs {...dialogsProps} />
     </div>
   );
 };
