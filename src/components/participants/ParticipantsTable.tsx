@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Participant, PaymentStatus, Registration, Payment, HealthDeclaration } from '@/types';
@@ -11,7 +12,7 @@ import { formatCurrencyForTableUI } from '@/utils/formatters';
 interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registration: Registration) => Payment[];
+  getPaymentsForRegistration: (registration: Registration | string) => Payment[];
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   getStatusClassName: (status: string) => string;

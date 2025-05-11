@@ -6,6 +6,7 @@ import { useParticipantCore } from './participants/useParticipantCore';
 import { useParticipantActions } from './participants/useParticipantActions';
 import { useParticipantsContext } from '@/context/data/ParticipantsProvider';
 import { toast } from '@/components/ui/use-toast';
+import { calculatePaymentStatus } from '@/utils/paymentUtils';
 
 /**
  * Main hook for participants management - now acts as a composition layer
