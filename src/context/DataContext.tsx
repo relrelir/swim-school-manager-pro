@@ -1,14 +1,62 @@
-
-import React, { createContext, useContext } from 'react';
-import { SeasonsProvider } from './data/SeasonsProvider';
+import React, { createContext, useContext, useState } from 'react';
+import { Season, Product, Registration, Participant, Payment, RegistrationWithDetails, Pool, HealthDeclaration, DailyActivity } from '@/types';
+import { SeasonsProvider, useSeasonsContext } from './data/SeasonsProvider';
 import { ProductsProvider } from './data/ProductsProvider';
-import { ParticipantsProvider } from './data/ParticipantsProvider';
+import { ParticipantsProvider, useParticipantsContext } from './data/ParticipantsProvider';
 import { RegistrationsProvider } from './data/RegistrationsProvider';
 import { PaymentsProvider } from './data/PaymentsProvider';
 import { HealthDeclarationsProvider } from './data/HealthDeclarationsProvider';
 import { PoolsProvider } from './data/PoolsProvider';
-import InnerDataProvider from './data/InnerDataProvider';
-import { DataContextProps } from './data/types/dataContextTypes';
+import { useProducts } from '@/hooks/useProducts';
+import { useRegistrations } from '@/hooks/useRegistrations';
+import { usePayments } from '@/hooks/usePayments';
+import { useHealthDeclarations } from '@/hooks/useHealthDeclarations';
+import { usePoolsContext } from './data/pools/usePoolsContext';
+import { calculateMeetingProgress, getDailyActivities } from '@/utils/activityUtils';
+import { getAllRegistrationsWithDetails } from '@/utils/registrationUtils';
+
+// Create DataContextProps interface for our context values
+interface DataContextProps {
+  seasons: Season[];
+  products: Product[];
+  pools: Pool[];
+  participants: Participant[];
+  registrations: Registration[];
+  payments: Payment[];
+  healthDeclarations: HealthDeclaration[];
+  addProduct: (product: Omit<Product, 'id'>) => Promise<Product | undefined>;
+  updateProduct: (product: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  addSeason: (season: Omit<Season, 'id'>) => Promise<Season | undefined>;
+  updateSeason: (season: Season) => Promise<void>;
+  deleteSeason: (id: string) => Promise<void>;
+  addParticipant: (participant: Omit<Participant, 'id'>) => Promise<Participant | undefined>;
+  updateParticipant: (participant: Participant) => Promise<void>;
+  deleteParticipant: (id: string) => Promise<void>;
+  addRegistration: (registration: Omit<Registration, 'id'>) => Promise<Registration | undefined>;
+  updateRegistration: (registration: Registration) => Promise<void>;
+  deleteRegistration: (id: string) => Promise<void>;
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined>;
+  updatePayment: (payment: Payment) => Promise<void>;
+  deletePayment: (id: string) => Promise<void>;
+  updateHealthDeclaration: (healthDeclaration: HealthDeclaration) => Promise<void>;
+  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>;
+  getRegistrationsByProduct: (productId: string) => Registration[];
+  getRegistrationsByParticipant: (participantId: string) => Registration[];
+  getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
+  getPaymentsByRegistration: (registrationId: string) => Payment[];
+  getProductsBySeason: (seasonId: string) => Product[];
+  getProductsByPool: (poolId: string) => Product[];
+  getHealthDeclarationByParticipant: (participantId: string) => HealthDeclaration | undefined;
+  getPoolsBySeason: (seasonId: string) => Pool[];
+  getPoolById: (id: string) => Pool | undefined;
+  getDailyActivities: (date: string) => DailyActivity[];
+  calculateMeetingProgress: (product: Product) => { current: number; total: number };
+  addPool: (pool: { name: string; seasonId: string }) => Promise<Pool | null>;
+  updatePool: (pool: Pool) => Promise<boolean>;
+  deletePool: (id: string) => Promise<boolean>;
+  loading: boolean;
+}
 
 const DataContext = createContext<DataContextProps | null>(null);
 
@@ -18,6 +66,164 @@ export const useData = () => {
     throw new Error('useData must be used within a DataProvider');
   }
   return context;
+};
+
+// Create an inner provider that depends on the outer providers
+const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
+  // Inside this component, we can safely use all the hooks that depend on the outer providers
+  const { seasons, addSeason, updateSeason, deleteSeason: deleteSeasonContext, loading: seasonsLoading } = useSeasonsContext();
+  
+  // Explicitly define the type for useProducts
+  const productsContext = useProducts();
+  const { 
+    products, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct, 
+    getProductsBySeason, 
+    getProductsByPool,
+    loading: productsLoading 
+  } = productsContext;
+  
+  // Get participant context data directly from the context
+  const { 
+    participants,
+    addParticipant,
+    updateParticipant,
+    deleteParticipant,
+    loading: participantsLoading 
+  } = useParticipantsContext();
+  
+  const { registrations, addRegistration, updateRegistration, deleteRegistration, getRegistrationsByProduct, loading: registrationsLoading } = useRegistrations();
+  const { payments, addPayment, updatePayment, deletePayment, getPaymentsByRegistration, loading: paymentsLoading } = usePayments();
+  
+  // Explicitly define the type for useHealthDeclarations
+  const healthContext = useHealthDeclarations();
+  const { 
+    healthDeclarations, 
+    updateHealthDeclaration, 
+    addHealthDeclaration,
+    loading: healthDeclarationsLoading 
+  } = healthContext;
+  
+  const { pools, getPoolsBySeason, addPool, updatePool, deletePool, loading: poolsLoading } = usePoolsContext();
+  const loading = seasonsLoading || productsLoading || participantsLoading || registrationsLoading || paymentsLoading || healthDeclarationsLoading || poolsLoading;
+
+  // Get registrations by participant
+  const getRegistrationsByParticipant = (participantId: string) => {
+    return registrations.filter(registration => registration.participantId === participantId);
+  };
+
+  // Get health declaration by participant
+  const getHealthDeclarationByParticipant = (participantId: string) => {
+    return healthDeclarations.find(healthDeclaration => healthDeclaration.participant_id === participantId);
+  };
+
+  // Get pool by ID
+  const getPoolById = (id: string) => {
+    return pools.find(pool => pool.id === id);
+  };
+
+  // Make sure all functions return Promises as expected by the interface
+  const promisifiedAddProduct = async (product: Omit<Product, 'id'>): Promise<Product | undefined> => {
+    return await addProduct(product);
+  };
+
+  const promisifiedUpdateSeason = async (season: Season): Promise<void> => {
+    await updateSeason(season);
+  };
+
+  const promisifiedDeleteSeason = async (id: string): Promise<void> => {
+    await deleteSeasonContext(id);
+  };
+
+  const promisifiedAddParticipant = async (participant: Omit<Participant, 'id'>): Promise<Participant | undefined> => {
+    return await addParticipant(participant);
+  };
+
+  const promisifiedUpdateParticipant = async (participant: Participant): Promise<void> => {
+    await updateParticipant(participant);
+  };
+
+  const promisifiedDeleteParticipant = async (id: string): Promise<void> => {
+    await deleteParticipant(id);
+  };
+
+  const promisifiedUpdateRegistration = async (registration: Registration): Promise<void> => {
+    await updateRegistration(registration);
+  };
+
+  const promisifiedDeleteRegistration = async (id: string): Promise<void> => {
+    await deleteRegistration(id);
+  };
+
+  const promisifiedUpdatePayment = async (payment: Payment): Promise<void> => {
+    await updatePayment(payment);
+  };
+
+  const promisifiedDeletePayment = async (id: string): Promise<void> => {
+    await deletePayment(id);
+  };
+
+  const promisifiedUpdateHealthDeclaration = async (healthDeclaration: HealthDeclaration): Promise<void> => {
+    // Pass id and healthDeclaration for the update function
+    await updateHealthDeclaration(healthDeclaration.id, healthDeclaration);
+  };
+
+  const contextValue: DataContextProps = {
+    seasons,
+    products,
+    pools,
+    participants,
+    registrations,
+    payments,
+    healthDeclarations,
+    addProduct: promisifiedAddProduct,
+    updateProduct,
+    deleteProduct,
+    addSeason,
+    updateSeason: promisifiedUpdateSeason,
+    deleteSeason: promisifiedDeleteSeason,
+    addParticipant: promisifiedAddParticipant,
+    updateParticipant: promisifiedUpdateParticipant,
+    deleteParticipant: promisifiedDeleteParticipant,
+    addRegistration,
+    updateRegistration: promisifiedUpdateRegistration,
+    deleteRegistration: promisifiedDeleteRegistration,
+    addPayment,
+    updatePayment: promisifiedUpdatePayment,
+    deletePayment: promisifiedDeletePayment,
+    updateHealthDeclaration: promisifiedUpdateHealthDeclaration,
+    addHealthDeclaration,
+    getRegistrationsByProduct,
+    getRegistrationsByParticipant,
+    getAllRegistrationsWithDetails: () => getAllRegistrationsWithDetails(
+      registrations, 
+      participants, 
+      products, 
+      seasons,
+      payments,
+      getPaymentsByRegistration
+    ),
+    getPaymentsByRegistration,
+    getProductsBySeason,
+    getProductsByPool,
+    getHealthDeclarationByParticipant,
+    getPoolsBySeason,
+    getPoolById,
+    getDailyActivities: (date: string) => getDailyActivities(date, products, getRegistrationsByProduct),
+    calculateMeetingProgress,
+    addPool,
+    updatePool,
+    deletePool,
+    loading,
+  };
+
+  return (
+    <DataContext.Provider value={contextValue}>
+      {children}
+    </DataContext.Provider>
+  );
 };
 
 // This is the main provider that will be used in the app
