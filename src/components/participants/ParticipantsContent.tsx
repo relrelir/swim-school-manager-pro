@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Registration, Participant, Payment, HealthDeclaration, PaymentStatus } from '@/types';
+import { Registration, Participant, Payment, HealthDeclaration, PaymentStatus, PaymentStatusDetails } from '@/types';
 import ParticipantsSummaryCards from '@/components/participants/ParticipantsSummaryCards';
 import ParticipantsTable from '@/components/participants/ParticipantsTable';
 import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
@@ -16,7 +16,7 @@ interface ParticipantsContentProps {
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
   getPaymentsForRegistration: (registration: Registration | string) => Payment[]; 
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
-  calculatePaymentStatus: (registration: Registration) => PaymentStatus;
+  calculatePaymentStatus: (registration: Registration) => PaymentStatusDetails;
   getStatusClassName: (status: string) => string;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (id: string) => void;
