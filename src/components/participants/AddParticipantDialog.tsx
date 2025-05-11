@@ -73,10 +73,6 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
               })} required />
               </div>
             </div>
-            <div className="flex items-center space-x-2">
-              
-              
-            </div>
             
             <div className="space-y-4 pt-4 border-t">
               <h3 className="font-semibold">פרטי תשלום</h3>
@@ -88,21 +84,36 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="paid-amount">סכום ששולם</Label>
-                  <Input id="paid-amount" type="number" value={registrationData.paidAmount} onChange={e => setRegistrationData({
-                  ...registrationData,
-                  paidAmount: Number(e.target.value),
-                  discountApproved: registrationData.discountApproved
-                })} required min={0} max={registrationData.requiredAmount} className="ltr" />
+                  <Input 
+                    id="paid-amount" 
+                    type="number" 
+                    value={registrationData.paidAmount} 
+                    onChange={e => setRegistrationData({
+                      ...registrationData,
+                      paidAmount: Number(e.target.value),
+                      discountApproved: registrationData.discountApproved
+                    })} 
+                    required 
+                    min={0} 
+                    max={registrationData.requiredAmount} 
+                    className="ltr" 
+                  />
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="receipt-number">מספר קבלה</Label>
-                <Input id="receipt-number" value={registrationData.receiptNumber} onChange={e => setRegistrationData({
-                ...registrationData,
-                receiptNumber: e.target.value,
-                discountApproved: registrationData.discountApproved
-              })} required />
+                <Input 
+                  id="receipt-number" 
+                  value={registrationData.receiptNumber} 
+                  onChange={e => setRegistrationData({
+                    ...registrationData,
+                    receiptNumber: e.target.value,
+                    discountApproved: registrationData.discountApproved
+                  })} 
+                  required 
+                />
+                <p className="text-xs text-muted-foreground">מספר קבלה הוא שדה חובה אם יש תשלום</p>
               </div>
             </div>
           </div>

@@ -61,6 +61,15 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
 
   const addPayment = async (payment: Omit<Payment, 'id'>) => {
     try {
+      if (!payment.receiptNumber) {
+        toast({
+          title: "שגיאה",
+          description: "מספר קבלה הוא שדה חובה",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       const dbPayment = mapPaymentToDB(payment);
       
       const { data, error } = await supabase
@@ -71,14 +80,17 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
 
       if (error) {
         handleSupabaseError(error, 'adding payment');
+        return;
       }
 
       if (data) {
         const newPayment = mapPaymentFromDB(data);
-        setPayments([...payments, newPayment]);
+        setPayments(prevPayments => [...prevPayments, newPayment]);
+        console.log("Payment added successfully:", newPayment);
         return newPayment;
       }
     } catch (error) {
+      console.error("Error adding payment:", error);
       toast({
         title: "שגיאה",
         description: "אירעה שגיאה בהוספת תשלום חדש",

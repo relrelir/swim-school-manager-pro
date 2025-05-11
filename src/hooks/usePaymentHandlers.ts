@@ -28,6 +28,8 @@ export const usePaymentHandlers = (
     }>>,
     productId?: string
   ): Promise<Registration[]> => {
+    e.preventDefault();
+    
     // Check if receipt number is provided
     if (!newPayment.receiptNumber) {
       toast({
@@ -39,7 +41,7 @@ export const usePaymentHandlers = (
     }
     
     // Check if registrationId is provided
-    if (!newPayment.registrationId) {
+    if (!newPayment.registrationId && !currentRegistration?.id) {
       toast({
         title: "שגיאה",
         description: "שגיאת מערכת: מזהה הרישום חסר",
@@ -48,30 +50,47 @@ export const usePaymentHandlers = (
       return [];
     }
 
+    // Use registrationId from newPayment if provided, otherwise use currentRegistration.id
+    const registrationId = newPayment.registrationId || currentRegistration?.id;
+    
+    if (!registrationId) {
+      console.error("No registration ID available");
+      return [];
+    }
+
     // Add the new payment
     const payment: Omit<Payment, 'id'> = {
-      registrationId: newPayment.registrationId,
+      registrationId: registrationId,
       amount: newPayment.amount,
       receiptNumber: newPayment.receiptNumber,
       paymentDate: newPayment.paymentDate,
     };
     
-    await addPayment(payment);
+    console.log("Adding payment:", payment);
+    const addedPayment = await addPayment(payment);
+    console.log("Payment added:", addedPayment);
     
     // Update the registration's paidAmount
     let updatedRegistrations: Registration[] = [];
     if (productId) {
       const regs = getRegistrationsByProduct(productId);
-      const reg = regs.find(r => r.id === newPayment.registrationId);
+      const reg = regs.find(r => r.id === registrationId);
+      
       if (reg) {
         const updatedPaidAmount = reg.paidAmount + newPayment.amount;
+        console.log(`Updating registration ${reg.id} paidAmount from ${reg.paidAmount} to ${updatedPaidAmount}`);
+        
         const updatedReg: Registration = {
           ...reg,
           paidAmount: updatedPaidAmount,
         };
-        updateRegistration(updatedReg);
+        
+        await updateRegistration(updatedReg);
+        console.log("Registration updated with new payment amount");
       }
-      updatedRegistrations = regs;
+      
+      // Get fresh registrations after update
+      updatedRegistrations = getRegistrationsByProduct(productId);
     }
     
     // Reset form and close dialog
@@ -80,6 +99,12 @@ export const usePaymentHandlers = (
       amount: 0,
       receiptNumber: '',
       paymentDate: new Date().toISOString().substring(0, 10),
+      registrationId: undefined,
+    });
+    
+    toast({
+      title: "תשלום נוסף בהצלחה",
+      description: `תשלום בסך ${newPayment.amount} ₪ נוסף בהצלחה`,
     });
     
     return updatedRegistrations;
@@ -93,7 +118,7 @@ export const usePaymentHandlers = (
     registrationId?: string // Add registrationId parameter
   ): Promise<Registration[]> => {
     // Check if we have a registration ID
-    if (!registrationId && !currentRegistration) {
+    if (!registrationId && !currentRegistration?.id) {
       toast({
         title: "שגיאה",
         description: "שגיאת מערכת: מזהה הרישום חסר",
@@ -120,7 +145,9 @@ export const usePaymentHandlers = (
         discountAmount: (targetRegistration.discountAmount || 0) + discountAmount,
       };
       
-      updateRegistration(updatedRegistration);
+      console.log(`Applying discount of ${discountAmount} to registration ${targetRegistration.id}`);
+      await updateRegistration(updatedRegistration);
+      console.log("Discount applied successfully");
       
       toast({
         title: "הנחה אושרה",

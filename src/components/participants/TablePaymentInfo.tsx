@@ -14,7 +14,7 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
   discountAmount,
   discountApproved
 }) => {
-  // Helper to identify actual payments (ones that have receipt numbers)
+  // Only show payments that have receipt numbers (actual payments)
   const actualPayments = payments.filter(p => p.receiptNumber !== '');
   
   if (actualPayments.length === 0) {
@@ -26,8 +26,17 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
       {actualPayments.map((payment, idx) => (
         <div key={idx} className="text-sm">
           {formatCurrencyForTableUI(payment.amount)}
+          {idx === 0 && payment.receiptNumber && (
+            <span className="text-xs text-muted-foreground ml-1">(ראשוני)</span>
+          )}
         </div>
       ))}
+      
+      {discountApproved && discountAmount > 0 && (
+        <div className="text-sm text-green-600">
+          {`הנחה: ${formatCurrencyForTableUI(discountAmount)}`}
+        </div>
+      )}
     </div>
   );
 };

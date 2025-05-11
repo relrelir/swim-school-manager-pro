@@ -7,7 +7,7 @@ export const useRegistrationHandlers = (
   addRegistration: (registration: Omit<Registration, 'id'>) => Promise<Registration | undefined> | void,
   updateParticipant: (participant: Participant) => void,
   deleteRegistration: (id: string) => void,
-  addPayment: (payment: Omit<Payment, 'id'>) => void,
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void, // Updated to include Promise return
   getPaymentsByRegistration: (registrationId: string) => Payment[],
   getRegistrationsByProduct: (productId: string) => Registration[]
 ) => {
@@ -25,14 +25,16 @@ export const useRegistrationHandlers = (
     resetForm: () => void,
     setIsAddParticipantOpen: (open: boolean) => void
   ) => {
+    e.preventDefault();
+    
     // If we don't have a product, return
     if (!productId) return [];
     
-    // Check if receipt number is provided
-    if (!registrationData.receiptNumber) {
+    // Check if we have payment and ensure receipt number is provided
+    if (registrationData.paidAmount > 0 && !registrationData.receiptNumber) {
       toast({
         title: "שגיאה",
-        description: "מספר קבלה הוא שדה חובה",
+        description: "מספר קבלה הוא שדה חובה כאשר מוזן סכום תשלום",
         variant: "destructive",
       });
       return [];
@@ -56,7 +58,7 @@ export const useRegistrationHandlers = (
         productId: productId,
         participantId: addedParticipant.id,
         requiredAmount: registrationData.requiredAmount,
-        paidAmount: registrationData.paidAmount,
+        paidAmount: registrationData.paidAmount, // Set initial paid amount from form
         receiptNumber: registrationData.receiptNumber,
         discountApproved: registrationData.discountApproved,
         registrationDate: new Date().toISOString(),
@@ -66,6 +68,12 @@ export const useRegistrationHandlers = (
       
       // Add initial payment if amount is greater than 0
       if (registrationData.paidAmount > 0 && addedRegistration) {
+        console.log("Adding initial payment for new participant:", {
+          registrationId: addedRegistration.id,
+          amount: registrationData.paidAmount,
+          receiptNumber: registrationData.receiptNumber
+        });
+        
         const initialPayment: Omit<Payment, 'id'> = {
           registrationId: addedRegistration.id,
           amount: registrationData.paidAmount,
@@ -73,7 +81,12 @@ export const useRegistrationHandlers = (
           paymentDate: new Date().toISOString(),
         };
         
-        await addPayment(initialPayment);
+        // Wait for the payment to be added
+        const addedPayment = await addPayment(initialPayment);
+        
+        if (addedPayment) {
+          console.log("Initial payment added successfully:", addedPayment);
+        }
       }
       
       // Add success toast notification
