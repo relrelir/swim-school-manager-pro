@@ -48,9 +48,6 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
       {displayPayments.map((payment, idx) => (
         <div key={payment.id || idx} className="text-sm">
           {formatCurrencyForTableUI(payment.amount)}
-          {payment.id === 'initial-payment' || idx === 0 ? (
-            <span className="text-xs text-muted-foreground ml-1">(ראשוני)</span>
-          ) : null}
         </div>
       ))}
       

@@ -39,7 +39,8 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
       setLoading(true);
       const { data, error } = await supabase
         .from('payments')
-        .select('*');
+        .select('*')
+        .order('paymentdate', { ascending: true }); // Order by payment date
 
       if (error) {
         handleSupabaseError(error, 'fetching payments');
@@ -70,7 +71,7 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
   const refreshPayments = async () => {
     console.log("Refreshing payments data");
     await fetchPayments();
-    console.log("Payments refreshed:", payments.length);
+    console.log("Payments refreshed, total payments:", payments.length);
     return;
   };
 

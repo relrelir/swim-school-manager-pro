@@ -8,13 +8,16 @@ interface TableReceiptNumbersProps {
 }
 
 const TableReceiptNumbers: React.FC<TableReceiptNumbersProps> = ({ payments, registration }) => {
+  // Filter to only show payments that have receipt numbers
+  const actualPayments = payments.filter(p => p.receiptNumber !== undefined && p.receiptNumber !== '');
+  
   // If we have payments, use them
-  if (payments.length > 0) {
+  if (actualPayments.length > 0) {
     return (
       <div className="space-y-1">
-        {payments.map((payment, idx) => (
+        {actualPayments.map((payment, idx) => (
           <div key={idx} className="text-xs text-gray-500">
-            {payment.receiptNumber ? payment.receiptNumber : '--'}
+            {payment.receiptNumber}
           </div>
         ))}
       </div>
