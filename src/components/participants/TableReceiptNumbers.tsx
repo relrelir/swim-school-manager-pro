@@ -8,31 +8,37 @@ interface TableReceiptNumbersProps {
 }
 
 const TableReceiptNumbers: React.FC<TableReceiptNumbersProps> = ({ payments, registration }) => {
-  // If we have payments, use them
-  if (payments.length > 0) {
-    return (
-      <div className="space-y-1">
-        {payments.map((payment, idx) => (
-          <div key={idx} className="text-xs text-gray-500">
-            {payment.receiptNumber ? payment.receiptNumber : '--'}
-          </div>
-        ))}
-      </div>
-    );
+  // Filter to only show payments that have receipt numbers (actual payments)
+  const actualPayments = payments.filter(p => p.receiptNumber !== undefined && p.receiptNumber !== '');
+  
+  // If we have a registration with paid amount but no payment records, 
+  // create a synthetic payment entry from registration data
+  let displayPayments = actualPayments;
+  
+  // Only add the synthetic payment if there are no actual payments and the registration has a paid amount
+  if (actualPayments.length === 0 && registration?.receiptNumber && registration.paidAmount > 0) {
+    displayPayments = [{
+      id: 'initial-payment',
+      registrationId: registration.id,
+      amount: registration.paidAmount,
+      receiptNumber: registration.receiptNumber,
+      paymentDate: registration.registrationDate
+    } as Payment];
   }
   
-  // If no payments but registration has a receipt number and paid amount > 0, show that
-  if (registration?.receiptNumber && registration.paidAmount > 0) {
-    return (
-      <div className="space-y-1">
-        <div className="text-xs text-gray-500">
-          {registration.receiptNumber}
+  if (displayPayments.length === 0) {
+    return <span className="text-gray-500">-</span>;
+  }
+  
+  return (
+    <div className="space-y-1">
+      {displayPayments.map((payment, idx) => (
+        <div key={idx} className="text-xs text-gray-500">
+          {payment.receiptNumber ? payment.receiptNumber : '--'}
         </div>
-      </div>
-    );
-  }
-  
-  return <span className="text-gray-500">-</span>;
+      ))}
+    </div>
+  );
 };
 
 export default TableReceiptNumbers;
