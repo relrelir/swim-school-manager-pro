@@ -1,4 +1,6 @@
+
 import { Product } from "@/types";
+import { Registration } from "@/types"; // Add the missing import for Registration type
 
 export const handleSupabaseError = (error: any, operation: string) => {
   console.error(`Error ${operation}:`, error);
