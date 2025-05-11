@@ -36,6 +36,7 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
   // Fetch payments from database
   const fetchPayments = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('payments')
         .select('*');
@@ -68,8 +69,8 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
   // Function to refresh payments data
   const refreshPayments = async () => {
     console.log("Refreshing payments data");
-    const refreshedPayments = await fetchPayments();
-    console.log("Payments refreshed:", refreshedPayments);
+    await fetchPayments();
+    console.log("Payments refreshed:", payments.length);
     return;
   };
 
@@ -115,9 +116,11 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
       if (data) {
         const newPayment = mapPaymentFromDB(data);
         console.log("Payment added successfully:", newPayment);
+        
+        // Update local state immediately with the new payment
         setPayments(prevPayments => [...prevPayments, newPayment]);
         
-        // Immediately refresh payments to ensure UI is updated
+        // Immediately refresh payments to ensure UI is updated with fresh data
         await refreshPayments();
         
         return newPayment;
@@ -147,6 +150,9 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
       }
 
       setPayments(payments.map(p => p.id === payment.id ? payment : p));
+      
+      // Refresh to ensure consistent state
+      await refreshPayments();
     } catch (error) {
       toast({
         title: "שגיאה",
@@ -168,6 +174,9 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
       }
 
       setPayments(payments.filter(p => p.id !== id));
+      
+      // Refresh to ensure consistent state
+      await refreshPayments();
     } catch (error) {
       toast({
         title: "שגיאה",

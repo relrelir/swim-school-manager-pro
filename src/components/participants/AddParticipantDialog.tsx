@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,12 +37,20 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   // Handle receipt number validation - only required when there's a payment
   const isPaidAmountProvided = registrationData.paidAmount > 0;
   const isReceiptNumberRequired = isPaidAmountProvided;
+  const [isFormValid, setIsFormValid] = useState(true);
   
-  // Log validation state for debugging
-  React.useEffect(() => {
-    console.log("AddParticipantDialog - isPaidAmountProvided:", isPaidAmountProvided);
-    console.log("AddParticipantDialog - receiptNumber:", registrationData.receiptNumber);
-    console.log("AddParticipantDialog - isReceiptNumberRequired:", isReceiptNumberRequired);
+  // Validate form on data change
+  useEffect(() => {
+    const isValid = !isPaidAmountProvided || (isPaidAmountProvided && registrationData.receiptNumber.trim() !== '');
+    setIsFormValid(isValid);
+    
+    // Log validation state for debugging
+    console.log("AddParticipantDialog - Form validation:", {
+      isPaidAmountProvided,
+      receiptNumber: registrationData.receiptNumber,
+      isReceiptNumberRequired,
+      isFormValid: isValid
+    });
   }, [isPaidAmountProvided, registrationData.receiptNumber, isReceiptNumberRequired]);
   
   return <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -127,7 +135,7 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                   required={isReceiptNumberRequired}
                   className={isPaidAmountProvided && !registrationData.receiptNumber ? "border-red-500" : ""}
                 />
-                {isPaidAmountProvided && (
+                {isPaidAmountProvided && !registrationData.receiptNumber && (
                   <p className="text-xs text-red-500">מספר קבלה הוא שדה חובה כאשר יש תשלום</p>
                 )}
               </div>
@@ -136,7 +144,7 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
           <DialogFooter className="mt-4">
             <Button 
               type="submit"
-              disabled={isPaidAmountProvided && !registrationData.receiptNumber}>
+              disabled={!isFormValid}>
                 רשום משתתף
             </Button>
           </DialogFooter>

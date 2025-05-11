@@ -100,10 +100,14 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     payments={registrationPayments} 
                     discountAmount={discountAmount}
                     discountApproved={registration.discountApproved}
+                    registration={registration} // Pass registration as fallback data source
                   />
                 </TableCell>
                 <TableCell>
-                  <TableReceiptNumbers payments={registrationPayments} />
+                  <TableReceiptNumbers 
+                    payments={registrationPayments}
+                    registration={registration} // Pass registration for potential fallback
+                  />
                 </TableCell>
                 <TableCell>
                   {registration.discountApproved && discountAmount > 0 ? 

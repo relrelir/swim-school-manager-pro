@@ -1,39 +1,56 @@
 
 import React, { useEffect } from 'react';
-import { Payment } from '@/types';
+import { Payment, Registration } from '@/types';
 import { formatCurrencyForTableUI } from '@/utils/formatters';
 
 interface TablePaymentInfoProps {
   payments: Payment[];
   discountAmount: number;
   discountApproved: boolean;
+  registration?: Registration; // Added registration prop as fallback data source
 }
 
 const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
   payments,
   discountAmount,
-  discountApproved
+  discountApproved,
+  registration
 }) => {
   // Debug info
   useEffect(() => {
     console.log("TablePaymentInfo rendering with payments:", payments);
-  }, [payments]);
+    if (registration) {
+      console.log("TablePaymentInfo has registration data:", registration);
+    }
+  }, [payments, registration]);
   
   // Filter to only show payments that have receipt numbers (actual payments)
   const actualPayments = payments.filter(p => p.receiptNumber !== undefined && p.receiptNumber !== '');
   
-  if (actualPayments.length === 0) {
+  // If we have a registration with paid amount but no payment records, 
+  // create a synthetic payment entry from registration data
+  const displayPayments = actualPayments.length === 0 && registration && registration.paidAmount > 0
+    ? [{
+        id: 'initial-payment', // Use a placeholder ID
+        registrationId: registration.id,
+        amount: registration.paidAmount,
+        receiptNumber: registration.receiptNumber || 'Initial Payment',
+        paymentDate: registration.registrationDate
+      } as Payment]
+    : actualPayments;
+  
+  if (displayPayments.length === 0) {
     return <span className="text-gray-500">-</span>;
   }
   
   return (
     <div className="space-y-1">
-      {actualPayments.map((payment, idx) => (
+      {displayPayments.map((payment, idx) => (
         <div key={payment.id || idx} className="text-sm">
           {formatCurrencyForTableUI(payment.amount)}
-          {idx === 0 && (
+          {payment.id === 'initial-payment' || idx === 0 ? (
             <span className="text-xs text-muted-foreground ml-1">(ראשוני)</span>
-          )}
+          ) : null}
         </div>
       ))}
       
