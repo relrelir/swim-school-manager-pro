@@ -30,7 +30,7 @@ export interface DataContextProps {
   getRegistrationsByProduct: (productId: string) => Registration[];
   getRegistrationsByParticipant: (participantId: string) => Registration[];
   getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
-  getPaymentsByRegistration: (registrationId: string) => Payment[];
+  getPaymentsByRegistration: (registrationId: string) => Promise<Payment[]>; // Updated to Promise<Payment[]>
   getProductsBySeason: (seasonId: string) => Product[];
   getProductsByPool: (poolId: string) => Product[];
   getHealthDeclarationByParticipant: (participantId: string) => HealthDeclaration | undefined;

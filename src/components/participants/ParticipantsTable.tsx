@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Participant, PaymentStatus, Registration, Payment, HealthDeclaration, PaymentStatusDetails } from '@/types';
 import TableHealthStatus from './TableHealthStatus';
@@ -12,7 +12,7 @@ import { formatCurrencyForTableUI } from '@/utils/formatters';
 interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registration: Registration | string) => Payment[];
+  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>; // Updated to Promise<Payment[]>
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   calculatePaymentStatus: (registration: Registration, payments: Payment[]) => PaymentStatusDetails;
   getStatusClassName: (status: string) => string;
@@ -38,6 +38,30 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   searchQuery,
   setSearchQuery
 }) => {
+  // Store payments for each registration
+  const [registrationPayments, setRegistrationPayments] = useState<Record<string, Payment[]>>({});
+  
+  // Fetch payments for all registrations when component mounts or registrations change
+  useEffect(() => {
+    const fetchPaymentsForRegistrations = async () => {
+      const paymentsMap: Record<string, Payment[]> = {};
+      
+      for (const registration of registrations) {
+        try {
+          const payments = await getPaymentsForRegistration(registration);
+          paymentsMap[registration.id] = payments;
+        } catch (error) {
+          console.error(`Failed to fetch payments for registration ${registration.id}:`, error);
+          paymentsMap[registration.id] = [];
+        }
+      }
+      
+      setRegistrationPayments(paymentsMap);
+    };
+    
+    fetchPaymentsForRegistrations();
+  }, [registrations, getPaymentsForRegistration]);
+  
   // Helper to calculate discount amount
   const calculateDiscountAmount = (registration: Registration) => {
     return registration.discountAmount || 0;
@@ -75,12 +99,12 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
         <TableBody>
           {registrations.map((registration) => {
             const participant = getParticipantForRegistration(registration);
-            const registrationPayments = getPaymentsForRegistration(registration);
+            const regPayments = registrationPayments[registration.id] || [];
             const discountAmount = calculateDiscountAmount(registration);
             const effectiveRequiredAmount = calculateEffectiveRequiredAmount(registration);
-            const paymentDetails = calculatePaymentStatus(registration, registrationPayments);
+            const paymentDetails = calculatePaymentStatus(registration, regPayments);
             const status = paymentDetails.status;
-            const hasPayments = registrationPayments.length > 0;
+            const hasPayments = regPayments.length > 0;
             
             if (!participant) return null;
             
@@ -97,7 +121,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 </TableCell>
                 <TableCell>
                   <TablePaymentInfo 
-                    payments={registrationPayments} 
+                    payments={regPayments} 
                     discountAmount={discountAmount}
                     discountApproved={registration.discountApproved}
                     registration={registration} // Pass registration as fallback data source
@@ -105,7 +129,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                 </TableCell>
                 <TableCell>
                   <TableReceiptNumbers 
-                    payments={registrationPayments}
+                    payments={regPayments}
                     registration={registration} // Pass registration for potential fallback
                   />
                 </TableCell>

@@ -104,7 +104,7 @@ const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) 
       payments,
       getPaymentsByRegistration
     ),
-    getPaymentsByRegistration,
+    getPaymentsByRegistration, // This is now a Promise<Payment[]>, matching the updated type definition
     getProductsBySeason,
     getProductsByPool,
     getHealthDeclarationByParticipant: (participantId: string) => getHealthDeclarationByParticipant(healthDeclarations, participantId),

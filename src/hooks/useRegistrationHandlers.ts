@@ -8,7 +8,7 @@ export const useRegistrationHandlers = (
   updateParticipant: (participant: Participant) => void,
   deleteRegistration: (id: string) => void,
   addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void,
-  getPaymentsByRegistration: (registrationId: string) => Payment[],
+  getPaymentsByRegistration: (registrationId: string) => Promise<Payment[]>, // Updated to Promise<Payment[]>
   getRegistrationsByProduct: (productId: string) => Registration[]
 ) => {
   // Handle adding a new participant and registration
@@ -165,7 +165,8 @@ export const useRegistrationHandlers = (
     const registration = registrations.find(r => r.id === registrationId);
     if (!registration) return [];
     
-    const registrationPayments = getPaymentsByRegistration(registration.id);
+    // Updated to await the Promise
+    const registrationPayments = await getPaymentsByRegistration(registration.id);
     
     // Only allow deletion if there are no payments
     if (registrationPayments.length > 0) {

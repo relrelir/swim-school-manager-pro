@@ -1,3 +1,4 @@
+
 import { Participant, Product, Registration, Season, Pool, Payment, PaymentStatus, HealthDeclaration } from '@/types';
 
 // Import the DailyActivity type or define it here
@@ -53,7 +54,8 @@ export interface PaymentsContextType {
   addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | undefined;
   updatePayment: (payment: Payment) => void;
   deletePayment: (id: string) => void;
-  getPaymentsByRegistration: (registrationId: string) => Payment[];
+  getPaymentsByRegistration: (registrationId: string) => Promise<Payment[]>; // Updated to Promise<Payment[]>
+  refreshPayments: () => Promise<void>;
   loading: boolean;
 }
 
