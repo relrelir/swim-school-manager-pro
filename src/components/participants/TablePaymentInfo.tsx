@@ -29,18 +29,15 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
   
   // If we have a registration with paid amount but no payment records, 
   // create a synthetic payment entry from registration data
-  let displayPayments = actualPayments;
-  
-  // Only add the synthetic payment if there are no actual payments and the registration has a paid amount
-  if (actualPayments.length === 0 && registration && registration.paidAmount > 0) {
-    displayPayments = [{
-      id: 'initial-payment', // Use a placeholder ID
-      registrationId: registration.id,
-      amount: registration.paidAmount,
-      receiptNumber: registration.receiptNumber || 'Initial Payment',
-      paymentDate: registration.registrationDate
-    } as Payment];
-  }
+  const displayPayments = actualPayments.length === 0 && registration && registration.paidAmount > 0
+    ? [{
+        id: 'initial-payment', // Use a placeholder ID
+        registrationId: registration.id,
+        amount: registration.paidAmount,
+        receiptNumber: registration.receiptNumber || 'Initial Payment',
+        paymentDate: registration.registrationDate
+      } as Payment]
+    : actualPayments;
   
   if (displayPayments.length === 0) {
     return <span className="text-gray-500">-</span>;
@@ -51,6 +48,9 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
       {displayPayments.map((payment, idx) => (
         <div key={payment.id || idx} className="text-sm">
           {formatCurrencyForTableUI(payment.amount)}
+          {payment.id === 'initial-payment' || idx === 0 ? (
+            <span className="text-xs text-muted-foreground ml-1">(ראשוני)</span>
+          ) : null}
         </div>
       ))}
       

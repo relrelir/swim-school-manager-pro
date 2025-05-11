@@ -14,9 +14,7 @@ export const useParticipantUtils = (
   // Get payments for a registration - accepting either Registration object or string ID
   const getPaymentsForRegistration = (registration: Registration | string): Payment[] => {
     const registrationId = typeof registration === 'string' ? registration : registration.id;
-    const registrationPayments = payments.filter(payment => payment.registrationId === registrationId);
-    console.log(`Getting payments for registration ${registrationId}:`, registrationPayments);
-    return registrationPayments;
+    return payments.filter(payment => payment.registrationId === registrationId);
   };
 
   // Get appropriate CSS class for payment status

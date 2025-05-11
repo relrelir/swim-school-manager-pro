@@ -39,8 +39,7 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
       setLoading(true);
       const { data, error } = await supabase
         .from('payments')
-        .select('*')
-        .order('paymentdate', { ascending: false });
+        .select('*');
 
       if (error) {
         handleSupabaseError(error, 'fetching payments');
