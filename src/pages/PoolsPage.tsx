@@ -15,12 +15,14 @@ import BackButton from '@/components/ui/back-button';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import AddPoolDialog from '@/components/pools/AddPoolDialog';
 import { usePools } from '@/hooks/usePools';
+import { useAuth } from '@/context/AuthContext';
 
 const PoolsPage = () => {
   const { seasonId } = useParams<{ seasonId: string }>();
   const navigate = useNavigate();
   const { seasons, getProductsByPool } = useData();
   const [isAddPoolDialogOpen, setIsAddPoolDialogOpen] = useState(false);
+  const { isAdmin } = useAuth();
   
   // Use the existing hooks
   const { 
@@ -71,10 +73,12 @@ const PoolsPage = () => {
           <h1 className="text-2xl font-bold">
             בריכות - {currentSeason.name}
           </h1>
-          <Button onClick={() => setIsAddPoolDialogOpen(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            <span>הוסף בריכה</span>
-          </Button>
+          {isAdmin() && (
+            <Button onClick={() => setIsAddPoolDialogOpen(true)} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              <span>הוסף בריכה</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -98,16 +102,18 @@ const PoolsPage = () => {
                 >
                   צפה במוצרים
                 </Button>
-                <Button 
-                  variant="destructive" 
-                  className="w-full"
-                  onClick={() => handleDeletePool(pool.id)}
-                  disabled={hasProducts}
-                  title={hasProducts ? "לא ניתן למחוק בריכה עם מוצרים" : "מחק בריכה"}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  מחק בריכה
-                </Button>
+                {isAdmin() && (
+                  <Button 
+                    variant="destructive" 
+                    className="w-full"
+                    onClick={() => handleDeletePool(pool.id)}
+                    disabled={hasProducts}
+                    title={hasProducts ? "לא ניתן למחוק בריכה עם מוצרים" : "מחק בריכה"}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    מחק בריכה
+                  </Button>
+                )}
               </CardFooter>
             </Card>
           );

@@ -9,9 +9,10 @@ interface SeasonListProps {
   seasons: Season[];
   seasonPools: Record<string, number>;
   onDeleteSeason: (seasonId: string) => void;
+  isAdmin: boolean;
 }
 
-const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonPools, onDeleteSeason }) => {
+const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonPools, onDeleteSeason, isAdmin }) => {
   const navigate = useNavigate();
 
   const handleViewPools = (seasonId: string) => {
@@ -53,14 +54,16 @@ const SeasonList: React.FC<SeasonListProps> = ({ seasons, seasonPools, onDeleteS
             </CardContent>
             <CardFooter className="bg-gray-50 flex flex-wrap gap-2">
               <Button onClick={() => handleViewPools(season.id)}>בריכות</Button>
-         
-              <Button
-                variant="destructive"
-                disabled={poolCount > 0}
-                onClick={() => onDeleteSeason(season.id)}
-              >
-                מחק
-              </Button>
+              
+              {isAdmin && (
+                <Button
+                  variant="destructive"
+                  disabled={poolCount > 0}
+                  onClick={() => onDeleteSeason(season.id)}
+                >
+                  מחק
+                </Button>
+              )}
             </CardFooter>
           </Card>
         );

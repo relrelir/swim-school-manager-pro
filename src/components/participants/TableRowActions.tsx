@@ -122,25 +122,32 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       return;
     }
     
+    if (!isAdmin) {
+      toast({
+        title: "אין הרשאה",
+        description: "אין לך הרשאה למחוק רישום",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     onDeleteRegistration(registration.id);
-  }, [hasPayments, onDeleteRegistration, registration.id]);
+  }, [hasPayments, onDeleteRegistration, registration.id, isAdmin]);
   
   return (
     <div className="flex gap-2 justify-end">
-      {isAdmin() && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onAddPayment(registration)}
-            >
-              <CreditCardIcon className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>הוסף תשלום</TooltipContent>
-        </Tooltip>
-      )}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => onAddPayment(registration)}
+          >
+            <CreditCardIcon className="h-4 w-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>הוסף תשלום</TooltipContent>
+      </Tooltip>
       
       <Tooltip>
         <TooltipTrigger asChild>

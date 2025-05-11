@@ -5,11 +5,13 @@ import { useData } from "@/context/DataContext";
 import AddSeasonDialog from '@/components/seasons/AddSeasonDialog';
 import SeasonSummary from '@/components/seasons/SeasonSummary';
 import { Plus } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SeasonPage() {
   const { seasons, deleteSeason, getPoolsBySeason } = useData();
   const [isAddSeasonOpen, setIsAddSeasonOpen] = useState(false);
   const [seasonPoolCounts, setSeasonPoolCounts] = useState<Record<string, number>>({});
+  const { isAdmin } = useAuth();
 
   // חשב ספירת בריכות בכל עונה
   useEffect(() => {
@@ -31,10 +33,12 @@ export default function SeasonPage() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">עונות פעילות</h1>
-        <Button className="flex items-center gap-2" onClick={() => setIsAddSeasonOpen(true)}>
-          <Plus className="h-4 w-4" />
-          <span>הוסף עונה</span>
-        </Button>
+        {isAdmin() && (
+          <Button className="flex items-center gap-2" onClick={() => setIsAddSeasonOpen(true)}>
+            <Plus className="h-4 w-4" />
+            <span>הוסף עונה</span>
+          </Button>
+        )}
       </div>
 
       <SeasonSummary

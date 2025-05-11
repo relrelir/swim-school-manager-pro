@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Product } from '@/types';
 import { Plus } from 'lucide-react';
 import BackButton from '@/components/ui/back-button';
+import { useAuth } from '@/context/AuthContext';
 
 interface ParticipantsHeaderProps {
   product: Product | undefined;
@@ -17,6 +18,7 @@ const ParticipantsHeader: React.FC<ParticipantsHeaderProps> = ({
   onAddParticipant 
 }) => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
   
   // Create back URL based on product information
   const getBackUrl = () => {
@@ -48,10 +50,12 @@ const ParticipantsHeader: React.FC<ParticipantsHeaderProps> = ({
       </div>
       
       <div className="flex gap-2">
-        <Button onClick={onAddParticipant} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          <span>הוסף משתתף</span>
-        </Button>
+        {isAdmin() && (
+          <Button onClick={onAddParticipant} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            <span>הוסף משתתף</span>
+          </Button>
+        )}
       </div>
     </div>
   );

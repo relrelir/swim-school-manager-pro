@@ -12,6 +12,7 @@ import ProductFilter from '@/components/products/ProductFilter';
 import ProductTableSection from '@/components/products/ProductTableSection';
 import ProductDialogs from '@/components/products/ProductDialogs';
 import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/context/AuthContext';
 
 const ProductsPage: React.FC = () => {
   const { seasonId, poolId } = useParams<{ seasonId: string; poolId: string }>();
@@ -24,6 +25,7 @@ const ProductsPage: React.FC = () => {
     getRegistrationsByProduct,
     pools
   } = useData();
+  const { isAdmin } = useAuth();
 
   const isMobile = useIsMobile();
 
@@ -46,6 +48,15 @@ const ProductsPage: React.FC = () => {
   }, [poolId, pools]);
 
   const handleDeleteProduct = (product: Product) => {
+    if (!isAdmin()) {
+      toast({
+        title: "אין הרשאה",
+        description: "אין לך הרשאה למחוק מוצרים",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Using getRegistrationsByProduct from component level
     const productRegistrations = getRegistrationsByProduct(product.id);
     const hasRegistrations = productRegistrations && productRegistrations.length > 0;
@@ -87,6 +98,15 @@ const ProductsPage: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   const handleCreateProduct = (product: Omit<Product, 'id'>) => {
+    if (!isAdmin()) {
+      toast({
+        title: "אין הרשאה",
+        description: "אין לך הרשאה להוסיף מוצרים",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Add poolId to product if we're in pool context
     const productWithPool = poolId 
       ? { ...product, poolId } 
@@ -104,11 +124,29 @@ const ProductsPage: React.FC = () => {
   };
 
   const handleEditProduct = (product: Product) => {
+    if (!isAdmin()) {
+      toast({
+        title: "אין הרשאה",
+        description: "אין לך הרשאה לערוך מוצרים",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setEditingProduct(product);
     setIsEditProductOpen(true);
   };
 
   const handleUpdateProduct = (updatedData: Partial<Product>) => {
+    if (!isAdmin()) {
+      toast({
+        title: "אין הרשאה",
+        description: "אין לך הרשאה לערוך מוצרים",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (editingProduct) {
       // Preserve poolId in update data
       const productUpdate = {
