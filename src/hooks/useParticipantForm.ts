@@ -16,7 +16,7 @@ export const useParticipantForm = (product?: Product) => {
   
   const [registrationData, setRegistrationData] = useState({
     requiredAmount: product?.price || 0,
-    paidAmount: product?.price || 0, // Initialize paid amount equal to product price
+    paidAmount: 0,
     receiptNumber: '',
     discountApproved: false,
   });
@@ -27,13 +27,12 @@ export const useParticipantForm = (product?: Product) => {
     paymentDate: new Date().toISOString().substring(0, 10),
   });
 
-  // Update requiredAmount and paidAmount whenever product changes
+  // Update requiredAmount whenever product changes
   useEffect(() => {
     if (product?.price) {
       setRegistrationData(prev => ({
         ...prev,
         requiredAmount: product.price,
-        paidAmount: product.price, // Ensure paid amount equals product price
       }));
     }
   }, [product]);
@@ -50,7 +49,7 @@ export const useParticipantForm = (product?: Product) => {
     
     setRegistrationData({
       requiredAmount: product?.price || 0,
-      paidAmount: product?.price || 0, // Reset paid amount to product price
+      paidAmount: 0,
       receiptNumber: '',
       discountApproved: false,
     });

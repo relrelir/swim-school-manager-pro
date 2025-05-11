@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,16 +35,6 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   setRegistrationData,
   onSubmit
 }) => {
-  // Effect to ensure paidAmount always equals requiredAmount
-  useEffect(() => {
-    if (registrationData.paidAmount !== registrationData.requiredAmount) {
-      setRegistrationData(prev => ({
-        ...prev,
-        paidAmount: prev.requiredAmount
-      }));
-    }
-  }, [registrationData.requiredAmount, registrationData.paidAmount, setRegistrationData]);
-
   return <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -95,13 +85,11 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="paid-amount">סכום ששולם</Label>
-                  <Input 
-                    id="paid-amount" 
-                    type="number" 
-                    value={registrationData.requiredAmount} 
-                    className="bg-gray-100 ltr" 
-                    readOnly 
-                  />
+                  <Input id="paid-amount" type="number" value={registrationData.paidAmount} onChange={e => setRegistrationData({
+                  ...registrationData,
+                  paidAmount: Number(e.target.value),
+                  discountApproved: registrationData.discountApproved
+                })} required min={0} max={registrationData.requiredAmount} className="ltr" />
                 </div>
               </div>
               
@@ -111,8 +99,7 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                 ...registrationData,
                 receiptNumber: e.target.value,
                 discountApproved: registrationData.discountApproved
-              })} required={true} />
-                <p className="text-sm text-gray-500">* מספר קבלה הוא שדה חובה</p>
+              })} required={registrationData.paidAmount > 0} />
               </div>
             </div>
           </div>
