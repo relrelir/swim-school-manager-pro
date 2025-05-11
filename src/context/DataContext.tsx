@@ -15,28 +15,8 @@ import { useRegistrations } from '@/hooks/useRegistrations';
 import { usePayments } from '@/hooks/usePayments';
 import { useHealthDeclarations } from '@/hooks/useHealthDeclarations';
 import { usePoolsContext } from './data/pools/usePoolsContext';
-import { calculatePaymentStatus } from '@/utils/paymentUtils';
-import { format } from 'date-fns';
-
-// Import from date-fns
-import type { Day, FirstWeekContainsDate, Locale } from 'date-fns';
-
-// Create a stub for the hebrew locale to avoid the type error
-const heLocale: Pick<Locale, "options" | "localize" | "formatLong"> = { 
-  formatLong: {},
-  localize: {
-    ordinalNumber: () => '',
-    era: () => '',
-    quarter: () => '',
-    month: () => '',
-    day: () => '',
-    dayPeriod: () => ''
-  },
-  options: {
-    weekStartsOn: 0 as Day,
-    firstWeekContainsDate: 1 as FirstWeekContainsDate
-  }
-};
+import { calculateMeetingProgress, getDailyActivities } from '@/utils/activityUtils';
+import { getAllRegistrationsWithDetails } from '@/utils/registrationUtils';
 
 interface DataContextProps {
   seasons: Season[];
@@ -115,7 +95,7 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     loading: participantsLoading 
   } = participantsContext;
   
-  const { registrations, addRegistration, updateRegistration, deleteRegistration, getRegistrationsByProduct, calculatePaymentStatus: calcRegPaymentStatus, loading: registrationsLoading } = useRegistrations();
+  const { registrations, addRegistration, updateRegistration, deleteRegistration, getRegistrationsByProduct, loading: registrationsLoading } = useRegistrations();
   const { payments, addPayment, updatePayment, deletePayment, getPaymentsByRegistration, loading: paymentsLoading } = usePayments();
   
   // Explicitly define the type for useHealthDeclarations
@@ -124,7 +104,6 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     healthDeclarations, 
     updateHealthDeclaration, 
     addHealthDeclaration,
-    deleteHealthDeclaration,
     loading: healthDeclarationsLoading 
   } = healthContext;
   
@@ -141,62 +120,9 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     return healthDeclarations.find(healthDeclaration => healthDeclaration.participant_id === participantId);
   };
 
-  // Calculate meeting progress for a product
-  const calculateMeetingProgress = (product: Product) => {
-    const total = product.meetingsCount || 10;
-    // For now, just return a simple calculation. This can be enhanced later.
-    const current = 1; // Default to first meeting
-    return { current, total };
-  };
-
-  // Get all registrations with details
-  const getAllRegistrationsWithDetails = () => {
-    return registrations.map(registration => {
-      const participant = participants.find(p => p.id === registration.participantId);
-      const product = products.find(p => p.id === registration.productId);
-      const season = seasons.find(s => s.id === product?.seasonId);
-      const paymentsForRegistration = payments.filter(payment => payment.registrationId === registration.id);
-
-      if (!participant || !product || !season) {
-        console.error('Missing data for registration:', registration);
-        return null;
-      }
-
-      const { paid, expected, status } = calculatePaymentStatus(registration, paymentsForRegistration);
-
-      return {
-        ...registration,
-        participant,
-        product,
-        season,
-        payments: paymentsForRegistration,
-        paymentStatus: status,
-      };
-    }).filter(Boolean) as RegistrationWithDetails[];
-  };
-
   // Get pool by ID
   const getPoolById = (id: string) => {
     return pools.find(pool => pool.id === id);
-  };
-
-  const getDailyActivities = (date: string) => {
-    const parsedDate = new Date(date);
-    const dayOfWeek = format(parsedDate, 'EEEE', { locale: heLocale });
-
-    return products.map(product => {
-      const registrationsForProduct = getRegistrationsByProduct(product.id);
-      const numParticipants = registrationsForProduct.length;
-      const progress = calculateMeetingProgress(product);
-
-      return {
-        product: product,
-        startTime: product.startTime || '00:00',
-        numParticipants: numParticipants,
-        currentMeetingNumber: progress.current,
-        totalMeetings: progress.total,
-      };
-    });
   };
 
   // Make sure all functions return Promises as expected by the interface
@@ -241,7 +167,7 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
   };
 
   const promisifiedUpdateHealthDeclaration = async (healthDeclaration: HealthDeclaration): Promise<void> => {
-    // Pass id and healthDeclaration for the update function - this fixes the argument count error
+    // Pass id and healthDeclaration for the update function
     await updateHealthDeclaration(healthDeclaration.id, healthDeclaration);
   };
 
@@ -272,14 +198,21 @@ export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }
     addHealthDeclaration,
     getRegistrationsByProduct,
     getRegistrationsByParticipant,
-    getAllRegistrationsWithDetails,
+    getAllRegistrationsWithDetails: () => getAllRegistrationsWithDetails(
+      registrations, 
+      participants, 
+      products, 
+      seasons,
+      payments,
+      getPaymentsByRegistration
+    ),
     getPaymentsByRegistration,
     getProductsBySeason,
     getProductsByPool,
     getHealthDeclarationByParticipant,
     getPoolsBySeason,
     getPoolById,
-    getDailyActivities,
+    getDailyActivities: (date: string) => getDailyActivities(date, products, getRegistrationsByProduct),
     calculateMeetingProgress,
     addPool,
     updatePool,
