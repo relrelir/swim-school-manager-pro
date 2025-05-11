@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email: string;
@@ -58,7 +59,6 @@ export interface Participant {
   id: string;
   firstName: string;
   lastName: string;
- 
   phone: string;
   healthApproval: boolean;
   idNumber: string;
