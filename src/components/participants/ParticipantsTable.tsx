@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Participant, PaymentStatus, Registration, Payment, HealthDeclaration, PaymentStatusDetails } from '@/types';
 import TableHealthStatus from './TableHealthStatus';
 import TablePaymentInfo from './TablePaymentInfo';
 import TableReceiptNumbers from './TableReceiptNumbers';
-import TableRowActions from './TableRowActions';
+import TableRowActions from './table-actions/TableRowActions';
 import ParticipantsTableHeader from './ParticipantsTableHeader';
 import { formatCurrencyForTableUI } from '@/utils/formatters';
 
@@ -86,7 +85,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             <TableHead>שם מלא</TableHead>
             <TableHead>ת.ז</TableHead>
             <TableHead>טלפון</TableHead>
-            <TableHead>סכום מקורי</TableHead>
+            <TableHead>סכום מק��רי</TableHead>
             <TableHead>סכום לתשלום</TableHead>
             <TableHead>תשלומים</TableHead>
             <TableHead>מספרי קבלות</TableHead>
