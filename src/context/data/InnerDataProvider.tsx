@@ -2,15 +2,15 @@
 import React from 'react';
 import { DataContextProps } from './types/dataContextTypes';
 import DataContext from '@/context/DataContext';
-import { useDataContextConnections } from './hooks/useDataContextConnections';
-import {
-  getRegistrationsByParticipant,
-  getHealthDeclarationByParticipant,
-  getPoolById,
-  buildAllRegistrationsWithDetails,
-  calculateMeetingProgress,
-  getDailyActivities
-} from './utils/dataUtils';
+import { useSeasonsContext } from './SeasonsProvider';
+import { useProducts } from '@/hooks/useProducts';
+import { useParticipantsContext } from './ParticipantsProvider';
+import { useRegistrations } from '@/hooks/useRegistrations';
+import { usePayments } from '@/hooks/usePayments';
+import { useHealthDeclarations } from '@/hooks/useHealthDeclarations';
+import { usePoolsContext } from './pools/usePoolsContext';
+import { calculateMeetingProgress, getDailyActivities } from '@/utils/activityUtils';
+import { getAllRegistrationsWithDetails } from '@/utils/registrationUtils';
 import {
   promisifyAddProduct,
   promisifyUpdateSeason,
@@ -27,42 +27,59 @@ import {
 
 // Create an inner provider that depends on the outer providers
 const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
-  // Get all context connections
-  const {
-    seasons,
-    products,
+  // Inside this component, we can safely use all the hooks that depend on the outer providers
+  const { seasons, addSeason, updateSeason, deleteSeason: deleteSeasonContext, loading: seasonsLoading } = useSeasonsContext();
+  
+  // Explicitly define the type for useProducts
+  const productsContext = useProducts();
+  const { 
+    products, 
+    addProduct, 
+    updateProduct, 
+    deleteProduct, 
+    getProductsBySeason, 
+    getProductsByPool,
+    loading: productsLoading 
+  } = productsContext;
+  
+  // Get participant context data directly from the context
+  const { 
     participants,
-    registrations,
-    payments,
-    healthDeclarations,
-    pools,
-    addSeason,
-    updateSeason,
-    deleteSeason: deleteSeasonContext,
-    addProduct,
-    updateProduct,
-    deleteProduct,
     addParticipant,
     updateParticipant,
     deleteParticipant,
-    addRegistration,
-    updateRegistration,
-    deleteRegistration,
-    addPayment,
-    updatePayment,
-    deletePayment,
-    updateHealthDeclaration,
+    loading: participantsLoading 
+  } = useParticipantsContext();
+  
+  const { registrations, addRegistration, updateRegistration, deleteRegistration, getRegistrationsByProduct, loading: registrationsLoading } = useRegistrations();
+  const { payments, addPayment, updatePayment, deletePayment, getPaymentsByRegistration, loading: paymentsLoading } = usePayments();
+  
+  // Explicitly define the type for useHealthDeclarations
+  const healthContext = useHealthDeclarations();
+  const { 
+    healthDeclarations, 
+    updateHealthDeclaration, 
     addHealthDeclaration,
-    getRegistrationsByProduct,
-    getPaymentsByRegistration,
-    getProductsBySeason,
-    getProductsByPool,
-    getPoolsBySeason,
-    addPool,
-    updatePool,
-    deletePool,
-    loading
-  } = useDataContextConnections();
+    loading: healthDeclarationsLoading 
+  } = healthContext;
+  
+  const { pools, getPoolsBySeason, addPool, updatePool, deletePool, loading: poolsLoading } = usePoolsContext();
+  const loading = seasonsLoading || productsLoading || participantsLoading || registrationsLoading || paymentsLoading || healthDeclarationsLoading || poolsLoading;
+
+  // Get registrations by participant
+  const getRegistrationsByParticipant = (participantId: string) => {
+    return registrations.filter(registration => registration.participantId === participantId);
+  };
+
+  // Get health declaration by participant
+  const getHealthDeclarationByParticipant = (participantId: string) => {
+    return healthDeclarations.find(healthDeclaration => healthDeclaration.participant_id === participantId);
+  };
+
+  // Get pool by ID
+  const getPoolById = (id: string) => {
+    return pools.find(pool => pool.id === id);
+  };
 
   const contextValue: DataContextProps = {
     seasons,
@@ -90,8 +107,8 @@ const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) 
     updateHealthDeclaration: promisifyUpdateHealthDeclaration(updateHealthDeclaration),
     addHealthDeclaration,
     getRegistrationsByProduct,
-    getRegistrationsByParticipant: (participantId: string) => getRegistrationsByParticipant(registrations, participantId),
-    getAllRegistrationsWithDetails: () => buildAllRegistrationsWithDetails(
+    getRegistrationsByParticipant,
+    getAllRegistrationsWithDetails: () => getAllRegistrationsWithDetails(
       registrations, 
       participants, 
       products, 
@@ -102,9 +119,9 @@ const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) 
     getPaymentsByRegistration,
     getProductsBySeason,
     getProductsByPool,
-    getHealthDeclarationByParticipant: (participantId: string) => getHealthDeclarationByParticipant(healthDeclarations, participantId),
+    getHealthDeclarationByParticipant,
     getPoolsBySeason,
-    getPoolById: (id: string) => getPoolById(pools, id),
+    getPoolById,
     getDailyActivities: (date: string) => getDailyActivities(date, products, getRegistrationsByProduct),
     calculateMeetingProgress,
     addPool,

@@ -82,8 +82,7 @@ export const hasPoolProducts = async (poolId: string): Promise<boolean> => {
   const { data, error } = await supabase
     .from('products')
     .select('id')
-    .eq('poolid', poolId)
-    .limit(1);
+    .eq('poolid', poolId);
   
   if (error) {
     console.error('Error checking pool products:', error);
@@ -94,7 +93,7 @@ export const hasPoolProducts = async (poolId: string): Promise<boolean> => {
 };
 
 // Delete a pool
-export const deletePool = async (poolId: string): Promise<boolean> => {
+export const deletePoolAndLinks = async (poolId: string): Promise<boolean> => {
   // Delete the pool from Supabase
   const { error } = await supabase
     .from('pools')
