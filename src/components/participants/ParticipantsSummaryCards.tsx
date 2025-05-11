@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Product } from '@/types';
@@ -70,11 +69,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
           <div className="flex items-center gap-2">
             <BadgeDollarSign className="h-5 w-5 text-primary" />
             <div className="text-2xl font-bold">
-              {isCalculating ? (
-                <span className="text-sm animate-pulse">מחשב...</span>
-              ) : (
-                totalPaid.toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })
-              )}
+              {totalPaid.toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })}
             </div>
           </div>
           <div className="text-sm text-gray-500">סה״כ שולם</div>
@@ -92,11 +87,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
               <Minus className="h-5 w-5 text-red-600" />
             }
             <div className={`text-2xl font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {isCalculating ? (
-                <span className="text-sm animate-pulse">מחשב...</span>
-              ) : (
-                Math.abs(difference).toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })
-              )}
+              {Math.abs(difference).toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })}
             </div>
           </div>
           <div className="text-sm text-gray-500">הפרש</div>

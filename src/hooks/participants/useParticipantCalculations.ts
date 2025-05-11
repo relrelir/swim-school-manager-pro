@@ -12,7 +12,7 @@ export const useParticipantCalculations = (
   // State to store calculated totals
   const [totalExpected, setTotalExpected] = useState(0);
   const [totalPaid, setTotalPaid] = useState(0);
-  const [isCalculating, setIsCalculating] = useState(true);
+  const [isCalculating, setIsCalculating] = useState(false);
   
   // Calculate total number of participants
   const totalParticipants = participants.length;
