@@ -14,10 +14,10 @@ export interface SeasonsContextType {
 
 export interface PoolsContextType {
   pools: Pool[];
+  addPool: (pool: Omit<Pool, 'id' | 'createdAt' | 'updatedAt'> & { seasonId?: string; seasonIds?: string[] }) => Promise<Pool | undefined> | undefined;
+  updatePool: (pool: Pool) => Promise<void>;
+  deletePool: (id: string) => Promise<void>;
   getPoolsBySeason: (seasonId: string) => Pool[];
-  addPool: (pool: { name: string; seasonId: string }) => Promise<Pool | null>;
-  updatePool: (pool: Pool) => Promise<boolean>;
-  deletePool: (id: string) => Promise<boolean>;
   loading: boolean;
 }
 
@@ -54,8 +54,7 @@ export interface PaymentsContextType {
   addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | undefined;
   updatePayment: (payment: Payment) => void;
   deletePayment: (id: string) => void;
-  getPaymentsByRegistration: (registrationId: string) => Promise<Payment[]>; // Updated to Promise<Payment[]>
-  refreshPayments: () => Promise<void>;
+  getPaymentsByRegistration: (registrationId: string) => Payment[];
   loading: boolean;
 }
 
@@ -71,7 +70,7 @@ export interface HealthDeclarationsContextType {
 }
 
 export interface CombinedDataContextType extends SeasonsContextType, PoolsContextType, ProductsContextType, ParticipantsContextType, RegistrationsContextType, PaymentsContextType, HealthDeclarationsContextType {
-  getAllRegistrationsWithDetails: () => Promise<RegistrationWithDetails[]>;
+  getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
   calculateMeetingProgress: (product: Product) => { current: number; total: number };
   getDailyActivities: (date: string) => DailyActivity[];
 }

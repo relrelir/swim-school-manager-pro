@@ -1,8 +1,8 @@
 
 /**
- * Hook for handling payment-related interactions
+ * Hook for adapting payment-related functions to expected signatures
  */
-export const usePaymentHandlers = (
+export const usePaymentAdapters = (
   baseHandleAddPayment: (
     e: React.FormEvent,
     newPayment: any,
@@ -11,27 +11,22 @@ export const usePaymentHandlers = (
   ) => any,
   baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void, registrationId?: string) => any
 ) => {
-  const handleAddPayment = (
+  const handleAddPaymentWrapper = (
     e: React.FormEvent, 
     newPayment: any,
     setIsAddPaymentOpen: (open: boolean) => void,
     setNewPayment: any
   ) => {
-    return baseHandleAddPayment(
-      e,
-      newPayment,
-      setIsAddPaymentOpen,
-      setNewPayment
-    );
+    return baseHandleAddPayment(e, newPayment, setIsAddPaymentOpen, setNewPayment);
   };
 
-  // Update the handler to accept registrationId
-  const handleApplyDiscount = (amount: number, setIsAddPaymentOpen: (open: boolean) => void, registrationId?: string) => {
+  // Update the adapter to accept registrationId
+  const handleApplyDiscountAdapter = (amount: number, setIsAddPaymentOpen: (open: boolean) => void, registrationId?: string) => {
     return baseHandleApplyDiscount(amount, setIsAddPaymentOpen, registrationId);
   };
 
   return {
-    handleAddPayment,
-    handleApplyDiscount
+    handleAddPaymentWrapper,
+    handleApplyDiscountAdapter
   };
 };

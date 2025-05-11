@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -72,8 +71,8 @@ const PrintableHealthDeclaration: React.FC<PrintableHealthDeclarationProps> = ({
           <Button 
             onClick={handlePrint} 
             className="flex items-center gap-2"
-            disabled={formState.formStatus !== 'completed' && formState.formStatus !== 'signed'}
-            title={formState.formStatus !== 'completed' && formState.formStatus !== 'signed' ? "הצהרת הבריאות טרם הושלמה" : ""}
+            disabled={formState.formStatus !== 'completed'}
+            title={formState.formStatus !== 'completed' ? "הצהרת הבריאות טרם הושלמה" : ""}
           >
             <Printer className="h-4 w-4" />
             הדפסה

@@ -1,17 +1,12 @@
 
 import { useState } from 'react';
 import { HealthDeclaration } from '@/types';
-import { useHealthDeclarationsContext } from '@/context/data/HealthDeclarationsProvider';
 
-export const useHealthDeclarations = () => {
-  const {
-    healthDeclarations,
-    addHealthDeclaration,
-    updateHealthDeclaration,
-    deleteHealthDeclaration,
-    loading
-  } = useHealthDeclarationsContext();
-
+export const useHealthDeclarations = (
+  getHealthDeclarationForRegistration: (registrationId: string) => HealthDeclaration | undefined,
+  addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>,
+  updateHealthDeclaration: (declaration: HealthDeclaration) => void
+) => {
   const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
   const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<{
     registrationId: string;
@@ -28,7 +23,7 @@ export const useHealthDeclarations = () => {
     const participant = getParticipantForRegistration(registration);
     if (!participant) return;
 
-    const healthDeclaration = registrations.find(reg => reg.id === registrationId) as any;
+    const healthDeclaration = getHealthDeclarationForRegistration(registrationId);
 
     setCurrentHealthDeclaration({
       registrationId,
@@ -41,11 +36,6 @@ export const useHealthDeclarations = () => {
   };
 
   return {
-    healthDeclarations,
-    updateHealthDeclaration,
-    addHealthDeclaration,
-    deleteHealthDeclaration,
-    loading,
     isHealthFormOpen,
     setIsHealthFormOpen,
     currentHealthDeclaration,

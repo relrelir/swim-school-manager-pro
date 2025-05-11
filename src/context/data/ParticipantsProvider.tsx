@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Participant } from '@/types';
@@ -6,7 +7,7 @@ import { handleSupabaseError, mapParticipantFromDB, mapParticipantToDB } from '.
 
 interface ParticipantsContextType {
   participants: Participant[];
-  addParticipant: (participant: Omit<Participant, 'id'>) => Promise<Participant | undefined>;
+  addParticipant: (participant: Omit<Participant, 'id'>) => Promise<Participant | undefined> | void;
   updateParticipant: (participant: Participant) => void;
   deleteParticipant: (id: string) => Promise<void>;
   loading: boolean;
@@ -58,7 +59,7 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   // Add a participant
-  const addParticipant = async (participant: Omit<Participant, 'id'>): Promise<Participant | undefined> => {
+  const addParticipant = async (participant: Omit<Participant, 'id'>) => {
     try {
       // Convert to DB field names format (lowercase)
       const dbParticipant = mapParticipantToDB(participant);
@@ -71,7 +72,6 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       if (error) {
         handleSupabaseError(error, 'adding participant');
-        return undefined;
       }
 
       if (data) {
@@ -80,19 +80,17 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setParticipants([...participants, newParticipant]);
         return newParticipant;
       }
-      return undefined;
     } catch (error) {
       toast({
         title: "שגיאה",
         description: "אירעה שגיאה בהוספת משתתף חדש",
         variant: "destructive",
       });
-      return undefined;
     }
   };
 
   // Delete a participant
-  const deleteParticipant = async (id: string): Promise<void> => {
+  const deleteParticipant = async (id: string) => {
     try {
       const { error } = await supabase
         .from('participants')

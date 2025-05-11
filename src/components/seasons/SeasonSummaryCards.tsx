@@ -12,10 +12,15 @@ interface SeasonSummaryCardsProps {
   totalPaid: number;
 }
 
-const SeasonSummaryCards: React.FC<SeasonSummaryCardsProps> = ({ products, registrationsCount, totalExpected, totalPaid }) => {
-  // Calculate difference between paid and expected
+const SeasonSummaryCards: React.FC<SeasonSummaryCardsProps> = ({
+  products,
+  registrationsCount,
+  totalExpected,
+  totalPaid,
+}) => {
+  // Calculate the difference between paid and expected
   const difference = totalPaid - totalExpected;
-  
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <Card>

@@ -5,14 +5,13 @@ import { useData } from "@/context/DataContext";
 import AddSeasonDialog from '@/components/seasons/AddSeasonDialog';
 import SeasonSummary from '@/components/seasons/SeasonSummary';
 import { Plus } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
 
 export default function SeasonPage() {
   const { seasons, deleteSeason, getPoolsBySeason } = useData();
   const [isAddSeasonOpen, setIsAddSeasonOpen] = useState(false);
   const [seasonPoolCounts, setSeasonPoolCounts] = useState<Record<string, number>>({});
 
-  // Calculate pool counts for each season
+  // חשב ספירת בריכות בכל עונה
   useEffect(() => {
     const counts: Record<string, number> = {};
     seasons.forEach(s => {
@@ -20,36 +19,11 @@ export default function SeasonPage() {
       counts[s.id] = poolsInSeason.length;
     });
     setSeasonPoolCounts(counts);
-  }, [seasons, getPoolsBySeason]);
+  }, [seasons]);
 
-  const handleDeleteSeason = async (seasonId: string) => {
-    // Check if season has pools
-    const poolCount = seasonPoolCounts[seasonId] || 0;
-    
-    if (poolCount > 0) {
-      toast({
-        title: "לא ניתן למחוק",
-        description: "לא ניתן למחוק עונה עם בריכות",
-        variant: "destructive",
-      });
-      return;
-    }
-    
+  const handleDeleteSeason = (seasonId: string) => {
     if (window.confirm("האם אתה בטוח שברצונך למחוק את העונה?")) {
-      try {
-        await deleteSeason(seasonId);
-        toast({
-          title: "העונה נמחקה",
-          description: "העונה נמחקה בהצלחה",
-        });
-      } catch (error) {
-        console.error("Error deleting season:", error);
-        toast({
-          title: "שגיאה",
-          description: "אירעה שגיאה במחיקת העונה",
-          variant: "destructive",
-        });
-      }
+      deleteSeason(seasonId);
     }
   };
 

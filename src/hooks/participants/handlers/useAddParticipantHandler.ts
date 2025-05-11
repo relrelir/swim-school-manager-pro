@@ -1,6 +1,9 @@
 
-import { Participant, Registration } from '@/types';
+import { Registration, Participant } from '@/types';
 
+/**
+ * Hook for handling add participant interactions
+ */
 export const useAddParticipantHandler = (
   baseHandleAddParticipant: (
     e: React.FormEvent, 
@@ -14,11 +17,7 @@ export const useAddParticipantHandler = (
   registrationData: any,
   getParticipantForRegistration: (registration: Registration) => Participant | undefined
 ) => {
-  const handleAddParticipant = (
-    e: React.FormEvent, 
-    resetForm: () => void, 
-    setIsAddParticipantOpen: (open: boolean) => void
-  ) => {
+  const handleAddParticipant = (e: React.FormEvent, resetForm: () => void, setIsAddParticipantOpen: (open: boolean) => void) => {
     return baseHandleAddParticipant(
       e, 
       newParticipant, 

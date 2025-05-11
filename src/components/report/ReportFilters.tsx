@@ -2,7 +2,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Season, Product, Pool } from '@/types';
+import { Season, Product } from '@/types';
 import { ReportFilters } from '@/utils/reportFilters';
 
 interface ReportFiltersProps {
@@ -10,16 +10,9 @@ interface ReportFiltersProps {
   setFilters: React.Dispatch<React.SetStateAction<ReportFilters>>;
   seasons: Season[];
   products: Product[];
-  pools: Pool[]; // Added pools prop
 }
 
-const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({ 
-  filters, 
-  setFilters, 
-  seasons, 
-  products,
-  pools // Added pools parameter 
-}) => {
+const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({ filters, setFilters, seasons, products }) => {
   return (
     <div className="bg-gray-50 p-4 rounded-lg mb-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -62,7 +55,7 @@ const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({
           </Select>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">עונה</label>
           <Select
@@ -96,25 +89,6 @@ const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({
               {products.map(product => (
                 <SelectItem key={product.id} value={product.id || 'no-id'}>
                   {product.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">בריכה</label>
-          <Select
-            value={filters.poolId}
-            onValueChange={value => setFilters(prev => ({ ...prev, poolId: value }))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="כל הבריכות" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">כל הבריכות</SelectItem>
-              {pools.map(pool => (
-                <SelectItem key={pool.id} value={pool.id}>
-                  {pool.name}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -2,135 +2,79 @@
 import { useParams } from 'react-router-dom';
 import { useData } from '@/context/DataContext';
 import { Registration } from '@/types';
-import { useParticipantsState } from './participants/useParticipantsState';
-import { useParticipantCalculations } from './participants/useParticipantCalculations';
-import { useParticipantHandlers } from './participants/useParticipantHandlers';
-import { useParticipantUtils } from './useParticipantUtils';
-import { useParticipantsContext } from '@/context/data/ParticipantsProvider';
+import { useParticipantCore } from './participants/useParticipantCore';
+import { useParticipantActions } from './participants/useParticipantActions';
 
 /**
- * Main hook for participants management - composing smaller, focused hooks
+ * Main hook for participants management - now acts as a composition layer
+ * for more focused participant-related hooks
  */
 export const useParticipants = () => {
   const { productId } = useParams<{ productId: string }>();
   const dataContext = useData();
   
-  // Get participants context directly for participant operations
-  const { 
-    participants: allParticipants, 
-    addParticipant,
-    updateParticipant,
-    deleteParticipant,
-    loading: participantsLoading
-  } = useParticipantsContext();
-
-  // Get the current product
-  const product = dataContext.products.find(p => p.id === productId);
+  // Separate core functionality (data loading, state management)
+  const core = useParticipantCore(productId, dataContext);
   
-  // Get registrations for the current product
-  const registrations = productId ? dataContext.getRegistrationsByProduct(productId) : [];
-  
-  // Get participants for the current registrations
-  const participants = registrations
-    .map(registration => {
-      return allParticipants.find(p => p.id === registration.participantId);
-    })
-    .filter(Boolean);
-
-  // Initialize the state
-  const stateHook = useParticipantsState(product?.price);
-  
-  // Get utility functions
-  const { 
-    getParticipantForRegistration, 
-    getPaymentsForRegistration, 
-    getStatusClassName 
-  } = useParticipantUtils(
-    allParticipants, 
-    dataContext.payments
-  );
-
-  // Get calculations
-  const { 
-    totalParticipants, 
-    totalExpected, 
-    totalPaid, 
-    isCalculating, // Make sure to extract isCalculating
-    calculatePaymentStatus 
-  } = useParticipantCalculations(
-    registrations,
-    participants,
-    dataContext.payments,
-    dataContext.getPaymentsByRegistration
-  );
-
-  // Get handlers
-  const { 
-    handleAddParticipant,
-    handleAddPayment,
-    handleDeleteRegistration,
-    handleUpdateHealthApproval,
-    handleOpenHealthForm,
-    handleApplyDiscount
-  } = useParticipantHandlers(
+  // Separate actions (handlers, operations)
+  const actions = useParticipantActions(
     productId,
     dataContext,
-    stateHook.setIsAddParticipantOpen,
-    stateHook.setIsAddPaymentOpen,
-    stateHook.setRefreshTrigger,
-    stateHook.resetForm,
-    stateHook.currentRegistration,
-    stateHook.newParticipant,
-    stateHook.registrationData,
-    stateHook.newPayment,
-    stateHook.setCurrentHealthDeclaration,
-    stateHook.setNewPayment,
-    addParticipant,
-    updateParticipant
+    core.participants,
+    core.registrations,
+    core.product,
+    core.setRefreshTrigger,
+    core.newParticipant,
+    core.registrationData,
+    core.getParticipantForRegistration,
+    core.setIsAddParticipantOpen,
+    core.setIsAddPaymentOpen,
+    core.setNewPayment,
+    core.newPayment,
+    core.resetForm,
+    core.currentRegistration // Add the missing argument
   );
 
-  // Calculate registrationsFilled metric
-  const registrationsFilled = product?.maxParticipants ? 
-    Math.min(1, totalParticipants / product.maxParticipants) : 0;
-  
-  // Get health declarations for registrations
-  const getHealthDeclarationForRegistration = dataContext.getHealthDeclarationForRegistration;
-
   return {
-    // Core data
-    product,
-    registrations,
-    participants,
-    loading: participantsLoading || !productId,
+    // Core data and state
+    product: core.product,
+    registrations: core.registrations,
+    isAddParticipantOpen: core.isAddParticipantOpen,
+    setIsAddParticipantOpen: core.setIsAddParticipantOpen,
+    isAddPaymentOpen: core.isAddPaymentOpen,
+    setIsAddPaymentOpen: core.setIsAddPaymentOpen,
+    isLinkDialogOpen: core.isLinkDialogOpen,
+    setIsLinkDialogOpen: core.setIsLinkDialogOpen,
+    currentHealthDeclaration: core.currentHealthDeclaration,
+    setCurrentHealthDeclaration: core.setCurrentHealthDeclaration,
+    newParticipant: core.newParticipant,
+    setNewParticipant: core.setNewParticipant,
+    currentRegistration: core.currentRegistration,
+    setCurrentRegistration: core.setCurrentRegistration,
+    registrationData: core.registrationData,
+    setRegistrationData: core.setRegistrationData,
+    newPayment: core.newPayment,
+    setNewPayment: core.setNewPayment,
+    totalParticipants: core.totalParticipants,
+    registrationsFilled: core.registrationsFilled,
+    totalExpected: core.totalExpected,
+    totalPaid: core.totalPaid,
+    participants: core.participants,
 
-    // State from useParticipantsState
-    ...stateHook,
-
-    // Calculations
-    totalParticipants,
-    totalExpected,
-    totalPaid,
-    registrationsFilled,
-    isCalculating, // Include isCalculating in return
+    // Actions and handlers
+    handleAddParticipant: actions.handleAddParticipant,
+    handleAddPayment: actions.handleAddPayment,
+    handleApplyDiscount: actions.handleApplyDiscount,
+    handleDeleteRegistration: actions.handleDeleteRegistration,
+    handleUpdateHealthApproval: actions.handleUpdateHealthApproval,
+    handleOpenHealthForm: actions.handleOpenHealthForm,
     
     // Utility functions
-    getParticipantForRegistration,
-    getPaymentsForRegistration,
-    getStatusClassName,
-    calculatePaymentStatus,
-    getHealthDeclarationForRegistration,
-    
-    // Handlers
-    handleAddParticipant,
-    handleAddPayment,
-    handleDeleteRegistration,
-    handleUpdateHealthApproval,
-    handleOpenHealthForm,
-    handleApplyDiscount,
-    
-    // Participant operations from context
-    addParticipant,
-    updateParticipant,
-    deleteParticipant
+    resetForm: core.resetForm,
+    getParticipantForRegistration: core.getParticipantForRegistration,
+    getPaymentsForRegistration: core.getPaymentsForRegistration,
+    getStatusClassName: core.getStatusClassName,
+    calculatePaymentStatus: core.calculatePaymentStatus,
+    getHealthDeclarationForRegistration: core.getHealthDeclarationForRegistration,
   };
 };

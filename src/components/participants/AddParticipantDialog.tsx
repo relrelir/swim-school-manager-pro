@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,25 +33,6 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   setRegistrationData,
   onSubmit
 }) => {
-  // Handle receipt number validation - only required when there's a payment
-  const isPaidAmountProvided = registrationData.paidAmount > 0;
-  const isReceiptNumberRequired = isPaidAmountProvided;
-  const [isFormValid, setIsFormValid] = useState(true);
-  
-  // Validate form on data change
-  useEffect(() => {
-    const isValid = !isPaidAmountProvided || (isPaidAmountProvided && registrationData.receiptNumber.trim() !== '');
-    setIsFormValid(isValid);
-    
-    // Log validation state for debugging
-    console.log("AddParticipantDialog - Form validation:", {
-      isPaidAmountProvided,
-      receiptNumber: registrationData.receiptNumber,
-      isReceiptNumberRequired,
-      isFormValid: isValid
-    });
-  }, [isPaidAmountProvided, registrationData.receiptNumber, isReceiptNumberRequired]);
-  
   return <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -92,6 +72,10 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
               })} required />
               </div>
             </div>
+            <div className="flex items-center space-x-2">
+              
+              
+            </div>
             
             <div className="space-y-4 pt-4 border-t">
               <h3 className="font-semibold">פרטי תשלום</h3>
@@ -103,50 +87,26 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="paid-amount">סכום ששולם</Label>
-                  <Input 
-                    id="paid-amount" 
-                    type="number" 
-                    value={registrationData.paidAmount} 
-                    onChange={e => setRegistrationData({
-                      ...registrationData,
-                      paidAmount: Number(e.target.value),
-                      discountApproved: registrationData.discountApproved
-                    })} 
-                    required 
-                    min={0} 
-                    max={registrationData.requiredAmount} 
-                    className="ltr" 
-                  />
+                  <Input id="paid-amount" type="number" value={registrationData.paidAmount} onChange={e => setRegistrationData({
+                  ...registrationData,
+                  paidAmount: Number(e.target.value),
+                  discountApproved: registrationData.discountApproved
+                })} required min={0} max={registrationData.requiredAmount} className="ltr" />
                 </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="receipt-number">
-                  מספר קבלה {isReceiptNumberRequired && <span className="text-red-500">*</span>}
-                </Label>
-                <Input 
-                  id="receipt-number" 
-                  value={registrationData.receiptNumber} 
-                  onChange={e => setRegistrationData({
-                    ...registrationData,
-                    receiptNumber: e.target.value,
-                    discountApproved: registrationData.discountApproved
-                  })} 
-                  required={isReceiptNumberRequired}
-                  className={isPaidAmountProvided && !registrationData.receiptNumber ? "border-red-500" : ""}
-                />
-                {isPaidAmountProvided && !registrationData.receiptNumber && (
-                  <p className="text-xs text-red-500">מספר קבלה הוא שדה חובה כאשר יש תשלום</p>
-                )}
+                <Label htmlFor="receipt-number">מספר קבלה</Label>
+                <Input id="receipt-number" value={registrationData.receiptNumber} onChange={e => setRegistrationData({
+                ...registrationData,
+                receiptNumber: e.target.value,
+                discountApproved: registrationData.discountApproved
+              })} required />
               </div>
             </div>
           </div>
           <DialogFooter className="mt-4">
-            <Button 
-              type="submit"
-              disabled={!isFormValid}>
-                רשום משתתף
-            </Button>
+            <Button type="submit">רשום משתתף</Button>
           </DialogFooter>
         </form>
       </DialogContent>

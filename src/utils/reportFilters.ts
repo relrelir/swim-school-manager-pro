@@ -7,7 +7,6 @@ export interface ReportFilters {
   seasonId: string;
   productId: string;
   paymentStatus: string;
-  poolId: string; // Added poolId filter
 }
 
 export const filterRegistrations = (registrations: RegistrationWithDetails[], filters: ReportFilters): RegistrationWithDetails[] => {
@@ -29,11 +28,6 @@ export const filterRegistrations = (registrations: RegistrationWithDetails[], fi
 
     // Product filter
     if (filters.productId !== 'all' && reg.product.id !== filters.productId) {
-      return false;
-    }
-
-    // Pool filter - added filter logic
-    if (filters.poolId !== 'all' && reg.product.poolId !== filters.poolId) {
       return false;
     }
 

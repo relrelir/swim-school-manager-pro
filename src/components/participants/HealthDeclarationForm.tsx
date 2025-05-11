@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -10,7 +11,6 @@ import { toast } from '@/components/ui/use-toast';
 import { HealthDeclaration } from '@/types';
 import { useData } from '@/context/DataContext';
 import HealthFormLink from './health-declaration/HealthFormLink';
-import { v4 as uuidv4 } from 'uuid';
 
 interface HealthDeclarationFormProps {
   isOpen: boolean;
@@ -53,18 +53,16 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
         // Create a new health declaration with all required fields in the correct format
         console.log('Creating new health declaration with registrationId:', registrationId);
         
-        const healthDeclaration: Omit<HealthDeclaration, 'id'> = {
+        const newDeclaration = await addHealthDeclaration({
+          // CRITICAL: participant_id must be set to registrationId
           participant_id: registrationId,
           registrationId: registrationId,
           form_status: 'pending',
           formStatus: 'pending',
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(), // Add the missing updated_at field
-          token: uuidv4(),
+          token: '',
           sentAt: new Date().toISOString()
-        };
-        
-        const newDeclaration = await addHealthDeclaration(healthDeclaration);
+        });
         
         if (newDeclaration) {
           declarationId = newDeclaration.id;

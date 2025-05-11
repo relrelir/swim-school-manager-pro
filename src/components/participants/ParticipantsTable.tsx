@@ -1,17 +1,19 @@
-
 import React from 'react';
-import { Table, TableHeader, TableRow, TableHead } from '@/components/ui/table';
-import { Registration, Participant, Payment, HealthDeclaration, PaymentStatusDetails } from '@/types';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Participant, PaymentStatus, Registration, Payment, HealthDeclaration } from '@/types';
+import TableHealthStatus from './TableHealthStatus';
+import TablePaymentInfo from './TablePaymentInfo';
+import TableReceiptNumbers from './TableReceiptNumbers';
+import TableRowActions from './TableRowActions';
 import ParticipantsTableHeader from './ParticipantsTableHeader';
-import TableContent from './TableContent';
-import { useParticipantsTableData } from '@/hooks/participants/useParticipantsTableData';
+import { formatCurrencyForTableUI } from '@/utils/formatters';
 
 interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>;
+  getPaymentsForRegistration: (registration: Registration) => Payment[];
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
-  calculatePaymentStatus: (registration: Registration, payments: Payment[]) => PaymentStatusDetails;
+  calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   getStatusClassName: (status: string) => string;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (id: string) => void;
@@ -19,13 +21,13 @@ interface ParticipantsTableProps {
   onOpenHealthForm: (registrationId: string) => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
-  onPaymentTotalsCalculated?: (total: number) => void;
 }
 
 const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   registrations,
   getParticipantForRegistration,
   getPaymentsForRegistration,
+  getHealthDeclarationForRegistration,
   calculatePaymentStatus,
   getStatusClassName,
   onAddPayment,
@@ -33,24 +35,18 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onUpdateHealthApproval,
   onOpenHealthForm,
   searchQuery,
-  setSearchQuery,
-  onPaymentTotalsCalculated
+  setSearchQuery
 }) => {
-  // Use the custom hook for data fetching and calculations
-  const { 
-    registrationPayments, 
-    isLoadingPayments, 
-    isInitialLoading 
-  } = useParticipantsTableData(
-    registrations,
-    getPaymentsForRegistration,
-    onPaymentTotalsCalculated
-  );
-  
-  // Use a more stable condition for loading - only show on first load
-  if (isLoadingPayments && isInitialLoading) {
-    return <div className="flex justify-center p-4">טוען נתוני תשלומים...</div>;
-  }
+  // Helper to calculate discount amount
+  const calculateDiscountAmount = (registration: Registration) => {
+    return registration.discountAmount || 0;
+  };
+
+  // Helper to calculate effective amount required after discount
+  const calculateEffectiveRequiredAmount = (registration: Registration) => {
+    const discountAmount = registration.discountAmount || 0;
+    return Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
+  };
 
   return (
     <div className="space-y-4">
@@ -75,18 +71,66 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             <TableHead>פעולות</TableHead>
           </TableRow>
         </TableHeader>
-        
-        <TableContent 
-          registrations={registrations}
-          registrationPayments={registrationPayments}
-          getParticipantForRegistration={getParticipantForRegistration}
-          calculatePaymentStatus={calculatePaymentStatus}
-          getStatusClassName={getStatusClassName}
-          onAddPayment={onAddPayment}
-          onDeleteRegistration={onDeleteRegistration}
-          onUpdateHealthApproval={onUpdateHealthApproval}
-          onOpenHealthForm={onOpenHealthForm}
-        />
+        <TableBody>
+          {registrations.map((registration) => {
+            const participant = getParticipantForRegistration(registration);
+            const registrationPayments = getPaymentsForRegistration(registration);
+            const discountAmount = calculateDiscountAmount(registration);
+            const effectiveRequiredAmount = calculateEffectiveRequiredAmount(registration);
+            const status = calculatePaymentStatus(registration);
+            const hasPayments = registrationPayments.length > 0;
+            
+            if (!participant) return null;
+            
+            return (
+              <TableRow key={registration.id}>
+                <TableCell>{`${participant.firstName} ${participant.lastName}`}</TableCell>
+                <TableCell>{participant.idNumber}</TableCell>
+                <TableCell>{participant.phone}</TableCell>
+                <TableCell>
+                  {formatCurrencyForTableUI(registration.requiredAmount)}
+                </TableCell>
+                <TableCell>
+                  {formatCurrencyForTableUI(effectiveRequiredAmount)}
+                </TableCell>
+                <TableCell>
+                  <TablePaymentInfo 
+                    payments={registrationPayments} 
+                    discountAmount={discountAmount}
+                    discountApproved={registration.discountApproved}
+                  />
+                </TableCell>
+                <TableCell>
+                  <TableReceiptNumbers payments={registrationPayments} />
+                </TableCell>
+                <TableCell>
+                  {registration.discountApproved && discountAmount > 0 ? 
+                    formatCurrencyForTableUI(discountAmount) : 
+                    'לא'}
+                </TableCell>
+                <TableCell>
+                  <TableHealthStatus 
+                    registration={registration}
+                    participant={participant}
+                    onUpdateHealthApproval={(isApproved) => onUpdateHealthApproval(registration.id, isApproved)}
+                    onOpenHealthForm={() => onOpenHealthForm(registration.id)}
+                  />
+                </TableCell>
+                <TableCell className={`font-semibold ${getStatusClassName(status)}`}>
+                  {status}
+                </TableCell>
+                <TableCell>
+                  <TableRowActions 
+                    registration={registration}
+                    hasPayments={hasPayments}
+                    onAddPayment={onAddPayment}
+                    onDeleteRegistration={onDeleteRegistration}
+                  />
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
       </Table>
     </div>
   );

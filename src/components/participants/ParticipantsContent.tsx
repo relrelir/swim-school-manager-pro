@@ -1,42 +1,35 @@
 
 import React, { useState, useMemo } from 'react';
-import { Registration, Participant, Payment, HealthDeclaration, PaymentStatus, PaymentStatusDetails } from '@/types';
+import { Registration, Participant, Payment, HealthDeclaration, PaymentStatus } from '@/types';
+import ParticipantsSummaryCards from '@/components/participants/ParticipantsSummaryCards';
 import ParticipantsTable from '@/components/participants/ParticipantsTable';
 import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
 
 interface ParticipantsContentProps {
   registrations: Registration[];
-  participants: Participant[];
-  product: any;
   totalParticipants: number;
+  product: any;
   totalExpected: number;
   totalPaid: number;
   registrationsFilled: number;
-  isCalculating: boolean; 
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>;
+  getPaymentsForRegistration: (registrationId: string) => Payment[]; 
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
-  calculatePaymentStatus: (registration: Registration) => PaymentStatusDetails;
+  calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   getStatusClassName: (status: string) => string;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (id: string) => void;
   onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
   onOpenHealthForm: (registrationId: string) => void;
-  setIsAddPaymentOpen?: (open: boolean) => void;
-  setCurrentRegistration?: (registration: Registration | null) => void;
-  setIsHealthFormOpen?: (open: boolean) => void;
-  onPaymentTotalsCalculated?: (total: number) => void; // Add this new prop
 }
 
 const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
   registrations,
-  participants,
-  product,
   totalParticipants,
+  product,
   totalExpected,
   totalPaid,
   registrationsFilled,
-  isCalculating,
   getParticipantForRegistration,
   getPaymentsForRegistration,
   getHealthDeclarationForRegistration,
@@ -45,8 +38,7 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
   onAddPayment,
   onDeleteRegistration,
   onUpdateHealthApproval,
-  onOpenHealthForm,
-  onPaymentTotalsCalculated // Add this new prop
+  onOpenHealthForm
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -66,26 +58,43 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
       return fullName.includes(query) || idNumber.includes(query) || phone.includes(query);
     });
   }, [registrations, searchQuery, getParticipantForRegistration]);
+  
+  // Create adapter functions to handle the type conversion
+  const getPaymentsAdapter = (registration: Registration) => {
+    return getPaymentsForRegistration(registration.id);
+  };
+  
+  // Fixed: The adapter now correctly expects a registrationId string
+  const updateHealthApprovalAdapter = (registrationId: string, isApproved: boolean) => {
+    onUpdateHealthApproval(registrationId, isApproved);
+  };
 
   return (
     <>
+      <ParticipantsSummaryCards 
+        totalParticipants={totalParticipants}
+        product={product}
+        totalExpected={totalExpected}
+        totalPaid={totalPaid}
+        registrationsFilled={registrationsFilled}
+      />
+
       {registrations.length === 0 ? (
         <EmptyParticipantsState />
       ) : (
         <ParticipantsTable
           registrations={filteredRegistrations}
           getParticipantForRegistration={getParticipantForRegistration}
-          getPaymentsForRegistration={getPaymentsForRegistration}
+          getPaymentsForRegistration={getPaymentsAdapter}
           getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
           calculatePaymentStatus={calculatePaymentStatus}
           getStatusClassName={getStatusClassName}
           onAddPayment={onAddPayment}
           onDeleteRegistration={onDeleteRegistration}
-          onUpdateHealthApproval={onUpdateHealthApproval}
+          onUpdateHealthApproval={updateHealthApprovalAdapter}
           onOpenHealthForm={onOpenHealthForm}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          onPaymentTotalsCalculated={onPaymentTotalsCalculated} // Pass the callback
         />
       )}
     </>

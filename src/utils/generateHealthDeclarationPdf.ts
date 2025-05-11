@@ -69,7 +69,6 @@ export const generateHealthDeclarationPdf = async (participantId: string) => {
       console.log("No health declaration found, using default object");
     } else {
       console.log("Found health declaration:", healthDeclaration.id);
-      console.log("Signature exists:", !!healthDeclaration.signature);
     }
     
     try {

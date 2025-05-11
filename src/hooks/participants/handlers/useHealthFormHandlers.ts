@@ -1,4 +1,7 @@
 
+/**
+ * Hook for handling health form interactions
+ */
 export const useHealthFormHandlers = (
   baseHandleOpenHealthForm: (registrationId: string) => void
 ) => {

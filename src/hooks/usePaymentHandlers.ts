@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Registration, Payment } from '@/types';
-import { usePaymentsContext } from '@/context/data/PaymentsProvider';
 
 export const usePaymentHandlers = (
   addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void, 
@@ -10,7 +9,6 @@ export const usePaymentHandlers = (
   getRegistrationsByProduct: (productId: string) => Registration[],
 ) => {
   const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
-  const { refreshPayments, getPaymentsByRegistration } = usePaymentsContext();
 
   // Handle adding a new payment
   const handleAddPayment = async (
@@ -19,23 +17,19 @@ export const usePaymentHandlers = (
       amount: number; 
       receiptNumber: string; 
       paymentDate: string;
-      registrationId?: string; 
+      registrationId?: string; // Added registrationId field
     },
     setIsAddPaymentOpen: (open: boolean) => void,
     setNewPayment: React.Dispatch<React.SetStateAction<{
       amount: number;
       receiptNumber: string;
       paymentDate: string;
-      registrationId?: string; 
+      registrationId?: string; // Added registrationId field
     }>>,
     productId?: string
   ): Promise<Registration[]> => {
-    e.preventDefault();
-    
-    console.log("Adding new payment:", newPayment);
-    
     // Check if receipt number is provided
-    if (!newPayment.receiptNumber || newPayment.receiptNumber.trim() === '') {
+    if (!newPayment.receiptNumber) {
       toast({
         title: "שגיאה",
         description: "מספר קבלה הוא שדה חובה",
@@ -45,7 +39,7 @@ export const usePaymentHandlers = (
     }
     
     // Check if registrationId is provided
-    if (!newPayment.registrationId && !currentRegistration?.id) {
+    if (!newPayment.registrationId) {
       toast({
         title: "שגיאה",
         description: "שגיאת מערכת: מזהה הרישום חסר",
@@ -54,56 +48,30 @@ export const usePaymentHandlers = (
       return [];
     }
 
-    // Use registrationId from newPayment if provided, otherwise use currentRegistration.id
-    const registrationId = newPayment.registrationId || currentRegistration?.id;
-    
-    if (!registrationId) {
-      console.error("No registration ID available");
-      return [];
-    }
-
     // Add the new payment
     const payment: Omit<Payment, 'id'> = {
-      registrationId: registrationId,
+      registrationId: newPayment.registrationId,
       amount: newPayment.amount,
       receiptNumber: newPayment.receiptNumber,
       paymentDate: newPayment.paymentDate,
     };
     
-    console.log("Adding payment:", payment);
-    const addedPayment = await addPayment(payment);
-    console.log("Payment added:", addedPayment);
+    await addPayment(payment);
     
-    // Make sure to refresh payments data in the context
-    await refreshPayments();
-    
-    // Update the registration's paidAmount based on all payments
+    // Update the registration's paidAmount
     let updatedRegistrations: Registration[] = [];
     if (productId) {
       const regs = getRegistrationsByProduct(productId);
-      const reg = regs.find(r => r.id === registrationId);
-      
+      const reg = regs.find(r => r.id === newPayment.registrationId);
       if (reg) {
-        // Get all payments for this registration after the new one was added
-        const allPayments = await getPaymentsByRegistration(registrationId);
-        const totalPaidAmount = allPayments.reduce((sum, p) => sum + Number(p.amount), 0);
-        
-        console.log(`Updating registration ${reg.id} paidAmount to ${totalPaidAmount} based on ${allPayments.length} payments`);
-        
+        const updatedPaidAmount = reg.paidAmount + newPayment.amount;
         const updatedReg: Registration = {
           ...reg,
-          paidAmount: totalPaidAmount,
+          paidAmount: updatedPaidAmount,
         };
-        
-        await updateRegistration(updatedReg);
-        console.log("Registration updated with new total payment amount:", updatedReg);
-      } else {
-        console.error(`Registration with id ${registrationId} not found in product ${productId}`);
+        updateRegistration(updatedReg);
       }
-      
-      // Get fresh registrations after update
-      updatedRegistrations = getRegistrationsByProduct(productId);
-      console.log("Updated registrations after adding payment:", updatedRegistrations);
+      updatedRegistrations = regs;
     }
     
     // Reset form and close dialog
@@ -112,12 +80,6 @@ export const usePaymentHandlers = (
       amount: 0,
       receiptNumber: '',
       paymentDate: new Date().toISOString().substring(0, 10),
-      registrationId: undefined,
-    });
-    
-    toast({
-      title: "תשלום נוסף בהצלחה",
-      description: `תשלום בסך ${newPayment.amount} ₪ נוסף בהצלחה`,
     });
     
     return updatedRegistrations;
@@ -128,10 +90,10 @@ export const usePaymentHandlers = (
     discountAmount: number, 
     setIsAddPaymentOpen: (open: boolean) => void,
     productId?: string,
-    registrationId?: string
+    registrationId?: string // Add registrationId parameter
   ): Promise<Registration[]> => {
     // Check if we have a registration ID
-    if (!registrationId && !currentRegistration?.id) {
+    if (!registrationId && !currentRegistration) {
       toast({
         title: "שגיאה",
         description: "שגיאת מערכת: מזהה הרישום חסר",
@@ -158,9 +120,7 @@ export const usePaymentHandlers = (
         discountAmount: (targetRegistration.discountAmount || 0) + discountAmount,
       };
       
-      console.log(`Applying discount of ${discountAmount} to registration ${targetRegistration.id}`);
-      await updateRegistration(updatedRegistration);
-      console.log("Discount applied successfully");
+      updateRegistration(updatedRegistration);
       
       toast({
         title: "הנחה אושרה",
@@ -184,7 +144,6 @@ export const usePaymentHandlers = (
     currentRegistration,
     setCurrentRegistration,
     handleAddPayment,
-    handleApplyDiscount,
-    getPaymentsByRegistration
+    handleApplyDiscount
   };
 };

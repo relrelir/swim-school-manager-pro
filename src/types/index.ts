@@ -1,3 +1,4 @@
+
 export interface User {
   id: string;
   email: string;
@@ -35,6 +36,21 @@ export interface Season {
   endDate: string;
 }
 
+export interface SeasonPool {
+  seasonId: string;
+  poolId:   string;
+}
+
+export interface Pool {
+  id: string;
+  name: string;
+  // seasonId: string; - removed as per requirements
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Commented code below:
+/*
 export interface Pool {
   id: string;
   name: string;
@@ -42,11 +58,13 @@ export interface Pool {
   createdAt: string;
   updatedAt: string;
 }
+*/
 
 export interface Participant {
   id: string;
   firstName: string;
   lastName: string;
+ 
   phone: string;
   healthApproval: boolean;
   idNumber: string;
@@ -87,9 +105,8 @@ export interface HealthDeclaration {
   form_status: 'pending' | 'signed' | 'expired' | 'completed';
   submission_date?: string;
   created_at: string;
-  updated_at: string; // Added this required field
   notes?: string;
-  signature?: string; // Signature field is already defined here
+  signature?: string; // Added signature field
   
   // These fields are used in our TypeScript code but mapped differently when sending to the database
   registrationId?: string; // For convenience in our code
