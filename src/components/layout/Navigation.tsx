@@ -1,15 +1,14 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Calendar, FileText, Home, BarChart3, Users } from 'lucide-react';
+import { Calendar, FileText, Home, BarChart3 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 const Navigation: React.FC = () => {
   const navItems = [
-    { path: '/', icon: <Home className="h-5 w-5" />, label: 'עונות וקורסים' },
+    { path: '/', icon: <Home className="h-5 w-5" />, label: 'עונות' },
     { path: '/report', icon: <FileText className="h-5 w-5" />, label: 'דו"ח רישומים' },
     { path: '/daily-activity', icon: <Calendar className="h-5 w-5" />, label: 'פעילות יומית' },
-    // ניתן להוסיף פריטי ניווט נוספים כאן
   ];
   
   return (
