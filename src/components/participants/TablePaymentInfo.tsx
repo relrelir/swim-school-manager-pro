@@ -19,11 +19,16 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
   // Filter to only show payments that have receipt numbers (actual payments)
   // Using useMemo to prevent unnecessary re-calculations
   const displayPayments = useMemo(() => {
+    // Start with actual payments that have receipt numbers
     const actualPayments = payments.filter(p => p.receiptNumber !== undefined && p.receiptNumber !== '');
     
-    // If we have a registration with paid amount but no payment records, 
-    // create a synthetic payment entry from registration data
-    if (actualPayments.length === 0 && registration && registration.paidAmount > 0) {
+    // If we have actual payments, just use those
+    if (actualPayments.length > 0) {
+      return actualPayments;
+    }
+    
+    // If no actual payments but we have registration with paid amount, create synthetic payment
+    if (registration && registration.paidAmount > 0) {
       return [{
         id: 'initial-payment', // Use a placeholder ID
         registrationId: registration.id,
@@ -33,7 +38,8 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
       } as Payment];
     }
     
-    return actualPayments;
+    // No payments at all
+    return [];
   }, [payments, registration]);
   
   if (displayPayments.length === 0) {

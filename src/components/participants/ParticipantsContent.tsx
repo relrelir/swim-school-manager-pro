@@ -1,7 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { Registration, Participant, Payment, HealthDeclaration, PaymentStatus, PaymentStatusDetails } from '@/types';
-import ParticipantsSummaryCards from '@/components/participants/ParticipantsSummaryCards';
 import ParticipantsTable from '@/components/participants/ParticipantsTable';
 import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
 
@@ -13,7 +12,7 @@ interface ParticipantsContentProps {
   totalExpected: number;
   totalPaid: number;
   registrationsFilled: number;
-  isCalculating: boolean; // Ensure this is properly defined
+  isCalculating: boolean; 
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
   getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>;
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
@@ -26,6 +25,7 @@ interface ParticipantsContentProps {
   setIsAddPaymentOpen?: (open: boolean) => void;
   setCurrentRegistration?: (registration: Registration | null) => void;
   setIsHealthFormOpen?: (open: boolean) => void;
+  onPaymentTotalsCalculated?: (total: number) => void; // Add this new prop
 }
 
 const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
@@ -45,7 +45,8 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
   onAddPayment,
   onDeleteRegistration,
   onUpdateHealthApproval,
-  onOpenHealthForm
+  onOpenHealthForm,
+  onPaymentTotalsCalculated // Add this new prop
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -84,6 +85,7 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
           onOpenHealthForm={onOpenHealthForm}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
+          onPaymentTotalsCalculated={onPaymentTotalsCalculated} // Pass the callback
         />
       )}
     </>

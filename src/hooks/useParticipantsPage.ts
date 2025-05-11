@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useData } from "@/context/DataContext";
 import { useParticipants } from "@/hooks/useParticipants";
@@ -21,6 +21,9 @@ export const useParticipantsPage = () => {
   
   // State for health form dialog
   const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
+  
+  // State for the calculated total from the table
+  const [tableCalculatedTotal, setTableCalculatedTotal] = useState<number | null>(null);
 
   // Handle back navigation to products
   const handleBackToProducts = () => {
@@ -38,16 +41,23 @@ export const useParticipantsPage = () => {
     participantsData.handleApplyDiscount(amount, participantsData.setIsAddPaymentOpen, registrationId);
   };
   
+  // Handler for when payment totals are calculated by the table
+  const handlePaymentTotalsCalculated = useCallback((total: number) => {
+    console.log("Total payments calculated by table:", total);
+    setTableCalculatedTotal(total);
+  }, []);
+  
   // Props for ParticipantsContent
   const contentProps = {
     participants: participantsData.participants,
     registrations: participantsData.registrations,
     product: currentProduct,
     totalParticipants: participantsData.totalParticipants,
+    // Use the table's calculated total if available, otherwise fall back to the hook's calculation
     totalExpected: participantsData.totalExpected,
-    totalPaid: participantsData.totalPaid,
+    totalPaid: tableCalculatedTotal !== null ? tableCalculatedTotal : participantsData.totalPaid,
     registrationsFilled: participantsData.registrationsFilled,
-    isCalculating: participantsData.isCalculating || false, // Ensure isCalculating is included
+    isCalculating: participantsData.isCalculating || false,
     getParticipantForRegistration: participantsData.getParticipantForRegistration,
     getPaymentsForRegistration: participantsData.getPaymentsForRegistration,
     getHealthDeclarationForRegistration: participantsData.getHealthDeclarationForRegistration,
@@ -59,7 +69,8 @@ export const useParticipantsPage = () => {
     },
     onDeleteRegistration: participantsData.handleDeleteRegistration,
     onUpdateHealthApproval: participantsData.handleUpdateHealthApproval,
-    onOpenHealthForm: participantsData.handleOpenHealthForm
+    onOpenHealthForm: participantsData.handleOpenHealthForm,
+    onPaymentTotalsCalculated: handlePaymentTotalsCalculated // Add the handler
   };
 
   // Props for ParticipantsDialogs

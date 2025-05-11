@@ -46,6 +46,8 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   // Track the total actual amount paid across all registrations
   const [totalActualPaid, setTotalActualPaid] = useState(0);
+  // Track if this is the initial loading
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   
   // Stable registration IDs for dependency tracking
   const registrationIds = useMemo(() => 
@@ -55,9 +57,8 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   
   // Memoized fetch payments function to reduce re-renders
   const fetchPaymentsForRegistrations = useCallback(async () => {
-    // Only show loading if this is a fresh fetch with no existing data
-    const shouldShowLoading = Object.keys(registrationPayments).length === 0;
-    if (shouldShowLoading) {
+    // Only show loading if this is the initial fetch
+    if (isInitialLoading) {
       setIsLoadingPayments(true);
     }
     
@@ -86,8 +87,9 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
       console.error('Failed to fetch payments for registrations:', error);
     } finally {
       setIsLoadingPayments(false);
+      setIsInitialLoading(false);
     }
-  }, [registrations, getPaymentsForRegistration, onPaymentTotalsCalculated]);
+  }, [registrations, getPaymentsForRegistration, onPaymentTotalsCalculated, isInitialLoading]);
   
   // Fetch payments for all registrations when component mounts or registrations change
   useEffect(() => {
@@ -108,7 +110,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   };
 
   // Use a more stable condition for loading - only show on first load
-  if (isLoadingPayments && Object.keys(registrationPayments).length === 0) {
+  if (isLoadingPayments && isInitialLoading) {
     return <div className="flex justify-center p-4">טוען נתוני תשלומים...</div>;
   }
 
@@ -163,13 +165,13 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     payments={regPayments} 
                     discountAmount={discountAmount}
                     discountApproved={registration.discountApproved}
-                    registration={registration} // Pass registration as fallback data source
+                    registration={registration}
                   />
                 </TableCell>
                 <TableCell>
                   <TableReceiptNumbers 
                     payments={regPayments}
-                    registration={registration} // Pass registration for potential fallback
+                    registration={registration}
                   />
                 </TableCell>
                 <TableCell>
@@ -206,4 +208,3 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
 };
 
 export default ParticipantsTable;
-
