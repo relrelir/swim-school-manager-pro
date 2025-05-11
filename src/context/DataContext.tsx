@@ -10,6 +10,7 @@ import { PoolsProvider } from './data/PoolsProvider';
 import InnerDataProvider from './data/InnerDataProvider';
 import { DataContextProps } from './data/types/dataContextTypes';
 
+// Create the context
 const DataContext = createContext<DataContextProps | null>(null);
 
 export const useData = () => {
@@ -20,7 +21,7 @@ export const useData = () => {
   return context;
 };
 
-// This is the main provider that will be used in the app
+// Main provider that wraps all other providers
 export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   return (
     <SeasonsProvider>

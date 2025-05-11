@@ -44,7 +44,7 @@ export const createDeletePoolOperation = (
     }
     
     // If no products, delete the pool
-    const success = await poolsService.deletePoolAndLinks(id);
+    const success = await poolsService.deletePool(id);
     
     if (success) {
       setPools(prev => prev.filter(p => p.id !== id));
