@@ -7,7 +7,7 @@ export const useRegistrationHandlers = (
   addRegistration: (registration: Omit<Registration, 'id'>) => Promise<Registration | undefined> | void,
   updateParticipant: (participant: Participant) => void,
   deleteRegistration: (id: string) => void,
-  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void, // Updated to include Promise return
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void,
   getPaymentsByRegistration: (registrationId: string) => Payment[],
   getRegistrationsByProduct: (productId: string) => Registration[]
 ) => {
@@ -49,10 +49,13 @@ export const useRegistrationHandlers = (
       healthApproval: newParticipant.healthApproval,
     };
     
+    console.log("Adding new participant:", participant);
     // Add participant first
     const addedParticipant = await addParticipant(participant);
     
     if (addedParticipant) {
+      console.log("Participant added successfully:", addedParticipant);
+      
       // Then add registration
       const newRegistration: Omit<Registration, 'id'> = {
         productId: productId,
@@ -64,7 +67,9 @@ export const useRegistrationHandlers = (
         registrationDate: new Date().toISOString(),
       };
       
+      console.log("Adding new registration:", newRegistration);
       const addedRegistration = await addRegistration(newRegistration);
+      console.log("Registration added:", addedRegistration);
       
       // Add initial payment if amount is greater than 0
       if (registrationData.paidAmount > 0 && addedRegistration) {
@@ -82,10 +87,16 @@ export const useRegistrationHandlers = (
         };
         
         // Wait for the payment to be added
-        const addedPayment = await addPayment(initialPayment);
-        
-        if (addedPayment) {
-          console.log("Initial payment added successfully:", addedPayment);
+        try {
+          const addedPayment = await addPayment(initialPayment);
+          
+          if (addedPayment) {
+            console.log("Initial payment added successfully:", addedPayment);
+          } else {
+            console.error("Failed to add initial payment");
+          }
+        } catch (error) {
+          console.error("Error adding initial payment:", error);
         }
       }
       
@@ -94,6 +105,8 @@ export const useRegistrationHandlers = (
         title: "משתתף נרשם בהצלחה",
         description: `${participant.firstName} ${participant.lastName} נרשם בהצלחה`,
       });
+    } else {
+      console.error("Failed to add participant");
     }
     
     // Reset form and close dialog

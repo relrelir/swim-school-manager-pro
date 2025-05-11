@@ -34,6 +34,10 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   setRegistrationData,
   onSubmit
 }) => {
+  // Handle receipt number validation - only required when there's a payment
+  const isPaidAmountProvided = registrationData.paidAmount > 0;
+  const isReceiptNumberRequired = isPaidAmountProvided;
+  
   return <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -102,7 +106,7 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="receipt-number">מספר קבלה</Label>
+                <Label htmlFor="receipt-number">מספר קבלה {isReceiptNumberRequired && <span className="text-red-500">*</span>}</Label>
                 <Input 
                   id="receipt-number" 
                   value={registrationData.receiptNumber} 
@@ -111,9 +115,11 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                     receiptNumber: e.target.value,
                     discountApproved: registrationData.discountApproved
                   })} 
-                  required 
+                  required={isReceiptNumberRequired}
                 />
-                <p className="text-xs text-muted-foreground">מספר קבלה הוא שדה חובה אם יש תשלום</p>
+                {isPaidAmountProvided && (
+                  <p className="text-xs text-red-500">מספר קבלה הוא שדה חובה כאשר יש תשלום</p>
+                )}
               </div>
             </div>
           </div>

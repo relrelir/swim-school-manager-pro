@@ -44,6 +44,7 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
         }
 
         const transformedPayments = data?.map(payment => mapPaymentFromDB(payment)) || [];
+        console.log("Fetched payments:", transformedPayments);
         setPayments(transformedPayments);
       } catch (error) {
         toast({
@@ -61,7 +62,9 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
 
   const addPayment = async (payment: Omit<Payment, 'id'>) => {
     try {
-      if (!payment.receiptNumber) {
+      // Validate the payment data
+      if (!payment.receiptNumber || payment.receiptNumber.trim() === '') {
+        console.error("Receipt number is required for payments");
         toast({
           title: "שגיאה",
           description: "מספר קבלה הוא שדה חובה",
@@ -70,7 +73,20 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
         return;
       }
       
+      if (!payment.registrationId) {
+        console.error("Registration ID is missing from payment");
+        toast({
+          title: "שגיאה",
+          description: "מזהה רישום חסר בתשלום",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      console.log("Adding payment:", payment);
+      
       const dbPayment = mapPaymentToDB(payment);
+      console.log("Mapped payment for DB:", dbPayment);
       
       const { data, error } = await supabase
         .from('payments')
@@ -85,8 +101,8 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
 
       if (data) {
         const newPayment = mapPaymentFromDB(data);
-        setPayments(prevPayments => [...prevPayments, newPayment]);
         console.log("Payment added successfully:", newPayment);
+        setPayments(prevPayments => [...prevPayments, newPayment]);
         return newPayment;
       }
     } catch (error) {
@@ -145,7 +161,9 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
   };
 
   const getPaymentsByRegistration = (registrationId: string) => {
-    return payments.filter(payment => payment.registrationId === registrationId);
+    const registrationPayments = payments.filter(payment => payment.registrationId === registrationId);
+    console.log(`Getting payments for registration ${registrationId}:`, registrationPayments);
+    return registrationPayments;
   };
 
   const contextValue: PaymentsContextType = {

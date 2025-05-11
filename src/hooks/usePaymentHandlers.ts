@@ -17,21 +17,23 @@ export const usePaymentHandlers = (
       amount: number; 
       receiptNumber: string; 
       paymentDate: string;
-      registrationId?: string; // Added registrationId field
+      registrationId?: string; 
     },
     setIsAddPaymentOpen: (open: boolean) => void,
     setNewPayment: React.Dispatch<React.SetStateAction<{
       amount: number;
       receiptNumber: string;
       paymentDate: string;
-      registrationId?: string; // Added registrationId field
+      registrationId?: string; 
     }>>,
     productId?: string
   ): Promise<Registration[]> => {
     e.preventDefault();
     
+    console.log("Adding new payment:", newPayment);
+    
     // Check if receipt number is provided
-    if (!newPayment.receiptNumber) {
+    if (!newPayment.receiptNumber || newPayment.receiptNumber.trim() === '') {
       toast({
         title: "שגיאה",
         description: "מספר קבלה הוא שדה חובה",
@@ -86,11 +88,14 @@ export const usePaymentHandlers = (
         };
         
         await updateRegistration(updatedReg);
-        console.log("Registration updated with new payment amount");
+        console.log("Registration updated with new payment amount:", updatedReg);
+      } else {
+        console.error(`Registration with id ${registrationId} not found in product ${productId}`);
       }
       
       // Get fresh registrations after update
       updatedRegistrations = getRegistrationsByProduct(productId);
+      console.log("Updated registrations after adding payment:", updatedRegistrations);
     }
     
     // Reset form and close dialog
