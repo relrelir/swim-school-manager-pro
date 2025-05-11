@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Participant, PaymentStatus, Registration, Payment, HealthDeclaration, PaymentStatusDetails } from '@/types';
@@ -11,7 +12,7 @@ import { formatCurrencyForTableUI } from '@/utils/formatters';
 interface ParticipantsTableProps {
   registrations: Registration[];
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>; // Updated to Promise<Payment[]>
+  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>; // This is now Promise<Payment[]>
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   calculatePaymentStatus: (registration: Registration, payments: Payment[]) => PaymentStatusDetails;
   getStatusClassName: (status: string) => string;
@@ -39,23 +40,27 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
 }) => {
   // Store payments for each registration
   const [registrationPayments, setRegistrationPayments] = useState<Record<string, Payment[]>>({});
+  // Track loading state for payments
+  const [isLoadingPayments, setIsLoadingPayments] = useState(true);
   
   // Fetch payments for all registrations when component mounts or registrations change
   useEffect(() => {
     const fetchPaymentsForRegistrations = async () => {
+      setIsLoadingPayments(true);
       const paymentsMap: Record<string, Payment[]> = {};
       
-      for (const registration of registrations) {
-        try {
+      try {
+        for (const registration of registrations) {
           const payments = await getPaymentsForRegistration(registration);
           paymentsMap[registration.id] = payments;
-        } catch (error) {
-          console.error(`Failed to fetch payments for registration ${registration.id}:`, error);
-          paymentsMap[registration.id] = [];
         }
+        
+        setRegistrationPayments(paymentsMap);
+      } catch (error) {
+        console.error('Failed to fetch payments for registrations:', error);
+      } finally {
+        setIsLoadingPayments(false);
       }
-      
-      setRegistrationPayments(paymentsMap);
     };
     
     fetchPaymentsForRegistrations();
@@ -72,6 +77,10 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
     return Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
   };
 
+  if (isLoadingPayments) {
+    return <div className="flex justify-center p-4">טוען נתוני תשלומים...</div>;
+  }
+
   return (
     <div className="space-y-4">
       <ParticipantsTableHeader 
@@ -85,7 +94,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
             <TableHead>שם מלא</TableHead>
             <TableHead>ת.ז</TableHead>
             <TableHead>טלפון</TableHead>
-            <TableHead>סכום מק��רי</TableHead>
+            <TableHead>סכום מקורי</TableHead>
             <TableHead>סכום לתשלום</TableHead>
             <TableHead>תשלומים</TableHead>
             <TableHead>מספרי קבלות</TableHead>

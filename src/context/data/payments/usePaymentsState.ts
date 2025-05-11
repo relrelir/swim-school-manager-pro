@@ -29,11 +29,10 @@ export const usePaymentsState = () => {
   /**
    * Function to refresh payments data
    */
-  const refreshPayments = async () => {
+  const refreshPayments = async (): Promise<void> => {
     console.log("Refreshing payments data");
-    const refreshedPayments = await fetchPayments();
-    console.log("Payments refreshed, total payments:", refreshedPayments.length);
-    return refreshedPayments;
+    await fetchPayments();
+    console.log("Payments refreshed, total payments:", payments.length);
   };
 
   /**

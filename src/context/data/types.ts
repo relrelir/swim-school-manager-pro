@@ -71,7 +71,7 @@ export interface HealthDeclarationsContextType {
 }
 
 export interface CombinedDataContextType extends SeasonsContextType, PoolsContextType, ProductsContextType, ParticipantsContextType, RegistrationsContextType, PaymentsContextType, HealthDeclarationsContextType {
-  getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
+  getAllRegistrationsWithDetails: () => Promise<RegistrationWithDetails[]>;
   calculateMeetingProgress: (product: Product) => { current: number; total: number };
   getDailyActivities: (date: string) => DailyActivity[];
 }

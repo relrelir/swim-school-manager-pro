@@ -69,6 +69,18 @@ const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) 
   const healthDeclarationsContext = useHealthDeclarationsContext();
   const { getHealthDeclarationForRegistration } = healthDeclarationsContext;
 
+  // Modified to handle the async nature of buildAllRegistrationsWithDetails
+  const getAllRegistrationsWithDetails = async () => {
+    return buildAllRegistrationsWithDetails(
+      registrations, 
+      participants, 
+      products, 
+      seasons,
+      payments,
+      getPaymentsByRegistration
+    );
+  };
+
   const contextValue: DataContextProps = {
     seasons,
     products,
@@ -96,15 +108,8 @@ const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) 
     addHealthDeclaration,
     getRegistrationsByProduct,
     getRegistrationsByParticipant: (participantId: string) => getRegistrationsByParticipant(registrations, participantId),
-    getAllRegistrationsWithDetails: () => buildAllRegistrationsWithDetails(
-      registrations, 
-      participants, 
-      products, 
-      seasons,
-      payments,
-      getPaymentsByRegistration
-    ),
-    getPaymentsByRegistration, // This is now a Promise<Payment[]>, matching the updated type definition
+    getAllRegistrationsWithDetails,
+    getPaymentsByRegistration,
     getProductsBySeason,
     getProductsByPool,
     getHealthDeclarationByParticipant: (participantId: string) => getHealthDeclarationByParticipant(healthDeclarations, participantId),

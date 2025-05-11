@@ -31,44 +31,51 @@ export const useSeasonProducts = () => {
   });
 
   useEffect(() => {
-    if (seasonId) {
-      // Find the current season
-      const currentSeason = seasons.find(s => s.id === seasonId);
-      if (currentSeason) {
-        setSeason(currentSeason);
-      }
+    const fetchSeasonData = async () => {
+      if (seasonId) {
+        // Find the current season
+        const currentSeason = seasons.find(s => s.id === seasonId);
+        if (currentSeason) {
+          setSeason(currentSeason);
+        }
 
-      // Get products for this season
-      const productsForSeason = getProductsBySeason(seasonId);
-      setSeasonProducts(productsForSeason);
-      
-      // Calculate season summary
-      let registrationsCount = 0;
-      let totalExpected = 0;
-      let totalPaid = 0;
-      
-      productsForSeason.forEach(product => {
-        const productRegistrations = getRegistrationsByProduct(product.id);
-        registrationsCount += productRegistrations.length;
+        // Get products for this season
+        const productsForSeason = getProductsBySeason(seasonId);
+        setSeasonProducts(productsForSeason);
         
-        // Calculate total expected (after discounts)
-        totalExpected += productRegistrations.reduce((sum, reg) => 
-          sum + Math.max(0, reg.requiredAmount - (reg.discountApproved ? (reg.discountAmount || 0) : 0)), 0);
+        // Calculate season summary
+        let registrationsCount = 0;
+        let totalExpected = 0;
+        let totalPaid = 0;
         
-        // Calculate total paid from payments
-        totalPaid += productRegistrations.reduce((sum, reg) => {
-          const regPayments = getPaymentsByRegistration(reg.id);
-          if (regPayments.length === 0) return sum + reg.paidAmount;
-          return sum + regPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
-        }, 0);
-      });
-      
-      setSeasonSummary({
-        registrationsCount,
-        totalExpected,
-        totalPaid
-      });
-    }
+        for (const product of productsForSeason) {
+          const productRegistrations = getRegistrationsByProduct(product.id);
+          registrationsCount += productRegistrations.length;
+          
+          // Calculate total expected (after discounts)
+          totalExpected += productRegistrations.reduce((sum, reg) => 
+            sum + Math.max(0, reg.requiredAmount - (reg.discountApproved ? (reg.discountAmount || 0) : 0)), 0);
+          
+          // Calculate total paid from payments
+          for (const reg of productRegistrations) {
+            const regPayments = await getPaymentsByRegistration(reg.id);
+            if (regPayments.length === 0) {
+              totalPaid += reg.paidAmount;
+            } else {
+              totalPaid += regPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
+            }
+          }
+        }
+        
+        setSeasonSummary({
+          registrationsCount,
+          totalExpected,
+          totalPaid
+        });
+      }
+    };
+    
+    fetchSeasonData();
   }, [seasonId, seasons, products, registrations, payments, getProductsBySeason, getRegistrationsByProduct, getPaymentsByRegistration]);
 
   const handleEditProduct = (product: Product) => {

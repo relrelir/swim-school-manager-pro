@@ -22,6 +22,11 @@ export const useParticipantData = (productId?: string) => {
   const [productParticipants, setProductParticipants] = useState<Participant[]>([]);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [searchString, setSearchString] = useState('');
+  const [paymentSummary, setPaymentSummary] = useState({
+    totalExpected: 0,
+    totalPaid: 0,
+    remaining: 0
+  });
   
   // Load product registrations and participants
   useEffect(() => {
@@ -42,6 +47,25 @@ export const useParticipantData = (productId?: string) => {
           .filter(Boolean) as Participant[];
           
         setProductParticipants(parts);
+        
+        // Calculate payment summary
+        let totalExpected = 0;
+        let totalPaid = 0;
+        
+        for (const reg of regs) {
+          const regPayments = await getPaymentsByRegistration(reg.id);
+          const paidAmount = regPayments.reduce((sum, pay) => sum + Number(pay.amount), 0);
+          
+          totalExpected += reg.requiredAmount;
+          totalPaid += paidAmount;
+        }
+        
+        setPaymentSummary({
+          totalExpected,
+          totalPaid,
+          remaining: totalExpected - totalPaid
+        });
+        
       } catch (error) {
         console.error('Error loading participant data:', error);
       } finally {
@@ -50,7 +74,7 @@ export const useParticipantData = (productId?: string) => {
     };
     
     fetchData();
-  }, [productId, participants, getRegistrationsByProduct]);
+  }, [productId, participants, getRegistrationsByProduct, getPaymentsByRegistration]);
   
   // Filter participants by search term
   const filteredParticipants = useMemo(() => {
@@ -75,26 +99,6 @@ export const useParticipantData = (productId?: string) => {
       total: productParticipants.length
     };
   }, [productParticipants]);
-  
-  // Calculate payment summary
-  const paymentSummary = useMemo(() => {
-    let totalExpected = 0;
-    let totalPaid = 0;
-    
-    productRegistrations.forEach(reg => {
-      const regPayments = getPaymentsByRegistration(reg.id);
-      const paidAmount = regPayments.reduce((sum, pay) => sum + Number(pay.amount), 0);
-      
-      totalExpected += reg.requiredAmount;
-      totalPaid += paidAmount;
-    });
-    
-    return {
-      totalExpected,
-      totalPaid,
-      remaining: totalExpected - totalPaid
-    };
-  }, [productRegistrations, getPaymentsByRegistration]);
   
   // Handlers
   const handleSearch = (value: string) => {

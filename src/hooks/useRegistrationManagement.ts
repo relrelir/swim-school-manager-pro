@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Registration, Participant, Payment } from '@/types';
 import { usePaymentHandlers } from './usePaymentHandlers';
@@ -12,7 +13,7 @@ export const useRegistrationManagement = (
   updateRegistration: (registration: Registration) => void,
   deleteRegistration: (id: string) => void,
   addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void,
-  getPaymentsByRegistration: (registrationId: string) => any[],
+  getPaymentsByRegistration: (registrationId: string) => Promise<Payment[]>,
   getRegistrationsByProduct: (productId: string) => Registration[],
   updateParticipant: (participant: Participant) => void,
   addHealthDeclaration: (declaration: Omit<any, 'id'>) => void
@@ -117,13 +118,13 @@ export const useRegistrationManagement = (
   const handleApplyDiscount = async (
     discountAmount: number,
     setIsAddPaymentOpen: (open: boolean) => void,
-    registrationId?: string // Added registrationId parameter
+    registrationId?: string
   ) => {
     const updatedRegistrations = await baseHandleApplyDiscount(
       discountAmount,
       setIsAddPaymentOpen,
       productId,
-      registrationId // Pass the registrationId to the base handler
+      registrationId
     );
     
     if (updatedRegistrations && updatedRegistrations.length > 0) {

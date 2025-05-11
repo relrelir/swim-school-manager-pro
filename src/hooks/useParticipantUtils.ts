@@ -15,8 +15,9 @@ export const useParticipantUtils = (
   // This now returns a Promise to match the updated PaymentsProvider
   const getPaymentsForRegistration = async (registration: Registration | string): Promise<Payment[]> => {
     const registrationId = typeof registration === 'string' ? registration : registration.id;
+    // Use local payments array as we don't want to make an API call here
     const registrationPayments = payments.filter(payment => payment.registrationId === registrationId);
-    console.log(`Getting ${registrationPayments.length} payments for registration ${registrationId}`);
+    console.log(`Getting ${registrationPayments.length} payments for registration ${registrationId} from local state`);
     return registrationPayments;
   };
 

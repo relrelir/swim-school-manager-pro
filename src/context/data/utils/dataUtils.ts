@@ -1,25 +1,68 @@
 
-import { Product, Registration, Participant, Season, Pool, Payment, HealthDeclaration } from '@/types';
-import { getAllRegistrationsWithDetails } from '@/utils/registrationUtils';
-import { calculateMeetingProgress, getDailyActivities } from '@/utils/activityUtils';
+import { Season, Product, Participant, Registration, Payment, RegistrationWithDetails, Pool, HealthDeclaration, DailyActivity } from '@/types';
+import { calculateCurrentMeeting } from './';
 
-// Get registrations by participant
+export const buildAllRegistrationsWithDetails = async (
+  registrations: Registration[], 
+  participants: Participant[], 
+  products: Product[], 
+  seasons: Season[],
+  payments: Payment[],
+  getPaymentsByRegistration: (registrationId: string) => Promise<Payment[]>
+): Promise<RegistrationWithDetails[]> => {
+  const result: RegistrationWithDetails[] = [];
+
+  // Process each registration
+  for (const reg of registrations) {
+    // Find related product
+    const product = products.find(p => p.id === reg.productId);
+    if (!product) continue;
+
+    // Find related participant
+    const participant = participants.find(p => p.id === reg.participantId);
+    if (!participant) continue;
+
+    // Find related season
+    const season = seasons.find(s => s.id === product.seasonId);
+    if (!season) continue;
+
+    // Find payments for this registration
+    const regPayments = await getPaymentsByRegistration(reg.id);
+
+    // Create enriched registration object
+    const registrationWithDetails: RegistrationWithDetails = {
+      ...reg,
+      productName: product.name,
+      productType: product.poolId ? 'pool' : 'course',
+      seasonName: season.name,
+      participantName: `${participant.firstName} ${participant.lastName}`,
+      phoneNumber: participant.phone,
+      idNumber: participant.idNumber,
+      healthApproval: participant.healthApproval,
+      payments: regPayments,
+      totalPaid: regPayments.reduce((sum, p) => sum + p.amount, 0)
+    };
+
+    result.push(registrationWithDetails);
+  }
+
+  return result;
+};
+
 export const getRegistrationsByParticipant = (
   registrations: Registration[],
   participantId: string
 ): Registration[] => {
-  return registrations.filter(registration => registration.participantId === participantId);
+  return registrations.filter(reg => reg.participantId === participantId);
 };
 
-// Get health declaration by participant
 export const getHealthDeclarationByParticipant = (
   healthDeclarations: HealthDeclaration[],
   participantId: string
 ): HealthDeclaration | undefined => {
-  return healthDeclarations.find(healthDeclaration => healthDeclaration.participant_id === participantId);
+  return healthDeclarations.find(h => h.participantId === participantId);
 };
 
-// Get pool by ID
 export const getPoolById = (
   pools: Pool[],
   id: string
@@ -27,49 +70,46 @@ export const getPoolById = (
   return pools.find(pool => pool.id === id);
 };
 
-// Build all registrations with details
-export const buildAllRegistrationsWithDetails = async (
-  registrations,
-  participants,
-  products,
-  seasons,
-  payments,
-  getPaymentsByRegistration
-) => {
-  // This function handles the async nature of getPaymentsByRegistration
-  const result = [];
-  
-  for (const registration of registrations) {
-    const participant = participants.find(p => p.id === registration.participantId);
-    const product = products.find(p => p.id === registration.productId);
-    const season = product ? seasons.find(s => s.id === product.seasonId) : null;
-    
-    try {
-      // Now we need to await the payments
-      const registrationPayments = await getPaymentsByRegistration(registration.id);
-      
-      result.push({
-        registration,
-        participant,
-        product,
-        season,
-        payments: registrationPayments
-      });
-    } catch (error) {
-      console.error(`Error fetching payments for registration ${registration.id}:`, error);
-      // Still add the registration even if payments couldn't be fetched
-      result.push({
-        registration,
-        participant,
-        product,
-        season,
-        payments: []
-      });
-    }
-  }
-  
-  return result;
+export const calculateMeetingProgress = (product: Product) => {
+  return calculateCurrentMeeting(product);
 };
 
-// Export activity utils
-export { calculateMeetingProgress, getDailyActivities };
+export const getDailyActivities = (
+  date: string, 
+  products: Product[], 
+  getRegistrationsByProduct: (productId: string) => Registration[]
+): DailyActivity[] => {
+  // Get day of week from the date
+  const dateObj = new Date(date);
+  const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+  const dayOfWeek = dayNames[dateObj.getDay()];
+
+  // Find all products that have this day of week
+  const activitiesForToday = products.filter(product => {
+    // Check if the product runs on this day of the week
+    if (product.daysOfWeek && product.daysOfWeek.includes(dayOfWeek)) {
+      // Check if the date is within the product's date range
+      const startDate = new Date(product.startDate);
+      const endDate = new Date(product.endDate);
+      return dateObj >= startDate && dateObj <= endDate;
+    }
+    return false;
+  });
+
+  // Map to DailyActivity objects
+  return activitiesForToday.map(product => {
+    const registrations = getRegistrationsByProduct(product.id);
+    const meetingInfo = calculateCurrentMeeting(product);
+    
+    return {
+      id: product.id,
+      name: product.name,
+      time: product.startTime || '00:00',
+      instructor: product.instructor || 'לא צוין',
+      participantsRegistered: registrations.length,
+      participantsMax: product.maxParticipants,
+      meetingNumber: meetingInfo.current,
+      totalMeetings: meetingInfo.total,
+    };
+  });
+};

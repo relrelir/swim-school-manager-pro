@@ -29,8 +29,8 @@ export interface DataContextProps {
   addHealthDeclaration: (declaration: Omit<HealthDeclaration, 'id'>) => Promise<HealthDeclaration | undefined>;
   getRegistrationsByProduct: (productId: string) => Registration[];
   getRegistrationsByParticipant: (participantId: string) => Registration[];
-  getAllRegistrationsWithDetails: () => RegistrationWithDetails[];
-  getPaymentsByRegistration: (registrationId: string) => Promise<Payment[]>; // Updated to Promise<Payment[]>
+  getAllRegistrationsWithDetails: () => Promise<RegistrationWithDetails[]>;
+  getPaymentsByRegistration: (registrationId: string) => Promise<Payment[]>;
   getProductsBySeason: (seasonId: string) => Product[];
   getProductsByPool: (poolId: string) => Product[];
   getHealthDeclarationByParticipant: (participantId: string) => HealthDeclaration | undefined;
