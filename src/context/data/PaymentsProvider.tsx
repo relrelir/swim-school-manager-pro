@@ -11,6 +11,7 @@ interface PaymentsContextType {
   updatePayment: (payment: Payment) => void;
   deletePayment: (id: string) => void;
   getPaymentsByRegistration: (registrationId: string) => Payment[];
+  refreshPayments: () => Promise<void>;
   loading: boolean;
 }
 
@@ -32,33 +33,45 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPayments = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('payments')
-          .select('*');
+  // Fetch payments from database
+  const fetchPayments = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('payments')
+        .select('*');
 
-        if (error) {
-          handleSupabaseError(error, 'fetching payments');
-        }
-
-        const transformedPayments = data?.map(payment => mapPaymentFromDB(payment)) || [];
-        console.log("Fetched payments:", transformedPayments);
-        setPayments(transformedPayments);
-      } catch (error) {
-        toast({
-          title: "שגיאה",
-          description: "אירעה שגיאה בטעינת תשלומים",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
+      if (error) {
+        handleSupabaseError(error, 'fetching payments');
       }
-    };
 
+      const transformedPayments = data?.map(payment => mapPaymentFromDB(payment)) || [];
+      console.log("Fetched payments:", transformedPayments);
+      setPayments(transformedPayments);
+      return transformedPayments;
+    } catch (error) {
+      toast({
+        title: "שגיאה",
+        description: "אירעה שגיאה בטעינת תשלומים",
+        variant: "destructive",
+      });
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load payments on component mount
+  useEffect(() => {
     fetchPayments();
   }, []);
+
+  // Function to refresh payments data
+  const refreshPayments = async () => {
+    console.log("Refreshing payments data");
+    const refreshedPayments = await fetchPayments();
+    console.log("Payments refreshed:", refreshedPayments);
+    return;
+  };
 
   const addPayment = async (payment: Omit<Payment, 'id'>) => {
     try {
@@ -103,6 +116,10 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
         const newPayment = mapPaymentFromDB(data);
         console.log("Payment added successfully:", newPayment);
         setPayments(prevPayments => [...prevPayments, newPayment]);
+        
+        // Immediately refresh payments to ensure UI is updated
+        await refreshPayments();
+        
         return newPayment;
       }
     } catch (error) {
@@ -172,6 +189,7 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
     updatePayment,
     deletePayment,
     getPaymentsByRegistration,
+    refreshPayments,
     loading
   };
 

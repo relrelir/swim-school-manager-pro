@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { toast } from "@/components/ui/use-toast";
 import { Registration, Payment } from '@/types';
+import { usePaymentsContext } from '@/context/data/PaymentsProvider';
 
 export const usePaymentHandlers = (
   addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void, 
@@ -9,6 +10,7 @@ export const usePaymentHandlers = (
   getRegistrationsByProduct: (productId: string) => Registration[],
 ) => {
   const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
+  const { refreshPayments } = usePaymentsContext();
 
   // Handle adding a new payment
   const handleAddPayment = async (
@@ -72,6 +74,9 @@ export const usePaymentHandlers = (
     const addedPayment = await addPayment(payment);
     console.log("Payment added:", addedPayment);
     
+    // Make sure to refresh payments data in the context
+    await refreshPayments();
+    
     // Update the registration's paidAmount
     let updatedRegistrations: Registration[] = [];
     if (productId) {
@@ -120,7 +125,7 @@ export const usePaymentHandlers = (
     discountAmount: number, 
     setIsAddPaymentOpen: (open: boolean) => void,
     productId?: string,
-    registrationId?: string // Add registrationId parameter
+    registrationId?: string
   ): Promise<Registration[]> => {
     // Check if we have a registration ID
     if (!registrationId && !currentRegistration?.id) {

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Payment } from '@/types';
 import { formatCurrencyForTableUI } from '@/utils/formatters';
 
@@ -14,7 +14,12 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
   discountAmount,
   discountApproved
 }) => {
-  // Only show payments that have receipt numbers (actual payments)
+  // Debug info
+  useEffect(() => {
+    console.log("TablePaymentInfo rendering with payments:", payments);
+  }, [payments]);
+  
+  // Filter to only show payments that have receipt numbers (actual payments)
   const actualPayments = payments.filter(p => p.receiptNumber !== undefined && p.receiptNumber !== '');
   
   if (actualPayments.length === 0) {
@@ -24,7 +29,7 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
   return (
     <div className="space-y-1">
       {actualPayments.map((payment, idx) => (
-        <div key={idx} className="text-sm">
+        <div key={payment.id || idx} className="text-sm">
           {formatCurrencyForTableUI(payment.amount)}
           {idx === 0 && (
             <span className="text-xs text-muted-foreground ml-1">(ראשוני)</span>

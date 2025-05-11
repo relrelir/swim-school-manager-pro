@@ -30,8 +30,15 @@ export const useRegistrationHandlers = (
     // If we don't have a product, return
     if (!productId) return [];
     
+    console.log("Starting handleAddParticipant with data:", {
+      productId,
+      newParticipant,
+      registrationData
+    });
+    
     // Check if we have payment and ensure receipt number is provided
     if (registrationData.paidAmount > 0 && !registrationData.receiptNumber) {
+      console.error("Missing receipt number for payment");
       toast({
         title: "שגיאה",
         description: "מספר קבלה הוא שדה חובה כאשר מוזן סכום תשלום",
@@ -71,8 +78,8 @@ export const useRegistrationHandlers = (
       const addedRegistration = await addRegistration(newRegistration);
       console.log("Registration added:", addedRegistration);
       
-      // Add initial payment if amount is greater than 0
-      if (registrationData.paidAmount > 0 && addedRegistration) {
+      // Add initial payment if amount is greater than 0 and we have a registration
+      if (registrationData.paidAmount > 0 && addedRegistration && registrationData.receiptNumber) {
         console.log("Adding initial payment for new participant:", {
           registrationId: addedRegistration.id,
           amount: registrationData.paidAmount,
@@ -88,16 +95,26 @@ export const useRegistrationHandlers = (
         
         // Wait for the payment to be added
         try {
+          console.log("About to add payment with data:", initialPayment);
           const addedPayment = await addPayment(initialPayment);
           
           if (addedPayment) {
             console.log("Initial payment added successfully:", addedPayment);
+            
+            // Let's manually wait a moment to ensure the payment is processed
+            await new Promise(resolve => setTimeout(resolve, 500));
           } else {
-            console.error("Failed to add initial payment");
+            console.error("Failed to add initial payment - addPayment returned undefined");
           }
         } catch (error) {
           console.error("Error adding initial payment:", error);
         }
+      } else {
+        console.log("No initial payment needed or missing data:", {
+          paidAmount: registrationData.paidAmount,
+          hasRegistration: !!addedRegistration,
+          receiptNumber: registrationData.receiptNumber
+        });
       }
       
       // Add success toast notification

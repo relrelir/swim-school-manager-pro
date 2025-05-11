@@ -38,6 +38,13 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
   const isPaidAmountProvided = registrationData.paidAmount > 0;
   const isReceiptNumberRequired = isPaidAmountProvided;
   
+  // Log validation state for debugging
+  React.useEffect(() => {
+    console.log("AddParticipantDialog - isPaidAmountProvided:", isPaidAmountProvided);
+    console.log("AddParticipantDialog - receiptNumber:", registrationData.receiptNumber);
+    console.log("AddParticipantDialog - isReceiptNumberRequired:", isReceiptNumberRequired);
+  }, [isPaidAmountProvided, registrationData.receiptNumber, isReceiptNumberRequired]);
+  
   return <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
@@ -106,7 +113,9 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="receipt-number">מספר קבלה {isReceiptNumberRequired && <span className="text-red-500">*</span>}</Label>
+                <Label htmlFor="receipt-number">
+                  מספר קבלה {isReceiptNumberRequired && <span className="text-red-500">*</span>}
+                </Label>
                 <Input 
                   id="receipt-number" 
                   value={registrationData.receiptNumber} 
@@ -116,6 +125,7 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
                     discountApproved: registrationData.discountApproved
                   })} 
                   required={isReceiptNumberRequired}
+                  className={isPaidAmountProvided && !registrationData.receiptNumber ? "border-red-500" : ""}
                 />
                 {isPaidAmountProvided && (
                   <p className="text-xs text-red-500">מספר קבלה הוא שדה חובה כאשר יש תשלום</p>
@@ -124,7 +134,11 @@ const AddParticipantDialog: React.FC<AddParticipantDialogProps> = ({
             </div>
           </div>
           <DialogFooter className="mt-4">
-            <Button type="submit">רשום משתתף</Button>
+            <Button 
+              type="submit"
+              disabled={isPaidAmountProvided && !registrationData.receiptNumber}>
+                רשום משתתף
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
