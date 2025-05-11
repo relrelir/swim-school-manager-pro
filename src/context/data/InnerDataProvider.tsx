@@ -24,6 +24,7 @@ import {
   promisifyDeletePayment,
   promisifyUpdateHealthDeclaration
 } from './utils/promiseWrappers';
+import { useHealthDeclarationsContext } from './healthDeclarations/useHealthDeclarations';
 
 // Create an inner provider that depends on the outer providers
 const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
@@ -64,6 +65,10 @@ const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) 
     loading
   } = useDataContextConnections();
 
+  // Get health declaration functions directly from context
+  const healthDeclarationsContext = useHealthDeclarationsContext();
+  const { getHealthDeclarationForRegistration } = healthDeclarationsContext;
+
   const contextValue: DataContextProps = {
     seasons,
     products,
@@ -103,6 +108,7 @@ const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) 
     getProductsBySeason,
     getProductsByPool,
     getHealthDeclarationByParticipant: (participantId: string) => getHealthDeclarationByParticipant(healthDeclarations, participantId),
+    getHealthDeclarationForRegistration,
     getPoolsBySeason,
     getPoolById: (id: string) => getPoolById(pools, id),
     getDailyActivities: (date: string) => getDailyActivities(date, products, getRegistrationsByProduct),

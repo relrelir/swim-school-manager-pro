@@ -34,6 +34,7 @@ export interface DataContextProps {
   getProductsBySeason: (seasonId: string) => Product[];
   getProductsByPool: (poolId: string) => Product[];
   getHealthDeclarationByParticipant: (participantId: string) => HealthDeclaration | undefined;
+  getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   getPoolsBySeason: (seasonId: string) => Pool[];
   getPoolById: (id: string) => Pool | undefined;
   getDailyActivities: (date: string) => DailyActivity[];
