@@ -1,3 +1,4 @@
+
 import { Product, Registration, Participant, Season, Pool, Payment, HealthDeclaration } from '@/types';
 import { getAllRegistrationsWithDetails } from '@/utils/registrationUtils';
 import { calculateMeetingProgress, getDailyActivities } from '@/utils/activityUtils';
@@ -35,9 +36,7 @@ export const buildAllRegistrationsWithDetails = async (
   payments,
   getPaymentsByRegistration
 ) => {
-  // This function must be adjusted to handle the async nature of getPaymentsByRegistration
-  // Since we don't have the full implementation, we're creating a basic outline
-  
+  // This function handles the async nature of getPaymentsByRegistration
   const result = [];
   
   for (const registration of registrations) {
@@ -45,16 +44,28 @@ export const buildAllRegistrationsWithDetails = async (
     const product = products.find(p => p.id === registration.productId);
     const season = product ? seasons.find(s => s.id === product.seasonId) : null;
     
-    // Now we need to await the payments
-    const registrationPayments = await getPaymentsByRegistration(registration.id);
-    
-    result.push({
-      registration,
-      participant,
-      product,
-      season,
-      payments: registrationPayments
-    });
+    try {
+      // Now we need to await the payments
+      const registrationPayments = await getPaymentsByRegistration(registration.id);
+      
+      result.push({
+        registration,
+        participant,
+        product,
+        season,
+        payments: registrationPayments
+      });
+    } catch (error) {
+      console.error(`Error fetching payments for registration ${registration.id}:`, error);
+      // Still add the registration even if payments couldn't be fetched
+      result.push({
+        registration,
+        participant,
+        product,
+        season,
+        payments: []
+      });
+    }
   }
   
   return result;

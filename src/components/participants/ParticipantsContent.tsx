@@ -14,7 +14,7 @@ interface ParticipantsContentProps {
   totalPaid: number;
   registrationsFilled: number;
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registration: Registration | string) => Payment[]; 
+  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>; // Updated to Promise<Payment[]>
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   calculatePaymentStatus: (registration: Registration) => PaymentStatusDetails;
   getStatusClassName: (status: string) => string;

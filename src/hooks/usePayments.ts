@@ -1,5 +1,5 @@
 
-import { usePaymentsContext } from '@/context/data/PaymentsProvider';
+import { usePaymentsContext } from '@/context/data/payments/PaymentsContext';
 
 export const usePayments = () => {
   return usePaymentsContext();

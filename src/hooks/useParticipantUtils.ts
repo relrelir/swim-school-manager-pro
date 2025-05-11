@@ -12,7 +12,8 @@ export const useParticipantUtils = (
   };
 
   // Get payments for a registration - accepting either Registration object or string ID
-  const getPaymentsForRegistration = (registration: Registration | string): Payment[] => {
+  // This now returns a Promise to match the updated PaymentsProvider
+  const getPaymentsForRegistration = async (registration: Registration | string): Promise<Payment[]> => {
     const registrationId = typeof registration === 'string' ? registration : registration.id;
     const registrationPayments = payments.filter(payment => payment.registrationId === registrationId);
     console.log(`Getting ${registrationPayments.length} payments for registration ${registrationId}`);
