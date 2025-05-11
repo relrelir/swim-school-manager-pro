@@ -26,12 +26,19 @@ const PoolCard: React.FC<PoolCardProps> = ({
   onDelete
 }) => {
   const isDeleting = deletingPoolId === pool.id;
-  const isDisabled = loading || isDeleting || hasProducts;
+  const isDeleteDisabled = loading || isDeleting || hasProducts;
+  
+  console.log(`PoolCard: pool ${pool.id} (${pool.name}), hasProducts: ${hasProducts}, disabled: ${isDeleteDisabled}`);
   
   return (
     <Card key={pool.id} className="bg-white shadow-md hover:shadow-lg transition-shadow">
       <CardContent className="pt-6">
         <h2 className="text-xl font-semibold">{pool.name}</h2>
+        {hasProducts && (
+          <div className="mt-2 text-sm text-gray-500">
+            מכיל מוצרים
+          </div>
+        )}
       </CardContent>
       <CardFooter className="bg-gray-50 flex flex-wrap gap-2 justify-end">
         <Button variant="outline" size="sm" onClick={() => onNavigateToProducts(pool.id)}>
@@ -49,7 +56,8 @@ const PoolCard: React.FC<PoolCardProps> = ({
                   variant="outline" 
                   size="sm" 
                   onClick={() => onDelete(pool.id)}
-                  disabled={isDisabled}
+                  disabled={isDeleteDisabled}
+                  className={hasProducts ? "cursor-not-allowed opacity-50" : ""}
                 >
                   {isDeleting ? (
                     <>

@@ -3,20 +3,17 @@ import { Pool, Product } from '@/types';
 import { usePoolsContext } from '@/context/data/pools/usePoolsContext';
 import { toast } from '@/components/ui/use-toast';
 import { mapProductsToPools } from '@/hooks/utils/mapProductsToPools';
+import { useData } from '@/context/DataContext';
 
 export function usePools(seasonId?: string) {
   const { pools, addPool, updatePool, deletePool, getPoolsBySeason, loading: poolsLoading } = usePoolsContext();
+  const { products, getProductsByPool } = useData(); // Get products data from DataContext
+  
   const [isAddPoolDialogOpen, setIsAddPoolDialogOpen] = useState(false);
   const [editingPool, setEditingPool] = useState<Pool | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [poolsWithProducts, setPoolsWithProducts] = useState<Record<string, boolean>>({});
   const [loadingPoolProducts, setLoadingPoolProducts] = useState(true);
-
-  // Get products context to check which pools have products
-  const { getProductsByPool, products } = usePoolsContext() as {
-    getProductsByPool?: (poolId: string) => Product[],
-    products: Product[]
-  };
   
   // Filter pools by season if seasonId is provided
   const seasonPools = useMemo(() => {
@@ -34,18 +31,23 @@ export function usePools(seasonId?: string) {
         
         // If we have the getProductsByPool helper, use it
         if (getProductsByPool) {
+          console.log("Using getProductsByPool to determine pool products");
           // For each pool, check if it has products
           for (const pool of seasonPools) {
+            if (!pool) continue;
             const poolProducts = getProductsByPool(pool.id);
-            poolMap[pool.id] = poolProducts.length > 0;
+            poolMap[pool.id] = poolProducts && poolProducts.length > 0;
+            console.log(`Pool ${pool.id} (${pool.name}) has ${poolProducts?.length || 0} products, hasProducts: ${poolMap[pool.id]}`);
           }
         } else {
+          console.log("Using mapProductsToPools to determine pool products");
           // Otherwise use the product list directly
           const poolCounts = mapProductsToPools(products, seasonPools);
           
           // Convert counts to boolean map
           for (const poolId in poolCounts) {
             poolMap[poolId] = poolCounts[poolId] > 0;
+            console.log(`Pool ${poolId} has ${poolCounts[poolId]} products, hasProducts: ${poolMap[poolId]}`);
           }
         }
         
@@ -115,11 +117,11 @@ export function usePools(seasonId?: string) {
           return false;
         } else {
           console.log('Delete pool succeeded for ID:', id);
-          
-          // Force refetch of pools to ensure UI is in sync with database
-          const { fetchPools } = await import('@/context/data/pools/poolsService');
-          const updatedPools = await fetchPools();
-          console.log('Fetched updated pools after deletion:', updatedPools);
+          toast({
+            title: "בריכה נמחקה",
+            description: "הבריכה נמחקה בהצלחה",
+            variant: "default",
+          });
           return true;
         }
       } finally {

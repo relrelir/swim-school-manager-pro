@@ -19,7 +19,7 @@ export const usePoolsPage = () => {
     handleAddPool,
     handleUpdatePool,
     handleDeletePool,
-    poolsWithProducts
+    poolsWithProducts: hookPoolsWithProducts
   } = usePools(seasonId);
 
   const [isEditPoolDialogOpen, setIsEditPoolDialogOpen] = useState(false);
@@ -27,18 +27,22 @@ export const usePoolsPage = () => {
   
   const currentSeason = seasons.find(s => s.id === seasonId);
 
-  // Calculate which pools have products
+  // Calculate which pools have products - directly use the hook's calculated value
+  // but also maintain our own state for backup
   const [calculatedPoolsWithProducts, setCalculatedPoolsWithProducts] = useState<Record<string, boolean>>({});
   
   useEffect(() => {
-    if (!getProductsByPool || !pools) return;
+    if (!getProductsByPool || !pools || !pools.length) return;
     
+    console.log("UsePoolsPage: Calculating pools with products");
     const poolMap: Record<string, boolean> = {};
     
     // For each pool, check if it has products
     pools.forEach(pool => {
       const poolProducts = getProductsByPool(pool.id);
-      poolMap[pool.id] = poolProducts.length > 0;
+      const hasProducts = poolProducts && poolProducts.length > 0;
+      poolMap[pool.id] = hasProducts;
+      console.log(`UsePoolsPage: Pool ${pool.id} (${pool.name}) has ${poolProducts?.length || 0} products: ${hasProducts}`);
     });
     
     setCalculatedPoolsWithProducts(poolMap);
@@ -63,14 +67,25 @@ export const usePoolsPage = () => {
   };
 
   const handlePoolDelete = async (poolId: string) => {
+    console.log('UsePoolsPage: Delete requested for pool ID:', poolId);
+    const hasProducts = finalPoolsWithProducts[poolId];
+    console.log(`UsePoolsPage: Pool ${poolId} has products: ${hasProducts}`);
+    
+    if (hasProducts) {
+      console.log('UsePoolsPage: Cannot delete pool with products');
+      return;
+    }
+    
     setDeletingPoolId(poolId);
-    await handleDeletePool(poolId);
+    const result = await handleDeletePool(poolId);
     setDeletingPoolId(null);
+    
+    console.log(`UsePoolsPage: Delete result: ${result}`);
   };
 
   // Use either the calculated map or the one from usePools hook
-  const finalPoolsWithProducts = Object.keys(poolsWithProducts).length > 0 
-    ? poolsWithProducts 
+  const finalPoolsWithProducts = Object.keys(hookPoolsWithProducts).length > 0 
+    ? hookPoolsWithProducts 
     : calculatedPoolsWithProducts;
 
   return {
