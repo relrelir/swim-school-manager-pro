@@ -1,7 +1,6 @@
-
 import React, { createContext, useContext, useState } from 'react';
 import { Season, Product, Registration, Participant, Payment, RegistrationWithDetails, Pool, HealthDeclaration, DailyActivity } from '@/types';
-import { SeasonsProvider } from './data/SeasonsProvider';
+import { SeasonsProvider, useSeasonsContext } from './data/SeasonsProvider';
 import { ProductsProvider } from './data/ProductsProvider';
 import { ParticipantsProvider, useParticipantsContext } from './data/ParticipantsProvider';
 import { RegistrationsProvider } from './data/RegistrationsProvider';
@@ -72,7 +71,7 @@ export const useData = () => {
 // Create an inner provider that depends on the outer providers
 const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
   // Inside this component, we can safely use all the hooks that depend on the outer providers
-  const { seasons, addSeason, updateSeason, deleteSeason: deleteSeasonContext, loading: seasonsLoading } = useSeasons();
+  const { seasons, addSeason, updateSeason, deleteSeason: deleteSeasonContext, loading: seasonsLoading } = useSeasonsContext();
   
   // Explicitly define the type for useProducts
   const productsContext = useProducts();
@@ -226,9 +225,6 @@ const InnerDataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) 
     </DataContext.Provider>
   );
 };
-
-// Import the useSeasons hook here, after defining InnerDataProvider
-import { useSeasons } from '@/hooks/useSeasons';
 
 // This is the main provider that will be used in the app
 export const DataProvider: React.FC<React.PropsWithChildren<{}>> = ({ children }) => {
