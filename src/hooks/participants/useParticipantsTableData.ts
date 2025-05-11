@@ -4,6 +4,7 @@ import { Registration, Payment } from '@/types';
 
 /**
  * Hook to manage and calculate participant table data
+ * This will be completely reset per user request
  */
 export const useParticipantsTableData = (
   registrations: Registration[],
@@ -30,24 +31,19 @@ export const useParticipantsTableData = (
     }
     
     const paymentsMap: Record<string, Payment[]> = {};
-    let totalPaid = 0;
     
     try {
       for (const registration of registrations) {
         const payments = await getPaymentsForRegistration(registration);
         paymentsMap[registration.id] = payments;
-        
-        // Calculate actual paid amount from payments
-        const regPaidAmount = payments.reduce((sum, payment) => sum + Number(payment.amount), 0);
-        totalPaid += regPaidAmount;
       }
       
-      console.log(`Total actual paid amount from all payments: ${totalPaid}`);
       setRegistrationPayments(paymentsMap);
       
-      // Pass the calculated total back to parent if callback provided
+      // Reset the calculation logic as requested
+      // We'll wait for new instructions on how to calculate the totals
       if (onPaymentTotalsCalculated) {
-        onPaymentTotalsCalculated(totalPaid);
+        onPaymentTotalsCalculated(0); // Temporarily set to 0
       }
     } catch (error) {
       console.error('Failed to fetch payments for registrations:', error);

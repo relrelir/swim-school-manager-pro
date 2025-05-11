@@ -21,10 +21,8 @@ const ParticipantsPage: React.FC = () => {
   // Track the stable table-calculated total to avoid flickering
   const [tableCalculatedTotal, setTableCalculatedTotal] = useState<number | null>(null);
   
-  // Ensure we use the most accurate paid total
-  const displayPaidTotal = tableCalculatedTotal !== null 
-    ? tableCalculatedTotal 
-    : contentProps.totalPaid;
+  // Reset display total as requested
+  const displayPaidTotal = 0; // We'll update this based on new calculation instructions
 
   if (loading || !currentProduct) {
     return <div className="flex justify-center items-center h-screen">טוען...</div>;
@@ -52,14 +50,17 @@ const ParticipantsPage: React.FC = () => {
         product={currentProduct}
         activeCount={contentProps.totalParticipants - (contentProps.participants.filter(p => !p.healthApproval).length)}
         inactiveCount={contentProps.participants.filter(p => !p.healthApproval).length}
-        totalExpectedPayment={contentProps.totalExpected}
-        totalPaid={displayPaidTotal}
-        isCalculating={contentProps.isCalculating}
+        totalExpectedPayment={0} // Reset as requested
+        totalPaid={0} // Reset as requested
+        isCalculating={false}
       />
 
       <ParticipantsContent 
         {...contentProps} 
-        onPaymentTotalsCalculated={(total) => setTableCalculatedTotal(total)}
+        onPaymentTotalsCalculated={(total) => {
+          console.log("Payment totals calculation reset");
+          setTableCalculatedTotal(0);
+        }}
       />
       <ParticipantsDialogs {...dialogsProps} />
     </div>
