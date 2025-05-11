@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Registration, Participant, Payment } from '@/types';
-import { usePaymentHandlers } from './usePaymentHandlers';
+import { usePaymentHandlers } from './participants/handlers/usePaymentHandlers';
 import { useRegistrationHandlers } from './useRegistrationHandlers';
 
 export const useRegistrationManagement = (
@@ -96,6 +97,16 @@ export const useRegistrationManagement = (
     setNewPayment: (payment: any) => void
   ) => {
     e.preventDefault();
+    
+    // Make sure the payment has a registration ID
+    if (!newPayment.registrationId && currentRegistration) {
+      newPayment.registrationId = currentRegistration.id;
+    }
+    
+    if (!newPayment.registrationId) {
+      console.error("Missing registration ID for payment");
+      return registrations;
+    }
     
     const updatedRegistrations = await baseHandleAddPayment(
       e,

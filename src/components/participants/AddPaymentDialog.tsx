@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,16 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
   const [isDiscount, setIsDiscount] = useState(false);
   const [discountAmount, setDiscountAmount] = useState(0);
   const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
+  // Set registration ID when currentRegistration changes
+  useEffect(() => {
+    if (currentRegistration) {
+      setNewPayment(prev => ({
+        ...prev,
+        registrationId: currentRegistration.id
+      }));
+    }
+  }, [currentRegistration, setNewPayment]);
 
   // Calculate total paid including discount
   const calculateTotalPaid = (registration: Registration) => {
@@ -111,7 +121,11 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                         id="payment-amount"
                         type="number"
                         value={newPayment.amount}
-                        onChange={(e) => setNewPayment({ ...newPayment, amount: Number(e.target.value) })}
+                        onChange={(e) => setNewPayment({ 
+                          ...newPayment, 
+                          amount: Number(e.target.value), 
+                          registrationId: currentRegistration.id 
+                        })}
                         required
                         min={1}
                         className="ltr"
@@ -123,7 +137,11 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                       <Input
                         id="payment-receipt"
                         value={newPayment.receiptNumber}
-                        onChange={(e) => setNewPayment({ ...newPayment, receiptNumber: e.target.value })}
+                        onChange={(e) => setNewPayment({ 
+                          ...newPayment, 
+                          receiptNumber: e.target.value,
+                          registrationId: currentRegistration.id 
+                        })}
                         required
                       />
                     </div>
@@ -134,7 +152,11 @@ const AddPaymentDialog: React.FC<AddPaymentDialogProps> = ({
                         id="payment-date"
                         type="date"
                         value={newPayment.paymentDate}
-                        onChange={(e) => setNewPayment({ ...newPayment, paymentDate: e.target.value })}
+                        onChange={(e) => setNewPayment({ 
+                          ...newPayment, 
+                          paymentDate: e.target.value,
+                          registrationId: currentRegistration.id 
+                        })}
                         required
                         className="ltr"
                       />

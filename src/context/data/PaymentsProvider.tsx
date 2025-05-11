@@ -71,11 +71,12 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
 
       if (error) {
         handleSupabaseError(error, 'adding payment');
+        return undefined;
       }
 
       if (data) {
         const newPayment = mapPaymentFromDB(data);
-        setPayments([...payments, newPayment]);
+        setPayments(prevPayments => [...prevPayments, newPayment]);
         return newPayment;
       }
     } catch (error) {
