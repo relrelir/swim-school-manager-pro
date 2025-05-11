@@ -42,6 +42,11 @@ const TablePaymentInfo: React.FC<TablePaymentInfoProps> = ({
     return [];
   }, [payments, registration]);
   
+  // Calculate total payments for easier debugging
+  const totalPaymentAmount = useMemo(() => {
+    return displayPayments.reduce((sum, payment) => sum + Number(payment.amount), 0);
+  }, [displayPayments]);
+  
   if (displayPayments.length === 0) {
     return <span className="text-gray-500">-</span>;
   }

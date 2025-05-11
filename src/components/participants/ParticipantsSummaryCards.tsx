@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Product } from '@/types';
 import { Users, DollarSign, BadgeDollarSign, Plus, Minus } from 'lucide-react';
@@ -27,13 +28,33 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
   totalExpected,
   registrationsFilled
 }) => {
-  // Use either new or old props
-  const totalCount = totalParticipants || (activeCount + inactiveCount);
-  const expected = totalExpected || totalExpectedPayment;
-  const filled = registrationsFilled || (product?.maxParticipants ? Math.round((totalCount / product.maxParticipants) * 100) : 0);
-  
-  // Calculate difference between paid and expected
-  const difference = totalPaid - expected;
+  // Create stable memoized values to prevent flickering
+  const memoizedValues = useMemo(() => {
+    // Use either new or old props
+    const totalCount = totalParticipants || (activeCount + inactiveCount);
+    const expected = totalExpected || totalExpectedPayment;
+    const filled = registrationsFilled || 
+      (product?.maxParticipants ? Math.round((totalCount / product.maxParticipants) * 100) : 0);
+    
+    // Calculate difference between paid and expected
+    const difference = totalPaid - expected;
+    
+    return {
+      totalCount,
+      expected,
+      filled,
+      difference
+    };
+  }, [
+    totalParticipants, 
+    activeCount, 
+    inactiveCount, 
+    totalExpected, 
+    totalExpectedPayment, 
+    totalPaid,
+    product?.maxParticipants, 
+    registrationsFilled
+  ]);
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
@@ -41,12 +62,12 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
         <CardContent className="p-4 flex flex-col items-center">
           <div className="flex items-center gap-2">
             <Users className="h-5 w-5 text-primary" />
-            <div className="text-2xl font-bold">{totalCount}</div>
+            <div className="text-2xl font-bold">{memoizedValues.totalCount}</div>
           </div>
           <div className="text-sm text-gray-500">סה״כ רישומים</div>
           {product && (
             <div className="text-xs text-muted-foreground">
-              מתוך {product.maxParticipants} מקומות ({filled}%)
+              מתוך {product.maxParticipants} מקומות ({memoizedValues.filled}%)
             </div>
           )}
         </CardContent>
@@ -57,7 +78,7 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
           <div className="flex items-center gap-2">
             <DollarSign className="h-5 w-5 text-primary" />
             <div className="text-2xl font-bold">
-              {expected.toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })}
+              {memoizedValues.expected.toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })}
             </div>
           </div>
           <div className="text-sm text-gray-500">סה״כ לתשלום (אחרי הנחות)</div>
@@ -82,12 +103,12 @@ const ParticipantsSummaryCards: React.FC<ParticipantsSummaryCardsProps> = ({
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
           <div className="flex items-center gap-2">
-            {difference >= 0 ? 
+            {memoizedValues.difference >= 0 ? 
               <Plus className="h-5 w-5 text-green-600" /> : 
               <Minus className="h-5 w-5 text-red-600" />
             }
-            <div className={`text-2xl font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {Math.abs(difference).toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })}
+            <div className={`text-2xl font-bold ${memoizedValues.difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {Math.abs(memoizedValues.difference).toLocaleString('he-IL', { style: 'currency', currency: 'ILS' })}
             </div>
           </div>
           <div className="text-sm text-gray-500">הפרש</div>

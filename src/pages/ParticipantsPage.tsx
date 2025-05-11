@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useParticipantsPage } from "@/hooks/useParticipantsPage";
 import ParticipantsBreadcrumb from "@/components/participants/ParticipantsBreadcrumb";
 import ParticipantsPageHeader from "@/components/participants/ParticipantsPageHeader";
@@ -17,6 +17,14 @@ const ParticipantsPage: React.FC = () => {
     handleBackToProducts,
     setIsAddParticipantOpen
   } = useParticipantsPage();
+
+  // Track the stable table-calculated total to avoid flickering
+  const [tableCalculatedTotal, setTableCalculatedTotal] = useState<number | null>(null);
+  
+  // Ensure we use the most accurate paid total
+  const displayPaidTotal = tableCalculatedTotal !== null 
+    ? tableCalculatedTotal 
+    : contentProps.totalPaid;
 
   if (loading || !currentProduct) {
     return <div className="flex justify-center items-center h-screen">טוען...</div>;
@@ -45,11 +53,14 @@ const ParticipantsPage: React.FC = () => {
         activeCount={contentProps.totalParticipants - (contentProps.participants.filter(p => !p.healthApproval).length)}
         inactiveCount={contentProps.participants.filter(p => !p.healthApproval).length}
         totalExpectedPayment={contentProps.totalExpected}
-        totalPaid={contentProps.totalPaid}
+        totalPaid={displayPaidTotal}
         isCalculating={contentProps.isCalculating}
       />
 
-      <ParticipantsContent {...contentProps} />
+      <ParticipantsContent 
+        {...contentProps} 
+        onPaymentTotalsCalculated={(total) => setTableCalculatedTotal(total)}
+      />
       <ParticipantsDialogs {...dialogsProps} />
     </div>
   );
