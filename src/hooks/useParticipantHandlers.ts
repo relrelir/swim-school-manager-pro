@@ -1,67 +1,52 @@
 
 import { Registration, Participant } from '@/types';
-import { useAddParticipantHandlers } from './participants/handlers/useAddParticipantHandlers';
+import { useAddParticipantHandler } from './participants/handlers/useAddParticipantHandler';
 import { usePaymentHandlers } from './participants/handlers/usePaymentHandlers';
-import { useHealthHandlers } from './participants/handlers/useHealthHandlers';
-import { useRegistrationHandlers } from './participants/handlers/useRegistrationHandlers';
+import { useHealthFormHandlers } from './participants/handlers/useHealthFormHandlers';
 
 /**
  * Composition hook for all participant-related handlers
  */
 export const useParticipantHandlers = (
-  productId: string | undefined,
-  dataContext: any,
-  setIsAddParticipantOpen: (open: boolean) => void,
-  setIsAddPaymentOpen: (open: boolean) => void,
-  setRefreshTrigger: (value: React.SetStateAction<number>) => void,
-  resetForm: () => void,
-  currentRegistration: Registration | null,
-  newParticipant: Omit<Participant, 'id'>,
+  baseHandleOpenHealthForm: (registrationId: string) => void,
+  baseHandleAddParticipant: (
+    e: React.FormEvent, 
+    newParticipant: any, 
+    registrationData: any, 
+    resetForm: () => void, 
+    setIsAddParticipantOpen: (open: boolean) => void,
+    getParticipantForRegistration: (registration: Registration) => Participant | undefined
+  ) => any,
+  baseHandleAddPayment: (
+    e: React.FormEvent,
+    newPayment: any,
+    setIsAddPaymentOpen: (open: boolean) => void,
+    setNewPayment: any
+  ) => any,
+  baseHandleApplyDiscount: (amount: number, setIsAddPaymentOpen: (open: boolean) => void, registrationId?: string) => any,
+  newParticipant: any,
   registrationData: any,
-  newPayment: any,
-  setCurrentHealthDeclaration: React.Dispatch<React.SetStateAction<any>>,
-  setNewPayment: React.Dispatch<React.SetStateAction<any>>,
-  addParticipant: (participant: Omit<Participant, 'id'>) => Promise<Participant | undefined>,
-  updateParticipant: (participant: Participant) => void
+  getParticipantForRegistration: (registration: Registration) => Participant | undefined,
+  registrations: Registration[]
 ) => {
-  const { handleOpenHealthForm, handleUpdateHealthApproval } = useHealthHandlers(
-    dataContext,
-    setRefreshTrigger,
-    setCurrentHealthDeclaration,
-    updateParticipant
-  );
+  const { handleOpenHealthForm } = useHealthFormHandlers(baseHandleOpenHealthForm);
   
-  const { handleAddParticipant } = useAddParticipantHandlers(
-    productId, 
-    dataContext, 
-    setIsAddParticipantOpen, 
-    setRefreshTrigger, 
-    resetForm, 
-    newParticipant, 
+  const { handleAddParticipant } = useAddParticipantHandler(
+    baseHandleAddParticipant,
+    newParticipant,
     registrationData,
-    addParticipant
+    getParticipantForRegistration
   );
   
   const { handleAddPayment, handleApplyDiscount } = usePaymentHandlers(
-    currentRegistration,
-    dataContext,
-    setIsAddPaymentOpen,
-    setRefreshTrigger,
-    newPayment,
-    setNewPayment
-  );
-  
-  const { handleDeleteRegistration } = useRegistrationHandlers(
-    dataContext,
-    setRefreshTrigger
+    baseHandleAddPayment,
+    baseHandleApplyDiscount
   );
 
   return {
     handleOpenHealthForm,
     handleAddParticipant,
     handleAddPayment,
-    handleApplyDiscount,
-    handleDeleteRegistration,
-    handleUpdateHealthApproval
+    handleApplyDiscount
   };
 };
