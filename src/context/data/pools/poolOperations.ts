@@ -4,30 +4,27 @@ import { Pool } from '@/types';
 import * as poolsService from './poolsService';
 
 export const createAddPoolOperation = (
-  setPools: React.Dispatch<React.SetStateAction<Pool[]>>,
-  setSeasonPools: React.Dispatch<React.SetStateAction<{ seasonId: string; poolId: string }[]>>
+  setPools: React.Dispatch<React.SetStateAction<Pool[]>>
 ) => {
   return async (
-    pool: Omit<Pool, 'id' | 'createdAt' | 'updatedAt'> & { seasonId?: string; seasonIds?: string[] }
+    pool: Omit<Pool, 'id' | 'createdAt' | 'updatedAt'> & { seasonIds?: string[] }
   ): Promise<Pool | undefined> => {
     try {
-      // Ensure we have seasonIds array to work with
-      const seasonIdsArray = pool.seasonIds || (pool.seasonId ? [pool.seasonId] : []);
+      // Make sure we have a seasonId
+      if (!pool.seasonId) {
+        toast({
+          title: 'שגיאה',
+          description: 'חייב לבחור עונה לבריכה',
+          variant: 'destructive'
+        });
+        return;
+      }
       
-      // 1. Create pool
-      const newPool = await poolsService.createPool(pool.name);
+      // Create pool with direct seasonId
+      const newPool = await poolsService.createPool(pool.name, pool.seasonId);
       if (!newPool) return;
 
-      // 2. Link to seasons
-      for (const seasonId of seasonIdsArray) {
-        await poolsService.linkPoolToSeason(newPool.id, seasonId);
-      }
-
       setPools(prev => [...prev, newPool]);
-      setSeasonPools(prev => [
-        ...prev,
-        ...seasonIdsArray.map(id => ({ seasonId: id, poolId: newPool.id }))
-      ]);
 
       toast({
         title: 'בריכה נוספה',
@@ -74,8 +71,7 @@ export const createUpdatePoolOperation = (
 };
 
 export const createDeletePoolOperation = (
-  setPools: React.Dispatch<React.SetStateAction<Pool[]>>,
-  setSeasonPools: React.Dispatch<React.SetStateAction<{ seasonId: string; poolId: string }[]>>
+  setPools: React.Dispatch<React.SetStateAction<Pool[]>>
 ) => {
   return async (id: string): Promise<void> => {
     try {
@@ -91,12 +87,11 @@ export const createDeletePoolOperation = (
         return;
       }
 
-      // Delete season links and pool
-      const success = await poolsService.deletePoolAndLinks(id);
+      // Delete pool
+      const success = await poolsService.deletePool(id);
       if (!success) return;
 
       setPools(prev => prev.filter(p => p.id !== id));
-      setSeasonPools(prev => prev.filter(sp => sp.poolId !== id));
 
       toast({
         title: 'בריכה נמחקה',

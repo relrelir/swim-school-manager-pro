@@ -11,16 +11,14 @@ export const PoolsProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const { 
     pools, 
     setPools, 
-    seasonPools, 
-    setSeasonPools, 
     loading, 
     getPoolsBySeason 
   } = usePoolsState();
 
   // Create operations using the extracted functions
-  const addPool = createAddPoolOperation(setPools, setSeasonPools);
+  const addPool = createAddPoolOperation(setPools);
   const updatePool = createUpdatePoolOperation(setPools);
-  const deletePool = createDeletePoolOperation(setPools, setSeasonPools);
+  const deletePool = createDeletePoolOperation(setPools);
 
   // Combine everything into the context value
   const contextValue: PoolsContextType = {

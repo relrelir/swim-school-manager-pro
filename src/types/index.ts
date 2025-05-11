@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -36,15 +35,10 @@ export interface Season {
   endDate: string;
 }
 
-export interface SeasonPool {
-  seasonId: string;
-  poolId:   string;
-}
-
 export interface Pool {
   id: string;
   name: string;
-  // seasonId: string; - removed as per requirements
+  seasonId: string; // Now this is required
   createdAt: string;
   updatedAt: string;
 }
