@@ -4,7 +4,6 @@ import { Registration, Participant, Payment, HealthDeclaration, PaymentStatus } 
 import ParticipantsSummaryCards from '@/components/participants/ParticipantsSummaryCards';
 import ParticipantsTable from '@/components/participants/ParticipantsTable';
 import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
-import { calculatePaymentStatus as calculatePaymentStatusUtil } from '@/utils/paymentUtils';
 
 interface ParticipantsContentProps {
   registrations: Registration[];
