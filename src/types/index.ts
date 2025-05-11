@@ -1,4 +1,3 @@
-
 export interface User {
   id: string;
   email: string;
@@ -88,7 +87,7 @@ export interface HealthDeclaration {
   form_status: 'pending' | 'signed' | 'expired' | 'completed';
   submission_date?: string;
   created_at: string;
-  updated_at: string;
+  updated_at: string; // Added this required field
   notes?: string;
   signature?: string; // Signature field is already defined here
   

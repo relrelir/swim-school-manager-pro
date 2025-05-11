@@ -13,8 +13,9 @@ interface ParticipantsContentProps {
   totalExpected: number;
   totalPaid: number;
   registrationsFilled: number;
+  isCalculating?: boolean; // Add this missing property
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>; // Updated to Promise<Payment[]>
+  getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>;
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   calculatePaymentStatus: (registration: Registration) => PaymentStatusDetails;
   getStatusClassName: (status: string) => string;

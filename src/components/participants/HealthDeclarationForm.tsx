@@ -53,15 +53,17 @@ const HealthDeclarationForm: React.FC<HealthDeclarationFormProps> = ({
         // Create a new health declaration with all required fields in the correct format
         console.log('Creating new health declaration with registrationId:', registrationId);
         
+        const now = new Date().toISOString();
         const newDeclaration = await addHealthDeclaration({
           // CRITICAL: participant_id must be set to registrationId
           participant_id: registrationId,
           registrationId: registrationId,
           form_status: 'pending',
           formStatus: 'pending',
-          created_at: new Date().toISOString(),
+          created_at: now,
+          updated_at: now, // Add the required updated_at field
           token: '',
-          sentAt: new Date().toISOString()
+          sentAt: now
         });
         
         if (newDeclaration) {
