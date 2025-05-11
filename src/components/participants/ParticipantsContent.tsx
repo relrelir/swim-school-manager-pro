@@ -13,7 +13,7 @@ interface ParticipantsContentProps {
   totalExpected: number;
   totalPaid: number;
   registrationsFilled: number;
-  isCalculating?: boolean; // Add this missing property
+  isCalculating: boolean; // Ensure this is properly defined
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
   getPaymentsForRegistration: (registration: Registration | string) => Promise<Payment[]>;
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
@@ -36,6 +36,7 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
   totalExpected,
   totalPaid,
   registrationsFilled,
+  isCalculating,
   getParticipantForRegistration,
   getPaymentsForRegistration,
   getHealthDeclarationForRegistration,

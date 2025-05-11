@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useData } from '@/context/DataContext';
-import { ReportTable } from '@/components/reports/ReportTable';
+import ReportTable from '@/components/reports/ReportTable';
 import { RegistrationWithDetails } from '@/types';
 
 const ReportPage: React.FC = () => {
