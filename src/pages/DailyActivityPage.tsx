@@ -9,14 +9,21 @@ import { calculateMeetingNumberForDate } from '@/utils/meetingCalculations';
 import DailyActivitySummaryCards from '@/components/daily-activity/DailyActivitySummaryCards';
 import DateSelector from '@/components/daily-activity/DateSelector';
 import ActivitiesTable from '@/components/daily-activity/ActivitiesTable';
+import PoolSelector from '@/components/daily-activity/PoolSelector';
 
 const DailyActivityPage: React.FC = () => {
-  const { getDailyActivities } = useData();
+  const { getDailyActivities, pools } = useData();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedPoolId, setSelectedPoolId] = useState<string>('all');
 
   // Convert the date to a string format for the getDailyActivities function
   const dateString = format(selectedDate, 'yyyy-MM-dd');
-  const activities = getDailyActivities(dateString);
+  const allActivities = getDailyActivities(dateString);
+  
+  // Filter activities by pool if a pool is selected
+  const activities = selectedPoolId === 'all' 
+    ? allActivities 
+    : allActivities.filter(activity => activity.product.poolId === selectedPoolId);
 
   // Format the activities with the required data for export
   const getFormattedActivities = () => {
@@ -59,6 +66,14 @@ const DailyActivityPage: React.FC = () => {
             ייצוא לאקסל
           </Button>
         </div>
+      </div>
+
+      <div className="mb-6">
+        <PoolSelector 
+          selectedPoolId={selectedPoolId}
+          onPoolChange={setSelectedPoolId}
+          pools={pools}
+        />
       </div>
 
       <DailyActivitySummaryCards 
