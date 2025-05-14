@@ -26,11 +26,11 @@ const Header = () => {
     <header className="bg-primary text-white py-3 px-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-reverse space-x-3">
-          <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
+          <div className="h-8 w-8 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
             <img 
               src="/images/inbar-logo.png" 
               alt="ענבר במדבר" 
-              className="h-8 w-8 object-contain"
+              className="h-6 w-6 object-contain"
             />
           </div>
           <div>

@@ -6,7 +6,7 @@ import { logoBase64 } from '../logoData';
 /**
  * Adds a logo to the PDF document
  */
-export const addPdfLogo = (pdf: jsPDF, x: number = 20, y: number = 15, width: number = 25): void => {
+export const addPdfLogo = (pdf: jsPDF, x: number = 20, y: number = 15, width: number = 20): void => {
   try {
     pdf.addImage(logoBase64, 'PNG', pdf.internal.pageSize.width - x - width, y, width, width);
   } catch (error) {
