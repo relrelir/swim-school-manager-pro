@@ -1,6 +1,19 @@
 
 import { jsPDF } from 'jspdf';
 import { configureDocumentStyle } from '../pdfConfig';
+import { logoBase64 } from '../logoData';
+
+/**
+ * Adds a logo to the PDF document
+ */
+export const addPdfLogo = (pdf: jsPDF, x: number = 20, y: number = 15, width: number = 25): void => {
+  try {
+    pdf.addImage(logoBase64, 'PNG', pdf.internal.pageSize.width - x - width, y, width, width);
+  } catch (error) {
+    console.error('Error adding logo to PDF:', error);
+    // Continue without logo if there's an error
+  }
+};
 
 /**
  * Adds a title to the PDF document

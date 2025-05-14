@@ -26,10 +26,12 @@ const Header = () => {
     <header className="bg-primary text-white py-3 px-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center space-x-reverse space-x-3">
-          <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M2 15c6.667-6 13.333 0 20-6M9 22c0-4.418-1.791-8-4-8s-4 3.582-4 8M15 22c0-4.418 1.791-8 4-8s4 3.582 4 8"></path>
-            </svg>
+          <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
+            <img 
+              src="/images/inbar-logo.png" 
+              alt="ענבר במדבר" 
+              className="h-8 w-8 object-contain"
+            />
           </div>
           <div>
             <h1 className="text-xl font-alef font-bold">בית ספר לשחייה - ניהול</h1>

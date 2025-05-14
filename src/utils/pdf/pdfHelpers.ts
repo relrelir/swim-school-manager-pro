@@ -7,7 +7,8 @@ export {
   createPdf,
   addPdfTitle,
   addPdfDate,
-  addSectionTitle
+  addSectionTitle,
+  addPdfLogo
 } from './core/index';
 
 // Content detection helpers
