@@ -6,8 +6,7 @@ import {
   addPdfDate, 
   addSectionTitle, 
   createDataTable,
-  createPlainTextTable,
-  addPdfLogo
+  createPlainTextTable
 } from './pdfHelpers';
 import { parseMedicalNotes, getDeclarationItems } from './healthDeclarationParser';
 import { forceLtrDirection } from './helpers/textDirection';
@@ -42,9 +41,6 @@ export const buildHealthDeclarationPDF = (
   participant: ParticipantData
 ): string => {
   try {
-    // Add the logo at the top right corner
-    addPdfLogo(pdf);
-    
     // Add title - Hebrew title works correctly with global RTL
     addPdfTitle(pdf, 'הצהרת בריאות');
     

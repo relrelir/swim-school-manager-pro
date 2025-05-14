@@ -3,7 +3,7 @@ import { jsPDF } from 'jspdf';
 import { Registration, Participant, Payment } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
-import { addPdfTitle, addPdfDate, addSectionTitle, createDataTable, createPlainTextTable, addPdfLogo } from './pdfHelpers';
+import { addPdfTitle, addPdfDate, addSectionTitle, createDataTable, createPlainTextTable } from './pdfHelpers';
 import { processTextDirection, forceLtrDirection } from './helpers/textDirection';
 
 /**
@@ -19,9 +19,6 @@ export function buildRegistrationPDF(
 ): string {
   try {
     console.log("Building registration PDF with enhanced bidirectional text support...");
-    
-    // Add the logo at the top right corner
-    addPdfLogo(pdf);
     
     // Format current date for display - use explicit format with day first
     // Apply strongest possible LTR control for date display
