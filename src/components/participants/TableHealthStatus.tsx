@@ -66,11 +66,21 @@ const TableHealthStatus: React.FC<TableHealthStatusProps> = ({
     try {
       const link = await createHealthDeclarationLink(registration.id);
       if (link) {
-        await copyToClipboard(link);
+        // Create a full message with the link
+        const fullMessage = `שלום!
+בית הספר לשחייה ענבר במדבר מזמין אותך למלא את הצהרת הבריאות בקישור הבא:
+${link}
+
+יש למלא את הצהרת הבריאות לפני תחילת הפעילות בבריכה.
+תודה על שיתוף הפעולה!
+צוות ענבר במדבר`;
+
+        // Copy the full message instead of just the link
+        await copyToClipboard(fullMessage);
         setIsCopied(true);
         toast({
-          title: "הקישור הועתק",
-          description: "הקישור להצהרת הבריאות הועתק ללוח",
+          title: "ההודעה המלאה הועתקה",
+          description: "הדבק ושלח ללקוח",
         });
         
         // Reset copied state after 3 seconds
