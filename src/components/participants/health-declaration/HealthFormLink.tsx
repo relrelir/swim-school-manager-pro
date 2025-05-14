@@ -36,10 +36,20 @@ const HealthFormLink = ({ registrationId, isDisabled, className }: HealthFormLin
     try {
       const link = await createHealthDeclarationLink(registrationId);
       if (link) {
-        await copyToClipboard(link);
+        // Create full message with the link
+        const fullMessage = `שלום!
+בית הספר לשחייה ענבר במדבר מזמין אותך למלא את הצהרת הבריאות בקישור הבא:
+${link}
+
+יש למלא את הצהרת הבריאות לפני תחילת הפעילות בבריכה.
+תודה על שיתוף הפעולה!
+צוות ענבר במדבר`;
+        
+        // Copy the full message to clipboard instead of just the link
+        await copyToClipboard(fullMessage);
         setIsCopied(true);
         toast({
-          title: "הקישור הועתק",
+          title: "ההודעה המלאה הועתקה",
           description: "הדבק ושלח ללקוח",
         });
         
