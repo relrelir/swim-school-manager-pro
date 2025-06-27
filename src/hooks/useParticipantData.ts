@@ -20,7 +20,7 @@ export const useParticipantData = (
     }
   }, [productId, getRegistrationsByProduct, refreshTrigger]);
   
-  // Calculate summary data
+  // Calculate summary data - now using payments function
   const { 
     totalParticipants, 
     registrationsFilled, 

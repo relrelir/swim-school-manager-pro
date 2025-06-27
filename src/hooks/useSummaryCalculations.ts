@@ -14,8 +14,7 @@ export const useSummaryCalculations = (registrations: Registration[], product?: 
     return sum + effectiveRequiredAmount;
   }, 0);
   
-  // Total paid amount - calculate from actual payments if available, or fall back to paidAmount
-  // IMPORTANT: This should NOT include discount amounts
+  // Total paid amount - calculate ONLY from actual payments table
   const totalPaid = registrations.reduce((sum, reg) => {
     if (paymentsForRegistrations) {
       // Get actual payments and sum their amounts, excluding discounts
@@ -23,8 +22,8 @@ export const useSummaryCalculations = (registrations: Registration[], product?: 
       const actualPaymentSum = actualPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
       return sum + actualPaymentSum;
     }
-    // Fall back to paidAmount (without adding discount)
-    return sum + reg.paidAmount;
+    // If no payments function is provided, return 0 (don't use paidAmount)
+    return sum;
   }, 0);
 
   return {

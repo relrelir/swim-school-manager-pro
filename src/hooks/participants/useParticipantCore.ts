@@ -39,7 +39,7 @@ export const useParticipantCore = (
     registrationsFilled,
     totalExpected,
     totalPaid
-  } = useParticipantEffects(productId, products, undefined, getRegistrationsByProduct);
+  } = useParticipantEffects(productId, products, undefined, getRegistrationsByProduct, getPaymentsForRegistration);
 
   // Import participant state management
   const {

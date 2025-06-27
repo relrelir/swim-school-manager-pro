@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { Product, Registration } from '@/types';
+import { Product, Registration, Payment } from '@/types';
 import { useSummaryCalculations } from './useSummaryCalculations';
 
 /**
@@ -10,7 +10,8 @@ export const useParticipantEffects = (
   productId: string | undefined,
   products: any[],
   product: Product | undefined,
-  getRegistrationsByProduct: (productId: string) => Registration[]
+  getRegistrationsByProduct: (productId: string) => Registration[],
+  getPaymentsForRegistration?: (registration: Registration) => Payment[]
 ) => {
   const [loadedProduct, setLoadedProduct] = useState<Product | undefined>(undefined);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -32,13 +33,13 @@ export const useParticipantEffects = (
     }
   }, [productId, getRegistrationsByProduct, refreshTrigger]);
 
-  // Use the shared summary calculations hook for consistent calculations across the app
+  // Use the shared summary calculations hook with payments function
   const { 
     totalParticipants, 
     registrationsFilled, 
     totalExpected, 
     totalPaid 
-  } = useSummaryCalculations(registrations, loadedProduct);
+  } = useSummaryCalculations(registrations, loadedProduct, getPaymentsForRegistration);
 
   return {
     product: loadedProduct, 
