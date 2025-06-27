@@ -19,6 +19,7 @@ interface ParticipantsTableProps {
   onDeleteRegistration: (id: string) => void;
   onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
   onOpenHealthForm: (registrationId: string) => void;
+  onEditParticipant: (registration: Registration) => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
 }
@@ -34,6 +35,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
   onDeleteRegistration,
   onUpdateHealthApproval,
   onOpenHealthForm,
+  onEditParticipant,
   searchQuery,
   setSearchQuery
 }) => {
@@ -125,6 +127,7 @@ const ParticipantsTable: React.FC<ParticipantsTableProps> = ({
                     hasPayments={hasPayments}
                     onAddPayment={onAddPayment}
                     onDeleteRegistration={onDeleteRegistration}
+                    onEditParticipant={onEditParticipant}
                   />
                 </TableCell>
               </TableRow>

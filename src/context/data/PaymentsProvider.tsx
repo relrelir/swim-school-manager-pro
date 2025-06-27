@@ -1,15 +1,15 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { toast } from "@/components/ui/use-toast";
 import { Payment } from '@/types';
-import { handleSupabaseError, mapPaymentFromDB, mapPaymentToDB } from './utils';
+import { toast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
+import { handleSupabaseError } from './utils';
 
 interface PaymentsContextType {
   payments: Payment[];
-  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined>;
-  updatePayment: (payment: Payment) => void;
-  deletePayment: (id: string) => void;
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void;
+  updatePayment: (payment: Payment) => Promise<void>;
+  deletePayment: (id: string) => Promise<void>;
   getPaymentsByRegistration: (registrationId: string) => Payment[];
   loading: boolean;
 }
@@ -24,14 +24,11 @@ export const usePaymentsContext = () => {
   return context;
 };
 
-interface PaymentsProviderProps {
-  children: React.ReactNode;
-}
-
-export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) => {
+export const PaymentsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Load payments from Supabase
   useEffect(() => {
     const fetchPayments = async () => {
       try {
@@ -43,8 +40,16 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
           handleSupabaseError(error, 'fetching payments');
         }
 
-        const transformedPayments = data?.map(payment => mapPaymentFromDB(payment)) || [];
-        setPayments(transformedPayments);
+        if (data) {
+          const transformedPayments: Payment[] = data.map(payment => ({
+            id: payment.id,
+            registrationId: payment.registrationid,
+            amount: payment.amount,
+            paymentDate: payment.paymentdate,
+            receiptNumber: payment.receiptnumber,
+          }));
+          setPayments(transformedPayments);
+        }
       } catch (error) {
         toast({
           title: "שגיאה",
@@ -59,13 +64,17 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
     fetchPayments();
   }, []);
 
+  // Add a payment
   const addPayment = async (payment: Omit<Payment, 'id'>) => {
     try {
-      const dbPayment = mapPaymentToDB(payment);
-      
       const { data, error } = await supabase
         .from('payments')
-        .insert([dbPayment])
+        .insert([{
+          registrationid: payment.registrationId,
+          amount: payment.amount,
+          paymentdate: payment.paymentDate,
+          receiptnumber: payment.receiptNumber,
+        }])
         .select()
         .single();
 
@@ -74,28 +83,37 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
       }
 
       if (data) {
-        const newPayment = mapPaymentFromDB(data);
+        const newPayment: Payment = {
+          id: data.id,
+          registrationId: data.registrationid,
+          amount: data.amount,
+          paymentDate: data.paymentdate,
+          receiptNumber: data.receiptnumber,
+        };
         setPayments([...payments, newPayment]);
         return newPayment;
       }
     } catch (error) {
       toast({
         title: "שגיאה",
-        description: "אירעה שגיאה בהוספת תשלום חדש",
+        description: "אירעה שגיאה בהוספת תשלום",
         variant: "destructive",
       });
     }
   };
 
+  // Update a payment
   const updatePayment = async (payment: Payment) => {
     try {
-      const { id, ...paymentData } = payment;
-      const dbPayment = mapPaymentToDB(paymentData);
-      
       const { error } = await supabase
         .from('payments')
-        .update(dbPayment)
-        .eq('id', id);
+        .update({
+          registrationid: payment.registrationId,
+          amount: payment.amount,
+          paymentdate: payment.paymentDate,
+          receiptnumber: payment.receiptNumber,
+        })
+        .eq('id', payment.id);
 
       if (error) {
         handleSupabaseError(error, 'updating payment');
@@ -111,6 +129,7 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
     }
   };
 
+  // Delete a payment
   const deletePayment = async (id: string) => {
     try {
       const { error } = await supabase
@@ -124,6 +143,7 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
 
       setPayments(payments.filter(p => p.id !== id));
     } catch (error) {
+      console.error("Error deleting payment:", error);
       toast({
         title: "שגיאה",
         description: "אירעה שגיאה במחיקת תשלום",
@@ -132,6 +152,7 @@ export const PaymentsProvider: React.FC<PaymentsProviderProps> = ({ children }) 
     }
   };
 
+  // Get payments by registration ID
   const getPaymentsByRegistration = (registrationId: string) => {
     return payments.filter(payment => payment.registrationId === registrationId);
   };

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Registration } from '@/types';
-import { Trash2Icon, FileDownIcon, CreditCardIcon, PrinterIcon } from 'lucide-react';
+import { Trash2Icon, FileDownIcon, CreditCardIcon, PrinterIcon, Edit } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { generateRegistrationPdf } from '@/utils/generateRegistrationPdf';
 import { generateHealthDeclarationPdf } from '@/utils/generateHealthDeclarationPdf';
@@ -15,6 +15,7 @@ interface TableRowActionsProps {
   hasPayments: boolean;
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
+  onEditParticipant?: (registration: Registration) => void;
 }
 
 const TableRowActions: React.FC<TableRowActionsProps> = ({
@@ -22,6 +23,7 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
   hasPayments,
   onAddPayment,
   onDeleteRegistration,
+  onEditParticipant,
 }) => {
   const { isAdmin } = useAuth();
   const [isGeneratingRegPdf, setIsGeneratingRegPdf] = useState(false);
@@ -40,7 +42,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     try {
       setIsCheckingDeclaration(true);
       
-      // Direct Supabase query to get the latest health declaration status
       const { data, error } = await supabase
         .from('health_declarations')
         .select('id')
@@ -52,7 +53,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
         return;
       }
       
-      // Update state only if changed
       const declarationExists = Boolean(data?.id);
       if (hasHealthDeclaration !== declarationExists) {
         setHasHealthDeclaration(declarationExists);
@@ -133,6 +133,21 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
     
     onDeleteRegistration(registration.id);
   }, [hasPayments, onDeleteRegistration, registration.id, isAdmin]);
+
+  const handleEditParticipant = useCallback(() => {
+    if (!isAdmin()) {
+      toast({
+        title: "אין הרשאה",
+        description: "אין לך הרשאה לערוך משתתף",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (onEditParticipant) {
+      onEditParticipant(registration);
+    }
+  }, [isAdmin, onEditParticipant, registration]);
   
   return (
     <div className="flex gap-2 justify-end">
@@ -167,7 +182,6 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
         <TooltipContent>הורד אישור רישום</TooltipContent>
       </Tooltip>
       
-      {/* Health Declaration Print Button */}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -189,24 +203,39 @@ const TableRowActions: React.FC<TableRowActionsProps> = ({
       </Tooltip>
       
       {isAdmin() && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleDeleteRegistration}
-              disabled={hasPayments}
-              className={hasPayments ? "opacity-50 cursor-not-allowed" : ""}
-            >
-              <Trash2Icon className="h-4 w-4 text-red-500" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {hasPayments
-              ? "לא ניתן למחוק רישום עם תשלומים"
-              : "מחק רישום"}
-          </TooltipContent>
-        </Tooltip>
+        <>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleEditParticipant}
+              >
+                <Edit className="h-4 w-4 text-blue-500" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>ערוך משתתף</TooltipContent>
+          </Tooltip>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleDeleteRegistration}
+                disabled={hasPayments}
+                className={hasPayments ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                <Trash2Icon className="h-4 w-4 text-red-500" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {hasPayments
+                ? "לא ניתן למחוק רישום עם תשלומים"
+                : "מחק רישום"}
+            </TooltipContent>
+          </Tooltip>
+        </>
       )}
     </div>
   );

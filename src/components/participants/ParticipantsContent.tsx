@@ -1,9 +1,10 @@
 
-import React, { useState, useMemo } from 'react';
-import { Registration, Participant, Payment, HealthDeclaration, PaymentStatus } from '@/types';
-import ParticipantsSummaryCards from '@/components/participants/ParticipantsSummaryCards';
-import ParticipantsTable from '@/components/participants/ParticipantsTable';
-import EmptyParticipantsState from '@/components/participants/EmptyParticipantsState';
+import React, { useState } from 'react';
+import { Participant, Registration, PaymentStatus, Payment, HealthDeclaration } from '@/types';
+import ParticipantsSummaryCards from './ParticipantsSummaryCards';
+import ParticipantsTable from './ParticipantsTable';
+import EmptyParticipantsState from './EmptyParticipantsState';
+import EditParticipantDialog from './EditParticipantDialog';
 
 interface ParticipantsContentProps {
   registrations: Registration[];
@@ -13,7 +14,7 @@ interface ParticipantsContentProps {
   totalPaid: number;
   registrationsFilled: number;
   getParticipantForRegistration: (registration: Registration) => Participant | undefined;
-  getPaymentsForRegistration: (registrationId: string) => Payment[]; 
+  getPaymentsForRegistration: (registrationId: string) => Payment[];
   getHealthDeclarationForRegistration: (registrationId: string) => Promise<HealthDeclaration | undefined>;
   calculatePaymentStatus: (registration: Registration) => PaymentStatus;
   getStatusClassName: (status: string) => string;
@@ -21,6 +22,11 @@ interface ParticipantsContentProps {
   onDeleteRegistration: (id: string) => void;
   onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
   onOpenHealthForm: (registrationId: string) => void;
+  onUpdateParticipant?: (
+    participantData: Partial<Participant>,
+    registrationData: Partial<Registration>,
+    paymentsData: Payment[]
+  ) => void;
 }
 
 const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
@@ -38,40 +44,67 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
   onAddPayment,
   onDeleteRegistration,
   onUpdateHealthApproval,
-  onOpenHealthForm
+  onOpenHealthForm,
+  onUpdateParticipant,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Filter registrations based on searchQuery
-  const filteredRegistrations = useMemo(() => {
-    if (!searchQuery.trim()) return registrations;
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingRegistration, setEditingRegistration] = useState<Registration | null>(null);
+  const [editingParticipant, setEditingParticipant] = useState<Participant | null>(null);
+  const [editingPayments, setEditingPayments] = useState<Payment[]>([]);
+
+  // Filter registrations based on search query
+  const filteredRegistrations = registrations.filter(registration => {
+    const participant = getParticipantForRegistration(registration);
+    if (!participant) return false;
     
-    return registrations.filter(registration => {
-      const participant = getParticipantForRegistration(registration);
-      if (!participant) return false;
-      
-      const fullName = `${participant.firstName} ${participant.lastName}`.toLowerCase();
-      const idNumber = participant.idNumber?.toLowerCase() || '';
-      const phone = participant.phone?.toLowerCase() || '';
-      const query = searchQuery.toLowerCase();
-      
-      return fullName.includes(query) || idNumber.includes(query) || phone.includes(query);
-    });
-  }, [registrations, searchQuery, getParticipantForRegistration]);
-  
-  // Create adapter functions to handle the type conversion
-  const getPaymentsAdapter = (registration: Registration) => {
-    return getPaymentsForRegistration(registration.id);
-  };
-  
-  // Fixed: The adapter now correctly expects a registrationId string
-  const updateHealthApprovalAdapter = (registrationId: string, isApproved: boolean) => {
-    onUpdateHealthApproval(registrationId, isApproved);
+    const fullName = `${participant.firstName} ${participant.lastName}`.toLowerCase();
+    const phone = participant.phone.toLowerCase();
+    const idNumber = participant.idNumber.toLowerCase();
+    const query = searchQuery.toLowerCase();
+    
+    return fullName.includes(query) || phone.includes(query) || idNumber.includes(query);
+  });
+
+  const handleEditParticipant = (registration: Registration) => {
+    const participant = getParticipantForRegistration(registration);
+    if (!participant) return;
+    
+    const payments = getPaymentsForRegistration(registration.id);
+    
+    setEditingRegistration(registration);
+    setEditingParticipant(participant);
+    setEditingPayments(payments);
+    setIsEditDialogOpen(true);
   };
 
+  const handleSaveParticipant = (
+    participantData: Partial<Participant>,
+    registrationData: Partial<Registration>,
+    paymentsData: Payment[]
+  ) => {
+    if (onUpdateParticipant) {
+      onUpdateParticipant(participantData, registrationData, paymentsData);
+    }
+    
+    // Reset editing state
+    setEditingRegistration(null);
+    setEditingParticipant(null);
+    setEditingPayments([]);
+  };
+
+  // Helper function to get payments for registration (converts registrationId to Registration object)
+  const getPaymentsForRegistrationObject = (registration: Registration) => {
+    return getPaymentsForRegistration(registration.id);
+  };
+
+  if (filteredRegistrations.length === 0 && registrations.length === 0) {
+    return <EmptyParticipantsState />;
+  }
+
   return (
-    <>
-      <ParticipantsSummaryCards 
+    <div className="space-y-6">
+      <ParticipantsSummaryCards
         totalParticipants={totalParticipants}
         product={product}
         totalExpected={totalExpected}
@@ -79,25 +112,31 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
         registrationsFilled={registrationsFilled}
       />
 
-      {registrations.length === 0 ? (
-        <EmptyParticipantsState />
-      ) : (
-        <ParticipantsTable
-          registrations={filteredRegistrations}
-          getParticipantForRegistration={getParticipantForRegistration}
-          getPaymentsForRegistration={getPaymentsAdapter}
-          getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
-          calculatePaymentStatus={calculatePaymentStatus}
-          getStatusClassName={getStatusClassName}
-          onAddPayment={onAddPayment}
-          onDeleteRegistration={onDeleteRegistration}
-          onUpdateHealthApproval={updateHealthApprovalAdapter}
-          onOpenHealthForm={onOpenHealthForm}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
-      )}
-    </>
+      <ParticipantsTable
+        registrations={filteredRegistrations}
+        getParticipantForRegistration={getParticipantForRegistration}
+        getPaymentsForRegistration={getPaymentsForRegistrationObject}
+        getHealthDeclarationForRegistration={getHealthDeclarationForRegistration}
+        calculatePaymentStatus={calculatePaymentStatus}
+        getStatusClassName={getStatusClassName}
+        onAddPayment={onAddPayment}
+        onDeleteRegistration={onDeleteRegistration}
+        onUpdateHealthApproval={onUpdateHealthApproval}
+        onOpenHealthForm={onOpenHealthForm}
+        onEditParticipant={handleEditParticipant}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
+
+      <EditParticipantDialog
+        isOpen={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        registration={editingRegistration}
+        participant={editingParticipant}
+        payments={editingPayments}
+        onSave={handleSaveParticipant}
+      />
+    </div>
   );
 };
 

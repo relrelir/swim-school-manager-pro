@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { useParticipants } from '@/hooks/useParticipants';
 import { toast } from "@/components/ui/use-toast";
-import { Registration } from '@/types';
+import { Registration, Participant, Payment } from '@/types';
 import { useAuth } from '@/context/AuthContext';
+import { useData } from '@/context/DataContext';
 
 import ParticipantsHeader from '@/components/participants/ParticipantsHeader';
 import ParticipantsContent from '@/components/participants/ParticipantsContent';
@@ -11,6 +12,7 @@ import ParticipantsDialogs from '@/components/participants/ParticipantsDialogs';
 
 const ParticipantsPage: React.FC = () => {
   const { isAdmin } = useAuth();
+  const { updateParticipant, updateRegistration, updatePayment } = useData();
   const {
     product,
     registrations,
@@ -64,7 +66,6 @@ const ParticipantsPage: React.FC = () => {
     setIsAddParticipantOpen(true);
   };
 
-  // Handler for opening payment dialog
   const handleOpenAddPayment = (registration: Registration) => {
     setCurrentRegistration(registration);
     setNewPayment({
@@ -76,11 +77,8 @@ const ParticipantsPage: React.FC = () => {
     setIsAddPaymentOpen(true);
   };
 
-  // Create adapter functions to match ParticipantsContent expected function signatures
   const getPaymentsForRegistrationById = (registrationId: string) => {
-    // Find the registration object first
     const registration = registrations.find(r => r.id === registrationId);
-    // Only call getPaymentsForRegistration if we found the registration
     if (registration) {
       return getPaymentsForRegistration(registration);
     }
@@ -100,7 +98,6 @@ const ParticipantsPage: React.FC = () => {
     handleUpdateHealthApproval(registrationId, isApproved);
   };
 
-  // Create an adapter for the handleApplyDiscount function to match the expected signature
   const handleApplyDiscountWrapper = (amount: number, registrationId?: string) => {
     if (!isAdmin()) {
       toast({
@@ -114,7 +111,6 @@ const ParticipantsPage: React.FC = () => {
     handleApplyDiscount(amount, setIsAddPaymentOpen, registrationId);
   };
 
-  // Enhanced delete registration handler
   const secureDeleteRegistration = (registrationId: string) => {
     if (!isAdmin()) {
       toast({
@@ -128,16 +124,90 @@ const ParticipantsPage: React.FC = () => {
     handleDeleteRegistration(registrationId);
   };
 
+  // New handler for updating participant data
+  const handleUpdateParticipant = async (
+    participantData: Partial<Participant>,
+    registrationData: Partial<Registration>,
+    paymentsData: Payment[]
+  ) => {
+    if (!isAdmin()) {
+      toast({
+        title: "אין הרשאה",
+        description: "אין לך הרשאה לערוך משתתפים",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Find the current registration to get the participant ID
+      const currentReg = registrations.find(r => 
+        Object.keys(registrationData).some(key => 
+          r[key as keyof Registration] !== registrationData[key as keyof Registration]
+        )
+      );
+      
+      if (!currentReg) {
+        toast({
+          title: "שגיאה",
+          description: "לא נמצא רישום מתאים",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Update participant data
+      if (Object.keys(participantData).length > 0) {
+        const fullParticipant = {
+          id: currentReg.participantId,
+          firstName: participantData.firstName || '',
+          lastName: participantData.lastName || '',
+          phone: participantData.phone || '',
+          idNumber: participantData.idNumber || '',
+          healthApproval: participantData.healthApproval || false,
+        } as Participant;
+        
+        await updateParticipant(fullParticipant);
+      }
+
+      // Update registration data
+      if (Object.keys(registrationData).length > 0) {
+        const fullRegistration = {
+          ...currentReg,
+          ...registrationData,
+        } as Registration;
+        
+        await updateRegistration(fullRegistration);
+      }
+
+      // Update payments data
+      for (const payment of paymentsData) {
+        await updatePayment(payment);
+      }
+
+      toast({
+        title: "עודכן בהצלחה",
+        description: "פרטי המשתתף עודכנו בהצלחה",
+      });
+
+    } catch (error) {
+      console.error('Error updating participant:', error);
+      toast({
+        title: "שגיאה בעדכון",
+        description: "אירעה שגיאה בעת עדכון פרטי המשתתף",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Page Header */}
       <ParticipantsHeader 
         product={product}
-        onExport={() => {}} // This is now empty as we're removing the export functionality
+        onExport={() => {}}
         onAddParticipant={handleOpenAddParticipant}
       />
 
-      {/* Main Content */}
       <ParticipantsContent
         registrations={registrations}
         totalParticipants={totalParticipants}
@@ -154,9 +224,9 @@ const ParticipantsPage: React.FC = () => {
         onDeleteRegistration={secureDeleteRegistration}
         onUpdateHealthApproval={updateHealthApprovalById}
         onOpenHealthForm={handleOpenHealthForm}
+        onUpdateParticipant={handleUpdateParticipant}
       />
 
-      {/* Dialogs */}
       <ParticipantsDialogs
         isAddParticipantOpen={isAddParticipantOpen}
         setIsAddParticipantOpen={setIsAddParticipantOpen}
