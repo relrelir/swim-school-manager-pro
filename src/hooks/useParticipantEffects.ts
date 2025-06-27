@@ -32,8 +32,7 @@ export const useParticipantEffects = (
     }
   }, [productId, getRegistrationsByProduct, refreshTrigger]);
 
-  // Use the shared summary calculations hook - without passing a payment function
-  // This will use the registration's paidAmount field which should be the correct amount
+  // Use the shared summary calculations hook for consistent calculations across the app
   const { 
     totalParticipants, 
     registrationsFilled, 
