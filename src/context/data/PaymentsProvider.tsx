@@ -7,7 +7,7 @@ import { handleSupabaseError } from './utils';
 
 interface PaymentsContextType {
   payments: Payment[];
-  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined> | void;
+  addPayment: (payment: Omit<Payment, 'id'>) => Promise<Payment | undefined>;
   updatePayment: (payment: Payment) => Promise<void>;
   deletePayment: (id: string) => Promise<void>;
   getPaymentsByRegistration: (registrationId: string) => Payment[];
@@ -65,7 +65,7 @@ export const PaymentsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }, []);
 
   // Add a payment
-  const addPayment = async (payment: Omit<Payment, 'id'>) => {
+  const addPayment = async (payment: Omit<Payment, 'id'>): Promise<Payment | undefined> => {
     try {
       const { data, error } = await supabase
         .from('payments')
@@ -80,6 +80,7 @@ export const PaymentsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (error) {
         handleSupabaseError(error, 'adding payment');
+        return undefined;
       }
 
       if (data) {
@@ -100,6 +101,7 @@ export const PaymentsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         variant: "destructive",
       });
     }
+    return undefined;
   };
 
   // Update a payment
