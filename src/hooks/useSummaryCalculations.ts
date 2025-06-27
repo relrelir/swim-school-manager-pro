@@ -14,16 +14,17 @@ export const useSummaryCalculations = (registrations: Registration[], product?: 
     return sum + effectiveRequiredAmount;
   }, 0);
   
-  // Total paid amount - calculate from actual payments if available, or fall back to paidAmount
-  // IMPORTANT: This should NOT include discount amounts
+  // Total paid amount - calculate from actual payments ONLY
+  // IMPORTANT: This should NOT include discount amounts and should not double count
   const totalPaid = registrations.reduce((sum, reg) => {
     if (paymentsForRegistrations) {
-      // Get actual payments and sum their amounts, excluding discounts
+      // Get actual payments and sum their amounts, excluding any empty receipt numbers
       const actualPayments = paymentsForRegistrations(reg);
-      const actualPaymentSum = actualPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
+      const validPayments = actualPayments.filter(payment => payment.receiptNumber && payment.receiptNumber.trim() !== '');
+      const actualPaymentSum = validPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
       return sum + actualPaymentSum;
     }
-    // Fall back to paidAmount (without adding discount)
+    // Fall back to paidAmount (this should be the actual paid amount without discounts)
     return sum + reg.paidAmount;
   }, 0);
 
