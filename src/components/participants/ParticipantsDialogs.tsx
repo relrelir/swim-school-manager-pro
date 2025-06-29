@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { Participant, Registration, HealthDeclaration } from '@/types';
-import AddParticipantDialog from '@/components/participants/AddParticipantDialog';
-import AddPaymentDialog from '@/components/participants/AddPaymentDialog';
-import HealthDeclarationForm from '@/components/participants/HealthDeclarationForm';
+import AddParticipantDialog from './AddParticipantDialog';
+import AddPaymentDialog from './AddPaymentDialog';
+import HealthDeclarationForm from './HealthDeclarationForm';
+import EditParticipantDialog from './EditParticipantDialog';
+import { Participant, Registration, Payment, HealthDeclaration } from '@/types';
 
 interface ParticipantsDialogsProps {
   isAddParticipantOpen: boolean;
@@ -12,49 +13,30 @@ interface ParticipantsDialogsProps {
   setIsAddPaymentOpen: (open: boolean) => void;
   isHealthFormOpen: boolean;
   setIsHealthFormOpen: (open: boolean) => void;
-  newParticipant: Omit<Participant, 'id'>;
-  setNewParticipant: React.Dispatch<React.SetStateAction<Omit<Participant, 'id'>>>;
-  registrationData: {
-    requiredAmount: number;
-    paidAmount: number;
-    receiptNumber: string;
-    discountApproved: boolean;
-  };
-  setRegistrationData: React.Dispatch<React.SetStateAction<{
-    requiredAmount: number;
-    paidAmount: number;
-    receiptNumber: string;
-    discountApproved: boolean;
-  }>>;
+  newParticipant: Partial<Participant>;
+  setNewParticipant: (participant: Partial<Participant>) => void;
+  registrationData: Partial<Registration>;
+  setRegistrationData: (data: Partial<Registration>) => void;
   currentRegistration: Registration | null;
   participants: Participant[];
-  newPayment: {
-    amount: number;
-    receiptNumber: string;
-    paymentDate: string;
-    registrationId?: string; // Add registrationId field
-  };
-  setNewPayment: React.Dispatch<React.SetStateAction<{
-    amount: number;
-    receiptNumber: string;
-    paymentDate: string;
-    registrationId?: string; // Add registrationId field
-  }>>;
-  currentHealthDeclaration: {
-    registrationId: string;
-    participantName: string;
-    phone: string;
-    declaration?: HealthDeclaration;
-  } | null;
-  setCurrentHealthDeclaration: React.Dispatch<React.SetStateAction<{
-    registrationId: string;
-    participantName: string;
-    phone: string;
-    declaration?: HealthDeclaration;
-  } | null>>;
-  handleAddParticipant: (e: React.FormEvent) => void;
-  handleAddPayment: (e: React.FormEvent) => void;
-  handleApplyDiscount: (amount: number, registrationId?: string) => void; // Update to accept registrationId
+  newPayment: any;
+  setNewPayment: (payment: any) => void;
+  currentHealthDeclaration: HealthDeclaration | null;
+  setCurrentHealthDeclaration: (declaration: HealthDeclaration | null) => void;
+  handleAddParticipant: () => Promise<void>;
+  handleAddPayment: () => Promise<void>;
+  handleApplyDiscount: (amount: number, registrationId?: string) => Promise<void>;
+  // Optional props for edit dialog
+  editingRegistration?: Registration | null;
+  editingParticipant?: Participant | null;
+  editingPayments?: Payment[];
+  onSaveParticipant?: (
+    participantData: Partial<Participant>,
+    registrationData: Partial<Registration>,
+    paymentsData: Payment[]
+  ) => void;
+  isEditDialogOpen?: boolean;
+  setIsEditDialogOpen?: (open: boolean) => void;
 }
 
 const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
@@ -77,10 +59,15 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
   handleAddParticipant,
   handleAddPayment,
   handleApplyDiscount,
+  editingRegistration,
+  editingParticipant,
+  editingPayments = [],
+  onSaveParticipant,
+  isEditDialogOpen = false,
+  setIsEditDialogOpen,
 }) => {
   return (
     <>
-      {/* Add Participant Dialog */}
       <AddParticipantDialog
         isOpen={isAddParticipantOpen}
         onOpenChange={setIsAddParticipantOpen}
@@ -88,34 +75,36 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
         setNewParticipant={setNewParticipant}
         registrationData={registrationData}
         setRegistrationData={setRegistrationData}
-        onSubmit={handleAddParticipant}
+        participants={participants}
+        onAddParticipant={handleAddParticipant}
       />
 
-      {/* Add Payment Dialog */}
       <AddPaymentDialog
         isOpen={isAddPaymentOpen}
         onOpenChange={setIsAddPaymentOpen}
         currentRegistration={currentRegistration}
-        participants={participants}
         newPayment={newPayment}
         setNewPayment={setNewPayment}
-        onSubmit={handleAddPayment}
+        onAddPayment={handleAddPayment}
         onApplyDiscount={handleApplyDiscount}
       />
 
-      {/* Health Declaration Form */}
-      {currentHealthDeclaration && (
-        <HealthDeclarationForm
-          isOpen={isHealthFormOpen}
-          onOpenChange={setIsHealthFormOpen}
-          registrationId={currentHealthDeclaration.registrationId}
-          participantName={currentHealthDeclaration.participantName}
-          defaultPhone={currentHealthDeclaration.phone}
-          healthDeclaration={currentHealthDeclaration.declaration}
-          afterSubmit={() => {
-            // Don't clear the health declaration immediately so user can copy the link
-            // if needed, but make sure the dialog can be closed
-          }}
+      <HealthDeclarationForm
+        isOpen={isHealthFormOpen}
+        onOpenChange={setIsHealthFormOpen}
+        currentHealthDeclaration={currentHealthDeclaration}
+        setCurrentHealthDeclaration={setCurrentHealthDeclaration}
+      />
+
+      {/* Edit Participant Dialog - only render if props are provided */}
+      {setIsEditDialogOpen && onSaveParticipant && (
+        <EditParticipantDialog
+          isOpen={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          registration={editingRegistration}
+          participant={editingParticipant}
+          payments={editingPayments}
+          onSave={onSaveParticipant}
         />
       )}
     </>
