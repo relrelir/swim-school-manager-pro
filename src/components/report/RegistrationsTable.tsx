@@ -1,22 +1,12 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PaymentStatus, RegistrationWithDetails } from '@/types';
 import { useData } from '@/context/DataContext';
-import TableRowActions from '@/components/participants/TableRowActions';
-
 interface RegistrationsTableProps {
   registrations: RegistrationWithDetails[];
-  onAddPayment?: (registration: RegistrationWithDetails) => void;
-  onDeleteRegistration?: (registrationId: string) => void;
-  onEditParticipant?: (registration: RegistrationWithDetails) => void;
 }
-
 const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
-  registrations,
-  onAddPayment,
-  onDeleteRegistration,
-  onEditParticipant
+  registrations
 }) => {
   const {
     calculateMeetingProgress
@@ -59,20 +49,6 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
     const discountAmount = registration.discountAmount || 0;
     return Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
   };
-
-  // Convert RegistrationWithDetails to Registration format for TableRowActions
-  const convertToRegistration = (regWithDetails: RegistrationWithDetails) => ({
-    id: regWithDetails.id,
-    productId: regWithDetails.product.id,
-    participantId: regWithDetails.participant.id,
-    requiredAmount: regWithDetails.requiredAmount,
-    paidAmount: regWithDetails.paidAmount,
-    discountApproved: regWithDetails.discountApproved,
-    registrationDate: regWithDetails.registrationDate,
-    discountAmount: regWithDetails.discountAmount,
-    receiptNumber: regWithDetails.receiptNumber || '',
-  });
-
   return <>
       {registrations.length === 0 ? <div className="text-center p-10 bg-gray-50 rounded-lg">
           <p className="text-lg text-gray-500">לא נמצאו רישומים מתאימים לסינון שנבחר.</p>
@@ -93,7 +69,6 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
                 <TableHead>מספרי קבלות</TableHead>
                 <TableHead>מפגש נוכחי</TableHead>
                 <TableHead>סטטוס תשלום</TableHead>
-                <TableHead>פעילות</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -107,11 +82,6 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
 
             // Calculate meeting progress
             const meetingProgress = calculateMeetingProgress(registration.product);
-            
-            // Convert to Registration format and check for payments
-            const regForActions = convertToRegistration(registration);
-            const hasPayments = actualPayments.length > 0;
-            
             return <TableRow key={registration.id}>
                     <TableCell>{`${registration.participant.firstName} ${registration.participant.lastName}`}</TableCell>
                     <TableCell>{registration.participant.idNumber}</TableCell>
@@ -146,15 +116,6 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
                     <TableCell className={`font-semibold ${getStatusClassName(registration.paymentStatus)}`}>
                       {registration.paymentStatus}
                     </TableCell>
-                    <TableCell>
-                      <TableRowActions
-                        registration={regForActions}
-                        hasPayments={hasPayments}
-                        onAddPayment={() => onAddPayment?.(registration)}
-                        onDeleteRegistration={() => onDeleteRegistration?.(registration.id)}
-                        onEditParticipant={() => onEditParticipant?.(registration)}
-                      />
-                    </TableCell>
                   </TableRow>;
           })}
             </TableBody>
@@ -162,5 +123,4 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
         </div>}
     </>;
 };
-
 export default RegistrationsTable;
