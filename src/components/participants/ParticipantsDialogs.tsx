@@ -92,8 +92,8 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
       <HealthDeclarationForm
         isOpen={isHealthFormOpen}
         onOpenChange={setIsHealthFormOpen}
-        currentHealthDeclaration={currentHealthDeclaration}
-        setCurrentHealthDeclaration={setCurrentHealthDeclaration}
+        healthDeclaration={currentHealthDeclaration}
+        setHealthDeclaration={setCurrentHealthDeclaration}
       />
 
       {/* Edit Participant Dialog - only render if props are provided */}
