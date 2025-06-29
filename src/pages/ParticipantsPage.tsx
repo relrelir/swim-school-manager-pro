@@ -124,8 +124,9 @@ const ParticipantsPage: React.FC = () => {
     handleDeleteRegistration(registrationId);
   };
 
-  // New handler for updating participant data
+  // Updated handler for updating participant data with explicit registration ID
   const handleUpdateParticipant = async (
+    registrationId: string,
     participantData: Partial<Participant>,
     registrationData: Partial<Registration>,
     paymentsData: Payment[]
@@ -140,12 +141,8 @@ const ParticipantsPage: React.FC = () => {
     }
 
     try {
-      // Find the current registration to get the participant ID
-      const currentReg = registrations.find(r => 
-        Object.keys(registrationData).some(key => 
-          r[key as keyof Registration] !== registrationData[key as keyof Registration]
-        )
-      );
+      // Find the current registration by ID
+      const currentReg = registrations.find(r => r.id === registrationId);
       
       if (!currentReg) {
         toast({
@@ -158,16 +155,15 @@ const ParticipantsPage: React.FC = () => {
 
       // Update participant data
       if (Object.keys(participantData).length > 0) {
-        const fullParticipant = {
-          id: currentReg.participantId,
-          firstName: participantData.firstName || '',
-          lastName: participantData.lastName || '',
-          phone: participantData.phone || '',
-          idNumber: participantData.idNumber || '',
-          healthApproval: participantData.healthApproval || false,
-        } as Participant;
-        
-        await updateParticipant(fullParticipant);
+        const currentParticipant = getParticipantForRegistration(currentReg);
+        if (currentParticipant) {
+          const fullParticipant = {
+            ...currentParticipant,
+            ...participantData,
+          } as Participant;
+          
+          await updateParticipant(fullParticipant);
+        }
       }
 
       // Update registration data

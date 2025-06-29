@@ -23,6 +23,7 @@ interface ParticipantsContentProps {
   onUpdateHealthApproval: (registrationId: string, isApproved: boolean) => void;
   onOpenHealthForm: (registrationId: string) => void;
   onUpdateParticipant?: (
+    registrationId: string,
     participantData: Partial<Participant>,
     registrationData: Partial<Registration>,
     paymentsData: Payment[]
@@ -83,8 +84,8 @@ const ParticipantsContent: React.FC<ParticipantsContentProps> = ({
     registrationData: Partial<Registration>,
     paymentsData: Payment[]
   ) => {
-    if (onUpdateParticipant) {
-      onUpdateParticipant(participantData, registrationData, paymentsData);
+    if (onUpdateParticipant && editingRegistration) {
+      onUpdateParticipant(editingRegistration.id, participantData, registrationData, paymentsData);
     }
     
     // Reset editing state
