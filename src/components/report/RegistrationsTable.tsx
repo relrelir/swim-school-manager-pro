@@ -20,7 +20,7 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
 }) => {
   const {
     calculateMeetingProgress,
-    getPaymentsForRegistration
+    getPaymentsByRegistration
   } = useData();
 
   // Calculate payment status class
@@ -100,7 +100,7 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
               const meetingProgress = calculateMeetingProgress(registration.product);
               
               // Check if registration has payments
-              const hasPayments = getPaymentsForRegistration(registration.id).length > 0;
+              const hasPayments = getPaymentsByRegistration(registration.id).length > 0;
 
               return (
                 <TableRow key={registration.id}>

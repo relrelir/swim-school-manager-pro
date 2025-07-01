@@ -22,9 +22,8 @@ const ReportPage: React.FC = () => {
     participants,
     addPayment,
     deleteRegistration,
-    applyDiscount,
-    updateParticipant,
     updateRegistration,
+    updateParticipant,
     getHealthDeclarationForRegistration,
     addHealthDeclaration
   } = useData();
@@ -115,7 +114,17 @@ const ReportPage: React.FC = () => {
     if (!targetRegistrationId) return;
 
     try {
-      await applyDiscount(targetRegistrationId, amount);
+      // Find the registration to update
+      const registration = allRegistrations.find(reg => reg.id === targetRegistrationId);
+      if (!registration) return;
+
+      // Update the registration with discount
+      await updateRegistration({
+        ...registration,
+        discountAmount: amount,
+        discountApproved: true
+      });
+
       toast({
         title: "ההנחה הוחלה בהצלחה",
         description: `הוחלה הנחה של ${amount}₪`,
@@ -137,16 +146,28 @@ const ReportPage: React.FC = () => {
     const participant = participants.find(p => p.id === registration.participantId);
     if (!participant) return;
 
-    let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+    try {
+      const healthDeclaration = await getHealthDeclarationForRegistration(registrationId);
 
-    setCurrentHealthDeclaration({
-      registrationId,
-      participantName: `${participant.firstName} ${participant.lastName}`,
-      phone: participant.phone,
-      declaration: healthDeclaration
-    });
+      setCurrentHealthDeclaration({
+        registrationId,
+        participantName: `${participant.firstName} ${participant.lastName}`,
+        phone: participant.phone,
+        declaration: healthDeclaration
+      });
 
-    setIsHealthFormOpen(true);
+      setIsHealthFormOpen(true);
+    } catch (error) {
+      // Handle case where no health declaration exists
+      setCurrentHealthDeclaration({
+        registrationId,
+        participantName: `${participant.firstName} ${participant.lastName}`,
+        phone: participant.phone,
+        declaration: undefined
+      });
+
+      setIsHealthFormOpen(true);
+    }
   };
 
   // Handle registration deletion
