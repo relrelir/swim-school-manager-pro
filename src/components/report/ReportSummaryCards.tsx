@@ -16,24 +16,19 @@ const ReportSummaryCards: React.FC<ReportSummaryCardsProps> = ({ registrations }
   const totalEffectiveAmount = registrations.reduce((sum, reg) => 
     sum + Math.max(0, reg.requiredAmount - (reg.discountApproved ? (reg.discountAmount || 0) : 0)), 0);
   
-  // Calculate total paid from payments (excluding discounts)
+  // Calculate total paid from payments (or fallback to paidAmount)
+  // IMPORTANT: This excludes the discount amounts
   const totalPaidAmount = registrations.reduce((sum, reg) => {
     if (!reg.payments) return sum + reg.paidAmount;
-    // Only sum the actual payment amounts with receipt numbers, excluding discount entries
-    const actualPayments = reg.payments.filter(p => p.receiptNumber !== '');
-    return sum + actualPayments.reduce((pSum, payment) => pSum + payment.amount, 0);
+    // Only sum the actual payment amounts, excluding discounts
+    return sum + reg.payments.reduce((pSum, payment) => pSum + payment.amount, 0);
   }, 0);
   
-  // Calculate total approved discounts
-  const totalDiscountAmount = registrations.reduce((sum, reg) => {
-    return sum + (reg.discountApproved ? (reg.discountAmount || 0) : 0);
-  }, 0);
-  
-  // Calculate the difference: amount to pay - amount paid - approved discount
-  const difference = totalEffectiveAmount - totalPaidAmount;
+  // Calculate the difference between paid and expected
+  const difference = totalPaidAmount - totalEffectiveAmount;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
           <div className="text-2xl font-bold">{totalRegistrations}</div>
@@ -58,20 +53,10 @@ const ReportSummaryCards: React.FC<ReportSummaryCardsProps> = ({ registrations }
       </Card>
       <Card>
         <CardContent className="p-4 flex flex-col items-center">
-          <div className="text-2xl font-bold">
-            {formatPriceForUI(totalDiscountAmount)}
+          <div className={`text-2xl font-bold ${difference >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {formatPriceForUI(difference)}
           </div>
-          <div className="text-sm text-gray-500">סה"כ הנחות מאושרות</div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-4 flex flex-col items-center">
-          <div className={`text-2xl font-bold ${difference >= 0 ? 'text-red-600' : 'text-green-600'}`}>
-            {formatPriceForUI(Math.abs(difference))}
-          </div>
-          <div className="text-sm text-gray-500">
-            {difference >= 0 ? 'נותר לתשלום' : 'יתרה חיובית'}
-          </div>
+          <div className="text-sm text-gray-500">הפרש</div>
         </CardContent>
       </Card>
     </div>
