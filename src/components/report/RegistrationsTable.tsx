@@ -1,15 +1,26 @@
+
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PaymentStatus, RegistrationWithDetails } from '@/types';
+import { PaymentStatus, RegistrationWithDetails, Registration } from '@/types';
 import { useData } from '@/context/DataContext';
+import TableRowActions from '@/components/participants/TableRowActions';
+
 interface RegistrationsTableProps {
   registrations: RegistrationWithDetails[];
+  onAddPayment: (registration: Registration) => void;
+  onDeleteRegistration: (registrationId: string) => void;
+  onOpenHealthForm: (registrationId: string) => void;
 }
+
 const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
-  registrations
+  registrations,
+  onAddPayment,
+  onDeleteRegistration,
+  onOpenHealthForm
 }) => {
   const {
-    calculateMeetingProgress
+    calculateMeetingProgress,
+    getPaymentsForRegistration
   } = useData();
 
   // Calculate payment status class
@@ -49,78 +60,108 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
     const discountAmount = registration.discountAmount || 0;
     return Math.max(0, registration.requiredAmount - (registration.discountApproved ? discountAmount : 0));
   };
-  return <>
-      {registrations.length === 0 ? <div className="text-center p-10 bg-gray-50 rounded-lg">
-          <p className="text-lg text-gray-500">לא נמצאו רישומים מתאימים לסינון שנבחר.</p>
-        </div> : <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>שם מלא</TableHead>
-                <TableHead>ת.ז</TableHead>
-                <TableHead>טלפון</TableHead>
-                <TableHead>עונה</TableHead>
-                <TableHead>מוצר</TableHead>
-                <TableHead>סוג מוצר</TableHead>
-                <TableHead>סכום מקורי</TableHead>
-                <TableHead>סכום לתשלום</TableHead>
-                <TableHead>סכום ששולם</TableHead>
-                <TableHead>הנחה</TableHead>
-                <TableHead>מספרי קבלות</TableHead>
-                <TableHead>מפגש נוכחי</TableHead>
-                <TableHead>סטטוס תשלום</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {registrations.map(registration => {
-            // Get receipt numbers from payments
-            const actualPayments = registration.payments ? registration.payments.filter(p => p.receiptNumber !== '') : [];
-            const receiptNumbers = actualPayments.map(p => p.receiptNumber).join(', ');
-            const actualPaidAmount = calculateActualPaidAmount(registration);
-            const discountAmount = getDiscountAmount(registration);
-            const effectiveRequiredAmount = getEffectiveRequiredAmount(registration);
 
-            // Calculate meeting progress
-            const meetingProgress = calculateMeetingProgress(registration.product);
-            return <TableRow key={registration.id}>
-                    <TableCell>{`${registration.participant.firstName} ${registration.participant.lastName}`}</TableCell>
-                    <TableCell>{registration.participant.idNumber}</TableCell>
-                    <TableCell>{registration.participant.phone}</TableCell>
-                    <TableCell>{registration.season.name}</TableCell>
-                    <TableCell>{registration.product.name}</TableCell>
-                    <TableCell>{registration.product.type}</TableCell>
-                    <TableCell>{Intl.NumberFormat('he-IL', {
-                  style: 'currency',
-                  currency: 'ILS'
-                }).format(registration.requiredAmount)}</TableCell>
-                    <TableCell>{Intl.NumberFormat('he-IL', {
-                  style: 'currency',
-                  currency: 'ILS'
-                }).format(effectiveRequiredAmount)}</TableCell>
-                    <TableCell>{Intl.NumberFormat('he-IL', {
-                  style: 'currency',
-                  currency: 'ILS'
-                }).format(actualPaidAmount)}</TableCell>
-                    <TableCell>
-                      {discountAmount > 0 && registration.discountApproved ? <span className="font-medium text-[#47474e]">
-                          {Intl.NumberFormat('he-IL', {
-                    style: 'currency',
-                    currency: 'ILS'
-                  }).format(discountAmount)}
-                        </span> : '-'}
-                    </TableCell>
-                    <TableCell>{receiptNumbers || '-'}</TableCell>
-                    <TableCell>
-                      {meetingProgress.current}/{meetingProgress.total}
-                    </TableCell>
-                    <TableCell className={`font-semibold ${getStatusClassName(registration.paymentStatus)}`}>
-                      {registration.paymentStatus}
-                    </TableCell>
-                  </TableRow>;
-          })}
-            </TableBody>
-          </Table>
-        </div>}
-    </>;
+  return <>
+    {registrations.length === 0 ? (
+      <div className="text-center p-10 bg-gray-50 rounded-lg">
+        <p className="text-lg text-gray-500">לא נמצאו רישומים מתאימים לסינון שנבחר.</p>
+      </div>
+    ) : (
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>שם מלא</TableHead>
+              <TableHead>ת.ז</TableHead>
+              <TableHead>טלפון</TableHead>
+              <TableHead>עונה</TableHead>
+              <TableHead>מוצר</TableHead>
+              <TableHead>סוג מוצר</TableHead>
+              <TableHead>סכום מקורי</TableHead>
+              <TableHead>סכום לתשלום</TableHead>
+              <TableHead>סכום ששולם</TableHead>
+              <TableHead>הנחה</TableHead>
+              <TableHead>מספרי קבלות</TableHead>
+              <TableHead>מפגש נוכחי</TableHead>
+              <TableHead>סטטוס תשלום</TableHead>
+              <TableHead>פעילות</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {registrations.map(registration => {
+              // Get receipt numbers from payments
+              const actualPayments = registration.payments ? registration.payments.filter(p => p.receiptNumber !== '') : [];
+              const receiptNumbers = actualPayments.map(p => p.receiptNumber).join(', ');
+              const actualPaidAmount = calculateActualPaidAmount(registration);
+              const discountAmount = getDiscountAmount(registration);
+              const effectiveRequiredAmount = getEffectiveRequiredAmount(registration);
+
+              // Calculate meeting progress
+              const meetingProgress = calculateMeetingProgress(registration.product);
+              
+              // Check if registration has payments
+              const hasPayments = getPaymentsForRegistration(registration.id).length > 0;
+
+              return (
+                <TableRow key={registration.id}>
+                  <TableCell>{`${registration.participant.firstName} ${registration.participant.lastName}`}</TableCell>
+                  <TableCell>{registration.participant.idNumber}</TableCell>
+                  <TableCell>{registration.participant.phone}</TableCell>
+                  <TableCell>{registration.season.name}</TableCell>
+                  <TableCell>{registration.product.name}</TableCell>
+                  <TableCell>{registration.product.type}</TableCell>
+                  <TableCell>
+                    {Intl.NumberFormat('he-IL', {
+                      style: 'currency',
+                      currency: 'ILS'
+                    }).format(registration.requiredAmount)}
+                  </TableCell>
+                  <TableCell>
+                    {Intl.NumberFormat('he-IL', {
+                      style: 'currency',
+                      currency: 'ILS'
+                    }).format(effectiveRequiredAmount)}
+                  </TableCell>
+                  <TableCell>
+                    {Intl.NumberFormat('he-IL', {
+                      style: 'currency',
+                      currency: 'ILS'
+                    }).format(actualPaidAmount)}
+                  </TableCell>
+                  <TableCell>
+                    {discountAmount > 0 && registration.discountApproved ? (
+                      <span className="font-medium text-[#47474e]">
+                        {Intl.NumberFormat('he-IL', {
+                          style: 'currency',
+                          currency: 'ILS'
+                        }).format(discountAmount)}
+                      </span>
+                    ) : '-'}
+                  </TableCell>
+                  <TableCell>{receiptNumbers || '-'}</TableCell>
+                  <TableCell>
+                    {meetingProgress.current}/{meetingProgress.total}
+                  </TableCell>
+                  <TableCell className={`font-semibold ${getStatusClassName(registration.paymentStatus)}`}>
+                    {registration.paymentStatus}
+                  </TableCell>
+                  <TableCell>
+                    <TableRowActions
+                      registration={registration}
+                      hasPayments={hasPayments}
+                      onAddPayment={onAddPayment}
+                      onDeleteRegistration={onDeleteRegistration}
+                      onEditParticipant={undefined} // Not supported in report view
+                    />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    )}
+  </>;
 };
+
 export default RegistrationsTable;

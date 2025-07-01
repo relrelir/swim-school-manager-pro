@@ -32,13 +32,13 @@ interface ParticipantsDialogsProps {
     amount: number;
     receiptNumber: string;
     paymentDate: string;
-    registrationId?: string; // Add registrationId field
+    registrationId?: string;
   };
   setNewPayment: React.Dispatch<React.SetStateAction<{
     amount: number;
     receiptNumber: string;
     paymentDate: string;
-    registrationId?: string; // Add registrationId field
+    registrationId?: string;
   }>>;
   currentHealthDeclaration: {
     registrationId: string;
@@ -54,7 +54,7 @@ interface ParticipantsDialogsProps {
   } | null>>;
   handleAddParticipant: (e: React.FormEvent) => void;
   handleAddPayment: (e: React.FormEvent) => void;
-  handleApplyDiscount: (amount: number, registrationId?: string) => void; // Update to accept registrationId
+  handleApplyDiscount: (amount: number, registrationId?: string) => void;
 }
 
 const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
@@ -81,27 +81,31 @@ const ParticipantsDialogs: React.FC<ParticipantsDialogsProps> = ({
   return (
     <>
       {/* Add Participant Dialog */}
-      <AddParticipantDialog
-        isOpen={isAddParticipantOpen}
-        onOpenChange={setIsAddParticipantOpen}
-        newParticipant={newParticipant}
-        setNewParticipant={setNewParticipant}
-        registrationData={registrationData}
-        setRegistrationData={setRegistrationData}
-        onSubmit={handleAddParticipant}
-      />
+      {isAddParticipantOpen && (
+        <AddParticipantDialog
+          isOpen={isAddParticipantOpen}
+          onOpenChange={setIsAddParticipantOpen}
+          newParticipant={newParticipant}
+          setNewParticipant={setNewParticipant}
+          registrationData={registrationData}
+          setRegistrationData={setRegistrationData}
+          onSubmit={handleAddParticipant}
+        />
+      )}
 
       {/* Add Payment Dialog */}
-      <AddPaymentDialog
-        isOpen={isAddPaymentOpen}
-        onOpenChange={setIsAddPaymentOpen}
-        currentRegistration={currentRegistration}
-        participants={participants}
-        newPayment={newPayment}
-        setNewPayment={setNewPayment}
-        onSubmit={handleAddPayment}
-        onApplyDiscount={handleApplyDiscount}
-      />
+      {isAddPaymentOpen && currentRegistration && (
+        <AddPaymentDialog
+          isOpen={isAddPaymentOpen}
+          onOpenChange={setIsAddPaymentOpen}
+          currentRegistration={currentRegistration}
+          participants={participants}
+          newPayment={newPayment}
+          setNewPayment={setNewPayment}
+          onSubmit={handleAddPayment}
+          onApplyDiscount={handleApplyDiscount}
+        />
+      )}
 
       {/* Health Declaration Form */}
       {currentHealthDeclaration && (

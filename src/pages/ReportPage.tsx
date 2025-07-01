@@ -7,24 +7,164 @@ import { ReportFilters } from '@/utils/reportFilters';
 import ReportSummaryCards from '@/components/report/ReportSummaryCards';
 import RegistrationsTable from '@/components/report/RegistrationsTable';
 import ReportFiltersComponent from '@/components/report/ReportFilters';
+import ParticipantsDialogs from '@/components/participants/ParticipantsDialogs';
 import { filterRegistrations } from '@/utils/reportFilters';
 import { FileDown, Filter } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
+import { Registration, Participant, HealthDeclaration, Payment } from '@/types';
 
 const ReportPage: React.FC = () => {
-  const { seasons, products, pools, getAllRegistrationsWithDetails } = useData();
+  const { 
+    seasons, 
+    products, 
+    pools, 
+    getAllRegistrationsWithDetails,
+    participants,
+    addPayment,
+    deleteRegistration,
+    applyDiscount,
+    updateParticipant,
+    updateRegistration,
+    getHealthDeclarationForRegistration,
+    addHealthDeclaration
+  } = useData();
+  
   const [filters, setFilters] = useState<ReportFilters>({
     search: '',
     receiptNumber: '',
     seasonId: 'all',
     productId: 'all',
     paymentStatus: 'all',
-    poolId: 'all', // Add pool filter
+    poolId: 'all',
   });
   const [showFilters, setShowFilters] = useState(false);
   
+  // Dialog states for actions
+  const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
+  const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
+  const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
+  const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<{
+    registrationId: string;
+    participantName: string;
+    phone: string;
+    declaration?: HealthDeclaration;
+  } | null>(null);
+  
+  // Payment dialog state
+  const [newPayment, setNewPayment] = useState({
+    amount: 0,
+    receiptNumber: '',
+    paymentDate: new Date().toISOString().slice(0, 10),
+    registrationId: ''
+  });
+  
   const allRegistrations = getAllRegistrationsWithDetails();
   const filteredRegistrations = filterRegistrations(allRegistrations, filters);
+
+  // Handle adding payment
+  const handleAddPayment = (registration: Registration) => {
+    setCurrentRegistration(registration);
+    setNewPayment({
+      amount: 0,
+      receiptNumber: '',
+      paymentDate: new Date().toISOString().slice(0, 10),
+      registrationId: registration.id
+    });
+    setIsAddPaymentOpen(true);
+  };
+
+  // Handle payment submission
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!currentRegistration) return;
+
+    try {
+      await addPayment({
+        registrationId: currentRegistration.id,
+        amount: newPayment.amount,
+        receiptNumber: newPayment.receiptNumber,
+        paymentDate: new Date(newPayment.paymentDate).toISOString(),
+      });
+
+      toast({
+        title: "התשלום נוסף בהצלחה",
+        description: `נוסף תשלום של ${newPayment.amount}₪`,
+      });
+
+      setIsAddPaymentOpen(false);
+      setCurrentRegistration(null);
+      setNewPayment({
+        amount: 0,
+        receiptNumber: '',
+        paymentDate: new Date().toISOString().slice(0, 10),
+        registrationId: ''
+      });
+    } catch (error) {
+      toast({
+        title: "שגיאה בהוספת התשלום",
+        description: "אירעה שגיאה בעת הוספת התשלום",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle discount application
+  const handleApplyDiscount = async (amount: number, registrationId?: string) => {
+    const targetRegistrationId = registrationId || currentRegistration?.id;
+    if (!targetRegistrationId) return;
+
+    try {
+      await applyDiscount(targetRegistrationId, amount);
+      toast({
+        title: "ההנחה הוחלה בהצלחה",
+        description: `הוחלה הנחה של ${amount}₪`,
+      });
+    } catch (error) {
+      toast({
+        title: "שגיאה בהחלת הנחה",
+        description: "אירעה שגיאה בעת החלת ההנחה",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle health form opening
+  const handleOpenHealthForm = async (registrationId: string) => {
+    const registration = allRegistrations.find(reg => reg.id === registrationId);
+    if (!registration) return;
+
+    const participant = participants.find(p => p.id === registration.participantId);
+    if (!participant) return;
+
+    let healthDeclaration = getHealthDeclarationForRegistration(registrationId);
+
+    setCurrentHealthDeclaration({
+      registrationId,
+      participantName: `${participant.firstName} ${participant.lastName}`,
+      phone: participant.phone,
+      declaration: healthDeclaration
+    });
+
+    setIsHealthFormOpen(true);
+  };
+
+  // Handle registration deletion
+  const handleDeleteRegistration = async (registrationId: string) => {
+    try {
+      await deleteRegistration(registrationId);
+      toast({
+        title: "הרישום נמחק בהצלחה",
+        description: "הרישום הוסר מהמערכת",
+      });
+    } catch (error) {
+      toast({
+        title: "שגיאה במחיקת הרישום",
+        description: "אירעה שגיאה בעת מחיקת הרישום",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Handle exporting to CSV
   const handleExport = () => {
@@ -97,9 +237,46 @@ const ReportPage: React.FC = () => {
       
       <div className="bg-white rounded-lg shadow-card">
         <RegistrationsTable 
-          registrations={filteredRegistrations} 
+          registrations={filteredRegistrations}
+          onAddPayment={handleAddPayment}
+          onDeleteRegistration={handleDeleteRegistration}
+          onOpenHealthForm={handleOpenHealthForm}
         />
       </div>
+
+      {/* Action Dialogs */}
+      <ParticipantsDialogs
+        isAddParticipantOpen={false}
+        setIsAddParticipantOpen={() => {}}
+        isAddPaymentOpen={isAddPaymentOpen}
+        setIsAddPaymentOpen={setIsAddPaymentOpen}
+        isHealthFormOpen={isHealthFormOpen}
+        setIsHealthFormOpen={setIsHealthFormOpen}
+        newParticipant={{
+          firstName: '',
+          lastName: '',
+          idNumber: '',
+          phone: '',
+          healthApproval: false,
+        }}
+        setNewParticipant={() => {}}
+        registrationData={{
+          requiredAmount: 0,
+          paidAmount: 0,
+          receiptNumber: '',
+          discountApproved: false,
+        }}
+        setRegistrationData={() => {}}
+        currentRegistration={currentRegistration}
+        participants={participants}
+        newPayment={newPayment}
+        setNewPayment={setNewPayment}
+        currentHealthDeclaration={currentHealthDeclaration}
+        setCurrentHealthDeclaration={setCurrentHealthDeclaration}
+        handleAddParticipant={() => {}}
+        handleAddPayment={handlePaymentSubmit}
+        handleApplyDiscount={handleApplyDiscount}
+      />
     </div>
   );
 };
