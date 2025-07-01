@@ -8,6 +8,7 @@ import ReportSummaryCards from '@/components/report/ReportSummaryCards';
 import RegistrationsTable from '@/components/report/RegistrationsTable';
 import ReportFiltersComponent from '@/components/report/ReportFilters';
 import ParticipantsDialogs from '@/components/participants/ParticipantsDialogs';
+import EditParticipantDialog from '@/components/participants/EditParticipantDialog';
 import { filterRegistrations } from '@/utils/reportFilters';
 import { FileDown, Filter } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
@@ -25,7 +26,8 @@ const ReportPage: React.FC = () => {
     updateRegistration,
     updateParticipant,
     getHealthDeclarationForRegistration,
-    addHealthDeclaration
+    addHealthDeclaration,
+    getPaymentsByRegistration
   } = useData();
   
   const [filters, setFilters] = useState<ReportFilters>({
@@ -41,7 +43,9 @@ const ReportPage: React.FC = () => {
   // Dialog states for actions
   const [isAddPaymentOpen, setIsAddPaymentOpen] = useState(false);
   const [isHealthFormOpen, setIsHealthFormOpen] = useState(false);
+  const [isEditParticipantOpen, setIsEditParticipantOpen] = useState(false);
   const [currentRegistration, setCurrentRegistration] = useState<Registration | null>(null);
+  const [currentParticipant, setCurrentParticipant] = useState<Participant | null>(null);
   const [currentHealthDeclaration, setCurrentHealthDeclaration] = useState<{
     registrationId: string;
     participantName: string;
@@ -133,6 +137,58 @@ const ReportPage: React.FC = () => {
       toast({
         title: "שגיאה בהחלת הנחה",
         description: "אירעה שגיאה בעת החלת ההנחה",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle edit participant
+  const handleEditParticipant = (registration: Registration) => {
+    const participant = participants.find(p => p.id === registration.participantId);
+    if (!participant) return;
+
+    setCurrentRegistration(registration);
+    setCurrentParticipant(participant);
+    setIsEditParticipantOpen(true);
+  };
+
+  // Handle participant update
+  const handleUpdateParticipant = async (
+    participantData: Partial<Participant>,
+    registrationData: Partial<Registration>,
+    paymentsData: Payment[]
+  ) => {
+    if (!currentParticipant || !currentRegistration) return;
+
+    try {
+      // Update participant
+      if (participantData && Object.keys(participantData).length > 0) {
+        await updateParticipant({
+          ...currentParticipant,
+          ...participantData
+        });
+      }
+
+      // Update registration
+      if (registrationData && Object.keys(registrationData).length > 0) {
+        await updateRegistration({
+          ...currentRegistration,
+          ...registrationData
+        });
+      }
+
+      toast({
+        title: "הפרטים עודכנו בהצלחה",
+        description: "פרטי המשתתף והרישום עודכנו",
+      });
+
+      setIsEditParticipantOpen(false);
+      setCurrentParticipant(null);
+      setCurrentRegistration(null);
+    } catch (error) {
+      toast({
+        title: "שגיאה בעדכון הפרטים",
+        description: "אירעה שגיאה בעת עדכון הפרטים",
         variant: "destructive",
       });
     }
@@ -262,6 +318,7 @@ const ReportPage: React.FC = () => {
           onAddPayment={handleAddPayment}
           onDeleteRegistration={handleDeleteRegistration}
           onOpenHealthForm={handleOpenHealthForm}
+          onEditParticipant={handleEditParticipant}
         />
       </div>
 
@@ -297,6 +354,16 @@ const ReportPage: React.FC = () => {
         handleAddParticipant={() => {}}
         handleAddPayment={handlePaymentSubmit}
         handleApplyDiscount={handleApplyDiscount}
+      />
+
+      {/* Edit Participant Dialog */}
+      <EditParticipantDialog
+        isOpen={isEditParticipantOpen}
+        onOpenChange={setIsEditParticipantOpen}
+        registration={currentRegistration}
+        participant={currentParticipant}
+        payments={currentRegistration ? getPaymentsByRegistration(currentRegistration.id) : []}
+        onSave={handleUpdateParticipant}
       />
     </div>
   );

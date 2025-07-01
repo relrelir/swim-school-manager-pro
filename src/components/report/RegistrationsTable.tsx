@@ -10,13 +10,15 @@ interface RegistrationsTableProps {
   onAddPayment: (registration: Registration) => void;
   onDeleteRegistration: (registrationId: string) => void;
   onOpenHealthForm: (registrationId: string) => void;
+  onEditParticipant?: (registration: Registration) => void;
 }
 
 const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
   registrations,
   onAddPayment,
   onDeleteRegistration,
-  onOpenHealthForm
+  onOpenHealthForm,
+  onEditParticipant
 }) => {
   const {
     calculateMeetingProgress,
@@ -151,7 +153,7 @@ const RegistrationsTable: React.FC<RegistrationsTableProps> = ({
                       hasPayments={hasPayments}
                       onAddPayment={onAddPayment}
                       onDeleteRegistration={onDeleteRegistration}
-                      onEditParticipant={undefined} // Not supported in report view
+                      onEditParticipant={onEditParticipant}
                     />
                   </TableCell>
                 </TableRow>
