@@ -266,7 +266,7 @@ export type Database = {
           paidamount: number
           participantid: string
           productid: string
-          receiptnumber: string
+          receiptnumber: string | null
           registrationdate: string
           requiredamount: number
         }
@@ -278,7 +278,7 @@ export type Database = {
           paidamount?: number
           participantid: string
           productid: string
-          receiptnumber: string
+          receiptnumber?: string | null
           registrationdate?: string
           requiredamount: number
         }
@@ -290,7 +290,7 @@ export type Database = {
           paidamount?: number
           participantid?: string
           productid?: string
-          receiptnumber?: string
+          receiptnumber?: string | null
           registrationdate?: string
           requiredamount?: number
         }

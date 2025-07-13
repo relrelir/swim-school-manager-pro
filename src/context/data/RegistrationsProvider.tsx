@@ -86,6 +86,7 @@ export const RegistrationsProvider: React.FC<RegistrationsProviderProps> = ({ ch
 
       if (error) {
         handleSupabaseError(error, 'updating registration');
+        return;
       }
 
       setRegistrations(registrations.map(r => r.id === registration.id ? registration : r));

@@ -119,6 +119,7 @@ export const PaymentsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (error) {
         handleSupabaseError(error, 'updating payment');
+        return;
       }
 
       setPayments(payments.map(p => p.id === payment.id ? payment : p));

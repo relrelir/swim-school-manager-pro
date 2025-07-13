@@ -134,6 +134,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (error) {
         handleSupabaseError(error, 'updating product');
+        return;
       }
 
       setProducts(products.map(p => p.id === id ? product : p));
