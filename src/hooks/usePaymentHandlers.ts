@@ -113,11 +113,13 @@ export const usePaymentHandlers = (
     }
     
     if (targetRegistration) {
-      // Update the registration with discount
+      // Update the registration with discount (no receipt number needed)
       const updatedRegistration: Registration = {
         ...targetRegistration,
         discountApproved: true,
         discountAmount: (targetRegistration.discountAmount || 0) + discountAmount,
+        // Keep existing receiptNumber or set to empty string for discount-only registrations
+        receiptNumber: targetRegistration.receiptNumber || `DISCOUNT-${Date.now()}`,
       };
       
       updateRegistration(updatedRegistration);
