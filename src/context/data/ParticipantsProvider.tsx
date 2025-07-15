@@ -127,7 +127,6 @@ export const ParticipantsProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         if (error) {
           handleSupabaseError(error, 'updating participant');
-          return;
         }
 
         setParticipants(participants.map(p => p.id === id ? participant : p));

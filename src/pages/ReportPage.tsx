@@ -95,6 +95,7 @@ const ReportPage: React.FC = () => {
         description: `נוסף תשלום של ${newPayment.amount}₪`,
       });
 
+      // Close dialog and reset state only on success
       setIsAddPaymentOpen(false);
       setCurrentRegistration(null);
       setNewPayment({
@@ -133,6 +134,10 @@ const ReportPage: React.FC = () => {
         title: "ההנחה הוחלה בהצלחה",
         description: `הוחלה הנחה של ${amount}₪`,
       });
+
+      // Close dialog and reset state only on success
+      setIsAddPaymentOpen(false);
+      setCurrentRegistration(null);
     } catch (error) {
       toast({
         title: "שגיאה בהחלת הנחה",
@@ -182,6 +187,7 @@ const ReportPage: React.FC = () => {
         description: "פרטי המשתתף והרישום עודכנו",
       });
 
+      // Close dialog and reset state only on success
       setIsEditParticipantOpen(false);
       setCurrentParticipant(null);
       setCurrentRegistration(null);

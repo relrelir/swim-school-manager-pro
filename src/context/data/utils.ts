@@ -4,6 +4,7 @@ import { Registration } from "@/types"; // Add the missing import for Registrati
 
 export const handleSupabaseError = (error: any, operation: string) => {
   console.error(`Error ${operation}:`, error);
+  throw error;
 };
 
 // Calculate current meeting based on a product's schedule
