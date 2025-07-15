@@ -4,10 +4,10 @@ import { RegistrationWithDetails, PaymentStatus } from '@/types';
 export interface ReportFilters {
   search: string;
   receiptNumber: string;
-  seasonId: string;
-  productId: string;
-  paymentStatus: string;
-  poolId: string; // Add pool filter
+  seasonId: string[];
+  productId: string[];
+  paymentStatus: string[];
+  poolId: string[];
 }
 
 export const filterRegistrations = (registrations: RegistrationWithDetails[], filters: ReportFilters): RegistrationWithDetails[] => {
@@ -23,25 +23,26 @@ export const filterRegistrations = (registrations: RegistrationWithDetails[], fi
     }
 
     // Season filter
-    if (filters.seasonId !== 'all' && reg.season.id !== filters.seasonId) {
+    if (filters.seasonId.length > 0 && !filters.seasonId.some(id => id === 'all') && !filters.seasonId.includes(reg.season.id)) {
       return false;
     }
 
     // Product filter
-    if (filters.productId !== 'all' && reg.product.id !== filters.productId) {
+    if (filters.productId.length > 0 && !filters.productId.some(id => id === 'all') && !filters.productId.includes(reg.product.id)) {
       return false;
     }
 
     // Pool filter
-    if (filters.poolId !== 'all' && reg.product.poolId !== filters.poolId) {
+    if (filters.poolId.length > 0 && !filters.poolId.some(id => id === 'all') && !filters.poolId.includes(reg.product.poolId || '')) {
       return false;
     }
 
     // Payment status filter
-    if (filters.paymentStatus !== 'all') {
-      if (filters.paymentStatus === 'הנחה' && !reg.discountApproved) {
-        return false;
-      } else if (filters.paymentStatus !== 'הנחה' && reg.paymentStatus !== filters.paymentStatus) {
+    if (filters.paymentStatus.length > 0 && !filters.paymentStatus.some(status => status === 'all')) {
+      const hasDiscount = filters.paymentStatus.includes('הנחה') && reg.discountApproved;
+      const hasMatchingStatus = filters.paymentStatus.includes(reg.paymentStatus);
+      
+      if (!hasDiscount && !hasMatchingStatus) {
         return false;
       }
     }

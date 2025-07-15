@@ -33,10 +33,10 @@ const ReportPage: React.FC = () => {
   const [filters, setFilters] = useState<ReportFilters>({
     search: '',
     receiptNumber: '',
-    seasonId: 'all',
-    productId: 'all',
-    paymentStatus: 'all',
-    poolId: 'all',
+    seasonId: [],
+    productId: [],
+    paymentStatus: [],
+    poolId: [],
   });
   const [showFilters, setShowFilters] = useState(false);
   

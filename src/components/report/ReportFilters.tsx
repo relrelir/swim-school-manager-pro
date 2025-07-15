@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Season, Product, Pool } from '@/types';
 import { ReportFilters } from '@/utils/reportFilters';
+import { MultiSelect, Option } from '@/components/ui/multi-select';
 
 interface ReportFiltersProps {
   filters: ReportFilters;
@@ -14,6 +14,40 @@ interface ReportFiltersProps {
 }
 
 const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({ filters, setFilters, seasons, products, pools }) => {
+  const paymentStatusOptions: Option[] = [
+    { label: "הכל", value: "all" },
+    { label: "מלא", value: "מלא" },
+    { label: "חלקי", value: "חלקי" },
+    { label: "יתר", value: "יתר" },
+    { label: "מלא / הנחה", value: "מלא / הנחה" },
+    { label: "חלקי / הנחה", value: "חלקי / הנחה" },
+    { label: "הנחה", value: "הנחה" },
+  ];
+
+  const seasonOptions: Option[] = [
+    { label: "כל העונות", value: "all" },
+    ...seasons.map(season => ({
+      label: season.name,
+      value: season.id || 'no-id'
+    }))
+  ];
+
+  const productOptions: Option[] = [
+    { label: "כל המוצרים", value: "all" },
+    ...products.map(product => ({
+      label: product.name,
+      value: product.id || 'no-id'
+    }))
+  ];
+
+  const poolOptions: Option[] = [
+    { label: "כל הבריכות", value: "all" },
+    ...pools.map(pool => ({
+      label: pool.name,
+      value: pool.id || 'no-id'
+    }))
+  ];
+
   return (
     <div className="bg-gray-50 p-4 rounded-lg mb-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -37,82 +71,45 @@ const ReportFiltersComponent: React.FC<ReportFiltersProps> = ({ filters, setFilt
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">סטטוס תשלום</label>
-          <Select
-            value={filters.paymentStatus}
-            onValueChange={value => setFilters(prev => ({ ...prev, paymentStatus: value }))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="כל הסטטוסים" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">כל הסטטוסים</SelectItem>
-              <SelectItem value="מלא">מלא</SelectItem>
-              <SelectItem value="חלקי">חלקי</SelectItem>
-              <SelectItem value="יתר">יתר</SelectItem>
-              <SelectItem value="מלא / הנחה">מלא / הנחה</SelectItem>
-              <SelectItem value="חלקי / הנחה">חלקי / הנחה</SelectItem>
-              <SelectItem value="הנחה">הנחה</SelectItem>
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            options={paymentStatusOptions}
+            selected={filters.paymentStatus}
+            onChange={selected => setFilters(prev => ({ ...prev, paymentStatus: selected }))}
+            placeholder="בחר סטטוס תשלום"
+            className="w-full"
+          />
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">עונה</label>
-          <Select
-            value={filters.seasonId}
-            onValueChange={value => setFilters(prev => ({ ...prev, seasonId: value }))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="כל העונות" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">כל העונות</SelectItem>
-              {seasons.map(season => (
-                <SelectItem key={season.id} value={season.id || 'no-id'}>
-                  {season.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            options={seasonOptions}
+            selected={filters.seasonId}
+            onChange={selected => setFilters(prev => ({ ...prev, seasonId: selected }))}
+            placeholder="בחר עונות"
+            className="w-full"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">מוצר</label>
-          <Select
-            value={filters.productId}
-            onValueChange={value => setFilters(prev => ({ ...prev, productId: value }))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="כל המוצרים" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">כל המוצרים</SelectItem>
-              {products.map(product => (
-                <SelectItem key={product.id} value={product.id || 'no-id'}>
-                  {product.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            options={productOptions}
+            selected={filters.productId}
+            onChange={selected => setFilters(prev => ({ ...prev, productId: selected }))}
+            placeholder="בחר מוצרים"
+            className="w-full"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium mb-1">בריכה</label>
-          <Select
-            value={filters.poolId}
-            onValueChange={value => setFilters(prev => ({ ...prev, poolId: value }))}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="כל הבריכות" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">כל הבריכות</SelectItem>
-              {pools.map(pool => (
-                <SelectItem key={pool.id} value={pool.id || 'no-id'}>
-                  {pool.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <MultiSelect
+            options={poolOptions}
+            selected={filters.poolId}
+            onChange={selected => setFilters(prev => ({ ...prev, poolId: selected }))}
+            placeholder="בחר בריכות"
+            className="w-full"
+          />
         </div>
       </div>
     </div>
